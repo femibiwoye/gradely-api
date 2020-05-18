@@ -94,6 +94,8 @@ class SchoolsController extends ActiveController
     $generateSchool = $this->getSchoolType($request['school-type'],$request['format']);
 
     if($generateSchool){
+
+        Yii::info('[Class generated succesfully]');
         return[
             'code' => 200,
             'message' => "Successfully created"
@@ -119,6 +121,7 @@ class SchoolsController extends ActiveController
         }
 
         $classes->validate();
+        Yii::info('[Class generated succesfully] Error:'.$classes->validate().'');
         return $classes;
     }
 
@@ -128,18 +131,20 @@ class SchoolsController extends ActiveController
         //create a method that gets the users bearer token from the header
         // then using the bearer token, get the userid, then use the userid to get to get to get the schoolid
         //then use the schooid to list
-        echo'this is for listing classes';
-        $getAllClasses = classes::find(['school_id' => $this->getSchoolUserId()])->all();
+        $getAllClasses = classes::find()->where(['school_id' => $this->getSchoolUserId()])->all();
+        
 
         if(!empty($getAllClasses)){
 
+            Yii::info('[Class Listing succesful] school_id:'.$this->getSchoolUserId().'');
             return[
                 'code' => 200,
                 'message' => "Succesfull",
-                'date'=> $getAllClasses
+                'data'=> $getAllClasses
             ];
         }
 
+        Yii::info('[Couldnt find any class for this school] school_id:'.$this->getSchoolUserId().'');
         return[
             'code' => 200,
             'message' => "Couldnt find any class for this school"
@@ -148,31 +153,29 @@ class SchoolsController extends ActiveController
 
     public function actionViewClass($id){
 
-        echo'this is for viewing classes'.$id.'';
-
         $getClass = Classes::findOne(['school_id' => $id]);
 
         if(!empty($getClass)){
 
+            Yii::info('[Class view successful] school_id:'.$id.'');
             return[
                 'code' => 200,
-                'message' => "successful",
+                'message' => "Class view successful",
                 'data' => $getClass
             ];
         }
 
+        Yii::info('[Could not find any class with this id under this school] school_id:'.$id.'');
         return[
             'code' => 200,
-            'message' => "Couldnt find any class with this id"
+            'message' => "Could not find any class with this id under this school"
         ];
     }
 
     public function actionUpdateClass($id){
         
         $request = \yii::$app->request->post();
-
-        $getClass = Classes::findOne(['id' => $id]);
-        //$getClass = Classes::find()->where(['id' => $id])->one();
+        $getClass = Classes::find()->where(['id' => $id])->one();
         if(!empty($getClass)){
             
             $getClass->global_class_id = $request['global_class_id'];
@@ -182,12 +185,14 @@ class SchoolsController extends ActiveController
             try{
                 
                 $getClass->save();
+                Yii::info('[Class update successful] school_id:'.$id.'');
                 return[
                     'code' => 200,
-                    'message' => "update succesful"
+                    'message' => "Class update succesful"
                 ];
             }
             catch (Exception $exception){
+                Yii::info('[Class update successful] '.$exception->getMessage());
                 return[
                     'code' => 200,
                     'message' => $exception->getMessage()
@@ -195,6 +200,7 @@ class SchoolsController extends ActiveController
             }
         }
 
+        Yii::info('[class does not exist] Class ID:'.$id);
         return[
             'code' => 200,
             'message' => 'class does not exist'
@@ -209,9 +215,10 @@ class SchoolsController extends ActiveController
 
             try{
                 $getClass->delete();
+                Yii::info('[class delete succesful] Class ID:'.$id);
                 return[
                     'code' => 200,
-                    'message' => "delete succesful"
+                    'message' => "Class delete succesful"
                 ];
             }
             catch (Exception $exception){
@@ -222,6 +229,7 @@ class SchoolsController extends ActiveController
             }
         }
 
+        Yii::info('[class does not exist] Class ID:'.$id);
         return[
             'code' => 200,
             'message' => 'class does not exist'
@@ -427,15 +435,16 @@ class SchoolsController extends ActiveController
             $getParentUserInfoAll = $getParentUserInfo;
         }
 
-        //childreninfo
+        //child/childreninfo
         foreach($getParentchildrenInfos as $getParentchildrenInfo){
 
             $getParentchildrenInfoAll = $getParentchildrenInfo;
         }
 
+        Yii::info('[School parent listing succesful] School ID:'.$this->getSchoolId());
         return[
             'code' => 200,
-            'message' => "Successful",
+            'message' => "School parent listing succesful",
             'data' => [
                 'parent_id' => $getParentUserInfoAll->id,
                 'parent_name' => $getParentUserInfoAll->firstname.' '.$getParentUserInfoAll->lastname,
@@ -446,7 +455,7 @@ class SchoolsController extends ActiveController
                     'child_id' => $getParentchildrenInfoAll->id,
                     'image_url' => $getParentchildrenInfoAll->image
                     //TODO
-                    //also pass child class and parent relationship
+                    //also pass child/children class and parent relationship
                 ]
             ]
         ];

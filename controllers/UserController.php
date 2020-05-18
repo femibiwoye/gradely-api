@@ -48,31 +48,6 @@ use frontend\models\ContactForm;
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $user = User::findIdentity(1);
-
-        echo json_encode(array('status'=>0,'error_code'=>4090,'message'=>'Bad request'),JSON_PRETTY_PRINT);
-        // exit;
-        //below are the three ways of returnig response status and code
-        //Yii::$app->response->statusCode = 419;
-        //throw new \yii\web\HttpException(404, Yii::t('app','Record not found.'));
-        //throw new \yii\web\HttpException(404, 'Record not found.','76');
-
-        //use this to get the rwquest header so you can further get the bearer authorization token
-        //return Yii::$app->request->headers;
-
-       // return $user;
-    }
-
-    public function actionIndex2()
-    {
-        //Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        $user = User::findIdentity(1);
-        //var_dump($user);
-        return $user;
-        //return "chinaka";
-    }
-
-    public function actionP()
-    {
-        echo 'hello chinaka';
+        return json_encode(array('status'=>0,'error_code'=>4090,'message'=>'Bad request'),JSON_PRETTY_PRINT);
     }
 }
