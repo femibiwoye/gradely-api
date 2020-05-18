@@ -203,21 +203,48 @@ class AuthController extends ActiveController
         $model = new User();
         $checkEmailExist = $model->findByLoginDetail($request['email']);
         if(!empty($checkEmailExist)){
+            try{
+                $resetToken = rand(1,100000);
+                //TODO: add password reset url as environment variable
+                $PasswordResetLink = 'https://gradely.com/recover-password/tk?='.$resetToken;
+                $checkEmailExist->password_reset_token = $resetToken;
+                $checkEmailExist->save();
+                Yii::$app->mailer->compose()
+                ->setFrom('Gradely.com')
+                ->setTo($request['email'])
+                ->setSubject('Recover your password on Gradely.com')
+                ->setHtmlBody('
+                
+                    <b>Hello,</b>
 
-            //if the user email exist update the user table by generating a 
-            //password reset token, the reset token should then be added to the url sent to the users email
-            //so when user clicks on the forgot password link the token is compared with whats on the users
-            //password rest token field
-            $response = [
-                'code' => 200,
-                'message' => "Reset Link sent to email",
-                'data' => []
-            ];
-            return $response;
+                    kindly click the link below to recover you password
+                    '.$PasswordResetLink.'
+                
+                ')
+                ->send();
+                //if the user email exist update the user table by generating a 
+                //password reset token, the reset token should then be added to the url sent to the users email
+                //so when user clicks on the forgot password link the token is compared with whats on the users
+                //password rest token field
+                $response = [
+                    'code' => 200,
+                    'message' => "Reset Link sent to email",
+                    'data' => []
+                ];
+                return $response;
+            }
+
+            catch(Exception  $exception){
+
+                $response = [
+                    'code' => 200,
+                    'message' => $exception->getMessage(),
+                ];
+            }
         }
 
         return[
-                'code' => 402,
+                'code' => 200,
                 'message' => "Sorry, i cant find this email"
         ];
     }
