@@ -16,6 +16,7 @@ use app\models\Parents;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\ContentNegotiator;
+use app\helpers\Utility;
 
 
 /**
@@ -458,6 +459,87 @@ class SchoolsController extends ActiveController
                 ]
             ]
         ];
+    }
+
+    public function actionViewUserProfile(){
+
+        $getLoginResponse = Utility::getLoginResponseByBearerToken();
+        if(!empty($getLoginResponse)){
+            return $getLoginResponse;
+        }
+    }
+
+    public function actionEditUserProfile(){
+
+        $request = \yii::$app->request->post();
+
+        try{
+            $getUserInfo = User::findOne(['auth_key' => Utility::getBearerToken()]);
+            $getUserInfo->firstname = $request['firstname'];
+            $getUserInfo->lastname = $request['lastname'];
+            $getUserInfo->phone = $request['phone'];
+            $getUserInfo->email = $request['email'];
+            $getUserInfo->save();
+            Yii::info('School user profile update successful');
+            return[
+                'code' => '200',
+                'message' => 'School user profile update successful'
+            ];
+        }
+        catch(Exception $exception){
+            Yii::info('[School user profile update] Error:'.$exception->message.'');
+            return[
+                'code' => '200',
+                'message' => $exception->message
+            ];
+        }
+    }
+
+    //get schools details from the school table
+    public function actionViewSchoolProfile(){
+
+        $getUserId = Utility::getUserId();
+        $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
+        if(!empty($getUserId)){
+            Yii::info('School profile update successful');
+            return [
+                'code '=> '200',
+                'message '=> 'success',
+                'data '=> $getSchoolInfo
+            ];
+        }
+    }
+
+
+    public function actionEditSchoolProfile(){
+
+        $request = \yii::$app->request->post();
+
+        try{
+            $getSchoolInfo = Schools::findOne(['user_id' => Utility::getUserId()]);
+            $getSchoolInfo->name = $request['name'];
+            $getSchoolInfo->about = $request['about'];
+            $getSchoolInfo->address = $request['address'];
+            $getSchoolInfo->city = $request['city'];
+            $getSchoolInfo->state = $request['state'];
+            $getSchoolInfo->country = $request['country'];
+            $getSchoolInfo->postal_code = $request['postal_code'];
+            $getSchoolInfo->website = $request['website'];
+            $getSchoolInfo->phone = $request['phone'];
+            $getSchoolInfo->school_email = $request['school_email'];
+            $getSchoolInfo->save();
+            return[
+                'code' => '200',
+                'message' => 'update successful'
+            ];
+        }
+        catch(Exception $exception){
+            Yii::info('[School profile update] Error:'.$exception->message.'');
+            return[
+                'code' => '200',
+                //'message' => $exception->message
+            ];
+        }
     }
 
 }

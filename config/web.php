@@ -62,6 +62,10 @@ $config = [
                 'GET schools/classes' => 'schools/list-class',
                 'GET schools/parents' => 'schools/list-parents',
                 'POST invite' => 'invite/index',
+                'GET schools/profile' => 'schools/view-user-profile',
+                'PUT schools/profile' => 'schools/edit-user-profile',
+                'GET schools/school' => 'schools/view-school-profile',
+                'PUT schools/school' => 'schools/edit-school-profile',
             ],
         ],
         
