@@ -7,6 +7,7 @@ use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
+use yii\filters\RateLimitInterface;
  
 /**
  * User model
@@ -39,7 +40,7 @@ use yii\web\IdentityInterface;
  * @property SecurityQuestionAnswer[] $securityQuestionAnswers
  * @property StudentSchool[] $studentSchools
  */
-class User extends ActiveRecord implements IdentityInterface, yii\filters\RateLimitInterface
+class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;

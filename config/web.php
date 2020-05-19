@@ -61,6 +61,7 @@ $config = [
                 'GET schools/classes/<id:\d+>' => 'schools/view-class',
                 'GET schools/classes' => 'schools/list-class',
                 'GET schools/parents' => 'schools/list-parents',
+                'POST invite' => 'invite/index',
             ],
         ],
         

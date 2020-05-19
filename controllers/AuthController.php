@@ -9,7 +9,6 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\Schools;
 use app\models\Login;
-use app\models\ContactForm;
 use app\models\User;
 use app\models\StudentSchool;
 use app\models\SchoolTeachers;
@@ -210,7 +209,7 @@ class AuthController extends ActiveController
                 $checkEmailExist->password_reset_token = $resetToken;
                 $checkEmailExist->save();
                 Yii::$app->mailer->compose()
-                ->setFrom('Gradely.com')
+                ->setFrom('info@gradely.com')
                 ->setTo($request['email'])
                 ->setSubject('Recover your password on Gradely.com')
                 ->setHtmlBody('
@@ -233,10 +232,9 @@ class AuthController extends ActiveController
                 ];
                 return $response;
             }
-
             catch(Exception  $exception){
 
-                $response = [
+                return  [
                     'code' => 200,
                     'message' => $exception->getMessage(),
                 ];
