@@ -66,6 +66,8 @@ $config = [
                 'PUT schools/profile' => 'schools/edit-user-profile',
                 'GET schools/school' => 'schools/view-school-profile',
                 'PUT schools/school' => 'schools/edit-school-profile',
+                'GET schools/calendar' => 'schools/view-school-calendar',
+                'PUT schools/calendar' => 'schools/edit-school-calendar',
             ],
         ],
         
