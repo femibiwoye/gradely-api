@@ -137,42 +137,6 @@ class AuthController extends ActiveController
         $user->auth_key = $user->generateAuthKey();
 
         if ($user->save()) {
-            //if type equals student
-            if($request['type'] == 1){
-                $studentSchool = new StudentSchool();
-                $studentSchool->student_id = $user->id;
-                $studentSchool->school_id = 0;
-                if($studentSchool->save()){
-                    //same response as login is being returned and user is automatically logged in after signup
-                    $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                    return $this->getLoginResponse($Loginmodel);
-                }
-            }
-
-            //if type equals teacher
-            if($request['type'] == 2){
-                $studentSchool = new SchoolTeachers();
-                $studentSchool->teacher_id = $user->id;
-                $studentSchool->school_id = 0;
-                if($studentSchool->save()){
-                    //same response as login is being returned and user is automatically logged in after signup
-                    $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                    return $this->getLoginResponse($Loginmodel);
-                }
-            }
-
-            //if type equals parent
-            if($request['type'] == 3){
-                $parents = new Parents();
-                $parents->parent_id = $user->id;
-                $parents->student_id = 0;
-                if($parents->save()){
-                    //same response as login is being returned and user is automatically logged in after signup
-                    $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                    return $this->getLoginResponse($Loginmodel);
-                }
-            }
-
             //if type equals school
             if($request['type'] == 4){
                 $school = new Schools();
@@ -187,6 +151,10 @@ class AuthController extends ActiveController
                     return $this->getLoginResponse($Loginmodel);
                 }
             }
+
+            //same response as login is being returned and user is automatically logged in after signup
+            $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
+            return $this->getLoginResponse($Loginmodel);
         }
 
         else {
