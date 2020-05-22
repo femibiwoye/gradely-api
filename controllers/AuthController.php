@@ -16,7 +16,7 @@ use app\models\Parents;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\ContentNegotiator;
-
+use app\models\UserProfile;
 
 /**
  * Auth controller
@@ -145,10 +145,25 @@ class AuthController extends ActiveController
                 $school->school_email = $request['email'];
                 $school->contact_role = $request['role'];
                 $school->name = $request['school_name'];
-                if($school->save()){
+
+                try{
+                    $school->save();
+
+                    $userProfile = new UserProfile();
+                    $userProfile->user_id = $user->id;
+                    $userProfile->save();
+                    
                     //same response as login is being returned and user is automatically logged in after signup
                     $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
                     return $this->getLoginResponse($Loginmodel);
+                    
+                }
+                catch(Exceprion $exception){
+
+                    return[
+                        'code' =>'200',
+                        'message' => $exception->message
+                    ];
                 }
             }
 

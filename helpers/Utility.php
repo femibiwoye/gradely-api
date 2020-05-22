@@ -17,15 +17,30 @@ class Utility extends ActiveRecord
     public static function getUserId(){
 
         $getUser = User::findOne(['auth_key' => static::getBearerToken()]);
+
+        if(!empty($getUser)){
+            return $getUser->id;
+        }
+
+        return [
+            'code' => '200',
+            'message' => 'could not get user'
+        ];
         
-        return $getUser->id;
     }
 
     public static function getSchoolName(){
 
         $getSchool = Schools::findOne(['user_id' => static::getSchoolUserId()]);
-        
-        return $getSchool->name;
+
+        if(!empty($getSchool)){
+            return $getSchool->name;
+        }
+
+        return [
+            'code' => '200',
+            'message' => 'could not get school details'
+        ];
     }
 
     public static function getBearerToken(){
@@ -54,5 +69,30 @@ class Utility extends ActiveRecord
                 'expiry' => $tokenExpires,
                 'token' => $authKey
             ];
+    }
+
+    public static function getSchoolUserId(){
+
+        $getUser = User::findOne(['auth_key' => static::getBearerToken()]);
+
+
+        if(!empty($getUser)){
+            return $getUser->id;
+        }
+    }
+
+
+    public static function getSchoolId(){
+
+        $getSchoolId = Schools::find()->where(['user_id' => static::getUserId()])->one();
+
+        if(!empty($getSchoolId)){
+                return $getSchoolId->id;
+        }
+
+        return[
+            'code' => 400,
+            'message' => "Could not get school ID"
+        ];
     }
 }

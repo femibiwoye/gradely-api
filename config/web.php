@@ -68,6 +68,14 @@ $config = [
                 'PUT schools/school' => 'schools/edit-school-profile',
                 'GET schools/calendar' => 'schools/view-school-calendar',
                 'PUT schools/calendar' => 'schools/edit-school-calendar',
+                'GET schools/summaries' => 'schools/summaries',
+                'POST schools/invite/teacher' => 'schools/invite-teacher',
+                'GET schools/invite/teacher/>' => 'schools/get-all-teachers',
+                'GET schools/invite/teacher/<id:\d+>' => 'schools/get-single-teachers',
+                'POST schools/student/add' => 'schools/add-students',
+                'GET schools/student/list-student-class/<id:\d+>' => 'schools/list-students-class',
+                'GET schools/class/details/<id:\d+>' => 'schools/get-class-details',
+                'PUT schools/class/student/change-class/<id:\d+>' => 'schools/change-student-class'
             ],
         ],
         
