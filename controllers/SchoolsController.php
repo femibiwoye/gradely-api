@@ -22,6 +22,8 @@ use app\models\Homeworks;
 use app\models\HomeworkQuestions;
 use app\models\TutorSession;
 use\app\models\UserProfile;
+use\app\models\SchoolCurriculum;
+use\app\models\SchoolClassCurriculum;
 /**
  * Schools controller
  */
@@ -190,14 +192,14 @@ class SchoolsController extends ActiveController
                 $getClass->save();
                 Yii::info('[Class update successful] school_id:'.$id.'');
                 return[
-                    'code' => 200,
+                    'code' => '200',
                     'message' => "Class update succesful"
                 ];
             }
             catch (Exception $exception){
                 Yii::info('[Class update successful] '.$exception->getMessage());
                 return[
-                    'code' => 200,
+                    'code' => '500',
                     'message' => $exception->getMessage()
                 ];
             }
@@ -220,13 +222,13 @@ class SchoolsController extends ActiveController
                 $getClass->delete();
                 Yii::info('[class delete succesful] Class ID:'.$id);
                 return[
-                    'code' => 200,
+                    'code' => '200',
                     'message' => "Class delete succesful"
                 ];
             }
             catch (Exception $exception){
                 return[
-                    'code' => 200,
+                    'code' => '500',
                     'message' => $exception->getMessage()
                 ];
             }
@@ -234,7 +236,7 @@ class SchoolsController extends ActiveController
 
         Yii::info('[class does not exist] Class ID:'.$id);
         return[
-            'code' => 200,
+            'code' => 404,
             'message' => 'class does not exist'
         ];
     }
@@ -408,7 +410,7 @@ class SchoolsController extends ActiveController
         }
 
         return[
-            'code' => 400,
+            'code' => 404,
             'message' => "Could not get school ID"
         ];
     }
@@ -492,7 +494,7 @@ class SchoolsController extends ActiveController
         catch(Exception $exception){
             Yii::info('[School user profile update] Error:'.$exception->message.'');
             return[
-                'code' => '200',
+                'code' => '500',
                 'message' => $exception->message
             ];
         }
@@ -539,7 +541,7 @@ class SchoolsController extends ActiveController
         catch(Exception $exception){
             Yii::info('[School profile update] Error:'.$exception->message.'');
             return[
-                'code' => '200',
+                'code' => '500',
                 //'message' => $exception->message
             ];
         }
@@ -590,7 +592,7 @@ class SchoolsController extends ActiveController
         catch(Exception $exception){
             Yii::info('[School profile calendar update] Error:'.$exception->message.'');
             return[
-                'code' => '200',
+                'code' => '500',
                 //'message' => $exception->message
             ];
         }
@@ -690,7 +692,7 @@ class SchoolsController extends ActiveController
         }
         catch(Exception $exception){
             return[
-                'code' => '200',
+                'code' => '500',
                 'message' => $exception->message
             ];
         }
@@ -757,7 +759,7 @@ class SchoolsController extends ActiveController
                 catch(Exceprion $exception){
 
                     return[
-                        'code' =>'200',
+                        'code' =>'500',
                         'message' => $exception->message
                     ];
                 }
@@ -819,31 +821,276 @@ class SchoolsController extends ActiveController
                 }
                 catch(Exception $exception){
                     return [
-                        'code' => '200',
+                        'code' => '500',
                         'message' => $exception->message
                     ];
                 }
             }
 
             return [
-                'code' => '400',
+                'code' => '404',
                 'message' => 'Student doesnt belong to your school',
             ];
         }
         return [
-            'code' => '400',
+            'code' => '404',
             'message' => 'Student doesnt exist',
         ];
      }
 
      private function checkIfStudentInSchool($studentSchoolId){
 
-            if($studentSchoolId = Utility::getSchoolId()){
-                return true;
-            }
-            else{
-                return false;
-            }
+        if($studentSchoolId = Utility::getSchoolId()){
+            return true;
+        }
+        else{
+            return false;
+        }
      }
 
+    public function actionSettingsUpdateEmail(){
+
+        $request = \yii::$app->request->post();
+        $model = new User();
+        $user = User::findOne(['email'=> $request['email'], 'password' => $model->validatePassword($request['password'])]);
+        if(!empty($user)){
+
+            try{
+                $user->email = $request['email'];
+                $user->save();
+
+                return [
+                    'code' => '200',
+                    'message' => 'Email succesfully updated'
+                ];
+            }
+            catch(Exception $exception){
+                return[
+                    'code' => '500',
+                    'message' => $exception->message
+                ];
+            }
+        }
+        return [
+            'code' => '404',
+            'message' => 'email or password incorrect'
+        ];
+    }
+
+    public function actionSettingsUpdatePassword(){
+
+        $request = \yii::$app->request->post();
+        $model = new User();
+        $user = User::findOne(['email'=> $request['email'], 'password' => $model->validatePassword($request['password'])]);
+        if(!empty($user)){
+
+            try{
+                $user->password = $user->setPassword($request['password']);
+                $user->save();
+
+                return [
+                    'code' => '200',
+                    'message' => 'Password succesfully updated'
+                ];
+            }
+            catch(Exception $exception){
+                return[
+                    'code' => '500',
+                    'message' => $exception->message
+                ];
+            }
+        }
+        return [
+            'code' => '404',
+            'message' => 'email or password incorrect'
+        ];
+    }
+
+    public function actionSettingsDeleteAccount(){
+    
+        $request = \yii::$app->request->post();
+        $model = new User();
+        $user = User::findOne(['user_id' => Utility::getUserId(), 'password' => $model->validatePassword($request['password'])]);
+        if(!empty($user)){
+
+            try{
+                $user->status = 0;
+                $user->auth_key = '';
+                $user->email = $user->email.'-deleted';
+                $user->phone = $user->phone.'-deleted';
+                $user->save();
+
+                return [
+                    'code' => '200',
+                    'message' => 'Password succesfully deleted'
+                ];
+            }
+            catch(Exception $exception){
+                return[
+                    'code' => '500',
+                    'message' => $exception->message
+                ];
+            }
+        }
+    }
+
+    public function actionSettingsListCurriculum(){
+        $getCurriculum = SchoolCurriculum::find()
+                            ->select('school_curriculum.*')
+                            ->leftJoin('exam_type', '`exam_type`.`id` = `school_curriculum`.`curriculum_id`')
+                            ->where(['school_curriculum.school_id' => Utility::getSchoolUserId()])
+                            ->all();
+        if(!empty($getCurriculum)){
+            return[
+                'code' => '200',
+                'message' => 'curriculum listing sucessful',
+                'data' => $getCurriculum
+            ];
+        }
+        return[
+            'code' => '404',
+            'message' => 'couldnt find any curriculum for this school',
+        ];
+    }
+
+    public function actionSettingsUpdateCurriculum(){
+
+        $request = \yii::$app->request->post();
+        $getCurriculum = SchoolCurriculum::find()->where(['school_id' => Utility::getSchoolId()])->all();
+        if(!empty($getCurriculum)){
+
+            try{
+                $getCurriculum->curriculum_id = $request['curriculum_id'];
+                $getCurriculum->save();
+                return[
+                    'code' => '200',
+                    'message' => 'school curriculum successfully updted',
+                ];
+            }
+            catch(Exception $exception){
+
+                return[
+                    'code' => '500',
+                    'message' => $exception->message
+                ];
+            }
+        }
+        return[
+            'code' => '404',
+            'message' => 'couldnt find any curriculum for this school',
+        ];
+    }
+
+    public function actionSettingsRequestNewCurriculum(){
+
+        $request = \yii::$app->request->post();
+
+        try{
+            $sendmMailToAdmin = Yii::$app->mailer->compose()
+                    ->setFrom('info@gradely.com')
+                    ->setTo('support@gradely.ng')
+                    ->setSubject('New Curriculum Sugestion on Gradely.com')
+                    ->setHtmlBody('
+                    
+                        <b>Hello,</b>
+
+                        The curriculum below was suggested
+                        Curriculum Name: '.$request['curriculum'].'
+                        Country: '.$request['country'].'
+                        Comments: '.$request['comments'].'
+                    
+                    ')
+                    ->send();
+
+                    return[
+                        'code' => '200',
+                        'message' => 'Curriculum succesfully requested'
+                    ];
+        }
+        catch( Exception $exception){
+            return[
+                'code' => '200',
+                'message' => $exception->message
+            ];
+        }
+    }
+
+
+    public function actionSettingsListSubjects(){
+
+        $getSubject = SchoolSubject::findOne(['school_id' => Utility::getSchoolId()]);
+        if(!empty($getSubject)){
+            return[
+                'code' => '200',
+                'message' => 'subjects listing sucessful',
+                'data' => $getSubject
+            ];
+        }
+        return[
+            'code' => '404',
+            'message' => 'couldnt find any subject for this school',
+        ];
+    }
+
+    public function actionSettingsUpdateSubject($id){
+
+        $request = \yii::$app->request->post();
+        $getSubject = SchoolSubject::findOne(['school_id' => Utility::getSchoolId(), 'id' => $id]);
+        if(!empty($getSubject)){
+
+            try{
+                $getSubject->subject_id = $request['subject_id'];
+                $getSubject->save();
+                return[
+                    'code' => '200',
+                    'message' => 'school subject successfully updted',
+                ];
+            }
+            catch(Exception $exception){
+
+                return[
+                    'code' => '500',
+                    'message' => $exception->message
+                ];
+            }
+        }
+        return[
+            'code' => '404',
+            'message' => 'couldnt find the particular subject for this school',
+        ];
+    }
+
+    public function actionSettingsRequestNewSubject(){
+
+        $request = \yii::$app->request->post();
+
+        try{
+            $sendmMailToAdmin = Yii::$app->mailer->compose()
+                    ->setFrom('info@gradely.com')
+                    ->setTo('support@gradely.ng')
+                    ->setSubject('New Subject Sugestion on Gradely.com')
+                    ->setHtmlBody('
+                    
+                        <b>Hello,</b>
+
+                        The subject below was suggested
+                        Subject Name: '.$request['curriculum'].'
+                        Country: '.$request['country'].'
+                        Comments: '.$request['comments'].'
+                    
+                    ')
+                    ->send();
+
+                    return[
+                        'code' => '200',
+                        'message' => 'subject succesfully requested'
+                    ];
+        }
+        catch( Exception $exception){
+            return[
+                'code' => '200',
+                'message' => $exception->message
+            ];
+        }
+    }
 }

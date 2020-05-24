@@ -75,7 +75,14 @@ $config = [
                 'POST schools/student/add' => 'schools/add-students',
                 'GET schools/student/list-student-class/<id:\d+>' => 'schools/list-students-class',
                 'GET schools/class/details/<id:\d+>' => 'schools/get-class-details',
-                'PUT schools/class/student/change-class/<id:\d+>' => 'schools/change-student-class'
+                'PUT schools/class/student/change-class/<id:\d+>' => 'schools/change-student-class',
+                'PUT schools/settings/update-email' => 'schools/settings-update-email',
+                'GET schools/settings/curriculum' => 'schools/settings-list-curriculum',
+                'PUT schools/settings/curriculum' => 'schools/settings-update-curriculum',
+                'POST schools/settings/new-curriculum' => 'schools/settings-request-new-curriculum',
+                'GET schools/settings/subject' => 'schools/settings-list-subject',
+                'PUT schools/settings/subject' => 'schools/settings-update-subject',
+                'POST schools/settings/new-subject' => 'schools/settings-request-new-subject'
             ],
         ],
         
