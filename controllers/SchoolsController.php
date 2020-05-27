@@ -496,10 +496,10 @@ class SchoolsController extends ActiveController
             ];
         }
         catch(Exception $exception){
-            Yii::info('[School user profile update] Error:'.$exception->message.'');
+            Yii::info('[School user profile update] Error:'.$exception->getMessage().'');
             return[
                 'code' => '500',
-                'message' => $exception->message
+                'message' => $exception->getMessage()
             ];
         }
     }
@@ -555,10 +555,10 @@ class SchoolsController extends ActiveController
 
         }
         catch(Exception $exception){
-            Yii::info('[School profile update] Error:'.$exception->message.'');
+            Yii::info('[School profile update] Error:'.$exception->getMessage().'');
             return[
                 'code' => '500',
-                //'message' => $exception->message
+                //'message' => $exception->getMessage()
             ];
         }
     }
@@ -616,10 +616,10 @@ class SchoolsController extends ActiveController
             ];
         }
         catch(Exception $exception){
-            Yii::info('[School profile calendar update] Error:'.$exception->message.'');
+            Yii::info('[School profile calendar update] Error:'.$exception->getMessage().'');
             return[
                 'code' => '500',
-                //'message' => $exception->message
+                //'message' => $exception->getMessage()
             ];
         }
     }
@@ -727,7 +727,7 @@ class SchoolsController extends ActiveController
         catch(Exception $exception){
             return[
                 'code' => '500',
-                'message' => $exception->message
+                'message' => $exception->getMessage()
             ];
         }
 
@@ -794,7 +794,7 @@ class SchoolsController extends ActiveController
 
                     return[
                         'code' =>'500',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
         }
@@ -854,7 +854,7 @@ class SchoolsController extends ActiveController
                 catch(Exception $exception){
                     return [
                         'code' => '500',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -892,7 +892,7 @@ class SchoolsController extends ActiveController
                 catch(Exception $exception){
                     return [
                         'code' => '500',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -937,7 +937,7 @@ class SchoolsController extends ActiveController
             catch(Exception $exception){
                 return[
                     'code' => '500',
-                    'message' => $exception->message
+                    'message' => $exception->getMessage()
                 ];
             }
         }
@@ -966,7 +966,7 @@ class SchoolsController extends ActiveController
             catch(Exception $exception){
                 return[
                     'code' => '500',
-                    'message' => $exception->message
+                    'message' => $exception->getMessage()
                 ];
             }
         }
@@ -998,7 +998,7 @@ class SchoolsController extends ActiveController
             catch(Exception $exception){
                 return[
                     'code' => '500',
-                    'message' => $exception->message
+                    'message' => $exception->getMessage()
                 ];
             }
         }
@@ -1041,7 +1041,7 @@ class SchoolsController extends ActiveController
 
                 return[
                     'code' => '500',
-                    'message' => $exception->message
+                    'message' => $exception->getMessage()
                 ];
             }
         }
@@ -1080,7 +1080,7 @@ class SchoolsController extends ActiveController
         catch( Exception $exception){
             return[
                 'code' => '200',
-                'message' => $exception->message
+                'message' => $exception->getMessage()
             ];
         }
     }
@@ -1120,7 +1120,7 @@ class SchoolsController extends ActiveController
 
                 return[
                     'code' => '500',
-                    'message' => $exception->message
+                    'message' => $exception->getMessage()
                 ];
             }
         }
@@ -1159,7 +1159,7 @@ class SchoolsController extends ActiveController
         catch( Exception $exception){
             return[
                 'code' => '200',
-                'message' => $exception->message
+                'message' => $exception->getMessage()
             ];
         }
     }

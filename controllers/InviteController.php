@@ -158,7 +158,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
                 try{
@@ -174,7 +174,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -187,7 +187,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -203,7 +203,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
 
@@ -221,7 +221,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -234,7 +234,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -254,7 +254,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -267,7 +267,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -287,7 +287,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -300,7 +300,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -317,7 +317,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
                 try{
@@ -333,7 +333,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }
@@ -346,7 +346,7 @@ class InviteController extends ActiveController
                 catch(Exception $exception){
                     return[
                         'code' => '200',
-                        'message' => $exception->message
+                        'message' => $exception->getMessage()
                     ];
                 }
             }

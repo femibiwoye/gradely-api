@@ -256,7 +256,7 @@ class ClassesController extends ActiveController
             catch(Exception $exception){
                 return[
                     'code' => '200',
-                    'message' => $exception->message,
+                    'message' => $exception->getMessage(),
                 ];
             }
         }

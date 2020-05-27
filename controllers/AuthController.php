@@ -165,7 +165,7 @@ class AuthController extends ActiveController
 
                         return[
                             'code' =>'200',
-                            'message' => $exception->message
+                            'message' => $exception->getMessage()
                         ];
                     }
                 }
