@@ -417,53 +417,57 @@ class SchoolsController extends ActiveController
 
     public function actionListParents(){
 
-        //get all students 
-        $getAllStudents = StudentSchool::find()->where(['school_id' => Utility::getSchoolId()])->one();
+        //get all parents
+        $getAllParents = Parents::find()
+                ->select('parents.*')
+                ->leftJoin('student_school', '`student_school`.`student_id` = `parents`.`student_id`')
+                ->where(['student_school.school_id' => Utility::getSchoolId()])
+                ->all();
 
-        //get parents
-        $getAllParents = Parents::find()->where(['student_id' => $getAllStudents->student_id])->all();
+        $parentChildren = [];
+        if(!empty($getAllParents)){
+            foreach($getAllParents as $getParent){
 
-        $Parentchildren = [];
-        foreach($getAllParents as $getParent){
+                //get children id from parent
+                $parentChildren = $getParent->student_id;
 
-            //get children id from parent
-            $Parentchildren = $getParent->student_id;
+                $getparentChildrenInfos = User::find()->where(['id' => $getParent->student_id])->all();
+                //get parent info
+                $getParentUserInfos = User::find()->where(['id' => $getParent->parent_id])->all();
+            }
 
-            $getParentchildrenInfos = User::find()->where(['id' => $getParent->student_id])->all();
-            //get parent info
-            $getParentUserInfos = User::find()->where(['id' => $getParent->parent_id])->all();
-        }
+            //parentinfo
+            foreach($getParentUserInfos as $getParentUserInfo){
 
-        //parentinfo
-        foreach($getParentUserInfos as $getParentUserInfo){
+                $getParentUserInfoAll = $getParentUserInfo;
+            }
 
-            $getParentUserInfoAll = $getParentUserInfo;
-        }
+            //child/childreninfo
+            foreach($getparentChildrenInfos as $getparentChildrenInfo){
 
-        //child/childreninfo
-        foreach($getParentchildrenInfos as $getParentchildrenInfo){
+                $getparentChildrenInfoAll = $getparentChildrenInfo;
+            }
 
-            $getParentchildrenInfoAll = $getParentchildrenInfo;
-        }
-
-        Yii::info('[School parent listing succesful] School ID:'.Utility::getSchoolId());
-        return[
-            'code' => 200,
-            'message' => "School parent listing succesful",
-            'data' => [
-                'parent_id' => $getParentUserInfoAll->id,
-                'parent_name' => $getParentUserInfoAll->firstname.' '.$getParentUserInfoAll->lastname,
-                'phone' => $getParentUserInfoAll->phone,
-                'email' => $getParentUserInfoAll->email,
-                'image_url' => $getParentUserInfoAll->image,
-                'children' =>[
-                    'child_id' => $getParentchildrenInfoAll->id,
-                    'image_url' => $getParentchildrenInfoAll->image
-                    //TODO
-                    //also pass child/children class and parent relationship
+            Yii::info('[School parent listing succesful] School ID:'.Utility::getSchoolId());
+            return[
+                'code' => 200,
+                'message' => "School parent listing succesful",
+                'data' => [
+                    'parent_id' => $getParentUserInfoAll->id,
+                    'parent_name' => $getParentUserInfoAll->firstname.' '.$getParentUserInfoAll->lastname,
+                    'phone' => $getParentUserInfoAll->phone,
+                    'email' => $getParentUserInfoAll->email,
+                    'image_url' => $getParentUserInfoAll->image,
+                    'parent_relationship' => $getParentUserInfoAll->role,
+                    'children' =>[
+                        'child_name' => $getparentChildrenInfoAll->firstname.' '.$getparentChildrenInfoAll->lastname,
+                        'image_url' => $getparentChildrenInfoAll->image
+                        //TODO
+                        //also pass child/children class and parent relationship
+                    ]
                 ]
-            ]
-        ];
+            ];
+        }
     }
 
     public function actionViewUserProfile(){
@@ -505,13 +509,17 @@ class SchoolsController extends ActiveController
 
         $getUserId = Utility::getUserId();
         $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
-        if(!empty($getUserId)){
+        if(!empty($getSchoolInfo)){
             return [
                 'code '=> '200',
                 'message '=> 'success',
                 'data '=> $getSchoolInfo
             ];
         }
+        return [
+            'code '=> '200',
+            'message '=> 'School not found'
+        ];
     }
 
 
@@ -521,22 +529,30 @@ class SchoolsController extends ActiveController
 
         try{
             $getSchoolInfo = Schools::findOne(['user_id' => Utility::getUserId()]);
-            $getSchoolInfo->name = $request['name'];
-            $getSchoolInfo->about = $request['about'];
-            $getSchoolInfo->address = $request['address'];
-            $getSchoolInfo->city = $request['city'];
-            $getSchoolInfo->state = $request['state'];
-            $getSchoolInfo->country = $request['country'];
-            $getSchoolInfo->postal_code = $request['postal_code'];
-            $getSchoolInfo->website = $request['website'];
-            $getSchoolInfo->phone = $request['phone'];
-            $getSchoolInfo->school_email = $request['school_email'];
-            $getSchoolInfo->save();
-            Yii::info('School profile update successful');
+            if(!empty($getSchoolInfo)){
+                $getSchoolInfo->name = $request['name'];
+                $getSchoolInfo->about = $request['about'];
+                $getSchoolInfo->address = $request['address'];
+                $getSchoolInfo->city = $request['city'];
+                $getSchoolInfo->state = $request['state'];
+                $getSchoolInfo->country = $request['country'];
+                $getSchoolInfo->postal_code = $request['postal_code'];
+                $getSchoolInfo->website = $request['website'];
+                $getSchoolInfo->phone = $request['phone'];
+                $getSchoolInfo->school_email = $request['school_email'];
+                $getSchoolInfo->save();
+                Yii::info('School profile update successful');
+                return[
+                    'code' => '200',
+                    'message' => 'update successful'
+                ];
+            }
+
             return[
                 'code' => '200',
-                'message' => 'update successful'
+                'message' => 'school not found'
             ];
+
         }
         catch(Exception $exception){
             Yii::info('[School profile update] Error:'.$exception->message.'');
@@ -553,7 +569,7 @@ class SchoolsController extends ActiveController
 
         $getUserId = Utility::getUserId();
         $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
-        if(!empty($getUserId)){
+        if(!empty($getSchoolInfo)){
 
             $getSchoolCalendarInfo = SchoolCalendar::findOne(['school_id' => $getSchoolInfo->id]);
 
@@ -563,6 +579,10 @@ class SchoolsController extends ActiveController
                 'data '=> $getSchoolCalendarInfo
             ];
         }
+        return [
+            'code '=> '200',
+            'message '=> 'school calendar not found'
+        ];
     }
 
 
@@ -572,21 +592,27 @@ class SchoolsController extends ActiveController
         try{
             $getUserId = Utility::getUserId();
             $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
-            $getSchoolCalendarInfo = SchoolCalendar::findOne(['school_id' => $getSchoolInfo->id]);
-            $getSchoolCalendarInfo->session_name = $request['session_name'];
-            $getSchoolCalendarInfo->year = $request['year'];
-            $getSchoolCalendarInfo->first_term_start = $request['first_term_start'];
-            $getSchoolCalendarInfo->first_term_end = $request['first_term_end'];
-            $getSchoolCalendarInfo->second_term_start = $request['second_term_start'];
-            $getSchoolCalendarInfo->second_term_end = $request['second_term_end'];
-            $getSchoolCalendarInfo->third_term_start = $request['third_term_start'];
-            $getSchoolCalendarInfo->third_term_end = $request['third_term_end'];
-            $getSchoolCalendarInfo->status = $request['status'];
-            $getSchoolCalendarInfo->save();
-            Yii::info('School profile calendar update successful');
+            if(!empty($getSchoolInfo)){
+                $getSchoolCalendarInfo = SchoolCalendar::findOne(['school_id' => $getSchoolInfo->id]);
+                $getSchoolCalendarInfo->session_name = $request['session_name'];
+                $getSchoolCalendarInfo->year = $request['year'];
+                $getSchoolCalendarInfo->first_term_start = $request['first_term_start'];
+                $getSchoolCalendarInfo->first_term_end = $request['first_term_end'];
+                $getSchoolCalendarInfo->second_term_start = $request['second_term_start'];
+                $getSchoolCalendarInfo->second_term_end = $request['second_term_end'];
+                $getSchoolCalendarInfo->third_term_start = $request['third_term_start'];
+                $getSchoolCalendarInfo->third_term_end = $request['third_term_end'];
+                $getSchoolCalendarInfo->status = $request['status'];
+                $getSchoolCalendarInfo->save();
+                Yii::info('School profile calendar update successful');
+                return[
+                    'code' => '200',
+                    'message' => 'School profile calendar update successful'
+                ];
+            }
             return[
                 'code' => '200',
-                'message' => 'School profile calendar update successful'
+                'message' => 'school not found'
             ];
         }
         catch(Exception $exception){
@@ -605,51 +631,59 @@ class SchoolsController extends ActiveController
         if(isset($request['startRange']) && isset($request['endRange'])){
             $startRange = $request['startRange'];  $endRange = $request['endRange']; 
         }
-        $allHomeWorkCount = count(Homeworks::find()->where(['school_id' => Utility::getUserId()])->all());
+        $allHomeWorkCount = count(Homeworks::find()->where(['school_id' => Utility::getSchoolUserId()])->all());
         $pastHomework = count(Homeworks::find()
                 ->where([
                     'and',
-                    ['school_id' => Utility::getUserId()],
+                    ['school_id' => Utility::getSchoolUserId()],
                     //['<', ['close_date' => date('Y-m-d H:i:s')]]
                     ['<', 'close_date', date('Y-m-d H:i:s')]
                 ])->all());
-        $activeHomeWork = count(Homeworks::find()->where(['school_id' => Utility::getUserId(),'access_status' => 1])->all());
-        $yetToStartHomeWork = count(Homeworks::find()->where(['school_id' => Utility::getUserId(),'status' => 1])->all());
+        $activeHomeWork = count(Homeworks::find()->where(['school_id' => Utility::getSchoolUserId(),'access_status' => 1])->all());
+        $yetToStartHomeWork = count(Homeworks::find()->where(['school_id' => Utility::getSchoolUserId(),'status' => 1])->all());
         $homeworkRange = count(Homeworks::find()
                 ->where([
                     'and',
-                    ['school_id' => Utility::getUserId()],
+                    ['school_id' => Utility::getSchoolUserId()],
                     //['>=', ['open_date' => date('Y-m-d H:i:s')]],
                     ['>','open_date',date('Y-m-d H:i:s')],
                     //['=<', ['close_date' => date('Y-m-d H:i:s')]]
                     ['<','close_date',date('Y-m-d H:i:s')]
                 ])->all());
-            $liveClassSessions = count(Homeworks::find()->where(['school_id' => Utility::getUserId(),'status' => 2])->all());
-            $pendingSessions = count(TutorSession::find()
-                                    ->select('tutor_session.*')
-                                    ->leftJoin('classes', '`classes`.`id` = `tutor_session`.`class`')
+            $liveClassSessions = count(Classes::find()
+                                    ->select('classes.*')
+                                    ->leftJoin('tutor_session', '`classes`.`id` = `tutor_session`.`class`')
                                     //->where(['classes.school' => 3])
-                                    ->where(['classes.school' => Utility::getUserId()])
-                                    ->where(['tutor_session.is_school' => 1])
-                                    ->where(['tutor_session.status' => 3])
-                                    ->all()
-                                );
-            $ongoingSessions = count(TutorSession::find()
-                                    ->select('tutor_session.*')
-                                    ->leftJoin('classes', '`classes`.`id` = `tutor_session`.`class`')
-                                    //->where(['classes.school' => 3])
-                                    ->where(['classes.school' => Utility::getUserId()])
+                                    ->where(['classes.school_id' => Utility::getSchoolUserId()])
                                     ->where(['tutor_session.is_school' => 1])
                                     ->where(['tutor_session.status' => 2])
                                     ->all()
                                 );
-            $completedSessions = count(TutorSession::find()
-                                    ->select('tutor_session.*')
-                                    ->leftJoin('classes', '`classes`.`id` = `tutor_session`.`class`')
+            $pendingSessions = count(Classes::find()
+                                    ->select('classes.*')
+                                    ->leftJoin('tutor_session', '`classes`.`id` = `tutor_session`.`class`')
                                     //->where(['classes.school' => 3])
-                                    ->where(['classes.school' => Utility::getUserId()])
+                                    ->where(['classes.school_id' => Utility::getSchoolUserId()])
                                     ->where(['tutor_session.is_school' => 1])
                                     ->where(['tutor_session.status' => 1])
+                                    ->all()
+                                );
+            $ongoingSessions = count(Classes::find()
+                                    ->select('classes.*')
+                                    ->leftJoin('tutor_session', '`classes`.`id` = `tutor_session`.`class`')
+                                    //->where(['classes.school' => 3])
+                                    ->where(['classes.school_id' => Utility::getSchoolUserId()])
+                                    ->where(['tutor_session.is_school' => 1])
+                                    ->where(['tutor_session.status' => 2])
+                                    ->all()
+                                );
+            $completedSessions = count(Classes::find()
+                                    ->select('classes.*')
+                                    ->leftJoin('tutor_session', '`classes`.`id` = `tutor_session`.`class`')
+                                    //->where(['classes.school' => 3])
+                                    ->where(['classes.school_id' => Utility::getSchoolUserId()])
+                                    ->where(['tutor_session.is_school' => 1])
+                                    ->where(['tutor_session.status' => 3])
                                     ->all()
                                 );
 
@@ -662,7 +696,7 @@ class SchoolsController extends ActiveController
                     'activeHomeWork' => $activeHomeWork,
                     'yetToStartHomeWork' => $yetToStartHomeWork,
                     'homeworkRange' => $homeworkRange,
-                    'liveClassSessions' => '',
+                    'liveClassSessions' => $liveClassSessions,
                     'pendingSessions' => $pendingSessions,
                     'ongoingSessions' => $ongoingSessions,
                     'completedSessions' => $completedSessions 
@@ -773,8 +807,6 @@ class SchoolsController extends ActiveController
                     ->leftJoin('student_school', '`student_school`.`student_id` = `user`.`id`')
                     ->where(['student_school.class_id' => $id])
                     ->where(['student_school.school_id' => Utility::getSchoolId()])
-                    // ->where(['student_school.class_id' => 7])
-                    // ->where(['student_school.school_id' => 2])
                     ->all();
         return [
             'code' => '200',
@@ -801,8 +833,8 @@ class SchoolsController extends ActiveController
         ];
      }
 
-     public function actionChangeStudentClass($id){
-        
+    public function actionChangeStudentClass($id){
+    
         $request = \yii::$app->request->post();
         $getStudent = StudentSchool::findOne(['student_id' => $id]);
 
@@ -836,7 +868,45 @@ class SchoolsController extends ActiveController
             'code' => '404',
             'message' => 'Student doesnt exist',
         ];
-     }
+    }
+
+
+    public function actionRemoveChildClass($id){
+    
+        $request = \yii::$app->request->post();
+        $getStudent = StudentSchool::findOne(['student_id' => $id]);
+
+        if(!empty($getStudent)){
+
+            if($this->checkIfStudentInSchool($getStudent->school_id) == true){
+
+                try{
+
+                    $getStudent->class_id = "";
+                    $getStudent->save();
+                    return [
+                        'code' => '200',
+                        'message' => 'Student succesfully removed from class'
+                    ];
+                }
+                catch(Exception $exception){
+                    return [
+                        'code' => '500',
+                        'message' => $exception->message
+                    ];
+                }
+            }
+
+            return [
+                'code' => '404',
+                'message' => 'Student doesnt belong to your school',
+            ];
+        }
+        return [
+            'code' => '404',
+            'message' => 'Student doesnt exist',
+        ];
+    }
 
      private function checkIfStudentInSchool($studentSchoolId){
 
@@ -856,7 +926,7 @@ class SchoolsController extends ActiveController
         if(!empty($user)){
 
             try{
-                $user->email = $request['email'];
+                $user->email = $request['new_email'];
                 $user->save();
 
                 return [

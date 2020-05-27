@@ -113,69 +113,80 @@ class AuthController extends ActiveController
     public function actionSignup()
     {
         $request = \yii::$app->request->post();
-        //email is compulsary for everyone but optional for student
-        if($request['type'] != 1 && empty($request['email']))
-            return[
-                'code' => 402,
-                'message' => 'Email cannot be empty'
-            ];
+        $checkUserExist = User::findOne(['email' => $request['email']]);
+        if(empty($checkUserExist)){
+        
+            //email is compulsary for everyone but optional for student
+            if($request['type'] != 1 && empty($request['email']))
+                return[
+                    'code' => 402,
+                    'message' => 'Email cannot be empty'
+                ];
 
-        if($request['type'] != 1 && empty($request['phone']))
-            return[
-                'code' => 402,
-                'message' => 'Phone cannot be empty'
-            ];
+            if($request['type'] != 1 && empty($request['phone']))
+                return[
+                    'code' => 402,
+                    'message' => 'Phone cannot be empty'
+                ];
 
-        $Loginmodel = new Login();
-        $user = new User();
-        $user->firstname = $request['firstname'];
-        $user->lastname = $request['lastname'];
-        $user->email = $request['email'];
-        $user->phone = $request['phone'];
-        $user->setPassword($request['password']);
-        $user->type = $request['type'];
-        $user->auth_key = $user->generateAuthKey();
+            $Loginmodel = new Login();
+            $user = new User();
+            $user->firstname = $request['firstname'];
+            $user->lastname = $request['lastname'];
+            $user->email = $request['email'];
+            $user->phone = $request['phone'];
+            $user->setPassword($request['password']);
+            $user->type = $request['type'];
+            $user->auth_key = $user->generateAuthKey();
 
-        if ($user->save()) {
-            //if type equals school
-            if($request['type'] == 4){
-                $school = new Schools();
-                $school->user_id = $user->id;
-                $school->phone = $request['phone'];
-                $school->school_email = $request['email'];
-                $school->contact_role = $request['role'];
-                $school->name = $request['school_name'];
+            if ($user->save()) {
+                //if type equals school
+                if($request['type'] == 4){
+                    $school = new Schools();
+                    $school->user_id = $user->id;
+                    $school->phone = $request['phone'];
+                    $school->school_email = $request['email'];
+                    $school->contact_role = $request['role'];
+                    $school->name = $request['school_name'];
 
-                try{
-                    $school->save();
+                    try{
+                        $school->save();
 
-                    $userProfile = new UserProfile();
-                    $userProfile->user_id = $user->id;
-                    $userProfile->save();
-                    
-                    //same response as login is being returned and user is automatically logged in after signup
-                    $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                    return $this->getLoginResponse($Loginmodel);
-                    
+                        $userProfile = new UserProfile();
+                        $userProfile->user_id = $user->id;
+                        $userProfile->save();
+                        
+                        //same response as login is being returned and user is automatically logged in after signup
+                        $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
+                        return $this->getLoginResponse($Loginmodel);
+                        
+                    }
+                    catch(Exceprion $exception){
+
+                        return[
+                            'code' =>'200',
+                            'message' => $exception->message
+                        ];
+                    }
                 }
-                catch(Exceprion $exception){
 
-                    return[
-                        'code' =>'200',
-                        'message' => $exception->message
-                    ];
-                }
+                //same response as login is being returned and user is automatically logged in after signup
+                $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
+                return $this->getLoginResponse($Loginmodel);
             }
 
-            //same response as login is being returned and user is automatically logged in after signup
-            $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-            return $this->getLoginResponse($Loginmodel);
+            else {
+                $user->validate();
+                Yii::info('[Login failed] Error:'.$user->validate().'');
+                return $user;
+            }
         }
 
-        else {
-            $user->validate();
-            Yii::info('[Login failed] Error:'.$user->validate().'');
-            return $user;
+        else{
+            return [
+                'code' => '400',
+                'message' => 'email already exist'
+            ];
         }
     }
 

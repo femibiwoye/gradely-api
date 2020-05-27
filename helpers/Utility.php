@@ -53,22 +53,30 @@ class Utility extends ActiveRecord
 
     public static function getLoginResponseByBearerToken(){
             $getUserInfo = User::findOne(['auth_key' => static::getBearerToken()]);
-            $tokenExpires = $getUserInfo->token_expires;
-            $authKey = $getUserInfo->auth_key;
-            //unset fields that shouldnt be part of response returned
-            unset($getUserInfo->auth_key);
-            unset($getUserInfo->password_hash);
-            unset($getUserInfo->password_reset_token);
-            unset($getUserInfo->token);
-            unset($getUserInfo->token_expires);
-            Yii::info('[Login responce generated successfully');
-            return[
-                'code' => 200,
-                'message' => 'Ok',
-                'data' => ['user' => $getUserInfo],
-                'expiry' => $tokenExpires,
-                'token' => $authKey
-            ];
+            if(!empty($getUserInfo)){
+                $tokenExpires = $getUserInfo->token_expires;
+                $authKey = $getUserInfo->auth_key;
+                //unset fields that shouldnt be part of response returned
+                unset($getUserInfo->auth_key);
+                unset($getUserInfo->password_hash);
+                unset($getUserInfo->password_reset_token);
+                unset($getUserInfo->token);
+                unset($getUserInfo->token_expires);
+                Yii::info('[Login responce generated successfully');
+                return[
+                    'code' => 200,
+                    'message' => 'Ok',
+                    'data' => ['user' => $getUserInfo],
+                    'expiry' => $tokenExpires,
+                    'token' => $authKey
+                ];
+            }
+            else{
+                return[
+                    'code' => 200,
+                    'message' => 'invalid bearer token',
+                ];
+            }
     }
 
     public static function getSchoolUserId(){

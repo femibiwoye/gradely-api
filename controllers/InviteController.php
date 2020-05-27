@@ -93,37 +93,46 @@ class InviteController extends ActiveController
         $userId =  Utility::getUserId();
         //get email
         $findUser =  $user->findOne(['id' => $userId]);
+        
+        if(!empty($findUser)){
 
-        $checkEmailExist = $user->findByLoginDetail($findUser->email);
+            $checkEmailExist = $user->findByLoginDetail($findUser->email);
 
-        if(!empty($checkEmailExist)){
-            try{
-                $inviteLog = new InviteLog();
-                $token = rand(1,10000000);
-                //TODO: add confirm-invite url as environment variable
-                $invitationLink = 'https://gradely.com/confirm-invite/tk?='.$token;
-                $inviteLog->receiver_name = $request['receiver_name'];
-                $inviteLog->receiver_email = $request['receiver_email'];
-                $inviteLog->receiver_phone = $request['receiver_phone'];
-                $inviteLog->sender_type = $request['sender_type'];
-                $inviteLog->receiver_type = $request['receiver_type'];
-                $inviteLog->sender_id = $userId;
-                $inviteLog->token = (string) $token;
-                $inviteLog->save();
-                //sender_type e.g school, receiver type e.g parent
-                $this->getInviteEmail($request['sender_type'],$request['receiver_type'],$invitationLink,$request['receiver_email']);
-                return [
-                    'code' => 200,
-                    'data' => $inviteLog
-                ];
-            }
-            catch(Exception  $exception){
+                try{
+                    $inviteLog = new InviteLog();
+                    $token = rand(1,10000000);
+                    //TODO: add confirm-invite url as environment variable
+                    $invitationLink = 'https://gradely.com/confirm-invite/tk?='.$token;
+                    $inviteLog->receiver_name = $request['receiver_name'];
+                    $inviteLog->receiver_email = $request['receiver_email'];
+                    $inviteLog->receiver_phone = $request['receiver_phone'];
+                    $inviteLog->sender_type = $request['sender_type'];
+                    $inviteLog->receiver_type = $request['receiver_type'];
+                    $inviteLog->sender_id = $userId;
+                    $inviteLog->token = (string) $token;
+                    $inviteLog->save();
+                    //sender_type e.g school, receiver type e.g parent
+                   // $this->getInviteEmail($request['sender_type'],$request['receiver_type'],$invitationLink,$request['receiver_email']);
+                    return [
+                        'code' => 200,
+                        'data' => $inviteLog
+                    ];
+                }
+                catch(Exception  $exception){
 
-                return [
-                    'code' => 200,
-                    'message' => $exception->getMessage(),
-                ];
-            }
+                    return [
+                        'code' => 200,
+                        'message' => $exception->getMessage(),
+                    ];
+                }
+        }
+
+        else {
+
+            return [
+                'code' => 200,
+                'message' => 'Invalid user please check bearer token',
+            ];
         }
     }
 
@@ -359,5 +368,6 @@ class InviteController extends ActiveController
         
         ')
         ->send();
+        return;
     }
 }
