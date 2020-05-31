@@ -3,25 +3,16 @@
 namespace app\controllers;
 
 use Yii;
-use yii\filters\AccessControl;
+use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
-use yii\filters\VerbFilter;
-use app\models\Schools;
-use app\models\Login;
-use app\models\User;
-use app\models\StudentSchool;
-use app\models\SchoolTeachers;
-use app\models\Parents;
+use app\models\{Schools,Login,User,StudentSchool,SchoolTeachers,Parents,UserProfile};
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use yii\filters\ContentNegotiator;
-use app\models\UserProfile;
 
 /**
  * Auth controller
  */
-//class SiteController extends Controller
 class AuthController extends ActiveController
 {
     //TODO: for every request check that bearer token supplied is attached to the user

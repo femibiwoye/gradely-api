@@ -3,10 +3,9 @@
 namespace app\controllers;
 
 use Yii;
-use yii\filters\AccessControl;
+use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
-use yii\filters\VerbFilter;
 use app\models\Schools;
 use app\models\Classes;
 use app\models\GlobalClass;
@@ -15,19 +14,11 @@ use app\models\StudentSchool;
 use app\models\Parents;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use yii\filters\ContentNegotiator;
 use app\helpers\Utility;
-use app\models\SchoolCalendar;
-use app\models\Homeworks;
-use app\models\HomeworkQuestions;
-use app\models\TutorSession;
-use\app\models\UserProfile;
-use\app\models\SchoolCurriculum;
-use\app\models\SchoolClassCurriculum;
+use app\models\{SchoolCalendar,Homeworks,HomeworkQuestions,TutorSession,UserProfile,SchoolCurriculum,SchoolClassCurriculum};
 /**
  * Schools controller
  */
-//class SiteController extends Controller
 class SchoolsController extends ActiveController
 {
     public $modelClass = 'api\models\User';

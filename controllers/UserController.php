@@ -3,12 +3,9 @@ namespace app\controllers;
 
 use Yii;
 use yii\web\Controller;
-use yii\filters\VerbFilter;
-use yii\filters\AccessControl;
+use yii\filters\{AccessControl,VerbFilter};
 use yii\rest\ActiveController;
-use app\models\User;
-use app\models\LoginForm;
-use frontend\models\ContactForm;
+use app\models\{User,LoginForm,ContactForm};
 
 
 /**

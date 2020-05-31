@@ -3,27 +3,17 @@
 namespace app\controllers;
 
 use Yii;
-use yii\filters\AccessControl;
+use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
-use yii\filters\VerbFilter;
-use app\models\Schools;
-use app\models\Classes;
-use app\models\GlobalClass;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use yii\filters\ContentNegotiator;
 use app\helpers\Utility;
-use app\models\TeacherClass;
-use app\models\User;
-use app\models\Homeworks;
-use app\models\SchoolTeachers;
-use app\models\TutorSession;
-use app\models\QuizSummary;
+use app\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
+use yii\db\Expression;
 /**
  * Schools controller
  */
-//class SiteController extends Controller
 class ClassesController extends ActiveController
 {
     public $modelClass = 'api\models\User';
@@ -83,13 +73,12 @@ class ClassesController extends ActiveController
           ];
     }
 
-    public function actionListTeachers($id){
+    public function actionListTeachers($id):array{
 
         $getTeachers = User::find()
                             ->select('user.*')
                             ->innerJoin('teacher_class', '`user`.`id` = `teacher_class`.`teacher_id`')
                             ->where(['teacher_class.class_id' => $id])
-                            //->where(['teacher_class.teacher_id' => 'user.id'])
                             ->all();
         if(!empty($getTeachers)){
 
@@ -124,14 +113,12 @@ class ClassesController extends ActiveController
         ];
     }
 
-    public function actionDetailedTeacherProfile($id){
+    public function actionDetailedTeacherProfile($id):array{
 
         $getDetailedTeacherProfile = User::find()
         ->select('user.*')
         ->innerJoin('teacher_class', '`teacher_class`.`teacher_id` = `user`.`id`')
-        //->innerJoin('user', '`user`.`id` = `teacher_class`.`teacher_id`')
         ->where(['teacher_class.teacher_id' => $id])
-        //->where(['teacher_class.teacher_id' => 'user.id'])
         ->one();
 
         $getClasses =   Count(
@@ -163,7 +150,7 @@ class ClassesController extends ActiveController
                         ->all();
 
         $getTeacherUserId = TeacherClass::findOne(['teacher_id' => $id]);
-                    //var_dump($getTeacherUserId->teacher_id); exit;
+
         $userObject ="";
 
         if(!empty($getTeacherUserId)){
@@ -182,7 +169,6 @@ class ClassesController extends ActiveController
         ->limit(5)
         ->all());
 
-        // $topHomeworkPercentage = Homeworks::find()
         $topHomeworkPercentage = QuizSummary::find()
                                     ->select('quiz_summary.*')
                                     ->innerJoin('homeworks', '`quiz_summary`.`teacher_id` = `homeworks`.`teacher_id`')
@@ -205,24 +191,24 @@ class ClassesController extends ActiveController
             'message' => 'teachers succesfully listed',
             'data' =>   [
                             'name' => $getDetailedTeacherProfile->firstname.' '.$getDetailedTeacherProfile->lastname,
-                            'number_classes' => $getClasses,
-                            'live_sessions' => $liveSessions,
-                            'homework' => $homeWorks,
+                            'number_classes' => $getClasses ?? 0,
+                            'live_sessions' => $liveSessions ?? 0,
+                            'homework' => $homeWorks ?? 0,
                             'about' => '',
-                            'classes' =>$classes,
-                            'user' => $userObject,
+                            'classes' =>$classes ?? 0,
+                            'user' => $userObject ?? '',
                             'topHomework' => 
                                 [
-                                'total' => $topHomework,
+                                'total' => $topHomework ?? 0,
                                 'percentage' => $topHomeworkPercentage[0]->total_questions / $topHomeworkPercentage[0]->correct *100
                                 ],
-                            'activitiesDueTodayHomeWork' => $activitiesDueTodayHomeWork,
-                            'activitiesDueTodayClassSession' => $activitiesDueTodayClassSession
+                            'activitiesDueTodayHomeWork' => $activitiesDueTodayHomeWork ?? 0,
+                            'activitiesDueTodayClassSession' => $activitiesDueTodayClassSession ?? 0
                         ]
         ];
     }
 
-    public function actionHomeworkCreatedByTeacher($id){
+    public function actionHomeworkCreatedByTeacher($id):array{
 
         $homeworkCreatedByTeacher = Homeworks::find()->where(['teacher_id' => $id])->all();
 
@@ -240,7 +226,7 @@ class ClassesController extends ActiveController
         ];
     }
 
-    public function actionRemoveTeacherFromClass($id){
+    public function actionRemoveTeacherFromClass($id):array{
 
         $findTeacher = TeacherClass::findOne(['teacher_id' => $id]);
 
@@ -267,4 +253,140 @@ class ClassesController extends ActiveController
         ];
     }
 
+    public function actionHomeworkClassList($id):array{
+        $getAllHomework = Homeworks::find()->where(['class_id' => $id])->all();
+
+        if(!empty($getAllHomework)){
+
+            return [
+
+                'code' => '200',
+                'message' => 'Listing successful',
+                'data' => $getAllHomework
+            ];
+        }
+        else{
+                return [
+    
+                    'code' => '200',
+                    'message' => 'Could not find any homework under this class'
+                ];
+        }
+    }
+
+    public function actionHomeworkPerformance($id):array{
+        
+        $getAllHomeworkPerformance = QuizSummaryDetails::find()
+                            ->select('quiz_summary_details.*')
+                            ->innerJoin('homeworks',  '`quiz_summary_details`.`id` = `homeworks`.`homework_id`')
+                            ->where(['homeworks.class_id' =>$id])
+                            ->limit(30)
+                            ->all();
+
+        if(!empty($getAllHomeworkPerformance)){
+
+            return [
+
+                'code' => '200',
+                'message' => 'Listing successful',
+                'data' => $getAllHomeworkPerformance
+            ];
+        }
+        else{
+                return [
+    
+                    'code' => '200',
+                    'message' => 'Could not find any homework under this class'
+                ];
+        }
+    }
+
+
+    public function actionHomeworkReview($id):array{
+
+        //calculate average
+        $averageClassScores = QuizSummary::find()
+                                 ->where(['class_id' => $id,'submit' => 1])
+                                 //->average('correct')
+                                 ->all();
+
+        $i = 0; $allAverageScores = 0;
+        foreach($averageClassScores as $averageClassScore){
+            $allAverageScores += $averageClassScore->topic_id;
+            $i++;
+        }
+
+        $resultAverageScore = $allAverageScores/$i;
+
+        //calculate best performing topic
+        $bestPerformingTopics = QuizSummary::find()
+                                ->where(['class_id' => $id,'submit' => 1])
+                                ->orderBy(['correct' => SORT_DESC])
+                                ->limit(10)
+                                //->average('correct')
+                                ->all();
+
+
+        $bestPerformingTopicsArray = [];
+        foreach($bestPerformingTopics as $bestPerformingTopic){
+                $bestPerformingTopicsArray[] = $bestPerformingTopic->topic_id;
+        }
+
+        // var_dump($bestPerformingTopicsArray);
+        // exit;
+
+
+        //calculate least performing topic
+        $leastPerformingTopics = QuizSummary::find()
+                                ->where(['class_id' => $id,'submit' => 1])
+                                ->orderBy(['correct' => SORT_ASC])
+                                ->limit(10)
+                                //->average('correct')
+                                ->all();
+
+
+        $leastPerformingTopicsArray = [];
+        foreach($leastPerformingTopics as $leastPerformingTopic){
+                $leastPerformingTopicsArray[] = $leastPerformingTopic->topic_id;
+        }
+
+        //calculate completion rate
+        $completionRate =   Count(
+                                    QuizSummary::find()->where(['class_id' => $id,'submit' => 1])->all()
+                            );
+
+        
+        $getHomeworks = QuizSummary::find()
+                            ->select(' quiz_summary.*')
+                            ->innerJoin('quiz_summary_details', '`quiz_summary_details`.`quiz_id` = `quiz_summary`.`id`')
+                            ->where(['quiz_summary.class_id' => $id])
+                            ->where(['quiz_summary.type' => 1])
+                            ->all();
+
+        $allHomeworkIds = [];                    
+        foreach($getHomeworks as $getHomework){
+            $allHomeworkIds[] = $getHomework->homework_id;
+        }
+
+        $getAllQuestions = [];
+        foreach($allHomeworkIds as $allHomeworkId){
+            $getAllQuestions[] = Questions::find()->where(['homework_id' => $allHomeworkId])->all();
+        }
+
+        $attemptedQuestions = $getAllQuestions;
+
+        return [
+
+            'code' => '200',
+            'message' => 'Listing successful',
+            'data' => 
+            [
+                'averageClassScore' => $resultAverageScore ?? 0,
+                'completionRate' => $completionRate ?? 0,
+                'attemptedQuestions' => $attemptedQuestions ?? 0,
+                'bestPerformingTopic' => $bestPerformingTopicsArray ?? 0,
+                'leastPerformingTopic' => $leastPerformingTopicsArray ?? 0
+            ]
+        ];
+    }
 }

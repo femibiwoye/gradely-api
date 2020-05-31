@@ -87,7 +87,12 @@ $config = [
                 'GET classes/list-teachers/<id:\d+>' => 'classes/list-teachers',
                 'GET classes/detailed-teacher-profile/<id:\d+>' => 'classes/detailed-teacher-profile',
                 'GET classes/homework-created-by-teacher/<id:\d+>' => 'classes/homework-created-by-teacher',
-                'DELETE classes/remove-teacher-from-class/<id:\d+>' => 'classes/remove-teacher-from-class'
+                'DELETE classes/remove-teacher-from-class/<id:\d+>' => 'classes/remove-teacher-from-class',
+                //homework
+                'GET classes/homework-list/<id:\d+>' => 'classes/homework-class-list',
+                'GET classes/homework-performance/<id:\d+>' => 'classes/homework-performance',
+                'GET classes/homework-review/<id:\d+>' => 'classes/homework-review'
+
             ],
         ],
         

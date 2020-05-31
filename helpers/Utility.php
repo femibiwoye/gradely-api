@@ -7,9 +7,7 @@ use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
-use app\models\User;
-use app\models\Schools;
-use app\models\Login;
+use app\models\{User,Schools,Login};
 
 class Utility extends ActiveRecord
 {
