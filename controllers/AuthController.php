@@ -190,21 +190,14 @@ class AuthController extends ActiveController
             try{
                 $resetToken = rand(1,100000);
                 //TODO: add password reset url as environment variable
-                $PasswordResetLink = 'https://gradely.com/recover-password/tk?='.$resetToken;
+                $PasswordResetLink = Yii::$app->params['passwordResetLink'].$resetToken;
                 $checkEmailExist->password_reset_token = $resetToken;
                 $checkEmailExist->save();
                 Yii::$app->mailer->compose()
-                ->setFrom('info@gradely.com')
+                ->setFrom(Yii::$app->params['notificationSentFromEmail'])
                 ->setTo($request['email'])
-                ->setSubject('Recover your password on Gradely.com')
-                ->setHtmlBody('
-                
-                    <b>Hello,</b>
-
-                    kindly click the link below to recover you password
-                    '.$PasswordResetLink.'
-                
-                ')
+                ->setSubject(Yii::$app->params['passwordResetEmailSubject'])
+                ->setHtmlBody(Yii::$app->params['passwordResetEmailBody'].$PasswordResetLink)
                 ->send();
                 //if the user email exist update the user table by generating a 
                 //password reset token, the reset token should then be added to the url sent to the users email

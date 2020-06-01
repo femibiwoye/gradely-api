@@ -95,6 +95,9 @@ $config = [
 
             ],
         ],
+        'GradelyComponent' => [
+            'class' => 'app\components\GradelyComponent',
+        ],
         
     ],
     'params' => $params,

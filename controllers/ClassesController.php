@@ -200,7 +200,8 @@ class ClassesController extends ActiveController
                             'topHomework' => 
                                 [
                                 'total' => $topHomework ?? 0,
-                                'percentage' => $topHomeworkPercentage[0]->total_questions / $topHomeworkPercentage[0]->correct *100
+                                'percentage' => Yii::$app->GradelyComponent->getTopHomeworkPercentage($topHomeworkPercentage[0]->total_questions, $topHomeworkPercentage[0]->correct),
+                                //'percentage' => $topHomeworkPercentage[0]->total_questions / $topHomeworkPercentage[0]->correct *100
                                 ],
                             'activitiesDueTodayHomeWork' => $activitiesDueTodayHomeWork ?? 0,
                             'activitiesDueTodayClassSession' => $activitiesDueTodayClassSession ?? 0
@@ -316,8 +317,9 @@ class ClassesController extends ActiveController
             $i++;
         }
 
-        $resultAverageScore = $allAverageScores/$i;
-
+        if($i != 0){
+            $resultAverageScore = $allAverageScores/$i;
+        }
         //calculate best performing topic
         $bestPerformingTopics = QuizSummary::find()
                                 ->where(['class_id' => $id,'submit' => 1])
@@ -374,6 +376,9 @@ class ClassesController extends ActiveController
         }
 
         $attemptedQuestions = $getAllQuestions;
+
+        // Yii::$app->GradelyComponent->welcome();
+        // exit;
 
         return [
 

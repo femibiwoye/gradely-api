@@ -351,17 +351,10 @@ class InviteController extends ActiveController
     private function getInviteEmail($receiverType,$invitationLink,$receiverEmail){
         $request = \yii::$app->request->post();
         Yii::$app->mailer->compose()
-        ->setFrom('invitation@gradely.com')
+        ->setFrom(Yii::$app->params['invitationSentFromEmail'])
         ->setTo($receiverEmail)
-        ->setSubject('Invitation to signup as a '.$receiverType.' on Gradely.com')
-        ->setHtmlBody('
-        
-            <b>Hello,</b>
-
-            kindly click the link below to register
-            '.$invitationLink.'
-        
-        ')
+        ->setSubject(Yii::$app->params['invitationEmailSubject'])
+        ->setHtmlBody(Yii::$app->params['invitationEmailBody'].$invitationLink)
         ->send();
         return;
     }

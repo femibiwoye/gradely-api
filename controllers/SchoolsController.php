@@ -1048,9 +1048,9 @@ class SchoolsController extends ActiveController
 
         try{
             $sendmMailToAdmin = Yii::$app->mailer->compose()
-                    ->setFrom('info@gradely.com')
-                    ->setTo('support@gradely.ng')
-                    ->setSubject('New Curriculum Sugestion on Gradely.com')
+                    ->setFrom(Yii::$app->params['notificationSentFromEmail'])
+                    ->setTo(Yii::$app->params['adminEmail'])
+                    ->setSubject(Yii::$app->params['newlySugestedCurriculumSubject'])
                     ->setHtmlBody('
                     
                         <b>Hello,</b>
@@ -1127,9 +1127,10 @@ class SchoolsController extends ActiveController
 
         try{
             $sendmMailToAdmin = Yii::$app->mailer->compose()
-                    ->setFrom('info@gradely.com')
-                    ->setTo('support@gradely.ng')
-                    ->setSubject('New Subject Sugestion on Gradely.com')
+
+                    ->setFrom(Yii::$app->params['notificationSentFromEmail'])
+                    ->setTo(Yii::$app->params['adminEmail'])
+                    ->setSubject(Yii::$app->params['newlySugestedSubjectSubject'])
                     ->setHtmlBody('
                     
                         <b>Hello,</b>
