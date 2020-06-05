@@ -7,7 +7,7 @@ use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
 use app\models\{Schools,User,InviteLog};
-use app\helpers\Utility;
+use app\utility\Utility;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -18,10 +18,15 @@ use yii\filters\auth\HttpBearerAuth;
  */
 class InviteController extends ActiveController
 {
-    //TODO: for every request check that bearer token supplied is attached to the user
-
-
     public $modelClass = 'api\models\User';
+
+    private $request; 
+
+    public function beforeAction($action)
+    {
+        $this->request = \yii::$app->request->post();
+        return parent::beforeAction($action);
+    }
     
     /**
      * {@inheritdoc}
@@ -82,7 +87,6 @@ class InviteController extends ActiveController
      */
     public function actionIndex(){
 
-        $request = \yii::$app->request->post();
         $user = new User();
 
         $userId =  Utility::getUserId();
@@ -98,16 +102,16 @@ class InviteController extends ActiveController
                     $token = rand(1,10000000);
                     //TODO: add confirm-invite url as environment variable
                     $invitationLink = 'https://gradely.com/confirm-invite/tk?='.$token;
-                    $inviteLog->receiver_name = $request['receiver_name'];
-                    $inviteLog->receiver_email = $request['receiver_email'];
-                    $inviteLog->receiver_phone = $request['receiver_phone'];
-                    $inviteLog->sender_type = $request['sender_type'];
-                    $inviteLog->receiver_type = $request['receiver_type'];
+                    $inviteLog->receiver_name = $this->request['receiver_name'];
+                    $inviteLog->receiver_email = $this->request['receiver_email'];
+                    $inviteLog->receiver_phone = $this->request['receiver_phone'];
+                    $inviteLog->sender_type = $this->request['sender_type'];
+                    $inviteLog->receiver_type = $this->request['receiver_type'];
                     $inviteLog->sender_id = $userId;
                     $inviteLog->token = (string) $token;
                     $inviteLog->save();
                     //sender_type e.g school, receiver type e.g parent
-                   // $this->getInviteEmail($request['sender_type'],$request['receiver_type'],$invitationLink,$request['receiver_email']);
+                   // $this->getInviteEmail($this->request['sender_type'],$this->request['receiver_type'],$invitationLink,$this->request['receiver_email']);
                     return [
                         'code' => 200,
                         'data' => $inviteLog
@@ -133,11 +137,10 @@ class InviteController extends ActiveController
 
     public function actionValidateInviteToken(){
 
-        $request = \yii::$app->request->post();
         $Loginmodel = new Login();
         $inviteLog = new InviteLog();
         $user = new User();
-        $checkTokenExist = $inviteLog->findOne(['token' => $request['token'],'status' => 0]);
+        $checkTokenExist = $inviteLog->findOne(['token' => $this->request['token'],'status' => 0]);
         if(!empty($checkTokenExist)){
 
             $checkUserExist = User::findOne(['email' => $checkTokenExist->receiver_email]);
@@ -349,7 +352,7 @@ class InviteController extends ActiveController
     }
 
     private function getInviteEmail($receiverType,$invitationLink,$receiverEmail){
-        $request = \yii::$app->request->post();
+        
         Yii::$app->mailer->compose()
         ->setFrom(Yii::$app->params['invitationSentFromEmail'])
         ->setTo($receiverEmail)

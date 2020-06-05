@@ -15,10 +15,15 @@ use yii\filters\auth\HttpBearerAuth;
  */
 class AuthController extends ActiveController
 {
-    //TODO: for every request check that bearer token supplied is attached to the user
-
-
     public $modelClass = 'api\models\User';
+
+    private $request; 
+
+    public function beforeAction($action)
+    {
+        $this->request = \yii::$app->request->post();
+        return parent::beforeAction($action);
+    }
     
     /**
      * {@inheritdoc}
@@ -68,8 +73,6 @@ class AuthController extends ActiveController
             ],
             
           ];
-
-
     }
 
     /**
@@ -103,18 +106,17 @@ class AuthController extends ActiveController
 
     public function actionSignup()
     {
-        $request = \yii::$app->request->post();
-        $checkUserExist = User::findOne(['email' => $request['email']]);
+        $checkUserExist = User::findOne(['email' => $this->request['email']]);
         if(empty($checkUserExist)){
         
             //email is compulsary for everyone but optional for student
-            if($request['type'] != 1 && empty($request['email']))
+            if($this->request['type'] != 1 && empty($this->request['email']))
                 return[
                     'code' => 402,
                     'message' => 'Email cannot be empty'
                 ];
 
-            if($request['type'] != 1 && empty($request['phone']))
+            if($this->request['type'] != 1 && empty($this->request['phone']))
                 return[
                     'code' => 402,
                     'message' => 'Phone cannot be empty'
@@ -122,31 +124,39 @@ class AuthController extends ActiveController
 
             $Loginmodel = new Login();
             $user = new User();
-            $user->firstname = $request['firstname'];
-            $user->lastname = $request['lastname'];
-            $user->email = $request['email'];
-            $user->phone = $request['phone'];
-            $user->setPassword($request['password']);
-            $user->type = $request['type'];
+            $user->firstname = $this->request['firstname'];
+            $user->lastname = $this->request['lastname'];
+            $user->email = $this->request['email'];
+            $user->phone = $this->request['phone'];
+            $user->setPassword($this->request['password']);
+            $user->type = $this->request['type'];
             $user->auth_key = $user->generateAuthKey();
 
             if ($user->save()) {
+
+                try{
+                    $userProfile = new UserProfile();
+                    $userProfile->user_id = $user->id;
+                    $userProfile->save();                
+                }
+                catch(Exceprion $exception){
+    
+                    return[
+                        'code' =>'200',
+                        'message' => $exception->getMessage()
+                    ];
+                }
                 //if type equals school
-                if($request['type'] == 4){
+                if($this->request['type'] == 4){
                     $school = new Schools();
                     $school->user_id = $user->id;
-                    $school->phone = $request['phone'];
-                    $school->school_email = $request['email'];
-                    $school->contact_role = $request['role'];
-                    $school->name = $request['school_name'];
+                    $school->phone = $this->request['phone'];
+                    $school->school_email = $this->request['email'];
+                    $school->contact_role = $this->request['role'];
+                    $school->name = $this->request['school_name'];
 
                     try{
-                        $school->save();
-
-                        $userProfile = new UserProfile();
-                        $userProfile->user_id = $user->id;
-                        $userProfile->save();
-                        
+                        $school->save();                        
                         //same response as login is being returned and user is automatically logged in after signup
                         $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
                         return $this->getLoginResponse($Loginmodel);
@@ -183,9 +193,8 @@ class AuthController extends ActiveController
 
     public function actionForgotPassword(){
 
-        $request = \yii::$app->request->post();
         $model = new User();
-        $checkEmailExist = $model->findByLoginDetail($request['email']);
+        $checkEmailExist = $model->findByLoginDetail($this->request['email']);
         if(!empty($checkEmailExist)){
             try{
                 $resetToken = rand(1,100000);
@@ -195,7 +204,7 @@ class AuthController extends ActiveController
                 $checkEmailExist->save();
                 Yii::$app->mailer->compose()
                 ->setFrom(Yii::$app->params['notificationSentFromEmail'])
-                ->setTo($request['email'])
+                ->setTo($this->request['email'])
                 ->setSubject(Yii::$app->params['passwordResetEmailSubject'])
                 ->setHtmlBody(Yii::$app->params['passwordResetEmailBody'].$PasswordResetLink)
                 ->send();
@@ -227,11 +236,10 @@ class AuthController extends ActiveController
 
     public function actionRecoverPassword(){
 
-        $request = \yii::$app->request->post();
         $user = new User();
-        $checkTokenExist = $user->findOne(['password_reset_token' => $request['token']]);
+        $checkTokenExist = $user->findOne(['password_reset_token' => $this->request['token']]);
         if(!empty($checkTokenExist)){
-            $checkTokenExist->setPassword($request['password']);
+            $checkTokenExist->setPassword($this->request['password']);
             if ($checkTokenExist->save()) {
                 return[
                     'code' => 200,

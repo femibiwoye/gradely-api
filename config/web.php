@@ -54,6 +54,7 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'POST auth/signup' => 'auth/signup',
                 'POST schools/generate-class' => 'schools/generate-class',
                 'POST schools/classes' => 'schools/create-class',
                 'PUT schools/classes/<id:\d+>' => 'schools/update-class',
@@ -89,9 +90,9 @@ $config = [
                 'GET classes/homework-created-by-teacher/<id:\d+>' => 'classes/homework-created-by-teacher',
                 'DELETE classes/remove-teacher-from-class/<id:\d+>' => 'classes/remove-teacher-from-class',
                 //homework
-                'GET classes/homework-list/<id:\d+>' => 'classes/homework-class-list',
-                'GET classes/homework-performance/<id:\d+>' => 'classes/homework-performance',
-                'GET classes/homework-review/<id:\d+>' => 'classes/homework-review'
+                'POST adaptivity/homework>' => 'adaptivity/homework',
+                'GET classes/homework-performance/<id:\d+>' => 'adaptivity/homework-performance',
+                'GET classes/homework-review/<id:\d+>' => 'adaptivity/homework-review'
 
             ],
         ],
