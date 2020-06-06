@@ -12,7 +12,7 @@ use app\utility\Utility;
 use app\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
 use yii\db\Expression;
 /**
- * Schools controller
+ * Class controller
  */
 class ClassesController extends ActiveController
 {

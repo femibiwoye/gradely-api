@@ -14,7 +14,7 @@ use yii\filters\auth\HttpBearerAuth;
 
 
 /**
- * Auth controller
+ * Invite controller
  */
 class InviteController extends ActiveController
 {
@@ -352,7 +352,7 @@ class InviteController extends ActiveController
     }
 
     private function getInviteEmail($receiverType,$invitationLink,$receiverEmail){
-        
+
         Yii::$app->mailer->compose()
         ->setFrom(Yii::$app->params['invitationSentFromEmail'])
         ->setTo($receiverEmail)
