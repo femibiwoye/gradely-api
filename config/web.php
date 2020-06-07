@@ -4,17 +4,30 @@ $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
 $config = [
-    'id' => 'basic',
+    'id' => 'gradely',
+    'name' => 'gradely',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
+    ],
+    'modules' => [
+        'v1' => [
+            'class' => 'app\modules\v1\Module',
+        ],
     ],
     'components' => [
+        // ? This is global content negotiation. Instead, i included it top module base| Modules.php
+//        'response' => [
+//            'format' => \yii\web\Response::FORMAT_JSON
+//        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'ClFWPll1Nwe_IJPF2jPppZG520Bqq2YI',
+            // Because we are building stateless API, we have to disable cookie
+            //'cookieValidationKey' => 'ClFWPll1Nwe_IJPF2jPppZG520Bqq2YI',
+            'enableCookieValidation' => false,
+            'enableCsrfValidation' => false,
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ]
@@ -49,7 +62,7 @@ $config = [
             ],
         ],
         'db' => $db,
-        
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
@@ -96,9 +109,9 @@ $config = [
             ],
         ],
         'GradelyComponent' => [
-            'class' => 'app\components\GradelyComponent',
+            'class' => 'app\modules\v1\components\GradelyComponent',
         ],
-        
+
     ],
     'params' => $params,
 ];
