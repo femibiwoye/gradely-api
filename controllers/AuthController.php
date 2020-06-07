@@ -66,18 +66,6 @@ class AuthController extends ActiveController
             ],
         ];
 
-// !! I have declared the negotiator globally
-//        return [
-//            [
-//              'class' => \yii\ filters\ ContentNegotiator::className(),
-//              'formats' => [
-//                'application/json' => \yii\ web\ Response::FORMAT_JSON,
-//              ],
-//            ],
-//
-//          ];
-
-
     }
 
     /**

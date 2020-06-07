@@ -25,8 +25,6 @@ use app\models\{User,LoginForm,ContactForm};
             'formats' => [
               'application/json' => \yii\ web\ Response::FORMAT_JSON,
             ],
-
-
           ],
           
         ];

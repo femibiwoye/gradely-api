@@ -11,4 +11,15 @@ class GradelyComponent extends Component
     return $topHomeworkPercentageTotal_questions/ $topHomeworkPercentageCorrect *100;
 
   }
+
+  public function getHomeworkAdaptivityCalculation($checkStudentHomeworkActivities){
+
+    $storeAll = [];
+    foreach($checkStudentHomeworkActivities as $checkStudentHomeworkActivity){
+      $storeAll[] = $checkStudentHomeworkActivity->answer;
+    }
+    
+    return $storeAll;
+
+  }
 }

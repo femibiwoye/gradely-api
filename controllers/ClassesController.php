@@ -8,15 +8,23 @@ use yii\web\Controller;
 use yii\web\Response;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use app\helpers\Utility;
+use app\utility\Utility;
 use app\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
 use yii\db\Expression;
 /**
- * Schools controller
+ * Class controller
  */
 class ClassesController extends ActiveController
 {
     public $modelClass = 'api\models\User';
+
+    private $request; 
+
+    public function beforeAction($action)
+    {
+        $this->request = \yii::$app->request->post();
+        return parent::beforeAction($action);
+    }
     
     /**
      * {@inheritdoc}
