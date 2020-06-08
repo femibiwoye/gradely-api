@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v1\controllers;
+namespace app\modules\v1\school\controllers;
 
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
@@ -19,7 +19,7 @@ class AuthController extends ActiveController
     //TODO: for every request check that bearer token supplied is attached to the user
 
 
-    public $modelClass = 'api\models\User';
+    public $modelClass = 'api\v1\models\User';
 
 
     /**
