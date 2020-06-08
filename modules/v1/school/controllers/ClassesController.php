@@ -25,15 +25,15 @@ class ClassesController extends ActiveController
     public function behaviors()
     {
         return [
-            [
-              'class' => \yii\filters\ContentNegotiator::className(),
-              //'only' => ['index', 'view'],
-              'formats' => [
-                'application/json' => \yii\web\Response::FORMAT_XML,
-              ],
+            // [
+            //   'class' => \yii\filters\ContentNegotiator::className(),
+            //   //'only' => ['index', 'view'],
+            //   'formats' => [
+            //     'application/json' => \yii\web\Response::FORMAT_XML,
+            //   ],
   
   
-            ],
+            // ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),

@@ -14,13 +14,10 @@ use yii\filters\auth\HttpBearerAuth;
 
 
 /**
- * Auth controller
+ * Invite controller
  */
 class InviteController extends ActiveController
 {
-    //TODO: for every request check that bearer token supplied is attached to the user
-
-
     public $modelClass = 'api\models\User';
     
     /**

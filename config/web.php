@@ -67,6 +67,7 @@ $config = [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                'POST auth/login' => 'auth/login',
                 'POST auth/signup' => 'auth/signup',
                 'POST schools/generate-class' => 'schools/generate-class',
                 'POST schools/classes' => 'schools/create-class',

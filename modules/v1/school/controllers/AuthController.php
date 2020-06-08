@@ -30,20 +30,10 @@ class AuthController extends ActiveController
     public function behaviors()
     {
         return [
-            // ?I have declared it globally.
-//            [
-//                'class' => \yii\filters\ContentNegotiator::className(),
-//                //'only' => ['index', 'view'],
-//                'formats' => [
-//                    'application/json' => \yii\web\Response::FORMAT_JSON,
-//                ],
-//            ],
-
-        //This validate the type of request each action should support.
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
-                    'login' => ['post'],
+                    //'login' => ['post'],
                 ],
             ],
 
@@ -69,18 +59,6 @@ class AuthController extends ActiveController
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
-
-// !! I have declared the negotiator globally
-//        return [
-//            [
-//              'class' => \yii\ filters\ ContentNegotiator::className(),
-//              'formats' => [
-//                'application/json' => \yii\ web\ Response::FORMAT_JSON,
-//              ],
-//            ],
-//
-//          ];
-
 
     }
 
@@ -270,7 +248,7 @@ class AuthController extends ActiveController
         return [
             'code' => 200,
             'message' => 'Ok',
-            'data' => ['user' => $model->getUser()],
+            'data' => $model->getUser(),
             'expiry' => $tokenExpires,
             'token' => $authKey
         ];

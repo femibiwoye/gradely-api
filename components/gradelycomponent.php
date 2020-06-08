@@ -72,6 +72,10 @@ class GradelyComponent extends Component
 
         //$queryLimit= ['easy' => 2,'medium' => 3,'hard' => 2];
         return ($this->percentageScore*30) / 100 ;
+  }
 
+  public function moveToNextTopic(){
+
+    
   }
 }
