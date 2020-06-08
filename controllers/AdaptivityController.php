@@ -74,7 +74,7 @@ class AdaptivityController extends ActiveController
         ];
     }
 
-    public function actionHomework(){
+    public function actionHomework():array{
 
         if($this->request['adaptivity_type'] == 'homework'){
             //check questions summary table to view performance of student
@@ -99,7 +99,7 @@ class AdaptivityController extends ActiveController
                 ->limit(10)
                 ->all();
 
-                $selectMediumQuestions = QuizSummaryDetails::find()
+                $selectHardQuestions = QuizSummaryDetails::find()
                 ->select('quiz_summary_details.*')
                 ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
                 ->where(['homework_questions.difficulty' => 3])
@@ -108,17 +108,94 @@ class AdaptivityController extends ActiveController
             }
 
             elseif(!empty($checkStudentTakenAnyHomework)){
+                
+                $checkStudentHomeworkPerformanceEasy = count(QuizSummaryDetails::find()
+                ->select('quiz_summary_details.*')
+                ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
+                ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
+                ->where(['homework_questions.difficulty' => 1])
+                ->limit(10)
+                ->all());
+                $totalFailedEasy = $checkStudentHomeworkPerformanceEasy - 10;
 
-                $checkStudentHomeworkActivity = QuizSummaryDetails::find()
-                                                ->select('quiz_summary_details.*')
-                                                ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
-                                                ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
-                                                ->limit(5)
-                                                ->all();
+                $checkStudentHomeworkPerformanceMedium = count(QuizSummaryDetails::find()
+                ->select('quiz_summary_details.*')
+                ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
+                ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
+                ->where(['homework_questions.difficulty' => 2])
+                ->limit(10)
+                ->all());
+                $totalFailedMedium = $checkStudentHomeworkPerformanceMedium - 10;
+
+                $checkStudentHomeworkPerformanceHard = count(QuizSummaryDetails::find()
+                ->select('quiz_summary_details.*')
+                ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
+                ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
+                ->where(['homework_questions.difficulty' => 3])
+                ->limit(10)
+                ->all());
+                $totalFailedHard  = $checkStudentHomeworkPerformanceHard - 10;
+
+                //next set of questions to send
+
+                $numberQuestionsAdded = Yii::$app->GradelyComponent->getPercentageForNextQuestion($totalFailedEasy, $totalFailedMedium, $totalFailedHard);
+                //if result returned is a valid array in order words if it has any valid result
+                if(is_array($numberQuestionsAdded)){
+
+                    foreach($numberQuestionsAdded as $key => $value){
+                        $splitDifficulty = $value;
+                    }
+
+                    //next set of hard questions
+                    $hardLimit = 10 + $splitDifficulty['hard'];
+                    $getNewSetHardHomework = QuizSummaryDetails::find()
+                    ->select('quiz_summary_details.*')
+                    ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
+                    ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
+                    ->where(['homework_questions.difficulty' => 1])
+                    ->limit($hardLimit)
+                    ->all();
+
+                    //next set of medium questions
+                    $mediumimit = 10 + $splitDifficulty['medium'];
+                    $getNewSetMediumHomework = QuizSummaryDetails::find()
+                    ->select('quiz_summary_details.*')
+                    ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
+                    ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
+                    ->where(['homework_questions.difficulty' => 2])
+                    ->limit($mediumimit)
+                    ->all();
+
+                    //next set of easy questions
+                    $easyLimit = 10 + $splitDifficulty['easy'];
+                    $getNewSetEasyHomework = QuizSummaryDetails::find()
+                    ->select('quiz_summary_details.*')
+                    ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
+                    ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
+                    ->where(['homework_questions.difficulty' => 3])
+                    ->limit($easyLimit)
+                    ->all();
+
+                    return [
+
+                        'hardQuestions' => $getNewSetHardHomework,
+                        'mediumQuestions' => $getNewSetMediumHomework,
+                        'easyQuestions' => $getNewSetEasyHomework
+                    ];
+                }
+
+                return[
+
+                    'code' => '200',
+                    'message' => 'No result returned from component'
+
+                ];
             }
 
-            //var_dump($checkStudentHomeworkActivity); exit;
-            return Yii::$app->GradelyComponent->getHomeworkAdaptivityCalculation($checkStudentHomeworkActivity);
+            return[
+                'code' => '500',
+                'message' => 'something went wrong'
+            ];
         }
     }
 }
