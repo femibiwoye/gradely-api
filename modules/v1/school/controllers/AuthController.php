@@ -33,7 +33,11 @@ class AuthController extends ActiveController
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
-                    //'login' => ['post'],
+                    'login' => ['post'],
+                    'logout' => ['post'],
+                    'signup' => ['post'],
+                    'forgot-password' => ['post'],
+                    'recover-password' => ['post'],
                 ],
             ],
 
