@@ -1,4 +1,5 @@
 version: '2'
+
 services:
   php:
     image: yiisoftware/yii2-php:7.1-apache

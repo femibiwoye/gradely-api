@@ -1,3 +1,11 @@
+/yii
+/yii.bat
+/yii_test
+/yii_test.bat
+config/db.php
+composer.lock
+runtime
+
 # phpstorm project files
 .idea
 
@@ -31,4 +39,4 @@ tests/_support/_generated
 
 #vagrant folder
 /.vagrant
-config/db.php
+
