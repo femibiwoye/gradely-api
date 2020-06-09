@@ -46,8 +46,7 @@ class SignupController extends ActiveController
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
-                'only' => ['index'],
-                'only' => ['validate-invite-token'],
+                'only' => ['index']
             ],
         ];
     }
@@ -67,19 +66,6 @@ class SignupController extends ActiveController
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
-
-
-        return [
-            [
-              'class' => \yii\ filters\ ContentNegotiator::className(),
-              'formats' => [
-                'application/json' => \yii\ web\ Response::FORMAT_JSON,
-              ],
-            ],
-            
-          ];
-
-
     }
 
     /**

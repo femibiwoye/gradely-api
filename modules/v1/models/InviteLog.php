@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace app\modules\v1\models;
 
 use Yii;
 
@@ -23,6 +23,10 @@ use Yii;
  */
 class InviteLog extends \yii\db\ActiveRecord
 {
+
+    const SCENARIO_INVITE = 'invite';
+    const SCENARIO_VALIDATE_INVITE_TOKEN ='validate_invite_token';
+
     /**
      * {@inheritdoc}
      */
@@ -37,7 +41,7 @@ class InviteLog extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['receiver_email', 'receiver_type', 'sender_type', 'sender_id', 'token'], 'required'],
+            //[['receiver_email', 'receiver_type', 'sender_type', 'sender_id', 'token'], 'required'],
             [['receiver_class', 'receiver_subject', 'sender_id', 'status'], 'integer'],
             [['extra_data'], 'string'],
             [['created_at'], 'safe'],
@@ -45,6 +49,8 @@ class InviteLog extends \yii\db\ActiveRecord
             [['receiver_type', 'sender_type'], 'string', 'max' => 20],
             [['receiver_phone'], 'string', 'max' => 50],
             [['token'], 'string', 'max' => 200],
+            [['receiver_name','receiver_email','receiver_phone','receiver_type','sender_type'], 'required', 'on' => self::SCENARIO_INVITE],
+            [['token'], 'required', 'on' => self::SCENARIO_VALIDATE_INVITE_TOKEN],
         ];
     }
 
