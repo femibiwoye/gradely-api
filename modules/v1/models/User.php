@@ -78,8 +78,6 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return [
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
-            //[['type', 'auth_key', 'password_hash', 'created_at', 'updated_at'], 'required'],
-            //[['password_hash', 'auth_key', 'type'], 'required'],
             [['type', 'subscription_plan', 'oauth_provider'], 'string'],
             [['class', 'status', 'created_at', 'updated_at'], 'integer'],
             [['subscription_expiry', 'token_expires', 'last_accessed'], 'safe'],
