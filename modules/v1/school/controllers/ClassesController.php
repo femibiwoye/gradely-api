@@ -22,6 +22,14 @@ class ClassesController extends ActiveController
      * {@inheritdoc}
      */
 
+    private $request;
+
+    public function beforeAction($action)
+    {
+        $this->request = \yii::$app->request->post();
+        return parent::beforeAction($action);
+    }
+
     public function behaviors()
     {
         return [

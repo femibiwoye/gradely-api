@@ -33,8 +33,8 @@ use app\modules\v1\models\{User,LoginForm,ContactForm};
       }
 
     //use this to overide the default action methods,
-    //wuthouth this the actionIndex in this class wont be picked rather 
-    //it will pick he default action
+    //without this the actionIndex in this class wont be picked rather 
+    //it will pick the default action
     public function actions() {
         $actions = parent::actions();
         unset($actions['index']);

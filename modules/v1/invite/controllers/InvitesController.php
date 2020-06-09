@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v1\controllers;
+namespace app\modules\v1\invite\controllers;
 
 use Yii;
 use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
@@ -14,7 +14,7 @@ use yii\filters\auth\HttpBearerAuth;
 /**
  * Invite controller
  */
-class InviteController extends ActiveController
+class InvitesController extends ActiveController
 {
     public $modelClass = 'api\v1\models\User';
 
@@ -84,7 +84,12 @@ class InviteController extends ActiveController
      *
      * @return Response|string
      */
-    public function actionIndex(){
+
+    public function actionTest(){
+
+      echo'just testing';
+    }
+    public function actionIndex2(){
 
         $user = new User();
 

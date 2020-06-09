@@ -6,12 +6,6 @@ use Yii;
 use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
-use app\modules\v1\models\Schools;
-use app\modules\v1\models\Classes;
-use app\modules\v1\models\GlobalClass;
-use app\modules\v1\models\User;
-use app\modules\v1\models\StudentSchool;
-use app\modules\v1\models\Parents;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 use app\helpers\Utility;
@@ -22,6 +16,14 @@ use app\modules\v1\models\{SchoolCalendar,Homeworks,HomeworkQuestions,TutorSessi
 class SchoolsController extends ActiveController
 {
     public $modelClass = 'api\models\User';
+
+    private $request;
+
+    public function beforeAction($action)
+    {
+        
+        return parent::beforeAction($action);
+    }
     
     /**
      * {@inheritdoc}
@@ -81,13 +83,12 @@ class SchoolsController extends ActiveController
 
     public function actionGenerateClass(){
 
-    $request = \yii::$app->request->post();
     //$this->getSchoolType('primary','grade 1-12');
     //$this->getSchoolType('secondary','grade 1-12');
     //$this->getSchoolType('primary','year 1-12');
     //$this->getSchoolType('secondary','year 1-12');
     //$this->getSchoolType('primary-secondary','year 1-12');
-    $generateSchool = $this->getSchoolType($request['school-type'],$request['format']);
+    $generateSchool = $this->getSchoolType($this->request['school-type'],$this->request['format']);
 
     if($generateSchool){
 
@@ -102,11 +103,11 @@ class SchoolsController extends ActiveController
     public function actionCreateClass(){
 
         $classes = new Classes();
-        $classes->school_id = $request['school_id'];
-        $classes->global_class_id = $request['global_class_id'];
-        $classes->class_name = $request['class_name'];
-        $classes->class_code = $request['class_code'];
-        $classes->slug = \yii\helpers\Inflector::slug($request['class_name']);
+        $classes->school_id = $this->request['school_id'];
+        $classes->global_class_id = $this->request['global_class_id'];
+        $classes->class_name = $this->request['class_name'];
+        $classes->class_code = $this->request['class_code'];
+        $classes->slug = \yii\helpers\Inflector::slug($this->request['class_name']);
         $classes->abbreviation = $this->abreviate($classes->slug);
 
         if ($classes->save()) {
@@ -169,14 +170,13 @@ class SchoolsController extends ActiveController
     }
 
     public function actionUpdateClass($id){
-        
-        $request = \yii::$app->request->post();
+
         $getClass = Classes::find()->where(['id' => $id])->one();
         if(!empty($getClass)){
             
-            $getClass->global_class_id = $request['global_class_id'];
-            $getClass->class_name = $request['class_name'];
-            $getClass->abbreviation = $request['class_code'];
+            $getClass->global_class_id = $this->request['global_class_id'];
+            $getClass->class_name = $this->request['class_name'];
+            $getClass->abbreviation = $this->request['class_code'];
 
             try{
                 
@@ -471,14 +471,12 @@ class SchoolsController extends ActiveController
 
     public function actionEditUserProfile(){
 
-        $request = \yii::$app->request->post();
-
         try{
             $getUserInfo = User::findOne(['auth_key' => Utility::getBearerToken()]);
-            $getUserInfo->firstname = $request['firstname'];
-            $getUserInfo->lastname = $request['lastname'];
-            $getUserInfo->phone = $request['phone'];
-            $getUserInfo->email = $request['email'];
+            $getUserInfo->firstname = $this->request['firstname'];
+            $getUserInfo->lastname = $this->request['lastname'];
+            $getUserInfo->phone = $this->request['phone'];
+            $getUserInfo->email = $this->request['email'];
             $getUserInfo->save();
             Yii::info('School user profile update successful');
             return[
@@ -516,21 +514,19 @@ class SchoolsController extends ActiveController
 
     public function actionEditSchoolProfile(){
 
-        $request = \yii::$app->request->post();
-
         try{
             $getSchoolInfo = Schools::findOne(['user_id' => Utility::getUserId()]);
             if(!empty($getSchoolInfo)){
-                $getSchoolInfo->name = $request['name'];
-                $getSchoolInfo->about = $request['about'];
-                $getSchoolInfo->address = $request['address'];
-                $getSchoolInfo->city = $request['city'];
-                $getSchoolInfo->state = $request['state'];
-                $getSchoolInfo->country = $request['country'];
-                $getSchoolInfo->postal_code = $request['postal_code'];
-                $getSchoolInfo->website = $request['website'];
-                $getSchoolInfo->phone = $request['phone'];
-                $getSchoolInfo->school_email = $request['school_email'];
+                $getSchoolInfo->name = $this->request['name'];
+                $getSchoolInfo->about = $this->request['about'];
+                $getSchoolInfo->address = $this->request['address'];
+                $getSchoolInfo->city = $this->request['city'];
+                $getSchoolInfo->state = $this->request['state'];
+                $getSchoolInfo->country = $this->request['country'];
+                $getSchoolInfo->postal_code = $this->request['postal_code'];
+                $getSchoolInfo->website = $this->request['website'];
+                $getSchoolInfo->phone = $this->request['phone'];
+                $getSchoolInfo->school_email = $this->request['school_email'];
                 $getSchoolInfo->save();
                 Yii::info('School profile update successful');
                 return[
@@ -579,21 +575,20 @@ class SchoolsController extends ActiveController
 
     public function actionEditSchoolCalendar(){
 
-        $request = \yii::$app->request->post();
         try{
             $getUserId = Utility::getUserId();
             $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
             if(!empty($getSchoolInfo)){
                 $getSchoolCalendarInfo = SchoolCalendar::findOne(['school_id' => $getSchoolInfo->id]);
-                $getSchoolCalendarInfo->session_name = $request['session_name'];
-                $getSchoolCalendarInfo->year = $request['year'];
-                $getSchoolCalendarInfo->first_term_start = $request['first_term_start'];
-                $getSchoolCalendarInfo->first_term_end = $request['first_term_end'];
-                $getSchoolCalendarInfo->second_term_start = $request['second_term_start'];
-                $getSchoolCalendarInfo->second_term_end = $request['second_term_end'];
-                $getSchoolCalendarInfo->third_term_start = $request['third_term_start'];
-                $getSchoolCalendarInfo->third_term_end = $request['third_term_end'];
-                $getSchoolCalendarInfo->status = $request['status'];
+                $getSchoolCalendarInfo->session_name = $this->request['session_name'];
+                $getSchoolCalendarInfo->year = $this->request['year'];
+                $getSchoolCalendarInfo->first_term_start = $this->request['first_term_start'];
+                $getSchoolCalendarInfo->first_term_end = $this->request['first_term_end'];
+                $getSchoolCalendarInfo->second_term_start = $this->request['second_term_start'];
+                $getSchoolCalendarInfo->second_term_end = $this->request['second_term_end'];
+                $getSchoolCalendarInfo->third_term_start = $this->request['third_term_start'];
+                $getSchoolCalendarInfo->third_term_end = $this->request['third_term_end'];
+                $getSchoolCalendarInfo->status = $this->request['status'];
                 $getSchoolCalendarInfo->save();
                 Yii::info('School profile calendar update successful');
                 return[
@@ -617,10 +612,9 @@ class SchoolsController extends ActiveController
 
     public function actionSummaries(){
         
-        $request = \yii::$app->request->post();
         $startRange = ""; $endRange = "";
-        if(isset($request['startRange']) && isset($request['endRange'])){
-            $startRange = $request['startRange'];  $endRange = $request['endRange']; 
+        if(isset($this->request['startRange']) && isset($this->request['endRange'])){
+            $startRange = $this->request['startRange'];  $endRange = $this->request['endRange']; 
         }
         $allHomeWorkCount = count(Homeworks::find()->where(['school_id' => Utility::getSchoolUserId()])->all());
         $pastHomework = count(Homeworks::find()
@@ -697,14 +691,13 @@ class SchoolsController extends ActiveController
 
     public function actionInviteTeachers(){
 
-        $request = \yii::$app->request->post();
         $inviteLogs  = new InviteLogs();
         try{
-            $inviteLogs->receiver_name = $request['name'];
-            $inviteLogs->receiver_email = $request['email'];
-            $inviteLogs->receiver_phone = $request['phone'];
-            $inviteLogs->receiver_class = $request['class'];
-            $inviteLogs->receiver_subject = $request['subject_id'];
+            $inviteLogs->receiver_name = $this->request['name'];
+            $inviteLogs->receiver_email = $this->request['email'];
+            $inviteLogs->receiver_phone = $this->request['phone'];
+            $inviteLogs->receiver_class = $this->request['class'];
+            $inviteLogs->receiver_subject = $this->request['subject_id'];
             $inviteLogs->sender_type = 'school';
             $inviteLogs->receiver_type = 'teacher';
             $inviteLogs->sender_id = Utility::getUserId();
@@ -753,13 +746,12 @@ class SchoolsController extends ActiveController
     }
 
     public function actionAddStudents(){
-        $request = \yii::$app->request->post();
-
+        
         $user = new User();
-        $splitStudentName = explode(',',$request['student_names']);
+        $splitStudentName = explode(',',$this->request['student_names']);
         $user->firstname = $splitStudentName[0];
         $user->lastname = $splitStudentName[1];
-        $user->setPassword($request['password']);
+        $user->setPassword($this->request['password']);
         $user->type = '1';
         $user->auth_key = $user->generateAuthKey();
 
@@ -767,7 +759,7 @@ class SchoolsController extends ActiveController
                 $studentSchool = new StudentSchool();
                 $studentSchool->student_id = $user->id;
                 $studentSchool->school_id = Utility::getSchoolId();
-                $studentSchool->class_id = $request['class_id'];
+                $studentSchool->class_id = $this->request['class_id'];
 
                 try{
                     $studentSchool->save();
@@ -826,7 +818,6 @@ class SchoolsController extends ActiveController
 
     public function actionChangeStudentClass($id){
     
-        $request = \yii::$app->request->post();
         $getStudent = StudentSchool::findOne(['student_id' => $id]);
 
         if(!empty($getStudent)){
@@ -835,7 +826,7 @@ class SchoolsController extends ActiveController
 
                 try{
 
-                    $getStudent->class_id = $request['new_class'];
+                    $getStudent->class_id = $this->request['new_class'];
                     $getStudent->save();
                     return [
                         'code' => '200',
@@ -864,7 +855,6 @@ class SchoolsController extends ActiveController
 
     public function actionRemoveChildClass($id){
     
-        $request = \yii::$app->request->post();
         $getStudent = StudentSchool::findOne(['student_id' => $id]);
 
         if(!empty($getStudent)){
@@ -911,13 +901,12 @@ class SchoolsController extends ActiveController
 
     public function actionSettingsUpdateEmail(){
 
-        $request = \yii::$app->request->post();
         $model = new User();
-        $user = User::findOne(['email'=> $request['email'], 'password' => $model->validatePassword($request['password'])]);
+        $user = User::findOne(['email'=> $this->request['email'], 'password' => $model->validatePassword($this->request['password'])]);
         if(!empty($user)){
 
             try{
-                $user->email = $request['new_email'];
+                $user->email = $this->request['new_email'];
                 $user->save();
 
                 return [
@@ -940,13 +929,12 @@ class SchoolsController extends ActiveController
 
     public function actionSettingsUpdatePassword(){
 
-        $request = \yii::$app->request->post();
         $model = new User();
-        $user = User::findOne(['email'=> $request['email'], 'password' => $model->validatePassword($request['password'])]);
+        $user = User::findOne(['email'=> $this->request['email'], 'password' => $model->validatePassword($this->request['password'])]);
         if(!empty($user)){
 
             try{
-                $user->password = $user->setPassword($request['password']);
+                $user->password = $user->setPassword($this->request['password']);
                 $user->save();
 
                 return [
@@ -969,9 +957,8 @@ class SchoolsController extends ActiveController
 
     public function actionSettingsDeleteAccount(){
     
-        $request = \yii::$app->request->post();
         $model = new User();
-        $user = User::findOne(['user_id' => Utility::getUserId(), 'password' => $model->validatePassword($request['password'])]);
+        $user = User::findOne(['user_id' => Utility::getUserId(), 'password' => $model->validatePassword($this->request['password'])]);
         if(!empty($user)){
 
             try{
@@ -996,6 +983,7 @@ class SchoolsController extends ActiveController
     }
 
     public function actionSettingsListCurriculum(){
+
         $getCurriculum = SchoolCurriculum::find()
                             ->select('school_curriculum.*')
                             ->leftJoin('exam_type', '`exam_type`.`id` = `school_curriculum`.`curriculum_id`')
@@ -1016,12 +1004,11 @@ class SchoolsController extends ActiveController
 
     public function actionSettingsUpdateCurriculum(){
 
-        $request = \yii::$app->request->post();
         $getCurriculum = SchoolCurriculum::find()->where(['school_id' => Utility::getSchoolId()])->all();
         if(!empty($getCurriculum)){
 
             try{
-                $getCurriculum->curriculum_id = $request['curriculum_id'];
+                $getCurriculum->curriculum_id = $this->request['curriculum_id'];
                 $getCurriculum->save();
                 return[
                     'code' => '200',
@@ -1044,8 +1031,6 @@ class SchoolsController extends ActiveController
 
     public function actionSettingsRequestNewCurriculum(){
 
-        $request = \yii::$app->request->post();
-
         try{
             $sendmMailToAdmin = Yii::$app->mailer->compose()
                     ->setFrom(Yii::$app->params['notificationSentFromEmail'])
@@ -1056,9 +1041,9 @@ class SchoolsController extends ActiveController
                         <b>Hello,</b>
 
                         The curriculum below was suggested
-                        Curriculum Name: '.$request['curriculum'].'
-                        Country: '.$request['country'].'
-                        Comments: '.$request['comments'].'
+                        Curriculum Name: '.$this->request['curriculum'].'
+                        Country: '.$this->request['country'].'
+                        Comments: '.$this->request['comments'].'
                     
                     ')
                     ->send();
@@ -1094,13 +1079,12 @@ class SchoolsController extends ActiveController
     }
 
     public function actionSettingsUpdateSubject($id){
-
-        $request = \yii::$app->request->post();
+        
         $getSubject = SchoolSubject::findOne(['school_id' => Utility::getSchoolId(), 'id' => $id]);
         if(!empty($getSubject)){
 
             try{
-                $getSubject->subject_id = $request['subject_id'];
+                $getSubject->subject_id = $this->request['subject_id'];
                 $getSubject->save();
                 return[
                     'code' => '200',
@@ -1123,8 +1107,6 @@ class SchoolsController extends ActiveController
 
     public function actionSettingsRequestNewSubject(){
 
-        $request = \yii::$app->request->post();
-
         try{
             $sendmMailToAdmin = Yii::$app->mailer->compose()
 
@@ -1136,9 +1118,9 @@ class SchoolsController extends ActiveController
                         <b>Hello,</b>
 
                         The subject below was suggested
-                        Subject Name: '.$request['curriculum'].'
-                        Country: '.$request['country'].'
-                        Comments: '.$request['comments'].'
+                        Subject Name: '.$this->request['curriculum'].'
+                        Country: '.$this->request['country'].'
+                        Comments: '.$this->request['comments'].'
                     
                     ')
                     ->send();
