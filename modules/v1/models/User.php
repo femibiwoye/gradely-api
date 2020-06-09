@@ -46,7 +46,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     const STATUS_ACTIVE = 10;
 
     const SCENARIO_LOGIN = 'login';
+    const SCENARIO_PARENT_SIGNUP = 'parent_signup';
+    const SCENARIO_SCHOOL_SIGNUP = 'school_signup';
     const SCENARIO_STUDENT_SIGNUP = 'student_signup';
+    const SCENARIO_TEACHER_SIGNUP = 'teacher_signup';
 
 
     /**
@@ -89,7 +92,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             [['email'], 'unique'],
             [['username'], 'unique'],
             [['password_reset_token'], 'unique'],
-            [['password_hash', 'email','phone'], 'required', 'on' => self::SCENARIO_STUDENT_SIGNUP],
+            [['firstname','lastname','password_hash','email'], 'required', 'on' => self::SCENARIO_STUDENT_SIGNUP],
+            [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_PARENT_SIGNUP],
+            [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_TEACHER_SIGNUP],
+            [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_SCHOOL_SIGNUP],
         ];
     }
 
