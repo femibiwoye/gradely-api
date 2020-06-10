@@ -49,7 +49,17 @@ class AuthController extends ActiveController
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
                 'only' => ['logout'],
-                'only' => [''],
+            ],
+
+            'corsFilter' => [
+                'class' => \yii\filters\Cors::className(),
+                'cors'  => [
+                    // restrict access to domains:
+                    'Origin'                           => static::allowedDomains(),
+                    'Access-Control-Request-Method'    => ['POST'],
+                    'Access-Control-Allow-Credentials' => true,
+                    'Access-Control-Max-Age'           => 3600,                 // Cache (seconds)
+                ],
             ],
         ];
     }
@@ -186,5 +196,20 @@ class AuthController extends ActiveController
             'expiry' => $tokenExpires,
             'token' => $authKey
         ];
+    }
+
+    public function actionTestApi(){
+
+        $ch = curl_init();
+        //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
+        //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/auth/login');
+        curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, ['email'=>'chinaka@gmail.com','password'=>'chi']);
+        $result = curl_exec($ch);
+
+
+        // print_r($result);
+        // curl_close($ch);
     }
 }

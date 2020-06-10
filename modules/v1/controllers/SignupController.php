@@ -7,7 +7,7 @@ use Yii;
 use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
-use app\modules\v1\models\{Schools,User,Login,Parents};
+use app\modules\v1\models\{Schools,User,Login,Parents,UserProfile};
 use app\modules\v1\helpers\Utility;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
@@ -91,7 +91,7 @@ class SignupController extends ActiveController
               $user->lastname = $this->request['lastname'];
               $user->email = $this->request['email'];
               $user->setPassword($this->request['password_hash']);
-              $user->type = 3;
+              $user->type = '3';
               $user->auth_key = $user->generateAuthKey();
 
               if ($user->save()) {
@@ -103,7 +103,8 @@ class SignupController extends ActiveController
 
                           //same response as login is being returned and user is automatically logged in after signup
                           $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                          return $this->getLoginResponse($Loginmodel);
+                          
+                          return Utility::getLoginResponse($Loginmodel);
 
                   } catch (Exceprion $exception) {
 
@@ -114,7 +115,7 @@ class SignupController extends ActiveController
                   }
                   //same response as login is being returned and user is automatically logged in after signup
                   $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                  return $this->getLoginResponse($Loginmodel);
+                  return Utility::getLoginResponse($Loginmodel);
               } else {
                   $user->validate();
                   Yii::info('[Login failed] Error:' . $user->validate() . '');
@@ -147,7 +148,7 @@ class SignupController extends ActiveController
             $user->lastname = $this->request['lastname'];
             $user->email = $this->request['email'];
             $user->setPassword($this->request['password_hash']);
-            $user->type = 4;
+            $user->type = '4';
             $user->auth_key = $user->generateAuthKey();
 
             if ($user->save()) {
@@ -167,7 +168,7 @@ class SignupController extends ActiveController
 
                         //same response as login is being returned and user is automatically logged in after signup
                         $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                        return $this->getLoginResponse($Loginmodel);
+                        return Utility::getLoginResponse($Loginmodel);
 
                 } catch (Exceprion $exception) {
 
@@ -179,7 +180,7 @@ class SignupController extends ActiveController
 
             //same response as login is being returned and user is automatically logged in after signup
             $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-            return $this->getLoginResponse($Loginmodel);
+            return Utility::getLoginResponse($Loginmodel);
             } else {
                 $user->validate();
                 Yii::info('[Login failed] Error:' . $user->validate() . '');
@@ -212,7 +213,7 @@ class SignupController extends ActiveController
                 $user->lastname = $this->request['lastname'];
                 $user->email = $this->request['email'];
                 $user->setPassword($this->request['password_hash']);
-                $user->type = 3;
+                $user->type = '1';
                 $user->auth_key = $user->generateAuthKey();
 
                 if ($user->save()) {
@@ -224,7 +225,7 @@ class SignupController extends ActiveController
 
                             //same response as login is being returned and user is automatically logged in after signup
                             $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                            return $this->getLoginResponse($Loginmodel);
+                            return Utility::getLoginResponse($Loginmodel);
 
                     } catch (Exceprion $exception) {
 
@@ -235,7 +236,7 @@ class SignupController extends ActiveController
                     }
                     //same response as login is being returned and user is automatically logged in after signup
                     $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                    return $this->getLoginResponse($Loginmodel);
+                    return Utility::getLoginResponse($Loginmodel);
                 } else {
                     $user->validate();
                     Yii::info('[Login failed] Error:' . $user->validate() . '');
@@ -268,7 +269,7 @@ class SignupController extends ActiveController
                 $user->lastname = $this->request['lastname'];
                 $user->email = $this->request['email'];
                 $user->setPassword($this->request['password_hash']);
-                $user->type = 3;
+                $user->type = '2';
                 $user->auth_key = $user->generateAuthKey();
 
                 if ($user->save()) {
@@ -280,7 +281,7 @@ class SignupController extends ActiveController
 
                             //same response as login is being returned and user is automatically logged in after signup
                             $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                            return $this->getLoginResponse($Loginmodel);
+                            return Utility::getLoginResponse($Loginmodel);
 
                     } catch (Exceprion $exception) {
 
@@ -291,7 +292,7 @@ class SignupController extends ActiveController
                     }
                     //same response as login is being returned and user is automatically logged in after signup
                     $Loginmodel->load(Yii::$app->getRequest()->getBodyParams(), '');
-                    return $this->getLoginResponse($Loginmodel);
+                    return Utility::getLoginResponse($Loginmodel);
                 } else {
                     $user->validate();
                     Yii::info('[Login failed] Error:' . $user->validate() . '');

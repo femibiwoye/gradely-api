@@ -101,4 +101,24 @@ class Utility extends ActiveRecord
             'message' => "Could not get school ID"
         ];
     }
+
+    public static function getLoginResponse($model){
+        $user = new User();
+        $authKey = $user->generateAuthKey(); //did this because i wont be able to assign authkey at the bottom after unsetting it
+        $tokenExpires = $model->getUser()->token_expires;
+        //unset fields that shouldnt be part of response returned
+        unset($model->getUser()->auth_key);
+        unset($model->getUser()->password_hash);
+        unset($model->getUser()->password_reset_token);
+        unset($model->getUser()->token);
+        unset($model->getUser()->token_expires);
+        Yii::info('[Login responce generated successfully');
+        return[
+            'code' => 200,
+            'message' => 'Ok',
+            'data' => ['user' => $model->getUser()],
+            'expiry' => $tokenExpires,
+            'token' => $authKey
+        ];
+    }
 }
