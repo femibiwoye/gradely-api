@@ -67,12 +67,12 @@ class AuthController extends ActiveController
                     'Origin'                           => ['*'],
                     'Access-Control-Request-Method'    => ['POST','POST', 'PUT', 'PATCH', 'DELETE'],
                     'Access-Control-Request-Headers' => ['*'],
-                    'Access-Control-Allow-Credentials' => null,
+                    'Access-Control-Allow-Credentials' => true,
                     'Access-Control-Max-Age'           => 86400,                 // Cache (seconds)
                 ],
             ],
         ];
-    }
+    } 
 
     /**
      * {@inheritdoc}
