@@ -32,6 +32,15 @@ class AuthController extends ActiveController
      * {@inheritdoc}
      * @return array
      */
+
+    public static function allowedDomains()
+    {
+        return [
+            '*',
+            'http://localhost',
+        ];
+    }
+
     public function behaviors()
     {
         return [
