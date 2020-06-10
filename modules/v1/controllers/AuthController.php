@@ -37,6 +37,23 @@ class AuthController extends ActiveController
     public function behaviors()
     {
         return [
+            'corsFilter' => [
+                'class' => \yii\filters\Cors::className(),
+                'cors' => [
+                    // restrict access to
+                    //'Origin' => ['http://localhost', 'http://www.myserver.com'],
+                    'Origin' => ['http://localhost'],
+                    'Access-Control-Request-Method' => ['POST', 'PUT', 'GET'],
+                    // Allow only POST and PUT methods
+                    'Access-Control-Request-Headers' => ['X-Wsse'],
+                    // Allow only headers 'X-Wsse'
+                    'Access-Control-Allow-Credentials' => true,
+                    // Allow OPTIONS caching
+                    'Access-Control-Max-Age' => 3600,
+                    // Allow the X-Pagination-Current-Page header to be exposed to the browser.
+                    'Access-Control-Expose-Headers' => ['X-Pagination-Current-Page'],
+                ],
+            ],
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
@@ -64,24 +81,6 @@ class AuthController extends ActiveController
             //         'Access-Control-Max-Age'           => 86400,                 // Cache (seconds)
             //     ],
             // ],
-
-
-            array_merge(parent::behaviors(), [
-
-                // For cross-domain AJAX request
-                'corsFilter'  => [
-                    'class' => \yii\filters\Cors::className(),
-                    'cors'  => [
-                        // restrict access to domains:
-                        'Origin'                           => static::allowedDomains(),
-                        'Access-Control-Request-Method'    => ['POST'],
-                        'Access-Control-Allow-Credentials' => true,
-                        'Access-Control-Max-Age'           => 3600,                 // Cache (seconds)
-                    ],
-                ],
-        
-            ])
-
         ];
     } 
 
