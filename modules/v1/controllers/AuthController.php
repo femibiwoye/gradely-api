@@ -42,7 +42,7 @@ class AuthController extends ActiveController
                 'cors' => [
                     // restrict access to
                     //'Origin' => ['http://localhost', 'http://www.myserver.com'],
-                    'Origin' => ['http://localhost'],
+                    'Origin' => ['http://localhost','*'],
                     'Access-Control-Request-Method' => ['POST', 'PUT', 'GET'],
                     // Allow only POST and PUT methods
                     'Access-Control-Request-Headers' => ['X-Wsse'],
