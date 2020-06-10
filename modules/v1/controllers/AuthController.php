@@ -60,17 +60,35 @@ class AuthController extends ActiveController
                 'only' => ['logout'],
             ],
 
-            'corsFilter' => [
-                'class' => \yii\filters\Cors::className(),
-                'cors'  => [
-                    // restrict access to domains:
-                    'Origin'                           => ['*'],
-                    'Access-Control-Request-Method'    => ['POST','POST', 'PUT', 'PATCH', 'DELETE'],
-                    'Access-Control-Request-Headers' => ['*'],
-                    'Access-Control-Allow-Credentials' => true,
-                    'Access-Control-Max-Age'           => 86400,                 // Cache (seconds)
+            // 'corsFilter' => [
+            //     'class' => \yii\filters\Cors::className(),
+            //     'cors'  => [
+            //         // restrict access to domains:
+            //         'Origin'                           => ['*'],
+            //         'Access-Control-Request-Method'    => ['POST','POST', 'PUT', 'PATCH', 'DELETE'],
+            //         'Access-Control-Request-Headers' => ['*'],
+            //         'Access-Control-Allow-Credentials' => true,
+            //         'Access-Control-Max-Age'           => 86400,                 // Cache (seconds)
+            //     ],
+            // ],
+
+
+            array_merge(parent::behaviors(), [
+
+                // For cross-domain AJAX request
+                'corsFilter'  => [
+                    'class' => \yii\filters\Cors::className(),
+                    'cors'  => [
+                        // restrict access to domains:
+                        'Origin'                           => static::allowedDomains(),
+                        'Access-Control-Request-Method'    => ['POST'],
+                        'Access-Control-Allow-Credentials' => true,
+                        'Access-Control-Max-Age'           => 3600,                 // Cache (seconds)
+                    ],
                 ],
-            ],
+        
+            ])
+
         ];
     } 
 
