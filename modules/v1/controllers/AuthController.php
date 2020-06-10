@@ -20,13 +20,6 @@ class AuthController extends ActiveController
 
     private $request;
 
-    public function beforeAction($action)
-    {
-        $this->request = \yii::$app->request->post();
-        return parent::beforeAction($action);
-    }
-
-
     /**
      * It is important verb is used to control HTTP request type to accept.
      * {@inheritdoc}
@@ -91,6 +84,12 @@ class AuthController extends ActiveController
 
         ];
     } 
+
+    public function beforeAction($action)
+    {
+        $this->request = \yii::$app->request->post();
+        return parent::beforeAction($action);
+    }
 
     /**
      * {@inheritdoc}
