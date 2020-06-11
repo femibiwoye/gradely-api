@@ -62,14 +62,8 @@ class AuthController extends ActiveController
 
     public function behaviors()
     {
-
         $behaviors = parent::behaviors();
 
-        // remove authentication filter necessary because we need to
-        // add CORS filter and it should be added after the CORS
-        unset($behaviors['authenticator']);
-
-        // add CORS filter
         $behaviors['corsFilter'] = [
             'class' => '\yii\filters\Cors',
             'cors' => [
@@ -79,24 +73,11 @@ class AuthController extends ActiveController
             ],
         ];
 
-        // re-add authentication filter of your choce
-//        $behaviors['authenticator'] = [
-//            'class' => yii\filters\auth\HttpBasicAuth::class
-//        ];
-
-        // avoid authentication on CORS-pre-flight requests (HTTP OPTIONS method)
-        $behaviors['authenticator']['except'] = ['options'];
-        return $behaviors;
-
-
-
-//        $behaviors = parent::behaviors();
-//
 //        $behaviors['corsFilter'] = [
 //            'class'=>\yii\filters\Cors::className()
 //        ];
-//
-//        return $behaviors;
+
+        return $behaviors;
     }
 
     /**
