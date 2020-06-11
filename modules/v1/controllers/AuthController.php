@@ -83,6 +83,7 @@ class AuthController extends ActiveController
         if ($model->load(Yii::$app->getRequest()->getBodyParams(), '') && $model->login()) {
             Yii::info('Login succesful');
             return $this->getLoginResponse($model);
+            Yii::$app->response->statusCode = 200;
         } else {
             $model->validate();
             Yii::info('[Login failed] Error:' . $model->validate() . '');
@@ -166,32 +167,10 @@ class AuthController extends ActiveController
         ];
     }
 
-    private function getLoginResponse($model)
-    {
-        $user = new User();
-        $authKey = $user->generateAuthKey(); //did this because i wont be able to assign authkey at the bottom after unsetting it
-        $tokenExpires = $model->getUser()->token_expires;
-        //unset fields that shouldnt be part of response returned
-        unset($model->getUser()->auth_key);
-        unset($model->getUser()->password_hash);
-        unset($model->getUser()->password_reset_token);
-        unset($model->getUser()->token);
-        unset($model->getUser()->token_expires);
-        Yii::info('[Login responce generated successfully');
-        return [
-            'code' => 200,
-            'message' => 'Ok',
-            'data' => $model->getUser(),
-            'expiry' => $tokenExpires,
-            'token' => $authKey
-        ];
-    }
-
     public function actionTestApi(){
 
         $ch = curl_init();
-        $data = 'email=' . 'chinaka@gmail.com' . '&' .
-            'password=' . 'chi';
+        $data = '';
         //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
         //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/auth/login');
         curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
@@ -200,7 +179,7 @@ class AuthController extends ActiveController
         $result = curl_exec($ch);
         
         
-        // print_r($result);
-        // curl_close($ch);
+        print_r($result);
+        curl_close($ch);
         }
 }
