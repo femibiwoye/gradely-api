@@ -227,11 +227,13 @@ class AuthController extends ActiveController
     public function actionTestApi(){
 
         $ch = curl_init();
+        $data = 'email=' . 'chinaka@gmail.com' . '&' .
+            'password=' . 'chi';
         //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
         //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/auth/login');
         curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, ['email'=>'chinaka@gmail.com','password'=>'chi']);
+        curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
         $result = curl_exec($ch);
 
 
