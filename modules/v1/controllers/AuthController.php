@@ -47,7 +47,7 @@ class AuthController extends ActiveController
                     // Allow only POST and PUT methods
                     'Access-Control-Request-Headers' => ['X-Wsse'],
                     // Allow only headers 'X-Wsse'
-                    'Access-Control-Allow-Credentials' => true,
+                    'Access-Control-Allow-Credentials' => false,
                     // Allow OPTIONS caching
                     'Access-Control-Max-Age' => 8000,
                     // Allow the X-Pagination-Current-Page header to be exposed to the browser.
