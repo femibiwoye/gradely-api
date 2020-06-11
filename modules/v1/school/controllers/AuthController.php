@@ -22,8 +22,11 @@ class AuthController extends ActiveController
 
     public function beforeAction($action)
     {
-        $this->request = \yii::$app->request->post();
-        return parent::beforeAction($action);
+        if (parent::beforeAction($action)) {
+            \Yii::$app->response->format = Response::FORMAT_JSON;
+            return true;
+        }
+
     }
 
 
@@ -62,8 +65,17 @@ class AuthController extends ActiveController
         $behaviors = parent::behaviors();
 
         $behaviors['corsFilter'] = [
-            'class'=>\yii\filters\Cors::className()
+            'class' => '\yii\filters\Cors',
+            'cors' => [
+                'Origin' => ['*'],
+                'Access-Control-Request-Method' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+                'Access-Control-Request-Headers' => ['*'],
+            ],
         ];
+
+//        $behaviors['corsFilter'] = [
+//            'class'=>\yii\filters\Cors::className()
+//        ];
 
         return $behaviors;
     }
