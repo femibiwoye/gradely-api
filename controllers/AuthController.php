@@ -257,6 +257,7 @@ class AuthController extends ActiveController
         return[
             'code' => 200,
             'message' => 'Ok',
+            'Addition'=>'Confirmation that auto deployment is working',
             'data' => ['user' => $model->getUser()],
             'expiry' => $tokenExpires,
             'token' => $authKey
