@@ -26,13 +26,13 @@ class AuthController extends ActiveController
      * @return array
      */
 
-    public static function allowedDomains()
-    {
-        return [
-            '*',
-            'http://localhost',
-        ];
-    }
+    // public static function allowedDomains()
+    // {
+    //     return [
+    //         '*',
+    //         'http://localhost',
+    //     ];
+    // }
 
     public function behaviors()
     {
