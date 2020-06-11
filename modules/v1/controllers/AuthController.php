@@ -20,24 +20,21 @@ class AuthController extends ActiveController
 
     private $request;
 
+    public function beforeAction($action)
+    {
+        $this->request = \yii::$app->request->post();
+        return parent::beforeAction($action);
+    }
+
+
     /**
      * It is important verb is used to control HTTP request type to accept.
      * {@inheritdoc}
      * @return array
      */
-
-    // public static function allowedDomains()
-    // {
-    //     return [
-    //         '*',
-    //         'http://localhost',
-    //     ];
-    // }
-
     public function behaviors()
     {
         return [
-            
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
@@ -53,25 +50,7 @@ class AuthController extends ActiveController
                 'class' => HttpBearerAuth::className(),
                 'only' => ['logout'],
             ],
-
-            // 'corsFilter' => [
-            //     'class' => \yii\filters\Cors::className(),
-            //     'cors'  => [
-            //         // restrict access to domains:
-            //         'Origin'                           => ['*'],
-            //         'Access-Control-Request-Method'    => ['POST','POST', 'PUT', 'PATCH', 'DELETE'],
-            //         'Access-Control-Request-Headers' => ['*'],
-            //         'Access-Control-Allow-Credentials' => true,
-            //         'Access-Control-Max-Age'           => 86400,                 // Cache (seconds)
-            //     ],
-            // ],
         ];
-    } 
-
-    public function beforeAction($action)
-    {
-        $this->request = \yii::$app->request->post();
-        return parent::beforeAction($action);
     }
 
     /**
@@ -206,22 +185,5 @@ class AuthController extends ActiveController
             'expiry' => $tokenExpires,
             'token' => $authKey
         ];
-    }
-
-    public function actionTestApi(){
-
-        $ch = curl_init();
-        $data = 'email=' . 'chinaka@gmail.com' . '&' .
-            'password=' . 'chi';
-        //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
-        //curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/auth/login');
-        curl_setopt($ch, CURLOPT_URL, 'http://apitest.gradely.ng/v1/auth/login');
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
-        $result = curl_exec($ch);
-
-
-        // print_r($result);
-        // curl_close($ch);
     }
 }
