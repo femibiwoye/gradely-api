@@ -51,6 +51,9 @@ class AuthController extends ActiveController
                 'only' => ['logout'],
                 'only' => [''],
             ],
+            'corsFilter' => [
+                'class'=>\yii\filters\Cors::className()
+            ],
         ];
     }
 
@@ -399,7 +402,7 @@ class AuthController extends ActiveController
         Yii::info('[Login responce generated successfully');
         return [
             'code' => 200,
-            'message' => 'Ok now',
+            'message' => 'Ok',
             'data' => $model->getUser(),
             'expiry' => $tokenExpires,
             'token' => $authKey
