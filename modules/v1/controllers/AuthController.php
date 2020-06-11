@@ -49,7 +49,7 @@ class AuthController extends ActiveController
                     // Allow only headers 'X-Wsse'
                     'Access-Control-Allow-Credentials' => true,
                     // Allow OPTIONS caching
-                    'Access-Control-Max-Age' => 3600,
+                    'Access-Control-Max-Age' => 8000,
                     // Allow the X-Pagination-Current-Page header to be exposed to the browser.
                     'Access-Control-Expose-Headers' => ['X-Pagination-Current-Page'],
                 ],
