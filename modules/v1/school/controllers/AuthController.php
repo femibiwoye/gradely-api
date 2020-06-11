@@ -32,7 +32,7 @@ class AuthController extends ActiveController
      * {@inheritdoc}
      * @return array
      */
-    public function behaviors()
+    /**public function behaviors()
     {
         return [
             'verbs' => [
@@ -55,6 +55,17 @@ class AuthController extends ActiveController
                 'class'=>\yii\filters\Cors::className()
             ],
         ];
+    }*/
+
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+
+        $behaviors['corsFilter'] = [
+            'class'=>\yii\filters\Cors::className()
+        ];
+
+        return $behaviors;
     }
 
     /**
