@@ -37,23 +37,7 @@ class AuthController extends ActiveController
     public function behaviors()
     {
         return [
-            'corsFilter' => [
-                'class' => \yii\filters\Cors::className(),
-                'cors' => [
-                    // restrict access to
-                    //'Origin' => ['http://localhost', 'http://www.myserver.com'],
-                    'Origin' => ['http://localhost','*'],
-                    'Access-Control-Request-Method' => ['POST', 'PUT', 'GET'],
-                    // Allow only POST and PUT methods
-                    'Access-Control-Request-Headers' => ['X-Wsse'],
-                    // Allow only headers 'X-Wsse'
-                    'Access-Control-Allow-Credentials' => false,
-                    // Allow OPTIONS caching
-                    'Access-Control-Max-Age' => 8000,
-                    // Allow the X-Pagination-Current-Page header to be exposed to the browser.
-                    'Access-Control-Expose-Headers' => ['X-Pagination-Current-Page'],
-                ],
-            ],
+            
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
