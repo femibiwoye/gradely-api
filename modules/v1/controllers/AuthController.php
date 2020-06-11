@@ -5,7 +5,7 @@ namespace app\modules\v1\controllers;
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
 use yii\web\Controller;
-use yii\web\MethodNotAllowedHttpException;
+//use yii\web\MethodNotAllowedHttpException;
 use yii\web\Response;
 use app\modules\v1\models\{Schools, Login, User, StudentSchool, SchoolTeachers, Parents, UserProfile};
 use yii\rest\ActiveController;
