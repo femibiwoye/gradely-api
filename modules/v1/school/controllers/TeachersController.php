@@ -33,20 +33,18 @@ class TeachersController extends ActiveController
     public function behaviors()
     {
         return [
-            // [
-            //   'class' => \yii\filters\ContentNegotiator::className(),
-            //   //'only' => ['index', 'view'],
-            //   'formats' => [
-            //     'application/json' => \yii\web\Response::FORMAT_XML,
-            //   ],
-  
-  
-            // ],
+            'verbs' => [
+                'class' => \yii\filters\VerbFilter::className(),
+                'actions' => [
+                    'invite-teachers' => ['post'],
+                    'get-all-teachers' => ['get'],
+                ],
+            ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
                 'only' => [
-                            'generate-class','create-class','view-class'
+                            'invite-teachers','get-all-teachers'
                         ]
             ],            
         ];

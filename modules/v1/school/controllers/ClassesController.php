@@ -33,13 +33,38 @@ class ClassesController extends ActiveController
     public function behaviors()
     {
         return [
+
+            'verbs' => [
+                'class' => \yii\filters\VerbFilter::className(),
+                'actions' => [
+                    'list-teachers' => ['get'],
+                    'detailed-teacher-profile' => ['get'],
+                    'homework-created-by-teacher' => ['get'],
+                    'remove-teacher-from-class' => ['delete'],
+                    'generate-class' => ['post'],
+                    'list-class' => ['get'],
+                    'create-class' => ['post'],
+                    'view-class' => ['get'],
+                    'update-class' => ['update'],
+                    'delete-class' => ['delete'],
+                    'list-parents' => ['get'],
+                    'homework-performance' => ['get'],
+                    'homework-review' => ['get'],
+                    'remove-child-class' => ['delete'],
+                    'change-student-class' => ['update'],
+                    'get-class-details' => ['get'],
+                    'list-students-class' => ['post'],
+                ],
+            ],
+
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
                 'only' => [
-                            'generate-class','create-class','view-class','list-class','delete-class','list-parents',
                             'list-teachers','detailed-teacher-profile','homework-created-by-teacher',
-                            'remove-teacher-from-class','list-homework','homework-performance','list-homework',
-                            'homework-performance','homework-review'
+                            'remove-teacher-from-class','generate-class','list-class','create-class',
+                            'view-class','update-class','delete-class','list-homework',
+                            'homework-performance','homework-review','remove-child-class',
+                            'change-student-class','get-class-details','list-students-class'
                         ]
             ],            
         ];
@@ -635,18 +660,20 @@ class ClassesController extends ActiveController
         ];
      }
 
-     public function actionListStudentsClass($id){
+    public function actionListStudentsClass($id){
 
-        $getStudents =  User::find()
-                     ->select('user.*')
-                     ->leftJoin('student_school', '`student_school`.`student_id` = `user`.`id`')
-                     ->where(['student_school.class_id' => $id])
-                     ->where(['student_school.school_id' => Utility::getSchoolId()])
-                     ->all();
-         return [
-             'code' => '200',
-             'message' => 'student list successfull',
-             'data' => $getStudents
-         ];
-     }
+    $getStudents =  User::find()
+                    ->select('user.*')
+                    ->leftJoin('student_school', '`student_school`.`student_id` = `user`.`id`')
+                    ->where(['student_school.class_id' => $id])
+                    ->where(['student_school.school_id' => Utility::getSchoolId()])
+                    ->all();
+        return [
+            'code' => '200',
+            'message' => 'student list successfull',
+            'data' => $getStudents
+        ];
+    }
+
+    
 }

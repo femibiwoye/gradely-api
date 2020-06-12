@@ -33,10 +33,16 @@ class StudentsController extends ActiveController
     public function behaviors()
     {
         return [
+            'verbs' => [
+                'class' => \yii\filters\VerbFilter::className(),
+                'actions' => [
+                    'add-students' => ['post']
+                ],
+            ],
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
                 'only' => [
-                            'generate-class','create-class','view-class'
+                            'add-students'
                         ]
             ],            
         ];

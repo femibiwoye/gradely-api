@@ -181,3 +181,4 @@ class AuthController extends ActiveController
         curl_close($ch);
         }
 }
+

@@ -33,13 +33,16 @@ class ParentsController extends ActiveController
     public function behaviors()
     {
         return [
+            'verbs' => [
+                'class' => \yii\filters\VerbFilter::className(),
+                'actions' => [
+                    'list-parents' => ['get']
+                ],
+            ],
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
                 'only' => [
-                            'generate-class','create-class','view-class','list-class','delete-class','list-parents',
-                            'list-teachers','detailed-teacher-profile','homework-created-by-teacher',
-                            'remove-teacher-from-class','list-homework','homework-performance','list-homework',
-                            'homework-performance','homework-review'
+                            'list-parents'
                         ]
             ],            
         ];

@@ -36,15 +36,15 @@ class ProfileController extends ActiveController
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
-                    'index' => ['post'],
-                    'validate-invite-token' => ['post']
+                    'view-user-profile' => ['get'],
+                    'edit-user-profile' => ['update']
                 ],
             ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
-                'only' => ['index'],
-                'only' => ['validate-invite-token'],
+                'only' => ['view-user-profile'],
+                'only' => ['edit-user-profile'],
             ],
         ];
     }
