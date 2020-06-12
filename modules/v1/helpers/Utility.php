@@ -121,4 +121,167 @@ class Utility extends ActiveRecord
             'token' => $authKey
         ];
     }
+
+    public static function getSchoolType($schoolType, $format){
+        
+        if($format == 'grade 1-12'){
+            $classStart = ""; $classEnd = "";
+            if($schoolType == 'primary'){   
+                $classStart = "1"; $classEnd = "6";
+            }
+            elseif($schoolType == 'secondary'){
+                $classStart = 7; $classEnd = 12;
+            }
+            elseif($schoolType == 'primary-secondary'){
+                $classStart = "1"; $classEnd = "12";
+            }
+            //$i= 1;
+            for($i = $classStart; $i <= $classEnd; $i++){
+                $classes = new Classes();
+                $classes->school_id = static::getSchoolUserId();
+                $classes->global_class_id = $i;
+                $classes->slug = 'Year-'.$i;
+                $classes->class_name =  'Year '.$i;
+                $classes->abbreviation =  'y'.$i;
+                $classes->class_code = static::abreviate(static::getSchoolName()).'/YEAR'.$i;
+                $classes->save();
+            }
+            return $classes;
+        }
+
+
+
+        if($format == 'year 1-12'){
+        
+            $classStart = ""; $classEnd = ""; $slugPrepend = "";
+            if($schoolType == 'primary'){   
+
+                $classStart = "1"; $classEnd = "6"; $slugPrepend = "Primary";
+
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = $slugPrepend.$i;
+                    $classes->class_name =  $slugPrepend.$i;
+                    $classes->abbreviation =  $slugPrepend.$i;
+                    $classes->class_code = static::abreviate(static::getSchoolName()).'/YEAR'.$i;
+                    $classes->save();
+                }
+
+                return $classes;
+            }
+            elseif($schoolType == 'secondary'){
+                $classStart = "7"; $classEnd = "9";
+                $year = 1;
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'junior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Junior Secondary School-'.$year;
+                    $classes->abbreviation =  'jss'.$year;
+                    $classes->class_code = static::abreviate(static::getSchoolName()).'JSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+
+                $year = 1;
+                $classStart = "10"; $classEnd = "12";
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'senior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Senior Secondary School-'.$year;
+                    $classes->abbreviation =  'sss'.$year;
+                    $classes->class_code = static::abreviate(static::getSchoolName()).'SSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+            }
+
+            elseif($schoolType == 'primary-secondary'){
+
+                $classStart = "1"; $classEnd = "6"; $slugPrepend = "Primary";
+
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = $slugPrepend.$i;
+                    $classes->class_name =  $slugPrepend.$i;
+                    $classes->abbreviation =  $slugPrepend.$i;
+                    $classes->class_code = static::abreviate(static::getSchoolName()).'/YEAR'.$i;
+                    $classes->save();
+                }
+                return $classes;
+
+                $classStart = "7"; $classEnd = "9";
+                $year = 1;
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'junior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Junior Secondary School-'.$year;
+                    $classes->abbreviation =  'jss'.$year;
+                    $classes->class_code = static::abreviate(static::getSchoolName()).'JSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+
+                $year = 1;
+                $classStart = "10"; $classEnd = "12";
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'senior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Senior Secondary School-'.$year;
+                    $classes->abbreviation =  'sss'.$year;
+                    $classes->class_code = static::abreviate(static::getSchoolName()).'SSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+            }
+        }
+    }
+
+    public static function abreviate($schoolSlug){
+
+        $abbr = explode('-', $schoolSlug, 2);
+        $str2 = isset($abbr[1]) ? substr($abbr[1], 0, 2) : '';
+        $str1 = !empty($str2) ? substr($abbr[0], 0, 3) . $str2 : substr($abbr[0], 0, 5);
+        return strtoupper($str1);
+    }
+
+    public static function checkIfStudentInSchool($studentSchoolId){
+
+        if($studentSchoolId = Utility::getSchoolId()){
+            return true;
+        }
+        else{
+            return false;
+        }
+     }
+
+    //actionViewClass
+    public static function checkClassBelongsToSchool($id){
+
+        $getClass = Classes::findOne(['school_id' => Utility::getSchoolId(),'class_id' => $id]);
+
+        if(!empty($getClass)){
+
+            Yii::info('[Class' .$id .' belongs to school] school_id:'.Utility::getSchoolId().'');
+            return true;
+        }
+
+        return false;
+    }
+    
 }

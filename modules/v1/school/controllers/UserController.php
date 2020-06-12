@@ -1,5 +1,5 @@
 <?php
-namespace app\modules\v1\controllers;
+namespace app\modules\v1\school\controllers;
 
 use Yii;
 use yii\web\Controller;

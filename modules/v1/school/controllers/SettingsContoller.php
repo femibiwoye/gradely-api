@@ -1,6 +1,6 @@
 <?php
 
-namespace app\controllers;
+namespace app\modules\v1\school\controllers;
 
 use Yii;
 use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
