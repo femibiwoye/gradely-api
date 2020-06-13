@@ -35,8 +35,8 @@ jobs:
       with:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-    - name: Save DigitalOcean kubeconfig
-      run: doctl kubernetes cluster kubeconfig save testing-cluster
+    #- name: Save DigitalOcean kubeconfig
+    #  run: doctl kubernetes cluster kubeconfig save testing-cluster
     
     - name: Log in to DigitalOcean Container Registry with short-lived credentials
       run: doctl registry login --expiry-seconds 600
