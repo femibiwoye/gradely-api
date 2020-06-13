@@ -38,8 +38,8 @@ jobs:
     #- name: Save DigitalOcean kubeconfig
     #  run: doctl kubernetes cluster kubeconfig save testing-cluster
     
-    - name: Log in to DigitalOcean Container Registry with short-lived credentials
-      run: doctl registry login --expiry-seconds 600
+    #- name: Log in to DigitalOcean Container Registry with short-lived credentials
+     # run: doctl registry login --expiry-seconds 600
 
     - name: Get server update
       run: |
