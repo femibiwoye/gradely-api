@@ -7,7 +7,7 @@ use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\{Controller,Response};
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use app\utility\Utility;
+use app\modules\v1\utility\Utility; 
 use app\models\{Schools,Classes,GlobalClass,StudentSchool,User,Parents,SchoolCalendar,Homeworks,HomeworkQuestions,TutorSession,UserProfile,SchoolCurriculum,SchoolClassCurriculum};
 /**
  * Schools controller

@@ -8,7 +8,7 @@ use yii\web\Controller;
 use yii\web\Response;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use app\modules\v1\helpers\Utility;
+use app\modules\v1\utility\Utility; 
 use app\modules\v1\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
 use yii\db\Expression;
 /**
@@ -68,29 +68,34 @@ class TeachersController extends ActiveController
 
     public function actionInviteTeachers(){
 
-        $inviteLogs  = new InviteLogs();
-        try{
-            $inviteLogs->receiver_name = $this->request['name'];
-            $inviteLogs->receiver_email = $this->request['email'];
-            $inviteLogs->receiver_phone = $this->request['phone'];
-            $inviteLogs->receiver_class = $this->request['class'];
-            $inviteLogs->receiver_subject = $this->request['subject_id'];
-            $inviteLogs->sender_type = 'school';
-            $inviteLogs->receiver_type = 'teacher';
-            $inviteLogs->sender_id = Utility::getUserId();
-            $inviteLogs->save();
-            return[
-                'code' => '200',
-                'message' => '',
-                'data' => $inviteLogs
-            ];
+        $inviteLogs = new InviteLogs(['scenario' => InviteLogs::SCENARIO_SCHOOL_INVITE_TEACHERS]);
+        $inviteLogs->attributes = \Yii::$app->request->post();
+        if ($inviteLogs->validate()) { 
+            //$inviteLogs  = new InviteLogs();
+            try{
+                $inviteLogs->receiver_name = $this->request['name'];
+                $inviteLogs->receiver_email = $this->request['email'];
+                $inviteLogs->receiver_phone = $this->request['phone'];
+                $inviteLogs->receiver_class = $this->request['class'];
+                $inviteLogs->receiver_subject = $this->request['subject_id'];
+                $inviteLogs->sender_type = 'school';
+                $inviteLogs->receiver_type = 'teacher';
+                $inviteLogs->sender_id = Utility::getUserId();
+                $inviteLogs->save();
+                return[
+                    'code' => '200',
+                    'message' => '',
+                    'data' => $inviteLogs
+                ];
+            }
+            catch(Exception $exception){
+                return[
+                    'code' => '500',
+                    'message' => $exception->getMessage()
+                ];
+            }
         }
-        catch(Exception $exception){
-            return[
-                'code' => '500',
-                'message' => $exception->getMessage()
-            ];
-        }
+        return $inviteLogs->errors;
 
     }
 

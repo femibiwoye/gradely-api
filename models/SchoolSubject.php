@@ -1,28 +1,29 @@
 <?php
 
-namespace app\modules\v1\models;
+namespace app\models;
 
 use Yii;
 
 /**
- * This is the model class for table "school_curriculum".
+ * This is the model class for table "school_subject".
  *
  * @property int $id
  * @property int $school_id
- * @property int $curriculum_id
+ * @property int $subject_id
+ * @property int $status
  * @property string $created_at
  *
  * @property Schools $school
+ * @property Subjects $subject
  */
-class SchoolCurriculum extends \yii\db\ActiveRecord
+class SchoolSubject extends \yii\db\ActiveRecord
 {
-    const SCENERIO_SETTINGS_UPDATE_CURRICULUM = 'settings_update_curriculum';
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'school_curriculum';
+        return 'school_subject';
     }
 
     /**
@@ -31,11 +32,11 @@ class SchoolCurriculum extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['school_id', 'curriculum_id'], 'required'],
-            [['school_id', 'curriculum_id'], 'integer'],
+            [['school_id', 'subject_id'], 'required'],
+            [['school_id', 'subject_id', 'status'], 'integer'],
             [['created_at'], 'safe'],
             [['school_id'], 'exist', 'skipOnError' => true, 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],
-            [['curriculum_id'], 'required','on' => self::SCENERIO_SETTINGS_UPDATE_CURRICULUM],
+            [['subject_id'], 'exist', 'skipOnError' => true, 'targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']],
         ];
     }
 
@@ -47,7 +48,8 @@ class SchoolCurriculum extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'school_id' => 'School ID',
-            'curriculum_id' => 'Curriculum ID',
+            'subject_id' => 'Subject ID',
+            'status' => 'Status',
             'created_at' => 'Created At',
         ];
     }
@@ -60,5 +62,15 @@ class SchoolCurriculum extends \yii\db\ActiveRecord
     public function getSchool()
     {
         return $this->hasOne(Schools::className(), ['id' => 'school_id']);
+    }
+
+    /**
+     * Gets query for [[Subject]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSubject()
+    {
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
     }
 }

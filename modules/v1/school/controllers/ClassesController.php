@@ -8,7 +8,7 @@ use yii\web\Controller;
 use yii\web\Response;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use app\modules\v1\helpers\Utility;
+use app\modules\v1\utility\Utility; 
 use app\modules\v1\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
 use yii\db\Expression;
 /**
@@ -280,43 +280,47 @@ class ClassesController extends ActiveController
 
     public function actionGenerateClass(){
 
-        //$this->getSchoolType('primary','grade 1-12');
-        //$this->getSchoolType('secondary','grade 1-12');
-        //$this->getSchoolType('primary','year 1-12');
-        //$this->getSchoolType('secondary','year 1-12');
-        //$this->getSchoolType('primary-secondary','year 1-12');
-        $generateSchool = $this->getSchoolType($this->request['school-type'],$this->request['format']);
-    
-        if($generateSchool){
-    
-            Yii::info('[Class generated succesfully]');
-            return[
-                'code' => 200,
-                'message' => "Successfully created"
-            ];
-        }
+            //$this->getSchoolType('primary','grade 1-12');
+            //$this->getSchoolType('secondary','grade 1-12');
+            //$this->getSchoolType('primary','year 1-12');
+            //$this->getSchoolType('secondary','year 1-12');
+            //$this->getSchoolType('primary-secondary','year 1-12');
+            $generateSchool = $this->getSchoolType($this->request['school-type'],$this->request['format']);
+        
+            if($generateSchool){
+        
+                Yii::info('[Class generated succesfully]');
+                return[
+                    'code' => 200,
+                    'message' => "Successfully created"
+                ];
+            }
     }
     
     public function actionCreateClass(){
 
-        $classes = new Classes();
-        $classes->school_id = $this->request['school_id'];
-        $classes->global_class_id = $this->request['global_class_id'];
-        $classes->class_name = $this->request['class_name'];
-        $classes->class_code = $this->request['class_code'];
-        $classes->slug = \yii\helpers\Inflector::slug($this->request['class_name']);
-        $classes->abbreviation = $this->abreviate($classes->slug);
+        $classes = new Classes(['scenario' => Classes::SCENERIO_CREATE_CLASS]);
+        $classes->attributes = \Yii::$app->request->post();
+        if ($classes->validate()) {
+            $classes->school_id = $this->request['school_id'];
+            $classes->global_class_id = $this->request['global_class_id'];
+            $classes->class_name = $this->request['class_name'];
+            $classes->class_code = $this->request['class_code'];
+            $classes->slug = \yii\helpers\Inflector::slug($this->request['class_name']);
+            $classes->abbreviation = $this->abreviate($classes->slug);
 
-        if ($classes->save()) {
-            return[
-                'code' => 200,
-                'message' => "Successfully created"
-            ];
+            if ($classes->save()) {
+                return[
+                    'code' => 200,
+                    'message' => "Successfully created"
+                ];
+            }
+
+            $classes->validate();
+            Yii::info('[Class generated succesfully] Error:'.$classes->validate().'');
+            return $classes;
         }
-
-        $classes->validate();
-        Yii::info('[Class generated succesfully] Error:'.$classes->validate().'');
-        return $classes;
+        return $classes->errors;
     }
 
     public function actionListClass(){
@@ -368,36 +372,42 @@ class ClassesController extends ActiveController
 
     public function actionUpdateClass($id){
 
-        $getClass = Classes::find()->where(['id' => $id])->one();
-        if(!empty($getClass)){
-            
-            $getClass->global_class_id = $this->request['global_class_id'];
-            $getClass->class_name = $this->request['class_name'];
-            $getClass->abbreviation = $this->request['class_code'];
+        $classes = new Classes(['scenario' => Classes::SCENERIO_UPDATE_CLASS]);
+        $classes->attributes = \Yii::$app->request->post();
+        if ($classes->validate()) {
 
-            try{
+            $getClass = Classes::find()->where(['id' => $id])->one();
+            if(!empty($getClass)){
                 
-                $getClass->save();
-                Yii::info('[Class update successful] school_id:'.$id.'');
-                return[
-                    'code' => '200',
-                    'message' => "Class update succesful"
-                ];
-            }
-            catch (Exception $exception){
-                Yii::info('[Class update successful] '.$exception->getMessage());
-                return[
-                    'code' => '500',
-                    'message' => $exception->getMessage()
-                ];
-            }
-        }
+                $getClass->global_class_id = $this->request['global_class_id'];
+                $getClass->class_name = $this->request['class_name'];
+                $getClass->abbreviation = $this->request['class_code'];
 
-        Yii::info('[class does not exist] Class ID:'.$id);
-        return[
-            'code' => 200,
-            'message' => 'class does not exist'
-        ];
+                try{
+                    
+                    $getClass->save();
+                    Yii::info('[Class update successful] school_id:'.$id.'');
+                    return[
+                        'code' => '200',
+                        'message' => "Class update succesful"
+                    ];
+                }
+                catch (Exception $exception){
+                    Yii::info('[Class update successful] '.$exception->getMessage());
+                    return[
+                        'code' => '500',
+                        'message' => $exception->getMessage()
+                    ];
+                }
+            }
+
+            Yii::info('[class does not exist] Class ID:'.$id);
+            return[
+                'code' => 200,
+                'message' => 'class does not exist'
+            ];
+        }
+        return $classes->errors;
     }
 
     public function actionDeleteClass($id){

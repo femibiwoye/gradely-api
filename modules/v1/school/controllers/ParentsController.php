@@ -8,7 +8,7 @@ use yii\web\Controller;
 use yii\web\Response;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
-use app\modules\v1\helpers\Utility;
+use app\modules\v1\utility\Utility; 
 use app\modules\v1\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
 use yii\db\Expression;
 /**

@@ -26,6 +26,7 @@ class InviteLog extends \yii\db\ActiveRecord
 
     const SCENARIO_INVITE = 'invite';
     const SCENARIO_VALIDATE_INVITE_TOKEN ='validate_invite_token';
+    const SCENARIO_SCHOOL_INVITE_TEACHERS ='school_invite_teachers';
 
     /**
      * {@inheritdoc}
@@ -51,6 +52,7 @@ class InviteLog extends \yii\db\ActiveRecord
             [['token'], 'string', 'max' => 200],
             [['receiver_name','receiver_email','receiver_phone','receiver_type','sender_type'], 'required', 'on' => self::SCENARIO_INVITE],
             [['token'], 'required', 'on' => self::SCENARIO_VALIDATE_INVITE_TOKEN],
+            [['receiver_name','receiver_email','receiver_phone','receiver_class','receiver_subject'], 'required', 'on' => self::SCENARIO_SCHOOL_INVITE_TEACHERS],
         ];
     }
 

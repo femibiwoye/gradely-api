@@ -104,65 +104,72 @@ class AuthController extends ActiveController
 
     public function actionForgotPassword()
     {
-        $model = new User();
-        $checkEmailExist = $model->findByLoginDetail($this->request['email']);
-        if (!empty($checkEmailExist)) {
-            try {
-                $resetToken = rand(1, 100000);
-                //TODO: add password reset url as environment variable
-                $PasswordResetLink = Yii::$app->params['passwordResetLink'] . $resetToken;
-                $checkEmailExist->password_reset_token = $resetToken;
-                $checkEmailExist->save();
-                Yii::$app->mailer->compose()
-                    ->setFrom(Yii::$app->params['notificationSentFromEmail'])
-                    ->setTo($this->request['email'])
-                    ->setSubject(Yii::$app->params['passwordResetEmailSubject'])
-                    ->setHtmlBody(Yii::$app->params['passwordResetEmailBody'] . $PasswordResetLink)
-                    ->send();
-                //if the user email exist update the user table by generating a
-                //password reset token, the reset token should then be added to the url sent to the users email
-                //so when user clicks on the forgot password link the token is compared with whats on the users
-                //password rest token field
-                $response = [
-                    'code' => 200,
-                    'message' => "Reset Link sent to email",
-                    'data' => []
-                ];
-                return $response;
-            } catch (Exception  $exception) {
+        $model = new User(['scenario' => User::SCENARIO_FORGOT_PASSWORD]);
+        $model->attributes = \Yii::$app->request->post();
+        if ($model->validate()) { 
+            $checkEmailExist = $model->findByLoginDetail($this->request['email']);
+            if (!empty($checkEmailExist)) {
+                try {
+                    $resetToken = rand(1, 100000);
+                    //TODO: add password reset url as environment variable
+                    $PasswordResetLink = Yii::$app->params['passwordResetLink'] . $resetToken;
+                    $checkEmailExist->password_reset_token = $resetToken;
+                    $checkEmailExist->save();
+                    Yii::$app->mailer->compose()
+                        ->setFrom(Yii::$app->params['notificationSentFromEmail'])
+                        ->setTo($this->request['email'])
+                        ->setSubject(Yii::$app->params['passwordResetEmailSubject'])
+                        ->setHtmlBody(Yii::$app->params['passwordResetEmailBody'] . $PasswordResetLink)
+                        ->send();
+                    //if the user email exist update the user table by generating a
+                    //password reset token, the reset token should then be added to the url sent to the users email
+                    //so when user clicks on the forgot password link the token is compared with whats on the users
+                    //password rest token field
+                    $response = [
+                        'code' => 200,
+                        'message' => "Reset Link sent to email",
+                        'data' => []
+                    ];
+                    return $response;
+                } catch (Exception  $exception) {
 
-                return [
-                    'code' => 200,
-                    'message' => $exception->getMessage(),
-                ];
+                    return [
+                        'code' => 200,
+                        'message' => $exception->getMessage(),
+                    ];
+                }
             }
+            return [
+                'code' => 200,
+                'message' => "Sorry, i cant find this email"
+            ];
         }
-
-        return [
-            'code' => 200,
-            'message' => "Sorry, i cant find this email"
-        ];
+        return $model->errors;
     }
 
     public function actionRecoverPassword()
     {
 
-        $user = new User();
-        $checkTokenExist = $user->findOne(['password_reset_token' => $this->request['token']]);
-        if (!empty($checkTokenExist)) {
-            $checkTokenExist->setPassword($this->request['password']);
-            if ($checkTokenExist->save()) {
-                return [
-                    'code' => 200,
-                    'message' => "Password reset succesful"
-                ];
+        $user = new User(['scenario' => User::SCENARIO_RECOVER_PASSWORD]);
+        $user->attributes = \Yii::$app->request->post();
+        if ($user->validate()) { 
+            $checkTokenExist = $user->findOne(['password_reset_token' => $this->request['token']]);
+            if (!empty($checkTokenExist)) {
+                $checkTokenExist->setPassword($this->request['password']);
+                if ($checkTokenExist->save()) {
+                    return [
+                        'code' => 200,
+                        'message' => "Password reset succesful"
+                    ];
+                }
             }
-        }
 
-        return [
-            'code' => 200,
-            'message' => "Invalid token"
-        ];
+            return [
+                'code' => 200,
+                'message' => "Invalid token"
+            ];
+        }
+        return $user->errors;
     }
 
     public function actionTestApi(){
@@ -179,6 +186,6 @@ class AuthController extends ActiveController
         
         print_r($result);
         curl_close($ch);
-        }
+    }
 }
 

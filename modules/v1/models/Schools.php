@@ -37,6 +37,7 @@ use Yii;
  */
 class Schools extends \yii\db\ActiveRecord
 {
+    const SCENERIO_EDIT_SCHOOL_PROFILE = 'edit_school_profile';
     /**
      * {@inheritdoc}
      */
@@ -61,6 +62,9 @@ class Schools extends \yii\db\ActiveRecord
             [['postal_code', 'establish_date'], 'string', 'max' => 20],
             [['contact_role'], 'string', 'max' => 50],
             [['phone', 'phone2'], 'string', 'max' => 15],
+            [['name','about','address','city','state','country','postal_code','website','phone','school_email'], 'required',
+                 'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
+            ]
         ];
     }
 

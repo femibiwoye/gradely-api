@@ -7,7 +7,7 @@ use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
 use app\modules\v1\models\{Schools,User,InviteLog};
-use app\modules\v1\helpers\Utility;
+use app\modules\v1\utility\Utility; 
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -87,39 +87,46 @@ class ProfileController extends ActiveController
 
     public function actionEditSchoolProfile(){
 
-        try{
-            $getSchoolInfo = Schools::findOne(['user_id' => Utility::getUserId()]);
-            if(!empty($getSchoolInfo)){
-                $getSchoolInfo->name = $this->request['name'];
-                $getSchoolInfo->about = $this->request['about'];
-                $getSchoolInfo->address = $this->request['address'];
-                $getSchoolInfo->city = $this->request['city'];
-                $getSchoolInfo->state = $this->request['state'];
-                $getSchoolInfo->country = $this->request['country'];
-                $getSchoolInfo->postal_code = $this->request['postal_code'];
-                $getSchoolInfo->website = $this->request['website'];
-                $getSchoolInfo->phone = $this->request['phone'];
-                $getSchoolInfo->school_email = $this->request['school_email'];
-                $getSchoolInfo->save();
-                Yii::info('School profile update successful');
+        $model = new Schools(['scenario' => Schools::SCENERIO_EDIT_SCHOOL_PROFILE]);
+
+        $model->attributes = \Yii::$app->request->post();
+
+        if ($model->validate()) { 
+            try{
+                $getSchoolInfo = Schools::findOne(['user_id' => Utility::getUserId()]);
+                if(!empty($getSchoolInfo)){
+                    $getSchoolInfo->name = $this->request['name'];
+                    $getSchoolInfo->about = $this->request['about'];
+                    $getSchoolInfo->address = $this->request['address'];
+                    $getSchoolInfo->city = $this->request['city'];
+                    $getSchoolInfo->state = $this->request['state'];
+                    $getSchoolInfo->country = $this->request['country'];
+                    $getSchoolInfo->postal_code = $this->request['postal_code'];
+                    $getSchoolInfo->website = $this->request['website'];
+                    $getSchoolInfo->phone = $this->request['phone'];
+                    $getSchoolInfo->school_email = $this->request['school_email'];
+                    $getSchoolInfo->save();
+                    Yii::info('School profile update successful');
+                    return[
+                        'code' => '200',
+                        'message' => 'update successful'
+                    ];
+                }
+
                 return[
                     'code' => '200',
-                    'message' => 'update successful'
+                    'message' => 'school not found'
+                ];
+
+            }
+            catch(Exception $exception){
+                Yii::info('[School profile update] Error:'.$exception->getMessage().'');
+                return[
+                    'code' => '500',
+                    //'message' => $exception->getMessage()
                 ];
             }
-
-            return[
-                'code' => '200',
-                'message' => 'school not found'
-            ];
-
         }
-        catch(Exception $exception){
-            Yii::info('[School profile update] Error:'.$exception->getMessage().'');
-            return[
-                'code' => '500',
-                //'message' => $exception->getMessage()
-            ];
-        }
+        return $model->errors;
     }
 }

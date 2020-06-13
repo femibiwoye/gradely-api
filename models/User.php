@@ -44,6 +44,9 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;
+    const SCENERIO_UPDATE_SCHOOL_EMAIL = 'update_scholl_email';
+    const SCENERIO_UPDATE_SCHOOL_PASSWORD = 'update_password';
+    const SCENERIO_SETTINGS_DELETE_ACCOUNT = 'settings_delete_acount';
  
     /**
      * @inheritdoc
@@ -88,6 +91,9 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             [['email'], 'unique'],
             [['username'], 'unique'],
             [['password_reset_token'], 'unique'],
+            [['email'], 'required','on' => self::SCENERIO_UPDATE_SCHOOL_EMAIL],
+            [['password_hash'], 'required','on' => self::SCENERIO_UPDATE_SCHOOL_PASSWORD],
+            [['status','auth_key','email','phone','',''], 'required','on' => self::SCENERIO_SETTINGS_DELETE_ACCOUNT],
         ];
     }
  

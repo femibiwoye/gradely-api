@@ -50,6 +50,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     const SCENARIO_SCHOOL_SIGNUP = 'school_signup';
     const SCENARIO_STUDENT_SIGNUP = 'student_signup';
     const SCENARIO_TEACHER_SIGNUP = 'teacher_signup';
+    const SCENARIO_FORGOT_PASSWORD = 'forgot_password';
+    const SCENARIO_RECOVER_PASSWORD = 'recover_password';
+    const SCENARIO_SETTINGS_UPDATE_SUBJECT = 'settings_update_subject';
+    const SCENARIO_EDIT_USER_PROFILE = 'edit_user_profile';
 
 
     /**
@@ -94,6 +98,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_PARENT_SIGNUP],
             [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_TEACHER_SIGNUP],
             [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_SCHOOL_SIGNUP],
+            [['email'], 'required', 'on' => self::SCENARIO_FORGOT_PASSWORD],
+            [['token','password'], 'required', 'on' => self::SCENARIO_RECOVER_PASSWORD],
+            [['firstname','lastname','password_hash'], 'required', 'on' => self::SCENARIO_SETTINGS_UPDATE_SUBJECT],
+            [['firstname','lastname','phone','phone','email'], 'required', 'on' => self::SCENARIO_EDIT_USER_PROFILE]
         ];
     }
 

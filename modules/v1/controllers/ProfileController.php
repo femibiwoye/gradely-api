@@ -78,26 +78,31 @@ class ProfileController extends ActiveController
 
     public function actionEditUserProfile(){
 
-        try{
-            $getUserInfo = User::findOne(['auth_key' => Utility::getBearerToken()]);
-            $getUserInfo->firstname = $this->request['firstname'];
-            $getUserInfo->lastname = $this->request['lastname'];
-            $getUserInfo->phone = $this->request['phone'];
-            $getUserInfo->email = $this->request['email'];
-            $getUserInfo->save();
-            Yii::info('School user profile update successful');
-            return[
-                'code' => '200',
-                'message' => 'School user profile update successful'
-            ];
+        $model = new User(['scenario' => User::SCENARIO_EDIT_USER_PROFILE]);
+        $model->attributes = \Yii::$app->request->post();
+        if ($model->validate()) {
+            try{
+                $getUserInfo = User::findOne(['auth_key' => Utility::getBearerToken()]);
+                $getUserInfo->firstname = $this->request['firstname'];
+                $getUserInfo->lastname = $this->request['lastname'];
+                $getUserInfo->phone = $this->request['phone'];
+                $getUserInfo->email = $this->request['email'];
+                $getUserInfo->save();
+                Yii::info('School user profile update successful');
+                return[
+                    'code' => '200',
+                    'message' => 'School user profile update successful'
+                ];
+            }
+            catch(Exception $exception){
+                Yii::info('[School user profile update] Error:'.$exception->getMessage().'');
+                return[
+                    'code' => '500',
+                    'message' => $exception->getMessage()
+                ];
+            }
         }
-        catch(Exception $exception){
-            Yii::info('[School user profile update] Error:'.$exception->getMessage().'');
-            return[
-                'code' => '500',
-                'message' => $exception->getMessage()
-            ];
-        }
+        return $model->errors;
     }
 
 }
