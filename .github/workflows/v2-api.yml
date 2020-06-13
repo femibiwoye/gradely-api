@@ -35,6 +35,13 @@ jobs:
       with:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
+    - name: Get server update
+      run: |
+        echo "I just enter digitalocean"
+        cd /home
+        ls -l
+
+
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
