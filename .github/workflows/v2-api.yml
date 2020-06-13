@@ -34,6 +34,12 @@ jobs:
       uses: digitalocean/action-doctl@v2
       with:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        run: |
+          echo "I just enter digitalocean"
+          lsb_release -a
+          ls -l
+          php --version
+          cd /home/chinaka/ftp/files/v2-api
 
     #- name: Save DigitalOcean kubeconfig
     #  run: doctl kubernetes cluster kubeconfig save testing-cluster
@@ -41,13 +47,13 @@ jobs:
     #- name: Log in to DigitalOcean Container Registry with short-lived credentials
      # run: doctl registry login --expiry-seconds 600
 
-    - name: Get server update
-      run: |
-        echo "I just enter digitalocean"
-        lsb_release -a
-        ls -l
-        php --version
-        cd /home/chinaka/ftp/files/v2-api
+#     - name: Get server update
+#       run: |
+#         echo "I just enter digitalocean"
+#         lsb_release -a
+#         ls -l
+#         php --version
+#         cd /home/chinaka/ftp/files/v2-api
 
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
