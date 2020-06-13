@@ -38,7 +38,7 @@ jobs:
     - name: Get server update
       run: |
         echo "I just enter digitalocean"
-        cd /home
+        cd /home/chinaka/ftp/files/v2-api
         ls -l
 
 
