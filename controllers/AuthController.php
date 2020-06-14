@@ -255,8 +255,7 @@ class AuthController extends ActiveController
         Yii::info('[Login responce generated successfully');
         return[
             'code' => 200,
-            'message' => 'Okay',
-            'Addition'=>'Confirmation that auto deployment is working 10',
+            'message' => 'OK',
             'data' => ['user' => $model->getUser()],
             'expiry' => $tokenExpires,
             'token' => $authKey
