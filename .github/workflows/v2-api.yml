@@ -34,7 +34,7 @@ jobs:
       uses: digitalocean/action-doctl@v2
       with:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-        run: |
+        script: |
           echo "I just enter digitalocean"
           lsb_release -a
           ls -l
