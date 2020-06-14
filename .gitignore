@@ -5,7 +5,7 @@
 config/db.php
 composer.lock
 runtime
-.github/workflows/v2-api.yml
+.github
 
 # phpstorm project files
 .idea
