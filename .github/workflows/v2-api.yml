@@ -54,12 +54,17 @@ jobs:
 
     - name: Executing remote  command
       uses: appleboy/ssh-action@master
+#       with:
+#         host: ${{ secrets.HOST }}
+#         USERNAME: ${{ secrets.USERNAME }}
+#         PORT: ${{ secrets.PORT }}
+#         KEY: ${{ secrets.SSHKEY }}
       with:
         host: ${{ secrets.HOST }}
-        USERNAME: ${{ secrets.USERNAME }}
-        PORT: ${{ secrets.PORT }}
-        KEY: ${{ secrets.SSHKEY }}
-        script: ls -l
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        script: whoami
         #script: cat /opt/app/README.md
     #- name: Save DigitalOcean kubeconfig
     #  run: doctl kubernetes cluster kubeconfig save testing-cluster
