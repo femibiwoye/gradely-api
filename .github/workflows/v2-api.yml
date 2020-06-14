@@ -34,13 +34,40 @@ jobs:
       uses: digitalocean/action-doctl@v2
       with:
         token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-        run: |
+        script: |
           echo "I just enter digitalocean"
           lsb_release -a
           ls -l
           php --version
           cd /home/chinaka/ftp/files/v2-api
 
+#     - name: Copy file via scp
+#       uses: appleboy/scp-action@master
+#       env:
+#         HOST: ${{ secrets.HOST }}
+#         USERNAME: ${{ secrets.USERNAME }}
+#         PORT: ${{ secrets.PORT }}
+#         KEY: ${{ secrets.SSHKEY }}
+#       with:
+#         source: "."
+#         target: "/opt/app"
+
+    - name: Executing remote  command
+      uses: appleboy/ssh-action@master
+#       with:
+#         host: ${{ secrets.HOST }}
+#         USERNAME: ${{ secrets.USERNAME }}
+#         PORT: ${{ secrets.PORT }}
+#         KEY: ${{ secrets.SSHKEY }}
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        script: |
+            cd /home/chinaka/ftp/files/v2-api
+            git pull
+        #script: cat /opt/app/README.md
     #- name: Save DigitalOcean kubeconfig
     #  run: doctl kubernetes cluster kubeconfig save testing-cluster
     
