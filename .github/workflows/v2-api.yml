@@ -47,7 +47,7 @@ jobs:
         HOST: ${{ secrets.HOST }}
         USERNAME: ${{ secrets.USERNAME }}
         PORT: ${{ secrets.PORT }}
-        KEY: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        KEY: ${{ secrets.SSHKEY }}
       with:
         source: "."
         target: "/opt/app"
@@ -58,7 +58,7 @@ jobs:
         host: ${{ secrets.HOST }}
         USERNAME: ${{ secrets.USERNAME }}
         PORT: ${{ secrets.PORT }}
-        KEY: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        KEY: ${{ secrets.SSHKEY }}
         script: cat /opt/app/README.md
 
     #- name: Save DigitalOcean kubeconfig
