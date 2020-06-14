@@ -5,6 +5,7 @@
 config/db.php
 composer.lock
 runtime
+.github
 
 # phpstorm project files
 .idea
