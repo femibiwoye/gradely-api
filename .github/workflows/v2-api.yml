@@ -65,7 +65,7 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
         script: |
-            ls /home/chinaka/ftp/files/v2-api
+            cd /home/chinaka/ftp/files/v2-api
             git pull
         #script: cat /opt/app/README.md
     #- name: Save DigitalOcean kubeconfig
