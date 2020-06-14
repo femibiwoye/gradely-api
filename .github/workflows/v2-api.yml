@@ -64,7 +64,9 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
-        script: ls /home/chinaka/ftp/files/v2-api
+        script: |
+            ls /home/chinaka/ftp/files/v2-api
+            git pull
         #script: cat /opt/app/README.md
     #- name: Save DigitalOcean kubeconfig
     #  run: doctl kubernetes cluster kubeconfig save testing-cluster
