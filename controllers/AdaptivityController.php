@@ -82,7 +82,7 @@ class AdaptivityController extends ActiveController
             $checkStudentTakenAnyHomework  = QuizSummaryDetails::findOne(['student_id' => $this->request['student_id']]);
 
             //if empty that means the the student has not taken homework
-            //as a result present 10 easy, 10 medium and ten hard questions to the student
+            //as a result show the student the first set of easy questions
             if(empty($checkStudentTakenAnyHomework)){
 
                 $selectEasyQuestions = QuizSummaryDetails::find()
@@ -91,35 +91,16 @@ class AdaptivityController extends ActiveController
                 ->where(['homework_questions.difficulty' => 1])
                 ->limit(10)
                 ->all();
-
-                $selectMediumQuestions = QuizSummaryDetails::find()
-                ->select('quiz_summary_details.*')
-                ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
-                ->where(['homework_questions.difficulty' => 2])
-                ->limit(10)
-                ->all();
-
-                $selectHardQuestions = QuizSummaryDetails::find()
-                ->select('quiz_summary_details.*')
-                ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
-                ->where(['homework_questions.difficulty' => 3])
-                ->limit(10)
-                ->all();
             }
 
             elseif(!empty($checkStudentTakenAnyHomework)){
 
-                //Going by the audio recording,for student to move to the next topic student has to get 
-                //70% easy, 60% medium and 50% hard questions does this mean the student will keep seeing
-                //questions from the current topic until he meets the percentage score condition before 
-                //he can move to the next topic
                 //i need to get the next topic
                 $getLastHomework = QuizSummaryDetails::find()
                 ->select('quiz_summary_details.*')
                 ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
                 ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
                 ->where(['homework_questions.difficulty' => 1])
-                ->limit(10)
                 ->one();
                 $getLastTopicId = $getLastHomework->topic_id;
                 // var_dump($getLastHomework); exit;
@@ -142,7 +123,7 @@ class AdaptivityController extends ActiveController
                 ->where(['homework_questions.difficulty' => 1])
                 ->where(['quiz_summary_details.topic_id' => $getLastHomework->topic_id])
                 ->andWhere(['!=', 'quiz_summary_details.selected', 'quiz_summary_details.answer'])
-                ->limit(10)
+                ->limit(30)
                 ->all());
 
                 //var_dump($checkStudentHomeworkPerformanceEasy); exit;
@@ -160,6 +141,7 @@ class AdaptivityController extends ActiveController
                 ->andWhere(['!=', 'quiz_summary_details.selected', 'quiz_summary_details.answer'])
                 ->limit(10)
                 ->all());
+
                 $totalFailedMedium = $checkStudentHomeworkPerformanceMedium;
 
                 $checkStudentHomeworkPerformanceHard = count(QuizSummaryDetails::find()
@@ -171,6 +153,7 @@ class AdaptivityController extends ActiveController
                 ->andWhere(['!=', 'quiz_summary_details.selected', 'quiz_summary_details.answer'])
                 ->limit(10)
                 ->all());
+
                 $totalFailedHard  = $checkStudentHomeworkPerformanceHard;
 
                 var_dump($totalFailedHard); exit;
