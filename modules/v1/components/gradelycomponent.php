@@ -77,9 +77,9 @@ class GradelyComponent extends Component
   }
 
 
-  public function getPrametersForNextSetOfQuestion($totalFailed,$currentDifficulty){
+  public function getParametersForNextSetOfQuestion($totalFailed,$currentDifficulty){
 
-
+    //var_dump($totalFailed); exit;
     $getConvertedPercentageScoreToNumber = $this->percentageScore();
 
     $queryLimit=[];
