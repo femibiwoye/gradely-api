@@ -271,6 +271,11 @@ class AuthController extends ActiveController
         ];
     }
 
+    public function actionTest()
+    {
+        return 'This is testing of API';
+    }
+
     private function getLoginResponse($model)
     {
         $user = new User();
