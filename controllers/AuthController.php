@@ -4,7 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
-use yii\web\Controller;
+use yii\rest\Controller;
 use yii\web\Response;
 use app\models\{Schools, Login, User, StudentSchool, SchoolTeachers, Parents, UserProfile};
 use yii\rest\ActiveController;
@@ -13,12 +13,12 @@ use yii\filters\auth\HttpBearerAuth;
 /**
  * Auth controller
  */
-class AuthController extends ActiveController
+class AuthController extends Controller
 {
     //TODO: for every request check that bearer token supplied is attached to the user
 
 
-    public $modelClass = 'api\models\User';
+    //public $modelClass = 'api\models\User';
 
 
     /**
@@ -113,7 +113,13 @@ class AuthController extends ActiveController
         if ($model->load(Yii::$app->getRequest()->getBodyParams(), '') && $model->login()) {
             Yii::info('Login succesful');
             \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-            return $this->getLoginResponse($model);
+            return [
+                'code' => 200,
+                'message' => 'Ok',
+                'data' => 'This data here is the cause of the error', //$model->getUser(),
+                //'expiry' => $tokenExpires,
+                'token' => 'jygsadtu7ad9iqeo8dfowijwpon42fe'
+            ]; //$this->getLoginResponse($model);
         } else {
             $model->validate();
             Yii::info('[Login failed] Error:' . $model->validate() . '');
