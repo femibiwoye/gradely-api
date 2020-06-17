@@ -110,10 +110,10 @@ class AuthController extends Controller
     {
 
         $model = new Login();
-
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         if ($model->load(Yii::$app->getRequest()->getBodyParams(), '') && $model->login()) {
             Yii::info('Login succesful');
-            \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
             return Json::encode(['value'=>'This is return of power']); //$this->getLoginResponse($model);
         } else {
             $model->validate();
