@@ -291,7 +291,7 @@ class AuthController extends ActiveController
         return [
             'code' => 200,
             'message' => 'Ok',
-            'data' => ['user' => $model->getUser()],
+            'data' => $model->getUser(),
             'expiry' => $tokenExpires,
             'token' => $authKey
         ];
