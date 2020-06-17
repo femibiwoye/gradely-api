@@ -288,6 +288,7 @@ class AuthController extends ActiveController
         unset($model->getUser()->token);
         unset($model->getUser()->token_expires);
         Yii::info('[Login responce generated successfully');
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return [
             'code' => 200,
             'message' => 'Ok',
