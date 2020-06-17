@@ -60,12 +60,12 @@ class AuthController extends Controller
         $auth = $behaviors['authenticator'];
         unset($behaviors['authenticator']);
 
-        $behaviors[] = [
-            'class' => \yii\filters\ContentNegotiator::className(),
-            'formats' => [
-                'application/json' => \yii\web\Response::FORMAT_JSON,
-            ],
-        ];
+//        $behaviors[] = [
+//            'class' => \yii\filters\ContentNegotiator::className(),
+//            'formats' => [
+//                'application/json' => \yii\web\Response::FORMAT_JSON,
+//            ],
+//        ];
 
 
         // add CORS filter
