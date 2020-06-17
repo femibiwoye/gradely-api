@@ -293,7 +293,7 @@ class AuthController extends ActiveController
             'code' => 200,
             'message' => 'Ok',
             'data' => 'This data here is the cause of the error', //$model->getUser(),
-            'expiry' => $tokenExpires,
+            //'expiry' => $tokenExpires,
             'token' => $authKey
         ];
     }
