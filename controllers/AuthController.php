@@ -112,6 +112,7 @@ class AuthController extends ActiveController
 
         if ($model->load(Yii::$app->getRequest()->getBodyParams(), '') && $model->login()) {
             Yii::info('Login succesful');
+            \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
             return $this->getLoginResponse($model);
         } else {
             $model->validate();
@@ -288,7 +289,7 @@ class AuthController extends ActiveController
         unset($model->getUser()->token);
         unset($model->getUser()->token_expires);
         Yii::info('[Login responce generated successfully');
-        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
         return [
             'code' => 200,
             'message' => 'Ok',
