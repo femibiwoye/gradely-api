@@ -19,9 +19,9 @@ $config = [
     ],
     'components' => [
         // ? This is global content negotiation. Instead, i included it top module base| Modules.php
-        'response' => [
-            'format' => \yii\web\Response::FORMAT_JSON
-        ],
+//        'response' => [
+//            'format' => \yii\web\Response::FORMAT_JSON
+//        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             // Because we are building stateless API, we have to disable cookie

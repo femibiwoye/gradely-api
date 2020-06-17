@@ -113,13 +113,7 @@ class AuthController extends Controller
         if ($model->load(Yii::$app->getRequest()->getBodyParams(), '') && $model->login()) {
             Yii::info('Login succesful');
             \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-            return [
-                'code' => 200,
-                'message' => 'Ok',
-                'data' => 'This data here is the cause of the error', //$model->getUser(),
-                //'expiry' => $tokenExpires,
-                'token' => 'jygsadtu7ad9iqeo8dfowijwpon42fe'
-            ]; //$this->getLoginResponse($model);
+            return ['value'=>'This is return of power']; //$this->getLoginResponse($model);
         } else {
             $model->validate();
             Yii::info('[Login failed] Error:' . $model->validate() . '');
