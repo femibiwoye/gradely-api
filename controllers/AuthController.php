@@ -294,8 +294,8 @@ class AuthController extends Controller
         return [
             'code' => 200,
             'message' => 'Ok',
-            'data' => 'This data here is the cause of the error', //$model->getUser(),
-            //'expiry' => $tokenExpires,
+            'data' => $model->getUser(),
+            'expiry' => $tokenExpires,
             'token' => $authKey
         ];
     }
