@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
+use yii\helpers\Json;
 use yii\rest\Controller;
 use yii\web\Response;
 use app\models\{Schools, Login, User, StudentSchool, SchoolTeachers, Parents, UserProfile};
@@ -113,7 +114,7 @@ class AuthController extends Controller
         if ($model->load(Yii::$app->getRequest()->getBodyParams(), '') && $model->login()) {
             Yii::info('Login succesful');
             \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-            return ['value'=>'This is return of power']; //$this->getLoginResponse($model);
+            return Json::encode(['value'=>'This is return of power']); //$this->getLoginResponse($model);
         } else {
             $model->validate();
             Yii::info('[Login failed] Error:' . $model->validate() . '');
