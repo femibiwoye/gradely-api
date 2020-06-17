@@ -118,7 +118,7 @@ class AuthController extends Controller
         } else {
             $model->validate();
             Yii::info('[Login failed] Error:' . $model->validate() . '');
-            return $model;
+            return ['value'=>'This is return of power']; // $model;
         }
     }
 
