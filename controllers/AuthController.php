@@ -4,7 +4,8 @@ namespace app\controllers;
 
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
-use yii\web\Controller;
+use yii\helpers\Json;
+use yii\rest\Controller;
 use yii\web\Response;
 use app\models\{Schools, Login, User, StudentSchool, SchoolTeachers, Parents, UserProfile};
 use yii\rest\ActiveController;
@@ -13,12 +14,12 @@ use yii\filters\auth\HttpBearerAuth;
 /**
  * Auth controller
  */
-class AuthController extends ActiveController
+class AuthController extends Controller
 {
     //TODO: for every request check that bearer token supplied is attached to the user
 
 
-    public $modelClass = 'api\models\User';
+    //public $modelClass = 'api\models\User';
 
 
     /**
@@ -60,19 +61,19 @@ class AuthController extends ActiveController
         $auth = $behaviors['authenticator'];
         unset($behaviors['authenticator']);
 
-        $behaviors[] = [
-            'class' => \yii\filters\ContentNegotiator::className(),
-            'formats' => [
-                'application/json' => \yii\web\Response::FORMAT_JSON,
-            ],
-        ];
+
 
 
         // add CORS filter
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
         ];
-
+//        $behaviors[] = [
+//            'class' => \yii\filters\ContentNegotiator::className(),
+//            'formats' => [
+//                'application/json' => \yii\web\Response::FORMAT_JSON,
+//            ],
+//        ];
 
 
         // re-add authentication filter
@@ -109,9 +110,10 @@ class AuthController extends ActiveController
     {
 
         $model = new Login();
-
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         if ($model->load(Yii::$app->getRequest()->getBodyParams(), '') && $model->login()) {
             Yii::info('Login succesful');
+
             return $this->getLoginResponse($model);
         } else {
             $model->validate();
@@ -271,6 +273,11 @@ class AuthController extends ActiveController
         ];
     }
 
+    public function actionTest()
+    {
+        return 'This is testing of API';
+    }
+
     private function getLoginResponse($model)
     {
         $user = new User();
@@ -283,10 +290,11 @@ class AuthController extends ActiveController
         unset($model->getUser()->token);
         unset($model->getUser()->token_expires);
         Yii::info('[Login responce generated successfully');
+
         return [
             'code' => 200,
             'message' => 'Ok',
-            'data' => ['user' => $model->getUser()],
+            'data' => $model->getUser(),
             'expiry' => $tokenExpires,
             'token' => $authKey
         ];
