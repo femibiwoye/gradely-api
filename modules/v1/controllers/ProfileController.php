@@ -37,14 +37,13 @@ class ProfileController extends ActiveController
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
                     'view-user-profile' => ['get'],
-                    'edit-user-profile' => ['update']
+                    'edit-user-profile' => ['put']
                 ],
             ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
-                'only' => ['view-user-profile'],
-                'only' => ['edit-user-profile'],
+                'only' => ['view-user-profile','edit-user-profile']
             ],
         ];
     }
@@ -88,14 +87,14 @@ class ProfileController extends ActiveController
                 $getUserInfo->phone = $this->request['phone'];
                 $getUserInfo->email = $this->request['email'];
                 $getUserInfo->save();
-                Yii::info('School user profile update successful');
+                Yii::info('User profile updated successful');
                 return[
                     'code' => '200',
-                    'message' => 'School user profile update successful'
+                    'message' => 'User profile updated successful'
                 ];
             }
             catch(Exception $exception){
-                Yii::info('[School user profile update] Error:'.$exception->getMessage().'');
+                Yii::info('[User profile update] Error:'.$exception->getMessage().'');
                 return[
                     'code' => '500',
                     'message' => $exception->getMessage()

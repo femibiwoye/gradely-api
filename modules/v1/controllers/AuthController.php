@@ -78,7 +78,7 @@ class AuthController extends ActiveController
                     'logout' => ['post'],
                     'signup' => ['post'],
                     'forgot-password' => ['post'],
-                    'recover-password' => ['post'],
+                    'recover-password' => ['put'],
                 ],
             ],
 
@@ -139,17 +139,18 @@ class AuthController extends ActiveController
 
     public function actionForgotPassword()
     {
-        $model = new User(['scenario' => User::SCENARIO_FORGOT_PASSWORD]);
-        $model->attributes = \Yii::$app->request->post();
-        if ($model->validate()) { 
-            $checkEmailExist = $model->findByLoginDetail($this->request['email']);
+        $user = new User(['scenario' => User::SCENARIO_FORGOT_PASSWORD]);
+        $user->attributes = \Yii::$app->request->post();
+        if ($user->validate()) { 
+            $checkEmailExist = $user->findByLoginDetail($this->request['email']);
+            //var_dump($checkEmailExist);
             if (!empty($checkEmailExist)) {
                 try {
                     $resetToken = rand(1, 100000);
                     //TODO: add password reset url as environment variable
                     $PasswordResetLink = Yii::$app->params['passwordResetLink'] . $resetToken;
                     $checkEmailExist->password_reset_token = $resetToken;
-                    $checkEmailExist->save();
+                    $checkEmailExist->save(false);
                     Yii::$app->mailer->compose()
                         ->setFrom(Yii::$app->params['notificationSentFromEmail'])
                         ->setTo($this->request['email'])
@@ -163,7 +164,6 @@ class AuthController extends ActiveController
                     $response = [
                         'code' => 200,
                         'message' => "Reset Link sent to email",
-                        'data' => []
                     ];
                     return $response;
                 } catch (Exception  $exception) {
@@ -179,7 +179,7 @@ class AuthController extends ActiveController
                 'message' => "Sorry, i cant find this email"
             ];
         }
-        return $model->errors;
+        return $user->errors;
     }
 
     public function actionRecoverPassword()
@@ -190,7 +190,7 @@ class AuthController extends ActiveController
         if ($user->validate()) { 
             $checkTokenExist = $user->findOne(['password_reset_token' => $this->request['token']]);
             if (!empty($checkTokenExist)) {
-                $checkTokenExist->setPassword($this->request['password']);
+                $checkTokenExist->setPassword($this->request['password_hash']);
                 if ($checkTokenExist->save()) {
                     return [
                         'code' => 200,

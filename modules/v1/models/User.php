@@ -55,6 +55,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     const SCENARIO_SETTINGS_UPDATE_SUBJECT = 'settings_update_subject';
     const SCENARIO_EDIT_USER_PROFILE = 'edit_user_profile';
 
+    const SCENERIO_UPDATE_SCHOOL_EMAIL = 'update_scholl_email';
+    const SCENERIO_UPDATE_SCHOOL_PASSWORD = 'update_password';
+    const SCENERIO_SETTINGS_DELETE_ACCOUNT = 'settings_delete_acount';
+
 
     /**
      * @inheritdoc
@@ -91,7 +95,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             [['phone'], 'string', 'max' => 15],
             [['auth_key'], 'string', 'max' => 32],
             [['oauth_uid'], 'string', 'max' => 100],
-            [['email'], 'unique'],
+            //[['email'], 'unique'],
             [['username'], 'unique'],
             [['password_reset_token'], 'unique'],
             [['firstname','lastname','password_hash','email'], 'required', 'on' => self::SCENARIO_STUDENT_SIGNUP],
@@ -99,9 +103,12 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_TEACHER_SIGNUP],
             [['firstname','lastname','password_hash','email','phone'], 'required', 'on' => self::SCENARIO_SCHOOL_SIGNUP],
             [['email'], 'required', 'on' => self::SCENARIO_FORGOT_PASSWORD],
-            [['token','password'], 'required', 'on' => self::SCENARIO_RECOVER_PASSWORD],
+            [['token','password_hash'], 'required', 'on' => self::SCENARIO_RECOVER_PASSWORD],
             [['firstname','lastname','password_hash'], 'required', 'on' => self::SCENARIO_SETTINGS_UPDATE_SUBJECT],
-            [['firstname','lastname','phone','phone','email'], 'required', 'on' => self::SCENARIO_EDIT_USER_PROFILE]
+            [['firstname','lastname','phone','email'], 'required', 'on' => self::SCENARIO_EDIT_USER_PROFILE],
+            [['email'], 'required','on' => self::SCENERIO_UPDATE_SCHOOL_EMAIL],
+            [['email'], 'required','on' => self::SCENERIO_UPDATE_SCHOOL_PASSWORD],
+            [['password_hash'], 'required','on' => self::SCENERIO_SETTINGS_DELETE_ACCOUNT],
         ];
     }
 
@@ -188,6 +195,14 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function setPassword($password)
     {
         $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+    }
+
+    public function getPassword()
+
+    {
+
+        return '';
+
     }
 
     /**

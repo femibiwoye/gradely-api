@@ -6,8 +6,8 @@ use Yii;
 use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
 use yii\web\Controller;
 use yii\web\Response;
-use app\modules\v1\models\{Schools,User,InviteLog};
-use app\modules\v1\helpers\Utility;
+use app\modules\v1\models\{Schools,User,InviteLog,SchoolTeachers,Parents};
+use app\modules\v1\utility\Utility;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -43,8 +43,7 @@ class InvitesController extends ActiveController
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
-                'only' => ['index'],
-                'only' => ['validate-invite-token'],
+                'only' => ['index','validate-invite-token']
             ],
         ];
     }
@@ -104,7 +103,9 @@ class InvitesController extends ActiveController
                         $inviteLog->token = (string) $token;
                         $inviteLog->save();
                         //sender_type e.g school, receiver type e.g parent
-                    // $this->getInviteEmail($this->request['sender_type'],$this->request['receiver_type'],$invitationLink,$this->request['receiver_email']);
+                        
+                        // $this->getInviteEmail($this->request['sender_type'],$this->request['receiver_type'],$invitationLink,$this->request['receiver_email']);
+                        $this->getInviteEmail($this->request['receiver_type'],$invitationLink,$this->request['receiver_email']);
                         return [
                             'code' => 200,
                             'data' => $inviteLog
@@ -139,36 +140,24 @@ class InvitesController extends ActiveController
 
         if ($inviteLog->validate()) { 
 
-            $Loginmodel = new Login();
             $inviteLog = new InviteLog();
             $user = new User();
             $checkTokenExist = $inviteLog->findOne(['token' => $this->request['token'],'status' => 0]);
             if(!empty($checkTokenExist)){
 
                 $checkUserExist = User::findOne(['email' => $checkTokenExist->receiver_email]);
-
+                //var_dump($checkUserExist); exit;
                 //teacher to school invite
-                if(empty($checkUserExist) && $checkTokenExist->sender_type ='school' && $checkTokenExist->receiver_type ='teacher'){
+                if(empty($checkUserExist) && $checkTokenExist->sender_type =='school' && $checkTokenExist->receiver_type =='teacher'){
                     try{
                         $schoolTeacher = new SchoolTeachers();
                         $schoolTeacher->teacher_id = $user->id;
                         $schoolTeacher->school_id = $checkTokenExist->sender_id;
                         $schoolTeacher->save();
-                    }
-                    catch(Exception $exception){
-                        return[
-                            'code' => '200',
-                            'message' => $exception->getMessage()
-                        ];
-                    }
-                    try{
                         return [
                             'code' =>'200',
-                            'message' => '',
-                            'data' => [
-                                'name' =>$checkTokenExist->name,
-                                'email' =>$checkTokenExist->email
-                            ]
+                            'message' => 'Token validated successfully',
+                            'data' => $checkTokenExist
                         ];
                     }
                     catch(Exception $exception){
@@ -177,8 +166,9 @@ class InvitesController extends ActiveController
                             'message' => $exception->getMessage()
                         ];
                     }
+                    
                 }
-                elseif(!empty($checkUserExist) && $checkTokenExist->sender_type ='school' && $checkTokenExist->receiver_type ='teacher'){
+                elseif(!empty($checkUserExist) && $checkTokenExist->sender_type =='school' && $checkTokenExist->receiver_type =='teacher'){
                     //if receivers email exist
                     try{
                         $checkTokenExist->status = 1;
@@ -193,29 +183,17 @@ class InvitesController extends ActiveController
                 }
 
                 //student to parent invite
-                if(empty($checkUserExist) && $checkTokenExist->sender_type ='student' && $checkTokenExist->receiver_type ='parent'){
+                if(empty($checkUserExist) && $checkTokenExist->sender_type =='student' && $checkTokenExist->receiver_type =='parent'){
                     try{
                         $studentParent = new Parents();
                         $studentParent->parent_id = $user->id;
                         $studentParent->student_id = $checkTokenExist->sender_id;
                         $studentParent->save();
-                    }
-                    catch(Exception $exception){
-                        return[
-                            'code' => '200',
-                            'message' => $exception->getMessage()
-                        ];
-                    }
 
-
-                    try{
                         return [
                             'code' =>'200',
-                            'message' => '',
-                            'data' => [
-                                'name' =>$checkTokenExist->name,
-                                'email' =>$checkTokenExist->email
-                            ]
+                            'message' => 'Token validated successfully',
+                            'data' => $checkTokenExist
                         ];
                     }
                     catch(Exception $exception){
@@ -225,7 +203,7 @@ class InvitesController extends ActiveController
                         ];
                     }
                 }
-                elseif(!empty($checkUserExist) && $checkTokenExist->sender_type ='school' && $checkTokenExist->receiver_type ='teacher'){
+                elseif(!empty($checkUserExist) && $checkTokenExist->sender_type =='school' && $checkTokenExist->receiver_type =='teacher'){
                     //if receivers email exist
                     try{
                         $checkTokenExist->status = 1;
@@ -240,15 +218,12 @@ class InvitesController extends ActiveController
                 }
 
                 //parent to school invite
-                if(empty($checkUserExist) && $checkTokenExist->sender_type ='parent' && $checkTokenExist->receiver_type ='school'){
+                if(empty($checkUserExist) && $checkTokenExist->sender_type =='parent' && $checkTokenExist->receiver_type =='school'){
                     try{
                         return [
                             'code' =>'200',
-                            'message' => '',
-                            'data' => [
-                                'name' =>$checkTokenExist->name,
-                                'email' =>$checkTokenExist->email
-                            ]
+                            'message' => 'Token validated successfully',
+                            'data' => $checkTokenExist
                         ];
                     }
                     catch(Exception $exception){
@@ -258,7 +233,7 @@ class InvitesController extends ActiveController
                         ];
                     }
                 }
-                elseif(!empty($checkUserExist) && $checkTokenExist->sender_type ='school' && $checkTokenExist->receiver_type ='teacher'){
+                elseif(!empty($checkUserExist) && $checkTokenExist->sender_type =='school' && $checkTokenExist->receiver_type =='teacher'){
                     //if receivers email exist
                     try{
                         $checkTokenExist->status = 1;
@@ -273,15 +248,12 @@ class InvitesController extends ActiveController
                 }
 
                 //school to parent invite
-                if(empty($checkUserExist) && $checkTokenExist->sender_type ='school' && $checkTokenExist->receiver_type ='parent'){
+                if(empty($checkUserExist) && $checkTokenExist->sender_type =='school' && $checkTokenExist->receiver_type =='parent'){
                     try{
                         return [
                             'code' =>'200',
-                            'message' => '',
-                            'data' => [
-                                'name' =>$checkTokenExist->name,
-                                'email' =>$checkTokenExist->email
-                            ]
+                            'message' => 'Token validated successfully',
+                            'data' => $checkTokenExist
                         ];
                     }
                     catch(Exception $exception){
@@ -305,29 +277,18 @@ class InvitesController extends ActiveController
                     }
                 }
 
-
                 //student to school invite
-                if(empty($checkUserExist) && $checkTokenExist->sender_type ='student' && $checkTokenExist->receiver_type ='school'){
+                if(empty($checkUserExist) && $checkTokenExist->sender_type =='student' && $checkTokenExist->receiver_type =='school'){
                     try{
                         $studentSchool = new StudentSchool();
                         $studentSchool->teacher_id = $user->id;
                         $studentSchool->school_id = $checkTokenExist->sender_id;
                         $studentSchool->save();
-                    }
-                    catch(Exception $exception){
-                        return[
-                            'code' => '200',
-                            'message' => $exception->getMessage()
-                        ];
-                    }
-                    try{
+
                         return [
                             'code' =>'200',
-                            'message' => '',
-                            'data' => [
-                                'name' =>$checkTokenExist->name,
-                                'email' =>$checkTokenExist->email
-                            ]
+                            'message' => 'Token validated successfully',
+                            'data' => $checkTokenExist
                         ];
                     }
                     catch(Exception $exception){

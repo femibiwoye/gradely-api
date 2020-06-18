@@ -37,14 +37,16 @@ class InviteController extends ActiveController
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
                     'index' => ['post'],
-                    'validate-invite-token' => ['post']
+                    'validate-invite-token' => ['post'],
+                    'teacher' => ['get'],
+                    'actionDetailedTeacher' => ['get'],
+                    'update' => ['put']
                 ],
             ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
-                'only' => ['index'],
-                'only' => ['validate-invite-token'],
+                'only' => ['index','validate-invite-token','teacher','actionDetailedTeacher','update']
             ],
         ];
     }
@@ -365,6 +367,72 @@ class InviteController extends ActiveController
         return $inviteLog->errors;
     }
 
+    //get all invited teachers
+    public function actionTeacher(){
+        
+        $getInviteLog = InviteLog::findAll(['sender_id' => Utility::getUserId(),'receiver_type' =>'teacher']);
+
+        if(isset($_GET['status'])){
+
+            $getInviteLog = InviteLog::findAll(['sender_id' => Utility::getUserId(),'receiver_type' =>'teacher','status' => $_GET['status']]);
+        }
+
+        return [
+            'code' =>'200',
+            'message' => 'Listing Successful',
+            'data' => $getInviteLog
+        ];
+    }
+
+    //get detailed invited teachers
+    public function actionDetailedTeacher($id){
+        
+        $getInviteLog = InviteLog::findAll(['id' => $id]);
+
+        return [
+            'code' =>'200',
+            'message' => 'Listing Successful',
+            'data' => $getInviteLog
+        ];
+    }
+
+    public function actionUpdate(){
+
+        $model = new InviteLog(['scenario' => InviteLog::SCENARIO_UPDATE_INVITE]);
+
+        $model->attributes = \Yii::$app->request->post();
+
+        if ($model->validate()) {
+
+            if($this->request['type'] == 'one'){
+
+                $getInviteLog = InviteLog::findOne(['id' => $this->request['invitation_id'],'receiver_type' =>'teacher']);
+                $getInviteLog->status = $this->request['status'];
+                $getInviteLog->save(false);
+                return [
+                    'code' =>'200',
+                    'message' => 'Update Successful',
+                ];
+            }
+            
+            elseif($this->request['type'] == 'all'){
+
+                $getInviteLogs = InviteLog::findAll(['sender_id' => Utility::getUserId(),'receiver_type' =>'teacher']);
+
+                foreach($getInviteLogs as $getInviteLog ){
+
+                    $getInviteLog->status = $this->request['status'];
+                    $getInviteLog->save(false);
+                }
+                return [
+                    'code' =>'200',
+                    'message' => 'Update Successful',
+                ];
+            }
+        }
+        return $model->errors;
+    }
+
     private function getInviteEmail($receiverType,$invitationLink,$receiverEmail){
         Yii::$app->mailer->compose()
         ->setFrom(Yii::$app->params['invitationSentFromEmail'])
@@ -374,4 +442,5 @@ class InviteController extends ActiveController
         ->send();
         return;
     }
+
 }

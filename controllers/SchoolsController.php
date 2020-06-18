@@ -1033,68 +1033,6 @@ class SchoolsController extends ActiveController
         ];
     }
 
-    public function actionSettingsUpdateCurriculum(){
-
-        $request = \yii::$app->request->post();
-        $getCurriculum = SchoolCurriculum::find()->where(['school_id' => Utility::getSchoolId()])->all();
-        if(!empty($getCurriculum)){
-
-            try{
-                $getCurriculum->curriculum_id = $request['curriculum_id'];
-                $getCurriculum->save();
-                return[
-                    'code' => '200',
-                    'message' => 'school curriculum successfully updted',
-                ];
-            }
-            catch(Exception $exception){
-
-                return[
-                    'code' => '500',
-                    'message' => $exception->getMessage()
-                ];
-            }
-        }
-        return[
-            'code' => '404',
-            'message' => 'couldnt find any curriculum for this school',
-        ];
-    }
-
-    public function actionSettingsRequestNewCurriculum(){
-
-        $request = \yii::$app->request->post();
-
-        try{
-            $sendmMailToAdmin = Yii::$app->mailer->compose()
-                    ->setFrom(Yii::$app->params['notificationSentFromEmail'])
-                    ->setTo(Yii::$app->params['adminEmail'])
-                    ->setSubject(Yii::$app->params['newlySugestedCurriculumSubject'])
-                    ->setHtmlBody('
-                    
-                        <b>Hello,</b>
-
-                        The curriculum below was suggested
-                        Curriculum Name: '.$request['curriculum'].'
-                        Country: '.$request['country'].'
-                        Comments: '.$request['comments'].'
-                    
-                    ')
-                    ->send();
-
-                    return[
-                        'code' => '200',
-                        'message' => 'Curriculum succesfully requested'
-                    ];
-        }
-        catch( Exception $exception){
-            return[
-                'code' => '200',
-                'message' => $exception->getMessage()
-            ];
-        }
-    }
-
 
     public function actionSettingsListSubjects(){
 

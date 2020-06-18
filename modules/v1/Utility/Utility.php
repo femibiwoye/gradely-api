@@ -1,6 +1,6 @@
 <?php
  
-namespace app\modules\v1\utility\Utility;
+namespace app\modules\v1\utility;
  
 use Yii;
 use yii\base\NotSupportedException;
@@ -61,6 +61,18 @@ class Utility extends ActiveRecord
                 unset($getUserInfo->password_reset_token);
                 unset($getUserInfo->token);
                 unset($getUserInfo->token_expires);
+                unset($getUserInfo->created_at);
+                unset($getUserInfo->updated_at);
+                unset($getUserInfo->subscription_expiry);
+                unset($getUserInfo->subscription_plan);
+                unset($getUserInfo->updated_at);
+                unset($getUserInfo->verification_token);
+                unset($getUserInfo->oauth_provider);
+                unset($getUserInfo->oauth_uid);
+                unset($getUserInfo->last_accessed);
+                unset($getUserInfo->allowance);
+                unset($getUserInfo->allowance_updated_at_column);
+                unset($getUserInfo->status);
                 Yii::info('[Login responce generated successfully');
                 return[
                     'code' => 200,

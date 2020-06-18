@@ -8,9 +8,9 @@ use yii\web\{Controller,Response};
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 use app\modules\v1\utility\Utility; 
-use app\models\{Schools,Classes,GlobalClass,StudentSchool,User,Parents,SchoolCalendar,Homeworks,HomeworkQuestions,TutorSession,UserProfile,SchoolCurriculum,SchoolClassCurriculum};
+use app\modules\v1\models\{Schools,Classes,GlobalClass,StudentSchool,User,Parents,SchoolCalendar,Homeworks,HomeworkQuestions,TutorSession,UserProfile,SchoolCurriculum,SchoolClassCurriculum};
 /**
- * Schools controller
+ * Settings controller
  */
 class SettingsController extends ActiveController
 {
@@ -34,24 +34,24 @@ class SettingsController extends ActiveController
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
-                    'settings-update-email' => ['put'],
-                    'settings-update-password' => ['put'],
-                    'settings-delete-account' => ['delete'],
-                    'settings-list-curriculum' => ['get'],
-                    'settings-update-curriculum' => ['put'],
-                    'settings-request-new-curriculum' => ['post'],
-                    'settings-list-subjects' => ['get'],
-                    'settings-update-subject' => ['put'],
-                    'settings-request-new-subject' => ['post'],
+                    'update-email' => ['put'],
+                    'update-password' => ['put'],
+                    'delete-account' => ['delete'],
+                    'list-curriculum' => ['get'],
+                    'update-curriculum' => ['put'],
+                    'request-new-curriculum' => ['post'],
+                    'list-subjects' => ['get'],
+                    'update-subject' => ['put'],
+                    'request-new-subject' => ['post'],
                 ],
             ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
                 'only' => [
-                    'settings-update-email','settings-update-password','settings-delete-account',
-                    'settings-list-curriculum','settings-update-curriculum','settings-request-new-curriculum',
-                    'settings-list-subjects','settings-update-subject','settings-request-new-subject'
+                    'update-email','update-password','delete-account',
+                    'list-curriculum','update-curriculum','request-new-curriculum',
+                    'list-subjects','update-subject','request-new-subject'
                 ],
             ],            
         ];
@@ -84,7 +84,7 @@ class SettingsController extends ActiveController
           ];
     }
 
-public function actionSettingsUpdateEmail(){
+public function actionUpdateEmail(){
 
     $model = new User(['scenario' => User::SCENERIO_UPDATE_SCHOOL_EMAIL]);
     $model->attributes = \Yii::$app->request->post();
@@ -117,7 +117,7 @@ public function actionSettingsUpdateEmail(){
     return $model->errors;
 }
 
-public function actionSettingsUpdatePassword(){
+public function actionUpdatePassword(){
 
     $model = new User(['scenario' => User::SCENERIO_UPDATE_SCHOOL_PASSWORD]);
     $model->attributes = \Yii::$app->request->post();
@@ -149,12 +149,12 @@ public function actionSettingsUpdatePassword(){
     return $model->errors;
 }
 
-public function actionSettingsDeleteAccount(){
+public function actionDeleteAccount(){
 
     $model = new User(['scenario' => User::SCENERIO_SETTINGS_DELETE_ACCOUNT]);
     $model->attributes = \Yii::$app->request->post();
     if ($model->validate()) { 
-        $user = User::findOne(['user_id' => Utility::getUserId(), 'password' => $model->validatePassword($this->request['password'])]);
+        $user = User::findOne(['user_id' => Utility::getUserId(), 'password' => $model->validatePassword($this->request['password_hash'])]);
         if(!empty($user)){
 
             try{
@@ -180,7 +180,7 @@ public function actionSettingsDeleteAccount(){
     return $model->errors;
 }
 
-public function actionSettingsListCurriculum(){
+public function actionListCurriculum(){
     $getCurriculum = SchoolCurriculum::find()
                         ->select('school_curriculum.*')
                         ->leftJoin('exam_type', '`exam_type`.`id` = `school_curriculum`.`curriculum_id`')
@@ -199,20 +199,20 @@ public function actionSettingsListCurriculum(){
     ];
 }
 
-public function actionSettingsUpdateCurriculum(){
+public function actionUpdateCurriculum($id){
 
     $model = new SchoolCurriculum(['scenario' => SchoolCurriculum::SCENERIO_SETTINGS_UPDATE_CURRICULUM]);
     $model->attributes = \Yii::$app->request->post();
     if ($model->validate()) { 
-        $getCurriculum = SchoolCurriculum::find()->where(['school_id' => Utility::getSchoolId()])->all();
+        $getCurriculum = SchoolCurriculum::find()->where(['school_id' => Utility::getSchoolId(),'curriculum_id' =>$id])->all();
         if(!empty($getCurriculum)){
 
             try{
-                $getCurriculum->curriculum_id = $this->request['curriculum_id'];
-                $getCurriculum->save();
+                $getCurriculum->curriculum_id = $this->request['new_curriculum_id'];
+                $getCurriculum->save(false);
                 return[
                     'code' => '200',
-                    'message' => 'school curriculum successfully updted',
+                    'message' => 'school curriculum successfully updated',
                 ];
             }
             catch(Exception $exception){
@@ -225,13 +225,13 @@ public function actionSettingsUpdateCurriculum(){
         }
         return[
             'code' => '404',
-            'message' => 'couldnt find any curriculum for this school',
+            'message' => 'couldnt find the specific curriculum id for this school',
         ];
     }
     return $model->errors;
 }
 
-public function actionSettingsRequestNewCurriculum(){
+public function actionRequestNewCurriculum(){
 
     try{
         $sendmMailToAdmin = Yii::$app->mailer->compose()
@@ -264,7 +264,7 @@ public function actionSettingsRequestNewCurriculum(){
 }
 
 
-public function actionSettingsListSubjects(){
+public function actionListSubjects(){
 
     $getSubject = SchoolSubject::findOne(['school_id' => Utility::getSchoolId()]);
     if(!empty($getSubject)){
@@ -280,7 +280,7 @@ public function actionSettingsListSubjects(){
     ];
 }
 
-public function actionSettingsUpdateSubject($id){
+public function actionUpdateSubject($id){
 
     $model = new SchoolSubject(['scenario' => SchoolSubject::SCENERIO_SETTINGS_UPDATE_SUBJECT]);
     $model->attributes = \Yii::$app->request->post();
@@ -312,7 +312,7 @@ public function actionSettingsUpdateSubject($id){
     return $model->errors;
 }
 
-public function actionSettingsRequestNewSubject(){
+public function actionRequestNewSubject(){
 
     try{
         $sendmMailToAdmin = Yii::$app->mailer->compose()

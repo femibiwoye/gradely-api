@@ -285,7 +285,7 @@ class ClassesController extends ActiveController
             //$this->getSchoolType('primary','year 1-12');
             //$this->getSchoolType('secondary','year 1-12');
             //$this->getSchoolType('primary-secondary','year 1-12');
-            $generateSchool = $this->getSchoolType($this->request['school-type'],$this->request['format']);
+            $generateSchool = $this->getSchoolType($this->request['school_type'],$this->request['format']);
         
             if($generateSchool){
         
@@ -302,12 +302,12 @@ class ClassesController extends ActiveController
         $classes = new Classes(['scenario' => Classes::SCENERIO_CREATE_CLASS]);
         $classes->attributes = \Yii::$app->request->post();
         if ($classes->validate()) {
-            $classes->school_id = $this->request['school_id'];
+            $classes->school_id = Utility::getSchoolId();
             $classes->global_class_id = $this->request['global_class_id'];
             $classes->class_name = $this->request['class_name'];
             $classes->class_code = $this->request['class_code'];
             $classes->slug = \yii\helpers\Inflector::slug($this->request['class_name']);
-            $classes->abbreviation = $this->abreviate($classes->slug);
+            $classes->abbreviation = Utility::abreviate($classes->slug);
 
             if ($classes->save()) {
                 return[
@@ -337,7 +337,7 @@ class ClassesController extends ActiveController
             Yii::info('[Class Listing succesful] school_id:'.Utility::getSchoolId().'');
             return[
                 'code' => 200,
-                'message' => "Succesfull",
+                'message' => "ok",
                 'data'=> $getAllClasses
             ];
         }
@@ -358,7 +358,7 @@ class ClassesController extends ActiveController
             Yii::info('[Class view successful] school_id:'.$id.'');
             return[
                 'code' => 200,
-                'message' => "Class view successful",
+                'message' => "ok",
                 'data' => $getClass
             ];
         }
@@ -580,110 +580,133 @@ class ClassesController extends ActiveController
         ];
     }
 
-
-    public function actionRemoveChildClass($id){
-    
-        $getStudent = StudentSchool::findOne(['student_id' => $id]);
-
-        if(!empty($getStudent)){
-
-            if($this->checkIfStudentInSchool($getStudent->school_id) == true){
-
-                try{
-
-                    $getStudent->class_id = "";
-                    $getStudent->save();
-                    return [
-                        'code' => '200',
-                        'message' => 'Student succesfully removed from class'
-                    ];
-                }
-                catch(Exception $exception){
-                    return [
-                        'code' => '500',
-                        'message' => $exception->getMessage()
-                    ];
-                }
-            }
-
-            return [
-                'code' => '404',
-                'message' => 'Student doesnt belong to your school',
-            ];
-        }
-        return [
-            'code' => '404',
-            'message' => 'Student doesnt exist',
-        ];
-    }
-
-    public function actionChangeStudentClass($id){
-    
-        $getStudent = StudentSchool::findOne(['student_id' => $id]);
-
-        if(!empty($getStudent)){
-
-            if($this->checkIfStudentInSchool($getStudent->school_id) == true){
-
-                try{
-
-                    $getStudent->class_id = $this->request['new_class'];
-                    $getStudent->save();
-                    return [
-                        'code' => '200',
-                        'message' => 'Student class succesfully updated'
-                    ];
-                }
-                catch(Exception $exception){
-                    return [
-                        'code' => '500',
-                        'message' => $exception->getMessage()
-                    ];
-                }
-            }
-
-            return [
-                'code' => '404',
-                'message' => 'Student doesnt belong to your school',
-            ];
-        }
-        return [
-            'code' => '404',
-            'message' => 'Student doesnt exist',
-        ];
-    }
-
-    public function actionGetClassDetails($id){
+    private function getSchoolType($schoolType, $format){
         
-        $getClassDetails = Classes::findOne(['id' => $id,'school_id' => Utility::getSchoolId()]);
-
-        if(!empty($getClassDetails)){
-            return [
-                'code' => '200',
-                'message' => 'Class details succesfully listed',
-                'data' => $getClassDetails
-            ];
+        if($format == 'grade 1-12'){
+            $classStart = ""; $classEnd = "";
+            if($schoolType == 'primary'){   
+                $classStart = "1"; $classEnd = "6";
+            }
+            elseif($schoolType == 'secondary'){
+                $classStart = 7; $classEnd = 12;
+            }
+            elseif($schoolType == 'primary-secondary'){
+                $classStart = "1"; $classEnd = "12";
+            }
+            //$i= 1;
+            for($i = $classStart; $i <= $classEnd; $i++){
+                $classes = new Classes();
+                $classes->school_id = Utility::getSchoolUserId();
+                $classes->global_class_id = $i;
+                $classes->slug = 'Year-'.$i;
+                $classes->class_name =  'Year '.$i;
+                $classes->abbreviation =  'y'.$i;
+                $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'/YEAR'.$i;
+                $classes->save();
+            }
+            return $classes;
         }
-        return [
-            'code' => '200',
-            'message' => 'It seems class ID provided doesnt belong to this school',
-        ];
-     }
 
-    public function actionListStudentsClass($id){
 
-    $getStudents =  User::find()
-                    ->select('user.*')
-                    ->leftJoin('student_school', '`student_school`.`student_id` = `user`.`id`')
-                    ->where(['student_school.class_id' => $id])
-                    ->where(['student_school.school_id' => Utility::getSchoolId()])
-                    ->all();
-        return [
-            'code' => '200',
-            'message' => 'student list successfull',
-            'data' => $getStudents
-        ];
+
+        if($format == 'year 1-12'){
+        
+            $classStart = ""; $classEnd = ""; $slugPrepend = "";
+            if($schoolType == 'primary'){   
+
+                $classStart = "1"; $classEnd = "6"; $slugPrepend = "Primary";
+
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = $slugPrepend.$i;
+                    $classes->class_name =  $slugPrepend.$i;
+                    $classes->abbreviation =  $slugPrepend.$i;
+                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'/YEAR'.$i;
+                    $classes->save();
+                }
+
+                return $classes;
+            }
+            elseif($schoolType == 'secondary'){
+                $classStart = "7"; $classEnd = "9";
+                $year = 1;
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'junior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Junior Secondary School-'.$year;
+                    $classes->abbreviation =  'jss'.$year;
+                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'JSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+
+                $year = 1;
+                $classStart = "10"; $classEnd = "12";
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'senior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Senior Secondary School-'.$year;
+                    $classes->abbreviation =  'sss'.$year;
+                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'SSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+            }
+
+            elseif($schoolType == 'primary-secondary'){
+
+                $classStart = "1"; $classEnd = "6"; $slugPrepend = "Primary";
+
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = $slugPrepend.$i;
+                    $classes->class_name =  $slugPrepend.$i;
+                    $classes->abbreviation =  $slugPrepend.$i;
+                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'/YEAR'.$i;
+                    $classes->save();
+                }
+                return $classes;
+
+                $classStart = "7"; $classEnd = "9";
+                $year = 1;
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'junior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Junior Secondary School-'.$year;
+                    $classes->abbreviation =  'jss'.$year;
+                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'JSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+
+                $year = 1;
+                $classStart = "10"; $classEnd = "12";
+                for($i = $classStart; $i <= $classEnd; $i++){
+                    $classes = new Classes();
+                    $classes->school_id = Utility::getSchoolId();
+                    $classes->global_class_id = $i;
+                    $classes->slug = 'senior-secondary-school-'.$year.'-'.Utility::getSchoolId();
+                    $classes->class_name =  'Senior Secondary School-'.$year;
+                    $classes->abbreviation =  'sss'.$year;
+                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'SSS'.$year.'';
+                    $classes->save();
+                    $year++;
+                }
+                return $classes;
+            }
+        }
     }
-
-    
 }

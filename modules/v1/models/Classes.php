@@ -34,14 +34,13 @@ class Classes extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['school_id', 'global_class_id', 'slug', 'class_name', 'abbreviation', 'class_code'], 'required'],
+            //[['school_id', 'global_class_id', 'slug', 'class_name', 'abbreviation', 'class_code'], 'required'],
             [['school_id', 'global_class_id'], 'integer'],
             [['created_at'], 'safe'],
             [['slug', 'class_name'], 'string', 'max' => 255],
             [['abbreviation', 'class_code'], 'string', 'max' => 20],
             [['class_code'], 'unique'],
-            [['school_id','global_class_id','class_name','class_code','slug',
-                'abbreviation'], 'required',
+            [['global_class_id','class_name','class_code'], 'required',
                  'on' => self::SCENERIO_CREATE_CLASS
             ],
             [['global_class_id','class_name','abbreviation'], 'required',

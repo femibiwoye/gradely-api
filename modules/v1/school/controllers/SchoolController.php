@@ -12,7 +12,7 @@ use app\modules\v1\models\{Schools,Classes,GlobalClass,StudentSchool,User,Parent
 /**
  * Schools controller
  */
-class CalendarController extends ActiveController
+class SchoolController extends ActiveController
 {
     public $modelClass = 'api\models\User';
 
@@ -35,13 +35,15 @@ class CalendarController extends ActiveController
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
                     'index' => ['get'],
-                    'edit-school-calendar' => ['put'],
+                    'edit-school-profile' => ['put'],
                 ],
             ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
-                'only' => ['index','edit-school-calendar']
+                'only' => [
+                    'index','edit-school-profile'
+                ],
             ],            
         ];
     }
@@ -60,6 +62,17 @@ class CalendarController extends ActiveController
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
+
+
+        return [
+            [
+              'class' => \yii\ filters\ ContentNegotiator::className(),
+              'formats' => [
+                'application/json' => \yii\ web\ Response::FORMAT_JSON,
+              ],
+            ],
+            
+          ];
     }
 
     //get schools details from the school table
@@ -68,64 +81,54 @@ class CalendarController extends ActiveController
         $getUserId = Utility::getUserId();
         $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
         if(!empty($getSchoolInfo)){
-
-            $getSchoolCalendarInfo = SchoolCalendar::findOne(['school_id' => $getSchoolInfo->id]);
-
             return [
                 'code '=> '200',
                 'message '=> 'success',
-                'data '=> $getSchoolCalendarInfo
+                'data '=> $getSchoolInfo
             ];
         }
         return [
             'code '=> '200',
-            'message '=> 'school calendar not found'
+            'message '=> 'School not found'
         ];
     }
 
+    public function actionEditSchoolProfile(){
 
-    public function actionEditSchoolCalendar(){
-
-        $model = new SchoolCalendar(['scenario' => SchoolCalendar::SCENARIO_EDIT_SCHOOL_CALENDAR]);
+        $model = new Schools(['scenario' => Schools::SCENERIO_EDIT_SCHOOL_PROFILE]);
 
         $model->attributes = \Yii::$app->request->post();
 
-        if ($model->validate()) {
+        if ($model->validate()) { 
             try{
-                $getUserId = Utility::getUserId();
-                $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
+                $getSchoolInfo = Schools::findOne(['user_id' => Utility::getUserId()]);
                 if(!empty($getSchoolInfo)){
-                    $getSchoolCalendarInfo = SchoolCalendar::findOne(['school_id' => $getSchoolInfo->id]);
-                    if(!empty($getSchoolCalendarInfo)){
-                        $getSchoolCalendarInfo->session_name = $this->request['session_name'];
-                        $getSchoolCalendarInfo->year = $this->request['year'];
-                        $getSchoolCalendarInfo->first_term_start = $this->request['first_term_start'];
-                        $getSchoolCalendarInfo->first_term_end = $this->request['first_term_end'];
-                        $getSchoolCalendarInfo->second_term_start = $this->request['second_term_start'];
-                        $getSchoolCalendarInfo->second_term_end = $this->request['second_term_end'];
-                        $getSchoolCalendarInfo->third_term_start = $this->request['third_term_start'];
-                        $getSchoolCalendarInfo->third_term_end = $this->request['third_term_end'];
-                        $getSchoolCalendarInfo->save();
-                        Yii::info('School calendar successfully updated');
-                        return[
-                            'code' => '200',
-                            'message' => 'School calendar successfully updated'
-                        ];
-                    }
-
+                    $getSchoolInfo->name = $this->request['name'];
+                    $getSchoolInfo->about = $this->request['about'];
+                    $getSchoolInfo->address = $this->request['address'];
+                    $getSchoolInfo->city = $this->request['city'];
+                    $getSchoolInfo->state = $this->request['state'];
+                    $getSchoolInfo->country = $this->request['country'];
+                    $getSchoolInfo->postal_code = $this->request['postal_code'];
+                    $getSchoolInfo->website = $this->request['website'];
+                    $getSchoolInfo->phone = $this->request['phone'];
+                    $getSchoolInfo->school_email = $this->request['school_email'];
+                    $getSchoolInfo->save();
+                    Yii::info('School profile update successful');
                     return[
-                        'code' => '404',
-                        'message' => 'could not find a calendar for this school'
+                        'code' => '200',
+                        'message' => 'update successful'
                     ];
-
                 }
+
                 return[
-                    'code' => '404',
+                    'code' => '200',
                     'message' => 'school not found'
                 ];
+
             }
             catch(Exception $exception){
-                Yii::info('[School profile calendar update] Error:'.$exception->getMessage().'');
+                Yii::info('[School profile update] Error:'.$exception->getMessage().'');
                 return[
                     'code' => '500',
                     //'message' => $exception->getMessage()

@@ -88,42 +88,32 @@ class AdaptivityController extends ActiveController
 
                 $selectEasyQuestions = QuizSummaryDetails::find()
                 ->select('quiz_summary_details.*')
+                ->innerJoin('homeworks', '`quiz_summary_details`.`topic_id` = `homeworks`.`topic_id`')
                 ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
+                //if student would ever had taken a practice test he would definitely had started with easy
+                //questions hence the reason i am checking for easy difficulty
                 ->where(['homework_questions.difficulty' => 1])
+                ->where(['homeworks.type' => 1])
                 ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
                 ->all();
-
-                // $selectMediumQuestions = QuizSummaryDetails::find()
-                // ->select('quiz_summary_details.*')
-                // ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
-                // ->where(['homework_questions.difficulty' => 2])
-                // ->limit(10)
-                // ->all();
-
-                // $selectHardQuestions = QuizSummaryDetails::find()
-                // ->select('quiz_summary_details.*')
-                // ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
-                // ->where(['homework_questions.difficulty' => 3])
-                // ->limit(10)
-                // ->all();
             }
 
             elseif(!empty($checkStudentTakenAnyHomework)){
 
                 $currentDifficultyLevel = 1;
                 $getLastHomework = QuizSummaryDetails::find()
+
                 ->select('quiz_summary_details.*')
+                ->innerJoin('homeworks', '`quiz_summary_details`.`topic_id` = `homeworks`.`topic_id`')
                 ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
                 ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
                 ->where(['homework_questions.difficulty' => $currentDifficultyLevel])
-                ->limit(10)
+                ->where(['homeworks.type' => 1])
                 ->one();
 
                 if(!empty($getLastHomework)){
                     
                     $getLastTopicId = $getLastHomework->topic_id;
-
-                    //var_dump($getLastTopicId); exit;
 
                     //check percentage score for current topic then based on this
 
@@ -134,25 +124,22 @@ class AdaptivityController extends ActiveController
                     
                     $checkStudentHomeworkPerformance = count(QuizSummaryDetails::find()
                     ->select('quiz_summary_details.*')
+                    ->innerJoin('homeworks', '`quiz_summary_details`.`topic_id` = `homeworks`.`topic_id`')
                     ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
                     ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
                     ->where(['homework_questions.difficulty' => $currentDifficultyLevel])
+                    ->where(['homeworks.type' => 1])
                     ->andWhere(['!=', 'quiz_summary_details.selected', 'quiz_summary_details.answer'])
                     ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
                     ->all());
 
                     //var_dump($checkStudentHomeworkPerformance); exit;
-                    $totalFailed = $checkStudentHomeworkPerformance;
+                    $totalFailed = Yii::$app->GradelyComponent->numberQuestionsPerTime - $checkStudentHomeworkPerformance;
 
                     $getDetailsForNextQuestion = Yii::$app->GradelyComponent->getParametersForNextSetOfQuestion($totalFailed,$currentDifficultyLevel);
-                    
-                    // var_dump($getDetailsForNextQuestion);
 
                     //if result returned is a valid array in order words if it has any valid result
                     if(is_array($getDetailsForNextQuestion)){
-
-                        // var_dump($getDetailsForNextQuestion['nextDificulty']+1);
-                        // exit;
 
                         //if proceed equals true that means the student can now proceed 
                         //to the next set of questions that means we will have $getNextquestionArray['nextDificulty']+1,
@@ -162,10 +149,12 @@ class AdaptivityController extends ActiveController
                             //next set of questions
                             $getNewSetOfQuestions = QuizSummaryDetails::find()
                             ->select('quiz_summary_details.*')
+                            ->innerJoin('homeworks', '`quiz_summary_details`.`topic_id` = `homeworks`.`topic_id`')
                             ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
                             ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
                             ->where(['homework_questions.difficulty' => $getDetailsForNextQuestion['nextDificulty']])
                             ->where(['quiz_summary_details.topic_id' => $getLastTopicId])
+                            ->where(['homeworks.type' => 1])
                             ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
                             ->all();
 
@@ -178,10 +167,12 @@ class AdaptivityController extends ActiveController
                             //next set of questions
                             $getNewSetOfQuestions = QuizSummaryDetails::find()
                             ->select('quiz_summary_details.*')
+                            ->innerJoin('homeworks', '`quiz_summary_details`.`topic_id` = `homeworks`.`topic_id`')
                             ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
                             ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
                             ->where(['homework_questions.difficulty' => $getDetailsForNextQuestion['nextDificulty']])
                             ->where(['quiz_summary_details.topic_id' => $getLastTopicId])
+                            ->where(['homeworks.type' => 1])
                             ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
                             ->all();
 
@@ -194,10 +185,12 @@ class AdaptivityController extends ActiveController
                             //next set of questions
                             $getNewSetOfQuestions = QuizSummaryDetails::find()
                             ->select('quiz_summary_details.*')
+                            ->innerJoin('homeworks', '`quiz_summary_details`.`topic_id` = `homeworks`.`topic_id`')
                             ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
                             ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
                             ->where(['homework_questions.difficulty' => $getDetailsForNextQuestion['nextDificulty']])
                             ->where(['quiz_summary_details.topic_id' => $getLastTopicId])
+                            ->where(['homeworks.type' => 1])
                             ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
                             ->all();
 
@@ -214,12 +207,12 @@ class AdaptivityController extends ActiveController
 
                     ];
                 }
-
-                    return[
-                        'code' => '500',
-                        'message' => 'something went wrong'
-                    ];
             }
+
+            return[
+                'code' => '500',
+                'message' => 'something went wrong'
+            ];
     }
 
     public function actionPracticeSet():array{
@@ -227,11 +220,11 @@ class AdaptivityController extends ActiveController
         //based on students homework performance generate practice set, 
         //its the same appraoch with homework the difference is just that 
         //practice set is comming from catch table
-
             $checkStudentTakenAnyHomework  = QuizSummaryDetails::find()
             ->select('quiz_summary_details.*')
             ->innerJoin('homeworks', '`quiz_summary_details`.`topic_id` = `homeworks`.`topic_id`')
             ->where(['homeworks.type' => 2])
+            ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
             ->one();
 
             // var_dump($checkStudentTakenAnyHomework); exit;
@@ -252,13 +245,6 @@ class AdaptivityController extends ActiveController
                 ->where(['homeworks.type' => 2])
                 ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
                 ->all();
-
-                // ->select('quiz_summary_details.*')
-                // ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
-                // ->where(['homework_questions.difficulty' => 1])
-                // ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
-                // ->all();
-
             }
 
             elseif(!empty($checkStudentTakenAnyHomework)){
@@ -273,12 +259,6 @@ class AdaptivityController extends ActiveController
                 ->where(['homework_questions.difficulty' => $currentDifficultyLevel])
                 ->where(['homeworks.type' => 2])
                 ->one();
-
-                // ->select('quiz_summary_details.*')
-                // ->innerJoin('homework_questions', '`quiz_summary_details`.`question_id` = `homework_questions`.`question_id`')
-                // ->where(['quiz_summary_details.student_id' => $this->request['student_id']])
-                // ->where(['homework_questions.difficulty' => $currentDifficultyLevel])
-                // ->one();
 
                 if(!empty($getLastHomework)){
                     
@@ -378,11 +358,11 @@ class AdaptivityController extends ActiveController
 
                     ];
                 }
-
-                    return[
-                        'code' => '500',
-                        'message' => 'something went wrong'
-                    ];
             }
+
+            return[
+                'code' => '500',
+                'message' => 'something went wrong'
+            ];
     }
 }

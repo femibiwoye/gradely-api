@@ -31,7 +31,7 @@ class SchoolCurriculum extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['school_id', 'curriculum_id'], 'required'],
+            //[['school_id', 'curriculum_id'], 'required'],
             [['school_id', 'curriculum_id'], 'integer'],
             [['created_at'], 'safe'],
             [['school_id'], 'exist', 'skipOnError' => true, 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],

@@ -36,14 +36,14 @@ class ProfileController extends ActiveController
             'verbs' => [
                 'class' => \yii\filters\VerbFilter::className(),
                 'actions' => [
-                    'view-school-profile' => ['get'],
-                    'edit-school-profile' => ['put']
+                    'index' => ['get'],
+                    'edit-user-profile' => ['put']
                 ],
             ],
 
             'authenticator' => [
                 'class' => HttpBearerAuth::className(),
-                'only' => ['view-school-profile','edit-school-profile']
+                'only' => ['edit-user-profile','index']
             ],
         ];
     }
@@ -63,49 +63,31 @@ class ProfileController extends ActiveController
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
-
     }
 
-    //get schools details from the school table
-    public function actionViewSchoolProfile(){
+    public function actionIndex(){
 
-        $getUserId = Utility::getUserId();
-        $getSchoolInfo = Schools::findOne(['user_id' => $getUserId]);
-        if(!empty($getSchoolInfo)){
-            return [
-                'code '=> '200',
-                'message '=> 'success',
-                'data '=> $getSchoolInfo
-            ];
+        $getLoginResponse = Utility::getLoginResponseByBearerToken();
+        if(!empty($getLoginResponse)){
+            return $getLoginResponse;
         }
-        return [
-            'code '=> '200',
-            'message '=> 'School not found'
-        ];
     }
 
+    public function actionEditUserProfile(){
 
-    public function actionEditSchoolProfile(){
-
-        $model = new Schools(['scenario' => Schools::SCENERIO_EDIT_SCHOOL_PROFILE]);
+        $model = new User(['scenario' => User::SCENARIO_EDIT_USER_PROFILE]);
 
         $model->attributes = \Yii::$app->request->post();
 
         if ($model->validate()) { 
             try{
-                $getSchoolInfo = Schools::findOne(['user_id' => Utility::getUserId()]);
-                if(!empty($getSchoolInfo)){
-                    $getSchoolInfo->name = $this->request['name'];
-                    $getSchoolInfo->about = $this->request['about'];
-                    $getSchoolInfo->address = $this->request['address'];
-                    $getSchoolInfo->city = $this->request['city'];
-                    $getSchoolInfo->state = $this->request['state'];
-                    $getSchoolInfo->country = $this->request['country'];
-                    $getSchoolInfo->postal_code = $this->request['postal_code'];
-                    $getSchoolInfo->website = $this->request['website'];
-                    $getSchoolInfo->phone = $this->request['phone'];
-                    $getSchoolInfo->school_email = $this->request['school_email'];
-                    $getSchoolInfo->save();
+                $getUserInfo = User::findOne(['id' => Utility::getUserId()]);
+                if(!empty($getUserInfo)){
+                    $getUserInfo->firstname = $this->request['firstname'];
+                    $getUserInfo->lastname = $this->request['lastname'];
+                    $getUserInfo->phone = $this->request['phone'];
+                    $getUserInfo->email = $this->request['email'];
+                    $getUserInfo->save(false);
                     Yii::info('School profile update successful');
                     return[
                         'code' => '200',
