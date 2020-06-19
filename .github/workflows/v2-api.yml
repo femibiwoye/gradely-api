@@ -1,8 +1,8 @@
 name: Gradely-V2 PHP GitHub Actions
 
 on:
-  #push:
-  #  branches: [ master ]
+  push:
+    branches: [ test ]
   pull_request:
     branches: [ test ]
 
