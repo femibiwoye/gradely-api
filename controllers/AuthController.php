@@ -275,7 +275,7 @@ class AuthController extends Controller
 
     public function actionTest()
     {
-        return 'This is testing of API back to test 19';
+        return 'This is testing of API back to test 20';
     }
 
     private function getLoginResponse($model)
