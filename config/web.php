@@ -16,6 +16,9 @@ $config = [
         'v1' => [
             'class' => 'app\modules\v1\Module',
         ],
+        'v2' => [
+            'class' => 'app\modules\v2\Module',
+        ],
     ],
     'components' => [
         // ? This is global content negotiation. Instead, i included it top module base| Modules.php
@@ -66,55 +69,10 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules' => [
-                'POST auth/login' => 'auth/login',
-                //'POST auth/signup' => 'auth/signup',
-                'POST schools/generate-class' => 'schools/generate-class',
-                'POST schools/classes' => 'schools/create-class',
-                'PUT schools/classes/<id:\d+>' => 'schools/update-class',
-                'DELETE schools/classes/<id:\d+>' => 'schools/delete-class',
-                'GET schools/classes/<id:\d+>' => 'schools/view-class',
-                'GET schools/classes' => 'schools/list-class',
-                'GET schools/parents' => 'schools/list-parents',
-                'POST invite' => 'invite/index',
-                'GET schools/profile' => 'schools/view-user-profile',
-                'PUT schools/profile' => 'schools/edit-user-profile',
-                'GET schools/school' => 'schools/view-school-profile',
-                'PUT schools/school' => 'schools/edit-school-profile',
-                'GET schools/calendar' => 'schools/view-school-calendar',
-                'PUT schools/calendar' => 'schools/edit-school-calendar',
-                'GET schools/summaries' => 'schools/summaries',
-                'POST schools/invite/teacher' => 'schools/invite-teacher',
-                'GET schools/invite/teacher/>' => 'schools/get-all-teachers',
-                'GET schools/invite/teacher/<id:\d+>' => 'schools/get-single-teachers',
-                'POST schools/student/add' => 'schools/add-students',
-                'GET schools/student/list-student-class/<id:\d+>' => 'schools/list-students-class',
-                'GET schools/class/details/<id:\d+>' => 'schools/get-class-details',
-                'PUT schools/class/student/change-class/<id:\d+>' => 'schools/change-student-class',
-                'PUT schools/class/student/remove-child-class/<id:\d+>' => 'schools/remove-child-class',
-                'PUT schools/settings/update-email' => 'schools/settings-update-email',
-                'GET schools/settings/curriculum' => 'schools/settings-list-curriculum',
-                'PUT schools/settings/curriculum' => 'schools/settings-update-curriculum',
-                'POST schools/settings/new-curriculum' => 'schools/settings-request-new-curriculum',
-                'GET schools/settings/subject' => 'schools/settings-list-subject',
-                'PUT schools/settings/subject' => 'schools/settings-update-subject',
-                'POST schools/settings/new-subject' => 'schools/settings-request-new-subject',
-                'GET classes/list-teachers/<id:\d+>' => 'classes/list-teachers',
-                'GET classes/detailed-teacher-profile/<id:\d+>' => 'classes/detailed-teacher-profile',
-                'GET classes/homework-created-by-teacher/<id:\d+>' => 'classes/homework-created-by-teacher',
-                'DELETE classes/remove-teacher-from-class/<id:\d+>' => 'classes/remove-teacher-from-class',
-                //homework
-                'POST adaptivity/homework>' => 'adaptivity/homework',
-                'GET classes/homework-performance/<id:\d+>' => 'adaptivity/homework-performance',
-                'GET classes/homework-review/<id:\d+>' => 'adaptivity/homework-review'
-
-            ],
+            'rules' => require 'urls.php',
         ],
-        'GradelyComponent' => [
-            'class' => 'app\modules\v1\components\GradelyComponent',
-        ],
-
     ],
+
     'params' => $params,
 ];
 

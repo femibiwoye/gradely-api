@@ -8,62 +8,16 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\filters\RateLimitInterface;
- 
-/**
- * User model
- *
-* @property int $id
- * @property string|null $username
- * @property string|null $code
- * @property string|null $firstname
- * @property string|null $lastname
- * @property string|null $phone
- * @property string|null $image
- * @property string $type
- * @property string $auth_key
- * @property string $password_hash
- * @property string|null $password_reset_token
- * @property string|null $email
- * @property int|null $class This is student temporary class while the child is yet to be connected to school
- * @property int $status 10 for active, 9 for inactive and 0 for deleted
- * @property string|null $subscription_expiry
- * @property string|null $subscription_plan
- * @property int $created_at
- * @property int $updated_at
- * @property string|null $verification_token
- * @property string|null $oauth_provider
- * @property string|null $token
- * @property string|null $token_expires
- * @property string|null $oauth_uid
- * @property string|null $last_accessed Last time the website  was accessed
- *
- * @property SecurityQuestionAnswer[] $securityQuestionAnswers
- * @property StudentSchool[] $studentSchools
- */
-class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
-{
+
+class User extends ActiveRecord implements IdentityInterface, RateLimitInterface {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;
-    const SCENERIO_UPDATE_SCHOOL_EMAIL = 'update_scholl_email';
-    const SCENERIO_UPDATE_SCHOOL_PASSWORD = 'update_password';
-    const SCENERIO_SETTINGS_DELETE_ACCOUNT = 'settings_delete_acount';
- 
+    
     /**
      * @inheritdoc
      */
-    public static function tableName()
-    {
+    public static function tableName() {
         return '{{%user}}';
-    }
- 
-    /**
-     * @inheritdoc
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::className(),
-        ];
     }
  
     /**
