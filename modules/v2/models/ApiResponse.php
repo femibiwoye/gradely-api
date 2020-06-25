@@ -13,11 +13,11 @@ class ApiResponse {
 	public $data;
 
 	const UNKNOWN_RESPONSE = 0;
-	const SUCCESSFULL = 200;
+	const SUCCESSFUL = 200;
 	const UNAUTHORIZED = 401;
 	const STILL_UNDER_CONSTRUCTION = 404;
 	const UNABLE_TO_PERFORM_ACTION = 406;
-	const EMAIL_TAKEN = 409;
+	const ALREADY_TAKEN = 409;
 	const EXPECTATION_FAILED = 417;
 	const RE_INVITE = 491;
 	const UNKNOWN_ERROR = 666;
@@ -28,10 +28,10 @@ class ApiResponse {
 
 	private $codes = [
 		self::UNKNOWN_RESPONSE => "Unknown response",
-		self::SUCCESSFULL => "Success",
+		self::SUCCESSFUL => "Success",
 		self::UNAUTHORIZED => "Unauthorized",
 		self::STILL_UNDER_CONSTRUCTION => "Still under construction",
-		self::UNABLE_TO_PERFORM_ACTION => "Unable to perform action",
+		self::UNABLE_TO_PERFORM_ACTION => "Unable to perform action"
 	];
 
 	function message($name=null, $message=null, $code=null, $models=null) {
@@ -44,7 +44,7 @@ class ApiResponse {
 	}
 
 	function success($models=null, $code=null, $message=null) {
-		return $this->message("Success", $message, $code? $code:self::SUCCESSFULL, $models);
+		return $this->message("Success", $message, $code? $code:self::SUCCESSFUL, $models);
 	}
 
 	function error($models=null, $code=null, $message=null) {
