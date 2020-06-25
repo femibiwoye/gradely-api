@@ -9,6 +9,6 @@ return [
 		'POST forgot-password' => 'forgot-password',
 		'OPTIONS forgot-password' => 'forgot-password',
 		'GET logout' => 'logout',
-		'OPTIONS logout' => 'logout',
+		'OPTIONS logout' => 'options',			
 	]],
 ];

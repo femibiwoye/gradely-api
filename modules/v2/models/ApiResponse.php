@@ -10,9 +10,7 @@ class ApiResponse {
 	public $name;
 	public $message;
 	public $code;
-	public $status;
-	public $type;
-	public $models;
+	public $data;
 
 	const UNKNOWN_RESPONSE = 0;
 	const SUCCESSFULL = 200;
@@ -37,14 +35,10 @@ class ApiResponse {
 	];
 
 	function message($name=null, $message=null, $code=null, $models=null) {
-		$this->type = "Response";
-		$this->status = "";
 		$this->name = $name;
-		$this->code = $code? $code:999;
 		$this->message = $message? $message:$this->getMessage($code);
-		$this->models = $models;
-
-		Yii::$app->response->statusCode = $this->code;
+		$this->code = $code? $code:999;
+		$this->data = $models;
 
 		return $this;
 	}

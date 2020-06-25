@@ -3,13 +3,10 @@
 namespace app\modules\v2\controllers;
 
 use Yii;
-use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
 use yii\web\Controller;
-use yii\web\Response;
-use app\modules\v2\models\{Schools, Login, User, StudentSchool, SchoolTeachers, Parents, UserProfile, ApiResponse, PasswordResetRequestForm, ResetPasswordForm};
+use app\modules\v2\models\{Login, User, ApiResponse, PasswordResetRequestForm, ResetPasswordForm};
 use yii\rest\ActiveController;
-use yii\filters\auth\{HttpBearerAuth, HttpBasicAuth, CompositeAuth, QueryParamAuth};
-use app\modules\v2\helpers\Utility;
+use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
 
 /**
@@ -32,24 +29,11 @@ class AuthController extends ActiveController {
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::className(),
             'authMethods' => [
-                HttpBasicAuth::className(),
                 HttpBearerAuth::className(),
-                QueryParamAuth::className(),
             ],
             'except' => ['options', 'reset-password', 'forgot-password', 'login'],
         ];
-
         return $behaviors;
-    }
-
-    public function actions() {
-        $actions = parent::actions();
-        unset($actions['create']);
-        unset($actions['update']);
-        unset($actions['delete']);
-        unset($actions['index']);
-        unset($actions['view']);
-        return $actions;
     }
 
     /**
@@ -73,12 +57,12 @@ class AuthController extends ActiveController {
      * @return Response
      */
     public function actionLogout() {
-        $model = new $this->modelClass;
+        $model = new User;
         if (!$model->resetAccessToken()) {
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED);
         }
 
-        return (new ApiResponse)->success(["access_token" => ""]);
+        return (new ApiResponse)->success('User is successfully logout');
     }
 
     public function actionForgotPassword() {
@@ -99,7 +83,7 @@ class AuthController extends ActiveController {
         $form = new ResetPasswordForm;
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error(['form' => $form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
         if (!$form->resetPassword()) {

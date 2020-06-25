@@ -74,8 +74,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      * @inheritdoc
      */
     public static function findIdentityByAccessToken($token, $type = null) {
-        return static::findOne(['auth_key' => $token]);
-        //throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+        return static::findOne(['token' => $token]);
     }
 
     /**
@@ -120,7 +119,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     }
 
     public function resetAccessToken() {
-        $model = parent::findOne(['id' => Yii::$app->user->id]);
+        $model = static::findOne(['id' => Yii::$app->user->id]);
         if (!$model) {
             return false;
         }
@@ -138,7 +137,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             return false;
         }
 
-        $user = self::find()->andWhere(['password_reset_token' => $token]);
+        $user = self::find()->andWhere(['password_reset_token' => $token])->one();
         if (!$user) {
             return false;
         }

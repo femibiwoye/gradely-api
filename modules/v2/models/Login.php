@@ -44,6 +44,8 @@ class Login extends Model {
             if (!$user || !$user->validatePassword($this->password)) {
                 $this->addError($attribute, 'Incorrect login details.');
             }
+
+            return true;
         }
     }
 
@@ -67,9 +69,7 @@ class Login extends Model {
     public function getUser() {
         if ($this->_user === false) {
             $this->_user = User::find()
-                        ->orWhere(['email' => $this->username])
-                        ->orWhere(['phone' => $this->username])
-                        ->orWhere(['code' => $this->username])
+                        ->where(['AND', ['status' => self::STATUS_ACTIVE], ['OR', ['email' => $this->username], ['phone' => $this->username], ['code' => $this->username]]])
                         ->one();
         }
 
