@@ -19,6 +19,7 @@ class Login extends Model
 
     private $_user = false;
     const STATUS_DELETED = 0;
+    const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
 
 
@@ -74,7 +75,7 @@ class Login extends Model
     {
         if ($this->_user === false) {
             $this->_user = User::find()
-                ->where(['AND', ['!=', 'status', self::STATUS_ACTIVE], ['OR', ['email' => $this->email], ['phone' => $this->email], ['code' => $this->email]]])
+                ->where(['AND', ['!=', 'status', self::STATUS_DELETED], ['OR', ['email' => $this->email], ['phone' => $this->email], ['code' => $this->email]]])
                 ->one();
         }
 
