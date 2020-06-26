@@ -11,6 +11,7 @@ use yii\filters\RateLimitInterface;
 
 class User extends ActiveRecord implements IdentityInterface, RateLimitInterface {
     const STATUS_DELETED = 0;
+    const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
 
     public $password;
@@ -30,8 +31,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'email', 'message' => 'Provide a valid email address'],
-            ['email', 'unique', 'targetAttribute' => ['email'], 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address is already exit'
-            ],
+            ['email', 'unique', 'targetAttribute' => ['email'], 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address is already exit'],
+
+            ['status', 'default', 'value' => self::STATUS_INACTIVE],
+            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
         ];
     }
 
@@ -69,7 +72,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     }
 
     public static function findIdentity($id) {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne(['AND', ['id' => $id], ['!=', 'status', self::STATUS_DELETED]]);
     }
 
     /**
@@ -77,6 +80,21 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      */
     public static function findIdentityByAccessToken($token, $type = null) {
         return static::findOne(['token' => $token]);
+
+        if ($user = static::findOne(['AND', ['token' => $token], ['!=', 'status', self::STATUS_DELETED]])) {
+            /**
+             * This token is expired if expiry date is greater than current time.
+             **/
+            $expires = strtotime("+60 second", strtotime($user->token_expires));
+            if ($expires > time()) {
+                $user->token_expires = date('Y-m-d H:i:s', strtotime("+1 month", time()));
+                $user->save();
+                return $user;
+            } else {
+                $user->token = null;
+                $user->save();
+            }
+        }
     }
 
     /**

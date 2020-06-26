@@ -45,9 +45,9 @@ class AuthController extends ActiveController {
         $model = new Login;
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
-            return (new ApiResponse)->success(["user" => $user]);
+            return (new ApiResponse)->success($user);
         } else {
-            return (new ApiResponse)->error(['model' => $model->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
     }
 
