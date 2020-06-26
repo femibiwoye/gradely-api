@@ -1,8 +1,9 @@
 <?php
 
-namespace app\modules\v1\models;
+namespace app\modules\v2\models;
 
 use Yii;
+use yii\behaviors\SluggableBehavior;
 
 /**
  * This is the model class for table "schools".
@@ -46,6 +47,24 @@ class Schools extends \yii\db\ActiveRecord
         return 'schools';
     }
 
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'name',
+                'ensureUnique' => true
+            ],
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'abbr',
+                'ensureUnique' => true,
+                'slugAttribute' => 'abbr'
+            ]
+
+        ];
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -64,7 +83,8 @@ class Schools extends \yii\db\ActiveRecord
             [['phone', 'phone2'], 'string', 'max' => 15],
             [['name','about','address','city','state','country','postal_code','website','phone','school_email'], 'required',
                  'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
-            ]
+            ],
+            [['name', 'abbr'], 'required', 'on' => 'school_signup'],
         ];
     }
 

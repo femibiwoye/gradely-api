@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'POST v2/login' => 'v2/auth/login',
+    'POST v2/signup/<type:[a-z]+>' => 'v2/auth/signup',
+    'POST v2/logout' => 'v2/auth/logout',
+    'POST v2/forgot-password' => 'v2/auth/forgot-password',
+    'POST v2/reset-password' => 'v2/auth/reset-password',
+
 	['class' => 'yii\rest\UrlRule', 'controller' => ['modules\v2\auth'], 'extraPatterns' => [
 		'POST login' => 'login',
 		'OPTIONS login' => 'login',

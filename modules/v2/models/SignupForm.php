@@ -2,91 +2,158 @@
 
 namespace app\modules\v2\models;
 
+
 use Yii;
 use yii\base\Model;
 
-class SignupForm extends Model {
-	public $first_name;
-	public $last_name;
-	public $school_name;
-	public $image;
-	public $email;
-	public $password;
-	public $confirm_password;
-	public $country_code;
-	public $phone;
-	public $type;
-	public $class;
+class SignupForm extends Model
+{
 
-	public function rules() {
-		return [
-			[['first_name', 'last_name', 'email', 'password', 'confirm_password', 'type'], 'required'],
+    public $first_name;
+    public $last_name;
+    public $phone;
+    public $username;
+    public $email;
+    public $password;
+    public $school_name;
+    public $class;
+    public $country;
 
-			[['school_name', 'type', 'image', 'class'], 'string'],
-			[['type'], 'validateSignupType'],
-			[['first_name', 'last_name', 'school_name', 'email'], 'filter', 'filter' => 'trim'],
-			[['first_name', 'last_name'], 'string', 'min' => 1, 'max' => 32],
+    public function rules()
+    {
+        return [
+            [['first_name', 'last_name','password'], 'required'],
+            [['first_name', 'last_name', 'password'], 'filter', 'filter' => 'trim'],
 
-			['email', 'filter', 'filter' => 'trim'],
-			['email', 'email', 'message' => 'Provide a valid email address'],
-			['email', 'string', 'min' => 8, 'max' => 32],
-			['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken'],
-			['email', 'match', 'pattern' => "/^[@a-zA-Z0-9._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
-			['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'targetAttribute' => ['email'], 'message' => 'Email is already existing'],
+            ['email', 'trim'],
+            ['email', 'email', 'message' => 'Provide a valid email address'],
+            ['email', 'string', 'min' => 8, 'max' => 50],
+            ['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken.'],
+            ['email', 'match', 'pattern' => "/^[@a-zA-Z0-9+._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
 
-			[['password', 'confirm_password'], 'string', 'min' => 6],
-			['confirm_password', 'compare', 'compareAttribute' => 'password', 'message' => 'password does not match' ],
+            ['phone', 'trim'],
+            ['phone', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This phone number has already been taken.'],
+            ['phone', 'string', 'min' => 11, 'max' => 14],
+            ['phone', 'match', 'pattern' => '/(^[0]\d{10}$)|(^[\+]?[234]\d{12}$)/'],
 
-			['country_code', 'string', 'min' => 2, 'max' => 3],
-			['country_code', 'filter', 'filter' => 'strtoupper'],
-			['phone', \miserenkov\validators\PhoneValidator::className(), 'countryAttribute'=> 'country_code'],
-			['phone', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'targetAttribute' => 'phone', 'message' => 'Contact number is already exist'],
-		];
-	}
+            ['password', 'string', 'min' => 6],
 
-	public function validateSignupType() {
-		if ($this->type == SharedConstant::SCHOOL_TYPE && empty($this->school_name)) {
-			$this->addError('School name cannot be blank');
-		}
+            [['email', 'phone'], 'required', 'on' => 'teacher-signup'],
+            [['email', 'phone'], 'required', 'on' => 'parent-signup'],
 
-		return true;
-	}
+            [['school_name', 'email', 'phone','country'], 'required', 'on' => 'school-signup'],
 
+            [['class','country'], 'required', 'on' => 'student-signup'],
+            [['email'], 'safe', 'on' => 'student-signup'],
+        ];
+    }
 
-	public function signup() {
-		$user = new User;
-		$user->firstname = $this->first_name;
-		$user->lastname = $this->last_name;
-		$user->phone = $this->phone;
-		$user->image = $this->image;
-		$user->type = $this->type;
-		$user->email = $this->email;
-		$user->class = $this->class;
-		$user->setPassword($this->password);
-		$user->generatePasswordResetToken();
-		$user->generateAuthKey();
-		$dbtransaction = Yii::$app->db->beginTransaction();
-		try {
-			if (!$user->save(false) || !$this->generateCode($user)) {
-				return false;
-			}
+    /**
+     * This is the main signup starting point
+     *
+     * @param $type
+     * @return User|bool
+     * @throws \yii\db\Exception
+     */
+    public function signup($type)
+    {
+        $user = new User;
+        $user->firstname = $this->first_name;
+        $user->lastname = $this->last_name;
+        $user->phone = $this->phone;
+        $user->type = $type;
+        $user->email = $this->email;
+        $user->class = $this->class;
+        $user->setPassword($this->password);
+        $user->generatePasswordResetToken();
+        $user->generateAuthKey();
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$user->save() || !$this->generateCode($user) || !$this->createProfile($user)) {
+                return false;
+            }
 
-			$dbtransaction->commit();
-		} catch (Exception $e) {
-			$dbtransaction->rollBack();
-			return false;
-		}
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
+        }
 
-		return $user;
-	}
+        return $user;
+    }
 
-	public function generateCode($user) {
-		$code = GenerateString::widget(['length' => 3, 'type' => 'char']) . '/' . date('Y') . '/' . str_pad($user->id, 4, "0", STR_PAD_LEFT);
+    /**
+     * This create a space for the registered user profile table
+     * @param $user
+     * @return bool
+     */
+    private function createProfile($user)
+    {
+        $model = new UserProfile();
+        $model->user_id = $user->id;
+        $model->country = $this->country;
+        if ($user->type == 'school') {
+            $this->createSchool($user);
+        }
+        return $model->save();
+    }
+
+    /**
+     * This create school calender record for newly registered school
+     * @param $school
+     * @return bool
+     */
+    private function createCalendar($school)
+    {
+        $model = new SchoolCalendar();
+        $model->school_id = $school->id;
+        $model->session_name = date('Y');
+        $model->year = date('Y');
+        $model->first_term_start = Yii::$app->params['first_term_start'];
+        $model->first_term_end = Yii::$app->params['first_term_end'];
+        $model->second_term_start = Yii::$app->params['second_term_start'];
+        $model->second_term_end = Yii::$app->params['second_term_end'];
+        $model->third_term_start = Yii::$app->params['third_term_start'];
+        $model->third_term_end = Yii::$app->params['third_term_end'];
+        return $model->save();
+    }
+
+    /**
+     * Crease school record on signup
+     * @param $user
+     */
+    private function createSchool($user)
+    {
+        $school = new Schools(['scenario' => 'school_signup']);
+        $school->user_id = $user->id;
+        $school->name = $this->school_name;
+        $school->abbr = $this->extractAbbr();
+        $school->country = $this->country;
+        $school->save();
+        $this->createCalendar($school);
+    }
+
+    /**
+     * The return school name abbreviation
+     * @return string
+     */
+    private function extractAbbr()
+    {
+        $name = \yii\helpers\Inflector::slug($this->school_name);
+        $abbr = explode('-', $name, 2);
+        $str2 = isset($abbr[1]) ? substr($abbr[1], 0, 2) : '';
+        $str1 = !empty($str2) ? substr($abbr[0], 0, 3) . $str2 : substr($abbr[0], 0, 5);
+        return strtoupper($str1);
+    }
+
+    private function generateCode($user)
+    {
+        $code = GenerateString::widget(['length' => 3, 'type' => 'char']) . '/' . date('Y') . '/' . str_pad($user->id, 4, "0", STR_PAD_LEFT);
         $user->code = $code;
         if (!$user->save(false)) {
-        	return false;
+            return false;
         }
 
         return true;
-	}
+    }
 }

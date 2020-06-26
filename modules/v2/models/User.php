@@ -25,7 +25,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      */
     public function rules() {
         return [
-            [['firstname', 'lastname', 'password', 'type'], 'required'],
+            [['firstname', 'lastname', 'type'], 'required'],
             [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
             [['class', 'is_boarded'], 'integer'],
 
@@ -129,7 +129,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     }
 
     public function updateAccessToken() {
-        $token = Yii::$app->security->generateRandomString();
+        $token = Yii::$app->security->generateRandomString(200);
         $this->token = $token;
         if (!$this->save(false)) {
             return false;
@@ -162,11 +162,13 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             return false;
         }
 
-        return strtotime($user->token_expires) >= time();
+        return $user->token_expires >= date('Y-m-d h:i:s',time());
     }
 
     public function generatePasswordResetToken() {
         $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
+        date_default_timezone_set("Africa/Lagos");
+        $this->token_expires  = date('Y-m-d h:i:s',strtotime("+30 minute", time()));
     }
 
     public static function findByPasswordResetToken($token) {
