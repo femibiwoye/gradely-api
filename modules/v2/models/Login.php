@@ -74,7 +74,7 @@ class Login extends Model
     {
         if ($this->_user === false) {
             $this->_user = User::find()
-                ->where(['AND', ['!=', 'status', self::STATUS_ACTIVE], ['OR', ['email' => $this->email], ['phone' => $this->email], ['code' => $this->email]]])
+                ->where(['AND', ['!=', 'status', self::STATUS_DELETED], ['OR', ['email' => $this->email], ['phone' => $this->email], ['code' => $this->email]]])
                 ->one();
         }
 
