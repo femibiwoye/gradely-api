@@ -11,4 +11,8 @@ return [
 		'GET logout' => 'logout',
 		'OPTIONS logout' => 'options',			
 	]],
+	['class' => 'yii\rest\UrlRule', 'controller' => ['module\v2\signup'], 'extraPatterns' => [
+		'POST create' => 'create',
+		'OPTIONS signup' => 'options',
+	]],
 ];

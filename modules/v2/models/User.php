@@ -13,6 +13,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;
 
+    public $password;
+
     public static function tableName() {
         return '{{%user}}';
     }
@@ -168,6 +170,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         $this->password_hash = Yii::$app->security->generatePasswordHash($password);
     }
 
+    public function getPassword() {
+        return $this->password;
+    }
+
     public function removePasswordResetToken() {
         $this->password_reset_token = null;
     }
@@ -207,6 +213,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         } else {
             $this->updated_at = time();
         }
+
         return parent::beforeSave($insert);
     }
 }
