@@ -22,14 +22,17 @@ class Module extends \yii\base\Module
         parent::init();
         \Yii::$app->user->enableSession = false;
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /*$this->modules = [
+        $this->modules = [
             'school' => [
                 'class' => 'app\modules\v2\school\Module',
             ],
-            'invite' => [
+            'teacher' => [
+                'class' => 'app\modules\v2\teacher\Module',
+            ],
+            /*'invite' => [
                 'class' => 'app\modules\v2\invite\Module',
-            ]
-        ];*/
+            ]*/
+        ];
 
     }
 

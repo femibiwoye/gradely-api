@@ -6,6 +6,7 @@ return [
     'POST v2/logout' => 'v2/auth/logout',
     'POST v2/forgot-password' => 'v2/auth/forgot-password',
     'POST v2/reset-password' => 'v2/auth/reset-password',
+    'PUT v2/teacher/profile/update-email' => 'v2/teacher/profile/update-email',
 
 	['class' => 'yii\rest\UrlRule', 'controller' => ['modules\v2\auth'], 'extraPatterns' => [
 		'POST login' => 'login',
