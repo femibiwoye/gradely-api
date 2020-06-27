@@ -4,7 +4,7 @@ namespace app\modules\v2\teacher\controllers;
 
 use Yii;
 use app\modules\v2\models\{User, ApiResponse};
-use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
+use app\modules\v2\teacher\models\{TeacherUpdateEmailForm, TeacherUpdatePasswordForm};
 use app\modules\v2\components\{SharedConstant};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -63,6 +63,26 @@ class ProfileController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($model);
+	}
+
+	public function actionUpdatePassword() {
+		$model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id])->one();
+		if ($model->type != SharedConstant::TYPE_TEACHER || !$model) {
+			return  (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher not found!');
+		}
+
+		$form = new TeacherUpdatePasswordForm;
+		$form->attributes = Yii::$app->request->post();
+		$form->user = $model;
+		if (!$form->validate()) {
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$form->updatePassword()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Password is not updated!');
+		}
+
+		return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Password is successfully updated!');
 	}
 }
 
