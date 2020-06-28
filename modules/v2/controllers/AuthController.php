@@ -50,7 +50,7 @@ class AuthController extends Controller
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
             $user->updateAccessToken();
-            return (new ApiResponse)->success($user);
+            return (new ApiResponse)->success($user, null,'Login is successful');
         } else {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
@@ -63,9 +63,10 @@ class AuthController extends Controller
      * @return ApiResponse
      * @throws \yii\db\Exception
      */
-    public function actionSignup($type) {
-        if(!in_array($type,SharedConstant::ACCOUNT_TYPE)){
-            return (new ApiResponse)->error(null, ApiResponse::UNKNOWN,'This is an unknown user type');
+    public function actionSignup($type)
+    {
+        if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNKNOWN, 'This is an unknown user type');
         }
 
         $form = new SignupForm(['scenario' => "$type-signup"]);
@@ -75,11 +76,11 @@ class AuthController extends Controller
         }
 
         if (!$user = $form->signup($type)) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION,'User is not created successfully');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User is not created successfully');
         }
 
         $user->updateAccessToken();
-        return (new ApiResponse)->success($user);
+        return (new ApiResponse)->success($user, null, 'You have successfully signed up as a' . $type);
     }
 
 
@@ -107,14 +108,14 @@ class AuthController extends Controller
         $form = new PasswordResetRequestForm();
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error( $form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
         if (!$form->sendEmail()) {
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED);
         }
 
-        return (new ApiResponse)->success(ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL,'Email successfully sent');
     }
 
     /**
@@ -133,7 +134,7 @@ class AuthController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED);
         }
 
-        return (new ApiResponse)->success(null,ApiResponse::SUCCESSFUL,'Password successfully changed');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Password successfully changed');
     }
 }
 
