@@ -52,6 +52,20 @@ class AuthController extends Controller
         // add CORS filter
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
+            'cors' => [
+                // restrict access to
+                'Origin' => ['*'],
+                // Allow only POST and PUT methods
+                'Access-Control-Request-Method' => ['*'],
+                // Allow only headers 'X-Wsse'
+                'Access-Control-Request-Headers' => ['*'],
+                // Allow credentials (cookies, authorization headers, etc.) to be exposed to the browser
+                'Access-Control-Allow-Credentials' => true,
+                // Allow OPTIONS caching
+                'Access-Control-Max-Age' => 3600,
+                // Allow the X-Pagination-Current-Page header to be exposed to the browser.
+                'Access-Control-Expose-Headers' => ['X-Pagination-Current-Page'],
+            ],
         ];
 
         // re-add authentication filter
