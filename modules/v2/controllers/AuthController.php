@@ -40,47 +40,51 @@ class AuthController extends Controller
 //    }
 
 
+    /**
+     * List of allowed domains.
+     * Note: Restriction works only for AJAX (using CORS, is not secure).
+     *
+     * @return array List of domains, that can access to this API
+     */
+    public static function allowedDomains()
+    {
+        return [
+            '*',                        // star allows all domains
+//            'http://test1.example.com',
+//            'http://test2.example.com',
+        ];
+    }
+
 
     public function behaviors()
     {
         $behaviors = parent::behaviors();
 
         // remove authentication filter
-        //$auth = $behaviors['authenticator'];
+        $auth = $behaviors['authenticator'];
         unset($behaviors['authenticator']);
 
         // add CORS filter
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
-            'cors' => [
-                // restrict access to
-                'Origin' => ['*'],
-                // Allow only POST and PUT methods
-                'Access-Control-Request-Method' => ['*'],
-                // Allow only headers 'X-Wsse'
-                'Access-Control-Request-Headers' => ['*'],
-                // Allow credentials (cookies, authorization headers, etc.) to be exposed to the browser
+            [
+                // restrict access to domains:
+                'Origin' => static::allowedDomains(),
+                'Access-Control-Request-Method' => ['POST','GET'],
                 'Access-Control-Allow-Credentials' => true,
-                // Allow OPTIONS caching
-                'Access-Control-Max-Age' => 3600,
-                // Allow the X-Pagination-Current-Page header to be exposed to the browser.
-                'Access-Control-Expose-Headers' => ['X-Pagination-Current-Page'],
+                'Access-Control-Max-Age' => 3600,                 // Cache (seconds)
             ],
         ];
 
         // re-add authentication filter
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'only' => ['logout'],
         ];
         // avoid authentication on CORS-pre-flight requests (HTTP OPTIONS method)
         $behaviors['authenticator']['except'] = ['options'];
 
         return $behaviors;
     }
-
-
-
 
 
     /**
@@ -94,7 +98,7 @@ class AuthController extends Controller
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
             $user->updateAccessToken();
-            return (new ApiResponse)->success($user, null,'Login is successful');
+            return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
@@ -159,7 +163,7 @@ class AuthController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED);
         }
 
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL,'Email successfully sent');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Email successfully sent');
     }
 
     /**
