@@ -39,7 +39,7 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
+            'identityClass' => 'app\modules\v2\models\User',
             'enableAutoLogin' => false,
             'enableSession' => false,
             'loginUrl' => null,
@@ -68,6 +68,7 @@ $config = [
 
         'urlManager' => [
             'enablePrettyUrl' => true,
+            'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => require 'urls.php',
         ],
@@ -89,6 +90,7 @@ if (YII_ENV_DEV) {
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
+        //'allowedIPs' => ['127.0.0.1', '::1'],
         //'allowedIPs' => ['127.0.0.1', '::1'],
     ];
 }

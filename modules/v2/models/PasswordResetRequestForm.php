@@ -48,7 +48,7 @@ class PasswordResetRequestForm extends Model {
 			return false;
 		}
 
-		//TODO::will send an email here.
+		//TODO:: will send an email here.
 
 		return true;
 	}

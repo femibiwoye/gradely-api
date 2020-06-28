@@ -10,16 +10,17 @@ class ApiResponse {
 	public $name;
 	public $message;
 	public $code;
-	public $status;
-	public $type;
-	public $models;
+	public $data;
 
 	const UNKNOWN_RESPONSE = 0;
-	const SUCCESSFULL = 200;
+	const SUCCESSFUL = 200;
+	const BAD_REQUEST = 400;
 	const UNAUTHORIZED = 401;
 	const STILL_UNDER_CONSTRUCTION = 404;
+	const REQUEST_NOT_ALLOWED = 404;
 	const UNABLE_TO_PERFORM_ACTION = 406;
-	const EMAIL_TAKEN = 409;
+	const ALREADY_TAKEN = 409;
+	const REQUEST_GONE = 410;
 	const EXPECTATION_FAILED = 417;
 	const RE_INVITE = 491;
 	const UNKNOWN_ERROR = 666;
@@ -28,40 +29,43 @@ class ApiResponse {
 	const FORBIDDEN = 403;
 	const PRECONDITION_FAILED = 422;
 
+
 	private $codes = [
 		self::UNKNOWN_RESPONSE => "Unknown response",
-		self::SUCCESSFULL => "Success",
+		self::SUCCESSFUL => "Success",
 		self::UNAUTHORIZED => "Unauthorized",
 		self::STILL_UNDER_CONSTRUCTION => "Still under construction",
 		self::UNABLE_TO_PERFORM_ACTION => "Unable to perform action",
+		self::REQUEST_NOT_ALLOWED => "Request is not allowed",
+		self::REQUEST_GONE => "Request no longer exist",
 	];
 
 	function message($name=null, $message=null, $code=null, $models=null) {
-		$this->type = "Response";
-		$this->status = "";
 		$this->name = $name;
-		$this->code = $code? $code:999;
 		$this->message = $message? $message:$this->getMessage($code);
-		$this->models = $models;
-
-		Yii::$app->response->statusCode = $this->code;
+		$this->code = $code? $code:999;
+		$this->data = $models;
 
 		return $this;
 	}
 
 	function success($models=null, $code=null, $message=null) {
-		return $this->message("Success", $message, $code? $code:self::SUCCESSFULL, $models);
+        Yii::$app->response->statusCode = $code;
+		return $this->message("success", $message, $code? $code:self::SUCCESSFUL, $models);
 	}
 
 	function error($models=null, $code=null, $message=null) {
-		return $this->message("Error", $message, $code? $code:self::EXPECTATION_FAILED, $models);
+        Yii::$app->response->statusCode = $code;
+		return $this->message("error", $message, $code? $code:self::EXPECTATION_FAILED, $models);
 	}
 
 	function underconstruction() {
+        Yii::$app->response->statusCode = self::STILL_UNDER_CONSTRUCTION;
 		return $this->error(null, self::STILL_UNDER_CONSTRUCTION);
 	}
 
 	function unauthorized() {
+        Yii::$app->response->statusCode = self::UNAUTHORIZED;
 		return $this->error(null, self::UNAUTHORIZED);
 	}
 
