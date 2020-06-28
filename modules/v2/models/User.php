@@ -52,7 +52,6 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function fields() {
         return [
             'id',
-            'username',
             'code',
             'firstname',
             'lastname',
@@ -60,6 +59,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'image' => 'image',
             'type',
             'email',
+            'is_boarded',
             'token'
         ];
     }
