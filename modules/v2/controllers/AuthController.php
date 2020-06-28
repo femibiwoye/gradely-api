@@ -17,27 +17,56 @@ class AuthController extends Controller
 {
     public $modelClass = 'app\modules\v2\models\User';
 
+//    public function behaviors()
+//    {
+//        $behaviors = parent::behaviors();
+//
+//        //For CORS
+//        $auth = $behaviors['authenticator'];
+//        unset($behaviors['authenticator']);
+//        $behaviors['corsFilter'] = [
+//            'class' => \yii\filters\Cors::className(),
+//        ];
+//        $behaviors['authenticator'] = $auth;
+//        $behaviors['authenticator'] = [
+//            'class' => CompositeAuth::className(),
+//            'authMethods' => [
+//                HttpBearerAuth::className(),
+//            ],
+//            'only' => ['logout'],
+//        ];
+//
+//        return $behaviors;
+//    }
+
+
     public function behaviors()
     {
         $behaviors = parent::behaviors();
 
-        //For CORS
+        // remove authentication filter
         $auth = $behaviors['authenticator'];
         unset($behaviors['authenticator']);
+
+
+
+
+        // add CORS filter
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
         ];
+
+        // re-add authentication filter
         $behaviors['authenticator'] = $auth;
-        $behaviors['authenticator'] = [
-            'class' => CompositeAuth::className(),
-            'authMethods' => [
-                HttpBearerAuth::className(),
-            ],
-            'only' => ['logout'],
-        ];
+        // avoid authentication on CORS-pre-flight requests (HTTP OPTIONS method)
+        $behaviors['authenticator']['except'] = ['options'];
 
         return $behaviors;
     }
+
+
+
+
 
     /**
      * Login action.
