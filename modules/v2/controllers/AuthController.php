@@ -40,16 +40,14 @@ class AuthController extends Controller
 //    }
 
 
+
     public function behaviors()
     {
         $behaviors = parent::behaviors();
 
         // remove authentication filter
-        $auth = $behaviors['authenticator'];
+        //$auth = $behaviors['authenticator'];
         unset($behaviors['authenticator']);
-
-
-
 
         // add CORS filter
         $behaviors['corsFilter'] = [
@@ -57,7 +55,10 @@ class AuthController extends Controller
         ];
 
         // re-add authentication filter
-        $behaviors['authenticator'] = $auth;
+        $behaviors['authenticator'] = [
+            'class' => HttpBearerAuth::className(),
+            'only' => ['logout'],
+        ];
         // avoid authentication on CORS-pre-flight requests (HTTP OPTIONS method)
         $behaviors['authenticator']['except'] = ['options'];
 
