@@ -42,6 +42,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return [
             'firstname' => 'First name',
             'lastname' => 'Last name',
+            'image' => 'Image',
             'email' => 'email',
             'username' => 'User name',
             'code' => 'Code',
@@ -55,7 +56,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'firstname',
             'lastname',
             'phone',
-            'image',
+            'image' => 'image',
             'type',
             'email',
             'is_boarded',
@@ -69,6 +70,14 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'created_at',
             'updated_at',
         ];
+    }
+
+    public function getImage() {
+        return Yii::getAlias('@webroot') . '/images/users/' . $this->image;
+    }
+
+    public function getUserPreference() {
+        return $this->hasOne(UserPreference::className(), ['user_id' => 'id']);
     }
 
     public static function findIdentity($id) {

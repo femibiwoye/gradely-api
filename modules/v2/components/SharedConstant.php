@@ -11,4 +11,8 @@ class SharedConstant {
 	const TYPE_STUDENT = 'student';
 	const ACCOUNT_TYPE = ['school','teacher','parent','student'];
 	const COUNTRY_CODE = 'NG';
+	const STATUS_ACTIVE = 10;
+	const STATUS_DELETED = 0;
+	const VALUE_ONE = 1;
+	const VALUE_ZERO = 0;
 }
