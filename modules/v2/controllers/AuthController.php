@@ -53,7 +53,7 @@ class AuthController extends Controller
             $user->updateAccessToken();
             return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::SUCCESSFUL);
         }
     }
 
