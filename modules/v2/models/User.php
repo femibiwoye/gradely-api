@@ -76,6 +76,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return Yii::getAlias('@webroot') . '/images/users/' . $this->image;
     }
 
+    public function getUserPreference() {
+        return $this->hasOne(UserPreference::className(), ['user_id' => 'id']);
+    }
+
     public static function findIdentity($id) {
         return static::findOne(['AND', ['id' => $id], ['!=', 'status', self::STATUS_DELETED]]);
     }

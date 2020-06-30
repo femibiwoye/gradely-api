@@ -3,7 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{User, ApiResponse};
+use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\teacher\models\{TeacherUpdateEmailForm, TeacherUpdatePasswordForm, UpdateTeacherForm};
 use app\modules\v2\components\{SharedConstant};
 use yii\rest\ActiveController;
@@ -110,6 +110,22 @@ class ProfileController extends ActiveController
 
 		if (!$model = $form->updateTeacher()) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not updated!');
+		}
+
+		return (new ApiResponse)->success($model);
+	}
+
+	public function actionPreference() {
+		$user_id = Yii::$app->user->id;
+		$model = UserPreference::find()->andWhere(['user_id' => $user_id])->one();
+		if ($model) {
+			return (new ApiResponse)->success($model);
+		}
+
+		$model = new UserPreference;
+		$model->user_id = $user_id;
+		if (!$model->save()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User preference not added successfully');
 		}
 
 		return (new ApiResponse)->success($model);

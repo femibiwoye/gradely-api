@@ -9,6 +9,7 @@ return [
     'PUT v2/teacher/profile/update-email' => 'v2/teacher/profile/update-email',
     'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password', 
     'PUT v2/teacher/profile' => 'v2/teacher/profile/update',
+    'PUT v2/teacher/profile/preference' => 'v2/teacher/profile/preference',
 
 	['class' => 'yii\rest\UrlRule', 'controller' => ['modules\v2\auth'], 'extraPatterns' => [
 		'POST login' => 'login',
