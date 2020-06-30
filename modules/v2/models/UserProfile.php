@@ -41,7 +41,7 @@ class UserProfile extends \yii\db\ActiveRecord
             [['user_id', 'dob', 'mob', 'yob'], 'integer'],
             [['created_at'], 'safe'],
             [['gender'], 'string', 'max' => 50],
-            [['address'], 'string', 'max' => 255],
+            [['address', 'postal_code', 'about'], 'string', 'max' => 255],
             [['city', 'state', 'country'], 'string', 'max' => 100],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];

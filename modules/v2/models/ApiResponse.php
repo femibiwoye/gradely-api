@@ -17,7 +17,7 @@ class ApiResponse {
 	const BAD_REQUEST = 400;
 	const UNAUTHORIZED = 401;
 	const STILL_UNDER_CONSTRUCTION = 404;
-	const REQUEST_NOT_ALLOWED = 404;
+	const NOT_FOUND = 404;
 	const UNABLE_TO_PERFORM_ACTION = 406;
 	const ALREADY_TAKEN = 409;
 	const REQUEST_GONE = 410;
@@ -36,7 +36,7 @@ class ApiResponse {
 		self::UNAUTHORIZED => "Unauthorized",
 		self::STILL_UNDER_CONSTRUCTION => "Still under construction",
 		self::UNABLE_TO_PERFORM_ACTION => "Unable to perform action",
-		self::REQUEST_NOT_ALLOWED => "Request is not allowed",
+		self::NOT_FOUND => "Not found",
 		self::REQUEST_GONE => "Request no longer exist",
 	];
 
