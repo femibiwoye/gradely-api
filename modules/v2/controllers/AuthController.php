@@ -7,7 +7,8 @@ use app\modules\v2\models\SignupForm;
 use Yii;
 use app\modules\v2\models\{Login, User, ApiResponse, PasswordResetRequestForm, ResetPasswordForm};
 use yii\rest\Controller;
-use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
+use yii\filters\auth\HttpBearerAuth;
+use yii\web\Response;
 
 
 /**
@@ -15,7 +16,8 @@ use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
  */
 class AuthController extends Controller
 {
-    public $modelClass = 'app\modules\v2\models\User';
+
+
 
     public function behaviors()
     {
@@ -24,15 +26,14 @@ class AuthController extends Controller
         //For CORS
         $auth = $behaviors['authenticator'];
         unset($behaviors['authenticator']);
+
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
         ];
+
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
-            'class' => CompositeAuth::className(),
-            'authMethods' => [
-                HttpBearerAuth::className(),
-            ],
+            'class' => HttpBearerAuth::className(),
             'only' => ['logout'],
         ];
 
@@ -50,7 +51,7 @@ class AuthController extends Controller
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
             $user->updateAccessToken();
-            return (new ApiResponse)->success($user, null,'Login is successful');
+            return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
@@ -115,7 +116,7 @@ class AuthController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED);
         }
 
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL,'Email successfully sent');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Email successfully sent');
     }
 
     /**
