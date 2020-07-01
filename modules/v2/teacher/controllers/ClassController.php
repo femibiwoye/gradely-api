@@ -86,4 +86,17 @@ class ClassController extends ActiveController
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher added successfully');
 	}
+
+	public function actionSchool($id)
+	{
+		$classes = $this->modelClass::find()
+					->where(['school_id' => $id])
+					->all();
+
+		if (!$classes) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
+		}
+
+		return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL, 'Classes found');
+	}
 }
