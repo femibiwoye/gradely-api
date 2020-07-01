@@ -21,6 +21,7 @@ class Module extends \yii\base\Module
     {
         parent::init();
         \Yii::$app->user->enableSession = false;
+        Yii::$app->request->enableCsrfValidation = false;
         Yii::$app->response->format = Response::FORMAT_JSON;
         $this->modules = [
             'school' => [
