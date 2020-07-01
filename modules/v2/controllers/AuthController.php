@@ -54,7 +54,7 @@ class AuthController extends Controller
             $user->updateAccessToken();
             return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::SUCCESSFUL);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE,'You provided invalid login details');
         }
     }
 
@@ -68,7 +68,7 @@ class AuthController extends Controller
     public function actionSignup($type)
     {
         if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNKNOWN, 'This is an unknown user type');
+            return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'This is an unknown user type');
         }
 
         $form = new SignupForm(['scenario' => "$type-signup"]);
