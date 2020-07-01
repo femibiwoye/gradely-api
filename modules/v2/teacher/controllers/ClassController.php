@@ -3,7 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{Classes, ApiResponse};
+use app\modules\v2\models\{Classes, ApiResponse, TeacherClass};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
@@ -63,5 +63,27 @@ class ClassController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($class, ApiResponse::SUCCESSFUL, 'Class found'); 
+	}
+
+	public function actionAddTeacher()
+	{
+		$class = $this->modelClass::findOne(['class_code' => Yii::$app->request->post('code')]);
+		if (!$class) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found!');
+		}
+
+		if (!$class->school) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School not found!');
+		}
+
+		$model = new TeacherClass;
+		$model->teacher_id = Yii::$app->user->id;
+		$model->school_id = $class->school->id;
+		$model->class_id = $class->id;
+		if (!$model->save()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not successfully added!');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher added successfully');
 	}
 }

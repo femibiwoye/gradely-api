@@ -78,4 +78,8 @@ class Classes extends \yii\db\ActiveRecord
 			'created_at'
 		];
 	}
+
+	public function getSchool() {
+		return $this->hasOne(Schools::className(), ['id' => 'school_id']);
+	}
 }

@@ -19,6 +19,7 @@ return [
     'DELETE v2/teacher/profile/delete-account' => 'v2/teacher/profile/delete-account',
 
     'GET v2/teacher/class/<code:[a-zA-Z0-9/]+>' => 'v2/teacher/class/view',
+    'POST v2/teacher/class/add-teacher' => 'v2/teacher/class/add-teacher',
 
 
     ['class' => 'yii\rest\UrlRule', 'controller' => ['modules\v2\auth'], 'extraPatterns' => [
