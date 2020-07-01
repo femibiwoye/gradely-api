@@ -31,7 +31,7 @@ class AuthController extends Controller
             'class' => \yii\filters\Cors::className(),
         ];
 
-        $behaviors['authenticator'] = $auth;
+        //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
             'only' => ['logout'],
@@ -39,6 +39,7 @@ class AuthController extends Controller
 
         return $behaviors;
     }
+
 
     /**
      * Login action.

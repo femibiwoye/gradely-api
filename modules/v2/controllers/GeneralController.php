@@ -25,7 +25,7 @@ class GeneralController extends Controller
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
         ];
-        $behaviors['authenticator'] = $auth;
+        //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
         ];
