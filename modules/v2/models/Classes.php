@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v1\models;
+namespace app\modules\v2\models;
 
 use Yii;
 
@@ -18,51 +18,68 @@ use Yii;
  */
 class Classes extends \yii\db\ActiveRecord
 {
-    const SCENERIO_CREATE_CLASS = 'create_class';
-    const SCENERIO_UPDATE_CLASS = 'update_class';
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'classes';
-    }
+	const SCENERIO_CREATE_CLASS = 'create_class';
+	const SCENERIO_UPDATE_CLASS = 'update_class';
+	/**
+	 * {@inheritdoc}
+	 */
+	public static function tableName()
+	{
+		return 'classes';
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            //[['school_id', 'global_class_id', 'slug', 'class_name', 'abbreviation', 'class_code'], 'required'],
-            [['school_id', 'global_class_id'], 'integer'],
-            [['created_at'], 'safe'],
-            [['slug', 'class_name'], 'string', 'max' => 255],
-            [['abbreviation', 'class_code'], 'string', 'max' => 20],
-            [['class_code'], 'unique'],
-            [['global_class_id','class_name','class_code'], 'required',
-                 'on' => self::SCENERIO_CREATE_CLASS
-            ],
-            [['global_class_id','class_name','abbreviation'], 'required',
-                 'on' => self::SCENERIO_UPDATE_CLASS
-            ]
-        ];
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function rules()
+	{
+		return [
+			//[['school_id', 'global_class_id', 'slug', 'class_name', 'abbreviation', 'class_code'], 'required'],
+			[['school_id', 'global_class_id'], 'integer'],
+			[['created_at'], 'safe'],
+			[['slug', 'class_name'], 'string', 'max' => 255],
+			[['abbreviation', 'class_code'], 'string', 'max' => 20],
+			[['class_code'], 'unique'],
+			[['global_class_id','class_name','class_code'], 'required',
+				 'on' => self::SCENERIO_CREATE_CLASS
+			],
+			[['global_class_id','class_name','abbreviation'], 'required',
+				 'on' => self::SCENERIO_UPDATE_CLASS
+			]
+		];
+	}
 
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'school_id' => 'School ID',
-            'global_class_id' => 'Global Class ID',
-            'slug' => 'Slug',
-            'class_name' => 'Class Name',
-            'abbreviation' => 'Abbreviation',
-            'class_code' => 'Class Code',
-            'created_at' => 'Created At',
-        ];
-    }
+	/**
+	 * {@inheritdoc}
+	 */
+	public function attributeLabels()
+	{
+		return [
+			'id' => 'ID',
+			'school_id' => 'School ID',
+			'global_class_id' => 'Global Class ID',
+			'slug' => 'Slug',
+			'class_name' => 'Class Name',
+			'abbreviation' => 'Abbreviation',
+			'class_code' => 'Class Code',
+			'created_at' => 'Created At',
+		];
+	}
+
+	public function fields() {
+		return [
+			'id',
+			'school_id',
+			'global_class_id',
+			'slug',
+			'class_name',
+			'abbreviation',
+			'class_code',
+			'created_at'
+		];
+	}
+
+	public function getSchool() {
+		return $this->hasOne(Schools::className(), ['id' => 'school_id']);
+	}
 }
