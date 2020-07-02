@@ -3,9 +3,10 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{Classes, ApiResponse, TeacherClass};
+use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
+use app\modules\v2\components\SharedConstant;
 
 /**
  * ClassController implements the CRUD actions for Classes model.
@@ -98,5 +99,18 @@ class ClassController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL, 'Classes found');
+	}
+
+	public function actionTeacherClass() {
+		$teacher = User::find()
+					->where(['id' => Yii::$app->user->id])
+					->andWhere(['type' => SharedConstant::TYPE_TEACHER])
+					->one();
+
+		if (!$teacher->classes) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
+		}
+
+		return (new ApiResponse)->success($teacher->classes, ApiResponse::SUCCESSFUL, 'Classes found');
 	}
 }

@@ -190,6 +190,15 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ]);
     }
 
+    public function getTeacherClass() {
+        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
+    }
+
+    public function getClasses() {
+        return $this->hasMany(Classes::className(), ['id' => 'class_id'])
+                    ->via('teacherClass');
+    }
+
     /**
      * Generates password hash from password and sets it to the model
      *
