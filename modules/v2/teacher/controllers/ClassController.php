@@ -3,7 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User};
+use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
@@ -107,10 +107,19 @@ class ClassController extends ActiveController
 					->andWhere(['type' => SharedConstant::TYPE_TEACHER])
 					->one();
 
-		if (!$teacher->classes) {
+		if (!$teacher || !$teacher->classes) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
 		}
 
 		return (new ApiResponse)->success($teacher->classes, ApiResponse::SUCCESSFUL, 'Classes found');
+	}
+
+	public function actionSearchSchool($q) {
+		$school = SearchSchool::find()->where(['like', 'name', $q])->one();
+		if (!$school) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School record not found!');
+		}
+
+		return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'School record found');
 	}
 }
