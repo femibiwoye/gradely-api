@@ -104,25 +104,25 @@ class ApiResponse
 
     function success($models = null, $code = null, $message = null)
     {
-        Yii::$app->response->statusCode = $code;
+        //Yii::$app->response->statusCode = $code;
         return $this->message("success", $message, $code ? $code : self::SUCCESSFUL, $models);
     }
 
     function error($models = null, $code = null, $message = null)
     {
-        Yii::$app->response->statusCode = $code;
+        //Yii::$app->response->statusCode = $code;
         return $this->message("error", $message, $code ? $code : self::EXPECTATION_FAILED, $models);
     }
 
     function underconstruction()
     {
-        Yii::$app->response->statusCode = self::STILL_UNDER_CONSTRUCTION;
+        //Yii::$app->response->statusCode = self::STILL_UNDER_CONSTRUCTION;
         return $this->error(null, self::STILL_UNDER_CONSTRUCTION);
     }
 
     function unauthorized()
     {
-        Yii::$app->response->statusCode = self::UNAUTHORIZED;
+        //Yii::$app->response->statusCode = self::UNAUTHORIZED;
         return $this->error(null, self::UNAUTHORIZED);
     }
 
