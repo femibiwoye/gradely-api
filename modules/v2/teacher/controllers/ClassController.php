@@ -7,7 +7,7 @@ use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchoo
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\teacher\models\{TeacherSchoolForm, StudentClassForm};
+use app\modules\v2\teacher\models\{TeacherSchoolForm, StudentClassForm, DeleteStudentForm};
 
 /**
  * ClassController implements the CRUD actions for Classes model.
@@ -152,5 +152,22 @@ class ClassController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($data, ApiResponse::SUCCESSFUL, 'Record found');
+	}
+
+	public function actionDeleteStudent($student_id, $class_id)
+	{
+		$form = new DeleteStudentForm;
+		$form->teacher_id = Yii::$app->user->id;
+		$form->student_id = $student_id;
+		$form->class_id = $class_id;
+		if (!$form->validate()) {
+			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$form->deleteStudent()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not deleted');
+		}
+
+		return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted');
 	}
 }
