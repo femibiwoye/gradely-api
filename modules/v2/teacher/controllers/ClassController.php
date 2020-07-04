@@ -7,7 +7,7 @@ use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchoo
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\teacher\models\TeacherSchoolForm;
+use app\modules\v2\teacher\models\{TeacherSchoolForm, StudentClassForm};
 
 /**
  * ClassController implements the CRUD actions for Classes model.
@@ -137,5 +137,20 @@ class ClassController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record added');
+	}
+
+	public function actionStudentsInClass($class_id) {
+		$form = new StudentClassForm;
+		$form->class_id = $class_id;
+		$form->teacher_id = Yii::$app->user->id;
+		if (!$form->validate()) {
+			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$data = $form->getStudents()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
+		}
+
+		return (new ApiResponse)->success($data, ApiResponse::SUCCESSFUL, 'Record found');
 	}
 }
