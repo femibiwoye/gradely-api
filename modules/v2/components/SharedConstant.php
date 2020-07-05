@@ -15,4 +15,5 @@ class SharedConstant {
 	const STATUS_DELETED = 0;
 	const VALUE_ONE = 1;
 	const VALUE_ZERO = 0;
+	const DEFAULT_COUNTRY = 'Nigeria';
 }

@@ -26,6 +26,7 @@ return [
     'GET v2/teacher/class/<code:[a-zA-Z0-9/]+>' => 'v2/teacher/class/view',
     'POST v2/teacher/class/add-teacher' => 'v2/teacher/class/add-teacher',
     'POST v2/teacher/class/add-teacher-class' => 'v2/teacher/class/add-teacher-school',
+    'POST v2/teacher/student/add-multiple' => 'v2/teacher/class/add-student',
 
 
     ['class' => 'yii\rest\UrlRule', 'controller' => ['modules\v2\auth'], 'extraPatterns' => [
