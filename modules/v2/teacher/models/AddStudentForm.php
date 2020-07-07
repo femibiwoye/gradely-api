@@ -13,6 +13,7 @@ class AddStudentForm extends Model {
 	public $class_id;
 	public $password;
 	public $students;
+	private $added_students = [];
 
 	public function rules()
 	{
@@ -36,8 +37,6 @@ class AddStudentForm extends Model {
 		$form->last_name = isset($name_array[1]) ? $name_array[1]: '';
 		$form->country = SharedConstant::DEFAULT_COUNTRY;
 		if (!$form->validate()) {
-			print_r($form->getErrors());
-			die();
 			return false;
         }
 
@@ -46,17 +45,19 @@ class AddStudentForm extends Model {
         }
 
         $user->updateAccessToken();
-        return true;
+        return $user;
 	}
 
 	public function addStudents($type)
 	{
 		foreach ($this->students as $student) {
-			if (!$this->addStudent($type, $student)) {
+			if (!$student = $this->addStudent($type, $student)) {
 				return false;
 			}
+
+			array_push($this->added_students, $student);
 		}
 
-		return true;
+		return $this->added_students;
 	}
 }
