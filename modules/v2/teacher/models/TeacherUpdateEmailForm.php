@@ -33,7 +33,7 @@ class TeacherUpdateEmailForm extends Model {
 
 	public function validateConfirmPassword() {
 		if (!$this->user->validatePassword($this->confirm_password)) {
-			$this->addError('Password is incorrect!');
+			$this->addError('confirm_password', 'Password is incorrect!');
 		}
 
 		return true;
