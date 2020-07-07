@@ -116,7 +116,7 @@ class ClassController extends ActiveController
 	}
 
 	public function actionSearchSchool($q) {
-		$school = SearchSchool::find()->where(['like', 'name', $q])->one();
+		$school = SearchSchool::find()->where(['like', 'name', $q])->limit(10)->all();
 		if (!$school) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School record not found!');
 		}
