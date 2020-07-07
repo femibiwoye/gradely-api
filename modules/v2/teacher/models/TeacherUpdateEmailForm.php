@@ -19,7 +19,7 @@ class TeacherUpdateEmailForm extends Model {
 	public function rules() {
 		return [
 			['email', 'filter', 'filter' => 'trim'],
-			['email', 'required'],
+			[['email', 'confirm_password'], 'required'],
 			['email', 'email', 'message'=> 'Provide a valid email address.'],
 			['email', 'string', 'min' => 8, 'max' => 64],
 			['email', 'match', 'pattern' => "/^[@a-zA-Z0-9._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
