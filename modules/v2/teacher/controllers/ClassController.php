@@ -3,9 +3,11 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{Classes, ApiResponse, TeacherClass};
+use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
+use app\modules\v2\components\SharedConstant;
+use app\modules\v2\teacher\models\{TeacherSchoolForm, StudentClassForm, DeleteStudentForm, AddStudentForm};
 
 /**
  * ClassController implements the CRUD actions for Classes model.
@@ -98,5 +100,90 @@ class ClassController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL, 'Classes found');
+	}
+
+	public function actionTeacherClass() {
+		$teacher = User::find()
+					->where(['id' => Yii::$app->user->id])
+					->andWhere(['type' => SharedConstant::TYPE_TEACHER])
+					->one();
+
+		if (!$teacher || !$teacher->classes) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
+		}
+
+		return (new ApiResponse)->success($teacher->classes, ApiResponse::SUCCESSFUL, 'Classes found');
+	}
+
+	public function actionSearchSchool($q) {
+		$school = SearchSchool::find()->where(['like', 'name', $q])->one();
+		if (!$school) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School record not found!');
+		}
+
+		return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'School record found');
+	}
+
+	public function actionAddTeacherSchool() {
+		$form = new TeacherSchoolForm;
+		$form->attributes = Yii::$app->request->post();
+		$form->teacher_id = Yii::$app->user->id;
+		if (!$form->validate()) {
+			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$model = $form->addTeacherClass()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added!');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record added');
+	}
+
+	public function actionStudentsInClass($class_id) {
+		$form = new StudentClassForm;
+		$form->class_id = $class_id;
+		$form->teacher_id = Yii::$app->user->id;
+		if (!$form->validate()) {
+			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$data = $form->getStudents()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
+		}
+
+		return (new ApiResponse)->success($data, ApiResponse::SUCCESSFUL, 'Record found');
+	}
+
+	public function actionDeleteStudent($student_id, $class_id)
+	{
+		$form = new DeleteStudentForm;
+		$form->teacher_id = Yii::$app->user->id;
+		$form->student_id = $student_id;
+		$form->class_id = $class_id;
+		if (!$form->validate()) {
+			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$form->deleteStudent()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not deleted');
+		}
+
+		return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted');
+	}
+
+	public function actionAddStudent()
+	{
+		$form = new AddStudentForm;
+		$form->attributes = Yii::$app->request->post();
+		if (!$form->validate())
+		{
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$user = $form->addStudents(SharedConstant::TYPE_STUDENT)) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added');
+		}
+
+		return (new ApiResponse)->success($user, null, 'You have successfully added students');
 	}
 }
