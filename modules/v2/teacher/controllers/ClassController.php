@@ -69,7 +69,12 @@ class ClassController extends ActiveController
 
 	public function actionAddTeacher()
 	{
-		$class = $this->modelClass::findOne(['class_code' => Yii::$app->request->post('code')]);
+		$class_code = Yii::$app->request->post('code');
+		if (!$class_code) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Provide class code.');
+		}
+
+		$class = $this->modelClass::findOne(['class_code' => $class_code]);
 		if (!$class) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found!');
 		}
