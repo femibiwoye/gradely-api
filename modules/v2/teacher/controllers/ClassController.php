@@ -129,7 +129,7 @@ class ClassController extends ActiveController
 		$form->attributes = Yii::$app->request->post();
 		$form->teacher_id = Yii::$app->user->id;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
 		if (!$model = $form->addTeacherClass()) {
@@ -144,7 +144,7 @@ class ClassController extends ActiveController
 		$form->class_id = $class_id;
 		$form->teacher_id = Yii::$app->user->id;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
 		if (!$data = $form->getStudents()) {
@@ -161,7 +161,7 @@ class ClassController extends ActiveController
 		$form->student_id = $student_id;
 		$form->class_id = $class_id;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
 		if (!$form->deleteStudent()) {
