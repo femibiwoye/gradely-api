@@ -24,6 +24,10 @@ class StudentClassForm extends Model {
 
 	public function getStudents() {
 		$class = Classes::findOne(['id' => $this->class_id]);
+		if (empty($class->studentSchool)) {
+			return 'No student available';
+		}
+
 		foreach ($class->studentSchool as $student) {
 			array_push($this->studentDetail, $student->student);
 		}
