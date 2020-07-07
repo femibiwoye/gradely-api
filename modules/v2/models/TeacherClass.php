@@ -37,6 +37,7 @@ class TeacherClass extends \yii\db\ActiveRecord
 		return [
 			[['teacher_id', 'school_id', 'class_id'], 'required'],
 			[['teacher_id', 'school_id', 'class_id', 'status'], 'integer'],
+			['status', 'default', 'value' => SharedConstant::VALUE_ZERO],
 			[['created_at'], 'safe'],
 			[['school_id'], 'exist', 'skipOnError' => true, 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],
 			[['teacher_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']],
@@ -93,7 +94,6 @@ class TeacherClass extends \yii\db\ActiveRecord
 	public function beforeSave($insert) {
 		if ($this->isNewRecord) {
 			$this->created_at = date('y-m-d H-i-s');
-			$this->status = SharedConstant::VALUE_ONE;
 		}
 
 		return parent::beforeSave($insert);
