@@ -131,6 +131,20 @@ class ProfileController extends ActiveController
 		return (new ApiResponse)->success($model);
 	}
 
+	public function actionUpdatePreference() {
+		$model = UserPreference::findOne(['user_id' => Yii::$app->user->id]);
+		if (!$model) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found!');
+		}
+
+		$model->attributes = Yii::$app->request->post();
+		if (!$model->save()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User preference not updated');
+		}
+
+		return (new ApiResponse)->success($model);
+	}
+
 	public function actionDeleteAccount() {
 		$user_id = Yii::$app->user->id;
 		$model = User::find()->andWhere(['id' => $user_id])->andWhere(['type' => SharedConstant::TYPE_TEACHER])->one();
