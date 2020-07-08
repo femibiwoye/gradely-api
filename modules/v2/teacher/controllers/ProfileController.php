@@ -131,8 +131,8 @@ class ProfileController extends ActiveController
 		return (new ApiResponse)->success($model);
 	}
 
-	public function actionUpdatePreference($id) {
-		$model = UserPreference::findOne(['id' => $id]);
+	public function actionUpdatePreference() {
+		$model = UserPreference::findOne(['user_id' => Yii::$app->user->id]);
 		if (!$model) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found!');
 		}
