@@ -16,7 +16,7 @@ return [
     'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password', 
     'PUT v2/teacher/profile' => 'v2/teacher/profile/update',
     'GET v2/teacher/profile/preference' => 'v2/teacher/profile/preference',
-    'PUT v2/teacher/profile/update-preference' => 'v2/teacher/profile/update-preference',
+    'PUT v2/teacher/profile/preference' => 'v2/teacher/profile/update-preference',
     'DELETE v2/teacher/profile/delete-account' => 'v2/teacher/profile/delete-account',
 
     'DELETE v2/teacher/student/remove/<student_id:\d+>/<class_id:\d+>' => 'v2/teacher/class/delete-student',
