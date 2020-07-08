@@ -69,7 +69,12 @@ class ClassController extends ActiveController
 
 	public function actionAddTeacher()
 	{
-		$class = $this->modelClass::findOne(['class_code' => Yii::$app->request->post('code')]);
+		$class_code = Yii::$app->request->post('code');
+		if (!$class_code) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Provide class code.');
+		}
+
+		$class = $this->modelClass::findOne(['class_code' => $class_code]);
 		if (!$class) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found!');
 		}
@@ -116,7 +121,7 @@ class ClassController extends ActiveController
 	}
 
 	public function actionSearchSchool($q) {
-		$school = SearchSchool::find()->where(['like', 'name', $q])->one();
+		$school = SearchSchool::find()->where(['like', 'name', $q])->limit(10)->all();
 		if (!$school) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School record not found!');
 		}
@@ -129,7 +134,7 @@ class ClassController extends ActiveController
 		$form->attributes = Yii::$app->request->post();
 		$form->teacher_id = Yii::$app->user->id;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
 		if (!$model = $form->addTeacherClass()) {
@@ -144,7 +149,7 @@ class ClassController extends ActiveController
 		$form->class_id = $class_id;
 		$form->teacher_id = Yii::$app->user->id;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
 		if (!$data = $form->getStudents()) {
@@ -161,7 +166,7 @@ class ClassController extends ActiveController
 		$form->student_id = $student_id;
 		$form->class_id = $class_id;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error([$form->getErrors()], ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
 		if (!$form->deleteStudent()) {

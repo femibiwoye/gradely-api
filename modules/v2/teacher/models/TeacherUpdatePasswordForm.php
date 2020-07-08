@@ -20,14 +20,14 @@ class TeacherUpdatePasswordForm extends Model {
 	public function rules() {
 		return [
 			[['new_password', 'confirm_new_password', 'current_password'], 'required'],
-			['new_password', 'compare', 'compareAttribute' => 'confirm_new_password'],
+			['new_password', 'compare', 'compareAttribute' => 'confirm_new_password', 'message' => 'Both new passwords do not matched.'],
 			['current_password', 'validateCurrentPassword'],
 		];
 	}
 
 	public function validateCurrentPassword() {
 		if (!$this->user->validatePassword($this->current_password)) {
-			$this->addError('Current password is incorrect!');
+			$this->addError('current_password', 'Current password is incorrect!');
 		}
 
 		return true;

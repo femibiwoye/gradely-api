@@ -133,7 +133,7 @@ class ProfileController extends ActiveController
 
 	public function actionDeleteAccount() {
 		$user_id = Yii::$app->user->id;
-		$model = User::find()->andWhere(['id' => $user_id])->one();
+		$model = User::find()->andWhere(['id' => $user_id])->andWhere(['type' => SharedConstant::TYPE_TEACHER])->one();
 		if (!$model) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
 		}
@@ -141,7 +141,8 @@ class ProfileController extends ActiveController
 		$model->email = $model->email . '-deleted';
 		$model->phone = $model->phone . '-deleted';
 		$model->status = SharedConstant::STATUS_DELETED;
-		$model->token = SharedConstant::VALUE_ZERO;
+		$model->token = null;
+		$model->token_expires = null;
 		if (!$model->save(false)) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User account not deleted!');
 		}

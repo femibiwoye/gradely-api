@@ -17,13 +17,16 @@ class StudentClassForm extends Model {
 		return [
 			[['class_id', 'teacher_id'], 'required'],
 			['class_id', 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => 'id'],
-			['teacher_id', 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => 'id'],
 			['class_id', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id'], 'message' => 'Class belongs to the other teacher'],
 		];
 	}
 
 	public function getStudents() {
 		$class = Classes::findOne(['id' => $this->class_id]);
+		if (empty($class->studentSchool)) {
+			return 'No student available';
+		}
+
 		foreach ($class->studentSchool as $student) {
 			array_push($this->studentDetail, $student->student);
 		}
