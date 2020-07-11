@@ -186,7 +186,7 @@ class ClassController extends ActiveController
 		}
 
 		if (!$user = $form->addStudents(SharedConstant::TYPE_STUDENT)) {
-			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added');
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added');
 		}
 
 		return (new ApiResponse)->success($user, null, 'You have successfully added students');
