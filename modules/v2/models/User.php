@@ -243,6 +243,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         $this->save();
     }
 
+    //This action is called before saving
     public function beforeSave($insert) {
         if ($this->isNewRecord) {
             $this->created_at = time();
@@ -254,4 +255,6 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
         return parent::beforeSave($insert);
     }
+
+
 }

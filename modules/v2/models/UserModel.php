@@ -3,6 +3,8 @@
 namespace app\modules\v2\models;
 
 
+use yii\helpers\ArrayHelper;
+
 /**
  * This is the model class for table "user".
  *
@@ -48,18 +50,8 @@ namespace app\modules\v2\models;
  * @property UserPreference[] $userPreferences
  * @property UserProfile[] $userProfiles
  */
-
 class UserModel extends User
 {
-
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'user';
-    }
 
     /**
      * {@inheritdoc}
@@ -265,5 +257,14 @@ class UserModel extends User
     public function getUserProfiles()
     {
         return $this->hasMany(UserProfile::className(), ['user_id' => 'id']);
+    }
+
+    /**
+     * Return children of a parent
+     */
+    public function getParentChildren()
+    {
+        $studentID = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => $this->id, 'status' => 1])->all(), 'student_id');
+        return  $this->hasMany(UserPreference::className(), ['user_id' => 'id']); //$this->hasMany(UserModel::className(),['id'=>$studentID]);
     }
 }
