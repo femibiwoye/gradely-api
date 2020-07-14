@@ -80,6 +80,18 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return $this->hasOne(UserPreference::className(), ['user_id' => 'id']);
     }
 
+    public function getUserProfile() {
+        return $this->hasOne(UserProfile::className(), ['user_id' => 'id']);
+    }
+
+    public function getRemarks() {
+        return $this->hasOne(Remarks::className(), ['receiver_id' => 'id']);
+    }
+
+    public function getHomeworks() {
+        return $this->hasMany(Homeworks::className(), ['student_id' => 'id']);
+    }
+
     public static function findIdentity($id) {
         return static::findOne(['AND', ['id' => $id], ['!=', 'status', self::STATUS_DELETED]]);
     }
@@ -226,7 +238,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     }
 
     public static function find() {
-        return parent::find()->andWhere(['<>', 'status', self::STATUS_DELETED]);
+        return parent::find()->andWhere(['<>', 'user.status', self::STATUS_DELETED]);
     }
 
     public function getRateLimit($request, $action) {

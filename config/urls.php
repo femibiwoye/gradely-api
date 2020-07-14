@@ -20,6 +20,7 @@ return [
     'DELETE v2/teacher/profile/delete-account' => 'v2/teacher/profile/delete-account',
 
     'DELETE v2/teacher/student/remove/<student_id:\d+>/<class_id:\d+>' => 'v2/teacher/class/delete-student',
+    'GET v2/teacher/student/<id:\d+>' => 'v2/teacher/class/get-student',
     'GET v2/teacher/students/<class_id:\d+>' => 'v2/teacher/class/students-in-class',
     'GET v2/teacher/search-school' => 'v2/teacher/class/search-school',
     'GET v2/teacher/class' => 'v2/teacher/class/teacher-class',

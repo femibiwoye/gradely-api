@@ -3,7 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool};
+use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool, StudentProfile};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
@@ -190,5 +190,18 @@ class ClassController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($user, null, 'You have successfully added students');
+	}
+
+	public function actionGetStudent($id)
+	{
+		$form = new StudentProfile;
+		$form->student_id = $id;
+		$form->teacher_id = Yii::$app->user->id;
+		if (!$form->validate())
+		{
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		return (new ApiResponse)->success(StudentProfile::findOne(['id' => $id], null, 'Records found'));
 	}
 }
