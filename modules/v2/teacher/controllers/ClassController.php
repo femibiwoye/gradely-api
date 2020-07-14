@@ -59,7 +59,7 @@ class ClassController extends ActiveController
 	 */
 	public function actionView($code)
 	{
-		$class = $this->modelClass::findOne(['class_code' => $code]);
+		$class = $this->modelClass::find()->where(['class_code' => $code])->joinWith('school')->asArray()->one();
 		if (!$class) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found!');
 		}

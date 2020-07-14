@@ -90,6 +90,8 @@ class ApiResponse
         self::UNABLE_TO_PERFORM_ACTION => "Unable to perform action",
         self::REQUEST_GONE => "Request no longer exist",
         self::NON_AUTHORITATIVE => "No authority for this request",
+        self::NO_CONTENT => "No record found",
+        self::UNKNOWN_ERROR => "Something unknown went wrong",
     ];
 
     function message($name = null, $message = null, $code = null, $models = null)

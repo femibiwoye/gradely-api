@@ -7,6 +7,7 @@ $config = [
     'name' => 'gradely-v2',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'timeZone' => 'Africa/Lagos',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
