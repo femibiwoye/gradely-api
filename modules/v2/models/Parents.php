@@ -16,9 +16,6 @@ use Yii;
  * @property string $role
  * @property string|null $invitation_token
  * @property string $created_at
- *
- * @property User $parent
- * @property User $student
  */
 class Parents extends \yii\db\ActiveRecord
 {
@@ -42,8 +39,6 @@ class Parents extends \yii\db\ActiveRecord
             [['code'], 'string', 'max' => 100],
             [['inviter', 'role'], 'string', 'max' => 20],
             [['invitation_token'], 'string', 'max' => 50],
-            [['parent_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['parent_id' => 'id']],
-            [['student_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
         ];
     }
 
@@ -65,23 +60,11 @@ class Parents extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * Gets query for [[Parent]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getParent()
-    {
-        return $this->hasOne(User::className(), ['id' => 'parent_id']);
-    }
+    public function beforeSave($insert) {
+        if ($this->isNewRecord) {
+            $this->created_at = date('Y-m-d H:i:s');;
+        }
 
-    /**
-     * Gets query for [[Student]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStudent()
-    {
-        return $this->hasOne(User::className(), ['id' => 'student_id']);
+        return parent::beforeSave($insert);
     }
 }

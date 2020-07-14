@@ -3,12 +3,14 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\data\ArrayDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
@@ -79,31 +81,31 @@ class ParentsController extends ActiveController
         }
         //Get Students ID
         $studentID = ArrayHelper::getColumn($classes->all(), 'student_id');
+        $parentsID = Parents::findAll(['student_id' => $studentID]);
 
-        $parents = UserModel::find()
-            ->alias('parent')
-//            ->select([
-//                'parent.id',
-//                'parent.firstname',
-//                'parent.lastname',
-//                'parent.phone',
-//                'parent.email',
-//                'parent.image',
-//                'parent.type',
-//            ])
-            //->leftJoin(['user_profile', 'user_profile.user_id = parent.id'])
-            ->joinWith(['parentChildren'])
-            ->where(['parent.id' => $studentID])
-            ->groupBy(['parent.id']);
-        //->asArray();
-        // ->all();
+        $parentsList = UserModel::find()
+            ->where(['AND', ['id' => $parentsID, 'type' => 'parent'], ['<>', 'status', 0]])
+            ->all();
 
-        $dataProvider = new ActiveDataProvider([
-            'query' => $parents
+        $parentLists = [];
+        foreach ($parentsList as $index => $parent) {
+            $children = $parent->parentChildren;
+            $parentLists[$index] = array_merge(ArrayHelper::toArray($parent), ['children' => ArrayHelper::toArray($children)]);
+        }
+
+         $dataProvider = new ArrayDataProvider([
+            'allModels' =>$parentLists,
+            'sort' => [
+                'attributes' => ['id', 'firstname', 'lastname','email'],
+            ],
+            'pagination' => [
+                'pageSize' => 1,
+            ],
         ]);
 
 
-        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, $classes->count() . ' parents found');
+
+        return (new ApiResponse)->success($dataProvider->allModels, ApiResponse::SUCCESSFUL, count($parentsID) . ' parents found');
     }
 
     /**

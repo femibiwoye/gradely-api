@@ -265,6 +265,6 @@ class UserModel extends User
     public function getParentChildren()
     {
         $studentID = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => $this->id, 'status' => 1])->all(), 'student_id');
-        return  $this->hasMany(UserPreference::className(), ['user_id' => 'id']); //$this->hasMany(UserModel::className(),['id'=>$studentID]);
+        return UserModel::find()->where(['id' => $studentID])->all();
     }
 }

@@ -59,7 +59,7 @@ class ClassController extends ActiveController
 	 */
 	public function actionView($code)
 	{
-		$class = $this->modelClass::findOne(['class_code' => $code]);
+		$class = $this->modelClass::find()->where(['class_code' => $code])->joinWith('school')->asArray()->one();
 		if (!$class) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found!');
 		}
@@ -186,7 +186,7 @@ class ClassController extends ActiveController
 		}
 
 		if (!$user = $form->addStudents(SharedConstant::TYPE_STUDENT)) {
-			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added');
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added');
 		}
 
 		return (new ApiResponse)->success($user, null, 'You have successfully added students');
