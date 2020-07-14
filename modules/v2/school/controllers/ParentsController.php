@@ -64,7 +64,6 @@ class ParentsController extends ActiveController
         unset($actions['create']);
         unset($actions['update']);
         unset($actions['delete']);
-        unset($actions['index']);
         unset($actions['view']);
         return $actions;
     }
@@ -99,7 +98,7 @@ class ParentsController extends ActiveController
                 'attributes' => ['id', 'firstname', 'lastname','email'],
             ],
             'pagination' => [
-                'pageSize' => 1,
+                'pageSize' => 30,
             ],
         ]);
 
