@@ -28,7 +28,11 @@ class SignupForm extends Model
             ['email', 'trim'],
             ['email', 'email', 'message' => 'Provide a valid email address'],
             ['email', 'string', 'min' => 8, 'max' => 50],
-            ['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken.'],
+            ['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken.', 'when' => function() {
+                if (empty($this->email)) {
+                    return true;
+                }
+            }],
             ['email', 'match', 'pattern' => "/^[@a-zA-Z0-9+._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
 
             ['phone', 'trim'],

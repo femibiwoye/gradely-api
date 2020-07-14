@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v1\models;
+namespace app\modules\v2\models;
 
 use Yii;
 
@@ -58,5 +58,13 @@ class Parents extends \yii\db\ActiveRecord
             'invitation_token' => 'Invitation Token',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function beforeSave($insert) {
+        if ($this->isNewRecord) {
+            $this->created_at = date('Y-m-d H:i:s');;
+        }
+
+        return parent::beforeSave($insert);
     }
 }

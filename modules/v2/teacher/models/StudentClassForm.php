@@ -22,15 +22,13 @@ class StudentClassForm extends Model {
 	}
 
 	public function getStudents() {
-		$class = Classes::findOne(['id' => $this->class_id]);
-		if (empty($class->studentSchool)) {
-			return 'No student available';
-		}
+		$students_in_class = (new \yii\db\Query())
+				->select(['user.id', 'user.code', 'user.firstname', 'user.lastname', 'user.image'])
+				->from('student_school')
+				->innerJoin('user', 'user.id = student_school.student_id')
+				->where(['student_school.class_id' => $this->class_id])
+				->all();
 
-		foreach ($class->studentSchool as $student) {
-			array_push($this->studentDetail, $student->student);
-		}
-
-		return $this->studentDetail;
+		return $students_in_class;
 	}
 }
