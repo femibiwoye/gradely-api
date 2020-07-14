@@ -62,4 +62,9 @@ class StudentSchool extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Classes::className(), ['id' => 'class_id']);
     }
+
+    public function getParents()
+    {
+        return $this->hasMany(Parents::className(),['student_id'=>'student_id']);
+    }
 }
