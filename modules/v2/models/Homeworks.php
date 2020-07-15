@@ -32,6 +32,7 @@ class Homeworks extends \yii\db\ActiveRecord
 	/**
 	 * {@inheritdoc}
 	 */
+	private $homework_annoucements = [];
 	public static function tableName()
 	{
 		return 'homeworks';
@@ -115,5 +116,25 @@ class Homeworks extends \yii\db\ActiveRecord
 		} else {
 			return "Open";
 		}
+	}
+
+	public function getNewHomeworks() {
+		$homeworks =  parent::find()->where(['teacher_id' => Yii::$app->user->id, 'type' => 'homework'])->orderBy([
+			'open_date' => SORT_ASC
+		])->all();
+		foreach ($homeworks as $homework) {
+			if (strtotime($homework->open_date) <= time() + 604800) {
+				$date_array = explode(' ', $homework->open_date);
+				array_push($this->homework_annoucements, [
+					'id' => $homework->id,
+					'type' => $homework->type,
+					'title' => $homework->title,
+					'date' => $date_array[0],
+					'time' => $date_array[1] ? $date_array[1] : '',
+				]);
+			}
+		}
+
+		return $this->homework_annoucements;
 	}
 }

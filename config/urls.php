@@ -32,7 +32,8 @@ return [
     'POST v2/teacher/class/add-teacher-class' => 'v2/teacher/class/add-teacher-school',
     'POST v2/teacher/student/add-multiple' => 'v2/teacher/class/add-student',
 
-
+    //Feed Class
+    'GET v2/teacher/upcoming' => 'v2/teacher/feed/upcoming',
 
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
