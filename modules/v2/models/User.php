@@ -203,7 +203,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     }
 
     public function getTeacherClass() {
-        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
+        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->groupBy(['class_id']);
     }
 
     public function getClasses() {
