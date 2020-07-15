@@ -5,7 +5,7 @@ namespace app\modules\v2\teacher\controllers;
 use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{feed, ApiResponse, Homeworks, TutorSession};
+use app\modules\v2\models\{feed, ApiResponse, Homeworks, TutorSession, FeedComment};
 
 class FeedController extends ActiveController {
 	public $modelClass = 'app\modules\v2\models\Feed';
@@ -67,5 +67,21 @@ class FeedController extends ActiveController {
 		}
 
 		return (new ApiResponse)->success($this->new_announcements, ApiResponse::SUCCESSFUL, 'Annoucements found');
+	}
+
+	public function actionFeedComment($post_id) {
+		$model = new FeedComment;
+		$model->user_id = Yii::$app->user->id;
+		$model->comment = Yii::$app->request->post('comment');
+		$model->feed_id = $post_id;
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$model->save()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment not added');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Comment added');
 	}
 }

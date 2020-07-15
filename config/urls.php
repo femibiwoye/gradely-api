@@ -34,6 +34,7 @@ return [
 
     //Feed Class
     'GET v2/teacher/upcoming' => 'v2/teacher/feed/upcoming',
+    'POST v2/teacher/comment/<post_id:\d+>' => 'v2/teacher/feed/feed-comment',
 
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
