@@ -22,14 +22,14 @@ class Feed extends \yii\db\ActiveRecord
 	{
 		return [
 			[['type', 'class_id', 'description'], 'required'],
-			[['user_id', 'reference_id', 'likes', 'class_id', 'global_class', 'status'], 'integer'],
+			[['user_id', 'reference_id', 'likes', 'class_id', 'global_class_id', 'status'], 'integer'],
 			[['description', 'type', 'view_by'], 'string'],
 			[['created_at', 'updated_at'], 'safe'],
 			[['subject_id'], 'string', 'max' => 45],
 			[['token'], 'string', 'max' => 100],
 			[['token'], 'unique'],
 			[['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
-			[['global_class'], 'exist', 'skipOnError' => true, 'targetClass' => GlobalClass::className(), 'targetAttribute' => ['global_class' => 'id']],
+			[['global_class_id'], 'exist', 'skipOnError' => true, 'targetClass' => GlobalClass::className(), 'targetAttribute' => ['global_class_id' => 'id']],
 			[['reference_id'], 'exist', 'skipOnError' => true, 'targetClass' => Homeworks::className(), 'targetAttribute' => ['reference_id' => 'id']],
 			[['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
 		];
@@ -47,7 +47,7 @@ class Feed extends \yii\db\ActiveRecord
 			'likes' => 'Likes',
 			'token' => 'Token',
 			'class_id' => 'Class ID',
-			'global_class' => 'Global Class',
+			'global_class_id' => 'Global Class ID',
 			'view_by' => 'View By',
 			'status' => 'Status',
 			'created_at' => 'Created At',
@@ -58,21 +58,46 @@ class Feed extends \yii\db\ActiveRecord
 	public function fields() {
 		return [
 			'id', 
-			'user_id',
-			'reference_id',
-			'subject_id',
+			'user',
+			'reference',
+			'subject',
 			'description',
 			'type',
 			'likes',
 			'token',
-			'class_id',
-			'global_class',
+			'class',
+			'global_class' => 'globalClass',
 			'view_by'
 		];
 	}
 
+	public function getUser() {
+		return $this->hasOne(User::className(), ['id' => 'user_id']);
+	}
+
+	public function getReference() {
+		if ($this->type == SharedConstant::FEED_TYPES[2]) {
+			return $this->hasOne(Homeworks::className(), ['id' => 'reference_id']);
+		}
+
+		if ($this->type == SharedConstant::FEED_TYPES[3]) {
+			return $this->hasOne(TutorSession::className(), ['id' => 'reference_id']);
+		}
+	}
+
+	public function getSubject() {
+		return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+	}
+
+	public function getClass() {
+		return $this->hasOne(Classes::className(), ['id' => 'class_id']);
+	}
+
+	public function getGlobalClass() {
+		return $this->hasOne(GlobalClass::className(), ['id' => 'global_class_id']);
+	}
+
 	public function getFeedLike() {
-		
 		return $this->hasOne(FeedLike::className(), ['parent_id' => 'id'])->andWhere(['type' => SharedConstant::FEED_TYPE]);
 	}
 

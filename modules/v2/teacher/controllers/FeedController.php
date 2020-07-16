@@ -131,4 +131,23 @@ class FeedController extends ActiveController {
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Annoucement made successfully');
 	}
+
+	public function actionIndex() {
+		$models = $this->modelClass::find()->where(['type' => SharedConstant::FEED_TYPES])->all();
+		if (!$models) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
+		}
+
+		$provider = new \yii\data\ArrayDataProvider([
+    		'allModels' => $models,
+    		'pagination' => [
+    		    'pageSize' => 50,
+    		],
+    		'sort' => [
+    		    'attributes' => ['updated_at'],
+    		],
+		]);
+
+		return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Feeds found');
+	}
 }
