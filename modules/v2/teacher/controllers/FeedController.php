@@ -118,5 +118,20 @@ class FeedController extends ActiveController {
 		}
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Comment liked');
-	}	
+	}
+
+	public function actionCreate() {
+		$model = new Feed;
+		$model->attributes = Yii::$app->request->post();
+		$model->user_id = Yii::$app->user->id;
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		if (!$model->save(false)) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Annoucement not made');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Annoucement made successfully');
+	}
 }

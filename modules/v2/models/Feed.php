@@ -20,7 +20,7 @@ class Feed extends \yii\db\ActiveRecord
 	public function rules()
 	{
 		return [
-			[['user_id', 'token'], 'required'],
+			[['type', 'class_id', 'description'], 'required'],
 			[['user_id', 'reference_id', 'likes', 'class_id', 'global_class', 'status'], 'integer'],
 			[['description', 'type', 'view_by'], 'string'],
 			[['created_at', 'updated_at'], 'safe'],
@@ -57,18 +57,27 @@ class Feed extends \yii\db\ActiveRecord
 	public function fields() {
 		return [
 			'id', 
+			'user_id',
+			'reference_id',
+			'subject_id',
+			'description',
 			'type',
-			'title',
-			'date',
-			'time'
+			'likes',
+			'token',
+			'class_id',
+			'global_class',
+			'view_by'
 		];
 	}
 
-	public function getTime() {
-		return date('H:i:s', $this->updated_at);
-	}
-
-	public function getDate() {
-		return date('m/d/Y', $this->updated_at);
+	public function beforeSave($insert) {
+		if ($this->isNewRecord) {
+			$this->token = GenerateString::widget();
+			$this->created_at = date('y-m-d H-i-s');
+			$this->updated_at = date('y-m-d H-i-s');
+		} else {
+			$this->updated_at = date('y-m-d H-i-s');
+		}
+		return parent::beforeSave($insert);
 	}
 }
