@@ -92,6 +92,14 @@ class FeedController extends ActiveController {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Post is not found!');
 		}
 
+		if ($model->feedLike) {
+			if (!$model->feedDisliked()) {
+				return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Post is not disliked!');
+			}
+
+			return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Post is disliked');
+		}
+
 		$model = new FeedLike;
 		$model->parent_id = $post_id;
 		$model->user_id = Yii::$app->user->id;
@@ -107,6 +115,14 @@ class FeedController extends ActiveController {
 		$model = FeedComment::findOne(['id' => $comment_id]);
 		if (!$model) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment is not found!');
+		}
+
+		if ($model->feedCommentLike) {
+			if (!$model->feedCommentDisliked()) {
+				return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment is not disliked!');
+			}
+
+			return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Comment is disliked');
 		}
 
 		$model = new FeedLike;

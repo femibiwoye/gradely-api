@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use app\modules\v2\components\SharedConstant;
 
 class Feed extends \yii\db\ActiveRecord
 {
@@ -68,6 +69,20 @@ class Feed extends \yii\db\ActiveRecord
 			'global_class',
 			'view_by'
 		];
+	}
+
+	public function getFeedLike() {
+		
+		return $this->hasOne(FeedLike::className(), ['parent_id' => 'id'])->andWhere(['type' => SharedConstant::FEED_TYPE]);
+	}
+
+	public function FeedDisliked() {
+		$model = $this->getFeedLike()->andWhere(['user_id' => Yii::$app->user->id])->one();
+		if (!$model->delete()) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public function beforeSave($insert) {

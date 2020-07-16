@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use app\modules\v2\components\SharedConstant;
 
 class FeedComment extends \yii\db\ActiveRecord
 {
@@ -53,6 +54,19 @@ class FeedComment extends \yii\db\ActiveRecord
 	public function getUser()
 	{
 		return $this->hasOne(User::className(), ['id' => 'user_id']);
+	}
+
+	public function getFeedCommentLike() {
+		return $this->hasOne(FeedLike::className(), ['parent_id' => 'id'])->andWhere(['type' => SharedConstant::COMMENT_TYPE]);
+	}
+
+	public function FeedCommentDisliked() {
+		$model = $this->getFeedCommentLike()->andWhere(['user_id' => Yii::$app->user->id])->one();
+		if (!$model->delete()) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public function beforeSave($insert) {
