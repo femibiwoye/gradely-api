@@ -5,7 +5,8 @@ namespace app\modules\v2\teacher\controllers;
 use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{feed, ApiResponse, Homeworks, TutorSession, FeedComment};
+use app\modules\v2\models\{feed, ApiResponse, Homeworks, TutorSession, FeedComment, FeedLike};
+use app\modules\v2\components\SharedConstant;
 
 class FeedController extends ActiveController {
 	public $modelClass = 'app\modules\v2\models\Feed';
@@ -83,5 +84,22 @@ class FeedController extends ActiveController {
 		}
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Comment added');
+	}
+
+	public function actionFeedLike($post_id) {
+		$model = Feed::findOne(['id' => $post_id]);
+		if (!$model) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Post is not found!');
+		}
+
+		$model = new FeedLike;
+		$model->parent_id = $post_id;
+		$model->user_id = Yii::$app->user->id;
+		$model->type = SharedConstant::FEED_TYPE;
+		if (!$model->save()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Post not liked');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Post liked');
 	}
 }
