@@ -102,4 +102,21 @@ class FeedController extends ActiveController {
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Post liked');
 	}
+
+	public function actionCommentLike($comment_id) {
+		$model = FeedComment::findOne(['id' => $comment_id]);
+		if (!$model) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment is not found!');
+		}
+
+		$model = new FeedLike;
+		$model->parent_id = $comment_id;
+		$model->user_id = Yii::$app->user->id;
+		$model->type = SharedConstant::COMMENT_TYPE;
+		if (!$model->save()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment not liked');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Comment liked');
+	}	
 }
