@@ -119,18 +119,17 @@ class Homeworks extends \yii\db\ActiveRecord
 	}
 
 	public function getNewHomeworks() {
-		$homeworks =  parent::find()->where(['teacher_id' => Yii::$app->user->id, 'type' => 'homework'])->orderBy([
-			'open_date' => SORT_ASC
-		])->all();
+		$homeworks =  parent::find()->where(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', ])
+							->andWhere(['>', 'open_date', date("Y-m-d")])
+							->orderBy(['open_date' => SORT_ASC])
+							->all();
 		foreach ($homeworks as $homework) {
-			if (strtotime($homework->open_date) <= time() + 604800) {
-				$date_array = explode(' ', $homework->open_date);
+			if (strtotime($homework->open_date) <= time() + 604800 && strtotime($homework->open_date) >= time()) {
 				array_push($this->homework_annoucements, [
 					'id' => $homework->id,
 					'type' => $homework->type,
 					'title' => $homework->title,
-					'date' => $date_array[0],
-					'time' => $date_array[1] ? $date_array[1] : '',
+					'date_time' => $homework->open_date,
 				]);
 			}
 		}

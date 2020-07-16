@@ -56,18 +56,18 @@ class TutorSession extends \yii\db\ActiveRecord {
 	}
 
 	public function getNewSessions() {
-		$sessions =  parent::find()->where(['requester_id' => Yii::$app->user->id, 'status' => 'pending'])->orderBy([
-			'availability' => SORT_ASC
-		])->all();
+		$sessions =  parent::find()
+							->where(['requester_id' => Yii::$app->user->id, 'status' => 'pending'])
+							->andWhere(['>', 'availability', date("Y-m-d")])
+							->orderBy(['availability' => SORT_ASC])
+							->all();
 		foreach ($sessions as $session) {
-			if (strtotime($session->availability) <= time() + 604800) {
-				$date_array = explode(' ', $session->availability);
+			if (strtotime($session->availability) <= time() + 604800 && strtotime($session->availability) >= time()) {
 				array_push($this->new_sessions, [
 					'id' => $session->id,
 					'type' => 'live class',
 					'title' => $session->title,
-					'date' => $date_array[0],
-					'time' => $date_array[1] ? $date_array[1] : '',
+					'date_time' => $session->availability,
 				]);
 			}
 		}

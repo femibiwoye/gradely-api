@@ -10,9 +10,6 @@ use app\modules\v2\components\SharedConstant;
 
 class FeedController extends ActiveController {
 	public $modelClass = 'app\modules\v2\models\Feed';
-	private $new_announcements = []; 
-	private $new_homeworks = [];
-	private $new_live_session = [];
 
 	public function behaviors() {
 		$behaviors = parent::behaviors();
@@ -45,29 +42,13 @@ class FeedController extends ActiveController {
 	}
 
 	public function actionUpcoming() {
-		$Homeworks = (new Homeworks)->getnewHomeworks();
-		if ($Homeworks) {
-			$this->new_homeworks = [
-				'Homeworks' => $Homeworks,
-			];
-
-			array_push($this->new_announcements, $this->new_homeworks);
-		}
-
-		$Live_Classes = (new TutorSession)->getNewSessions();
-		if ($Live_Classes) {
-			$this->new_live_session = [
-				'Live_Classes' => $Live_Classes,
-			];
-
-			array_push($this->new_announcements, $this->new_live_session);
-		}
-
-		if (!$this->new_announcements) {
+		$new_announcements = array_merge((new Homeworks)->getnewHomeworks(), (new TutorSession)->getNewSessions());
+		if (!$new_announcements) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Annoucements not found!');
 		}
 
-		return (new ApiResponse)->success($this->new_announcements, ApiResponse::SUCCESSFUL, 'Annoucements found');
+		array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
+		return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, 'Annoucements found');
 	}
 
 	public function actionFeedComment($post_id) {
