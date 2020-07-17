@@ -133,7 +133,7 @@ class FeedController extends ActiveController {
 	}
 
 	public function actionIndex() {
-		$models = $this->modelClass::find()->where(['type' => SharedConstant::FEED_TYPES])->all();
+		$models = $this->modelClass::find()->all();
 		if (!$models) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
 		}

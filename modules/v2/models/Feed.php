@@ -83,6 +83,14 @@ class Feed extends \yii\db\ActiveRecord
 		if ($this->type == SharedConstant::FEED_TYPES[3]) {
 			return $this->hasOne(TutorSession::className(), ['id' => 'reference_id']);
 		}
+
+		if ($this->type == SharedConstant::FEED_TYPES[1]) {
+			return $this->type;
+		}
+
+		if ($this->type == SharedConstant::FEED_TYPES[4] || $this->type == SharedConstant::FEED_TYPES[5]) {
+			return $this->hasOne(PracticeMaterial::className(), ['id' => 'reference_id']);
+		}
 	}
 
 	public function getSubject() {

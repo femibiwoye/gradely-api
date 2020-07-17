@@ -97,7 +97,7 @@ class Homeworks extends \yii\db\ActiveRecord
 	}
 
 	public function getQuizSummary() {
-		return QuizSummary::find()->where(['student_id' => $_GET['id']])->andWhere(['teacher_id' => Yii::$app->user->id])->andWhere(['subject_id' => $this->subject->id])->andWhere(['homework_id' => $this->id])->one();
+		return QuizSummary::find()->where(['student_id' => $this->student_id])->andWhere(['teacher_id' => Yii::$app->user->id])->andWhere(['subject_id' => $this->subject->id])->andWhere(['homework_id' => $this->id])->one();
 	}
 
 	public function getScore() {

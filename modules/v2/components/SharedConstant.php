@@ -18,5 +18,5 @@ class SharedConstant {
 	const DEFAULT_COUNTRY = 'Nigeria';
 	const FEED_TYPE = 'feed';
 	const COMMENT_TYPE = 'comment';
-	const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson'];
+	const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image'];
 }
