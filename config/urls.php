@@ -40,6 +40,9 @@ return [
     'POST v2/teacher/announcement' => 'v2/teacher/feed/create',
     'GET v2/teacher/feed' => 'v2/teacher/feed/index',
 
+    //Homework Class
+    'GET v2/teacher/homework/<class_id:\d+>' => 'v2/teacher/homework/class-homeworks',
+
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
 
