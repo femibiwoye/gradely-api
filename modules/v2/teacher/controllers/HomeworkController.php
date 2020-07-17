@@ -51,4 +51,13 @@ class HomeworkController extends ActiveController
 
         return (new ApiResponse)->success($model->homeworks ? $model->homeworks : $model, ApiResponse::SUCCESSFUL, 'Class record found');
     }
+
+    public function actionHomework($homework_id) {
+        $model = $this->modelClass::findOne(['id' => $homework_id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record found');
+    }
 }
