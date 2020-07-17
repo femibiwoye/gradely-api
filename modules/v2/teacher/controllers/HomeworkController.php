@@ -4,6 +4,7 @@ namespace app\modules\v2\teacher\controllers;
 
 use Yii;
 use app\modules\v2\models\{Homeworks, Classes, ApiResponse};
+use app\modules\v2\components\SharedConstant;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
@@ -59,5 +60,19 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record found');
+    }
+
+    public function actionDeleteHomework($homework_id) {
+        $model = $this->modelClass::findOne(['id' => $homework_id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
+        }
+
+        $model->status = SharedConstant::STATUS_DELETED;
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not deleted');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Homework record deleted');
     }
 }

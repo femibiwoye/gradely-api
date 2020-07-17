@@ -43,6 +43,7 @@ return [
     //Homework Class
     'GET v2/teacher/homework/<class_id:\d+>' => 'v2/teacher/homework/class-homeworks',
     'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
+    'DELETE v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/delete-homework',
 
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
