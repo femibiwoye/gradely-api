@@ -79,7 +79,7 @@ class Homeworks extends \yii\db\ActiveRecord
 		];
 	}
 
-	public function fields() {
+	/*public function fields() {
 		return [
 			'id',
 			'title',
@@ -90,14 +90,17 @@ class Homeworks extends \yii\db\ActiveRecord
 			'score',
 			'status' => 'statusMessage',
 		];
-	}
+	}*/
 
 	public function getSubject() {
 		return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
 	}
 
 	public function getQuizSummary() {
-		return QuizSummary::find()->where(['student_id' => $_GET['id']])->andWhere(['teacher_id' => Yii::$app->user->id])->andWhere(['subject_id' => $this->subject->id])->andWhere(['homework_id' => $this->id])->one();
+		return QuizSummary::find()->where(['student_id' => $_GET['id']])
+            ->andWhere(['teacher_id' => Yii::$app->user->id])
+            ->andWhere(['subject_id' => $this->subject->id])
+            ->andWhere(['homework_id' => $this->id])->one();
 	}
 
 	public function getScore() {
@@ -137,4 +140,10 @@ class Homeworks extends \yii\db\ActiveRecord
 
 		return $this->homework_annoucements;
 	}
+
+	public function getCompletion()
+    {
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+    }
+
 }

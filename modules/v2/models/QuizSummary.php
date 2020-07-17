@@ -43,13 +43,34 @@ class QuizSummary extends \yii\db\ActiveRecord {
 		];
 	}
 
-	public function fields() {
+	/*public function fields() {
 		return [
 			'score',
 		];
-	}
+	}*/
 
 	public function getScore() {
-		return ($this->correct / $this->total_questions) * 100 . '%';
+		return ($this->correct / $this->total_questions) * 100;
 	}
+
+	public function getStudent()
+    {
+        return $this->hasOne(UserModel::className(),['id'=>'student_id'])->select(['id','firstname','lastname','code','email','phone','image','type']);
+    }
+
+    public function getTeacherHomework()
+    {
+        return $this->hasOne(Homeworks::className(),['id'=>'homework_id'])->andWhere(['homeworks.teacher_id'=>Yii::$app->user->id]);
+    }
+
+    public function getSubject()
+    {
+        return $this->hasOne(Subjects::className(),['id'=>'subject_id']);
+    }
+
+    public function getHomeworkQuestions()
+    {
+        return $this->hasMany(HomeworkQuestions::className(), ['homework_id' => 'homework_id']);
+    }
+
 }
