@@ -14,7 +14,7 @@ return [
 
     //Teacher Profile
     'PUT v2/teacher/profile/update-email' => 'v2/teacher/profile/update-email',
-    'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password', 
+    'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password',
     'PUT v2/teacher/profile' => 'v2/teacher/profile/update',
     'GET v2/teacher/profile/preference' => 'v2/teacher/profile/preference',
     'PUT v2/teacher/profile/preference' => 'v2/teacher/profile/update-preference',
@@ -22,6 +22,7 @@ return [
 
     //Teacher classes
     'DELETE v2/teacher/student/remove/<student_id:\d+>/<class_id:\d+>' => 'v2/teacher/class/delete-student',
+    'GET v2/teacher/student/<id:\d+>' => 'v2/teacher/class/get-student',
     'GET v2/teacher/students/<class_id:\d+>' => 'v2/teacher/class/students-in-class',
     'GET v2/teacher/search-school' => 'v2/teacher/class/search-school',
     'GET v2/teacher/class' => 'v2/teacher/class/teacher-class',
@@ -31,21 +32,27 @@ return [
     'POST v2/teacher/class/add-teacher-class' => 'v2/teacher/class/add-teacher-school',
     'POST v2/teacher/student/add-multiple' => 'v2/teacher/class/add-student',
 
+    //Feed Class
+    'GET v2/teacher/upcoming' => 'v2/teacher/feed/upcoming',
+    'POST v2/teacher/comment/<post_id:\d+>' => 'v2/teacher/feed/feed-comment',
+    'POST v2/teacher/like/<post_id:\d+>' => 'v2/teacher/feed/feed-like',
+    'POST v2/teacher/like-comment/<comment_id:\d+>' => 'v2/teacher/feed/comment-like',
+    'POST v2/teacher/announcement' => 'v2/teacher/feed/create',
+    'GET v2/teacher/feed' => 'v2/teacher/feed/index',
 
+    //Homework Class
+    'GET v2/teacher/homework/<class_id:\d+>' => 'v2/teacher/homework/class-homeworks',
+    'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
+    'DELETE v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/delete-homework',
 
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
 
-    ['class' => 'yii\rest\UrlRule', 'controller' => ['modules\v2\auth'], 'extraPatterns' => [
-        'POST login' => 'login',
-        'OPTIONS login' => 'login',
-        'POST reset-password' => 'reset-password',
-        'OPTIONS reset-password' => 'reset-password',
-        'POST forgot-password' => 'forgot-password',
-        'OPTIONS forgot-password' => 'forgot-password',
-        'GET logout' => 'logout',
-        'OPTIONS logout' => 'options',
+//School classes
+    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
+        'GET <id:\d+>' => 'view',
     ]],
+
     ['class' => 'yii\rest\UrlRule', 'controller' => ['module\v2\signup'], 'extraPatterns' => [
         'POST create' => 'create',
         'OPTIONS signup' => 'options',

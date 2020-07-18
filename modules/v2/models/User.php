@@ -9,21 +9,24 @@ use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\filters\RateLimitInterface;
 
-class User extends ActiveRecord implements IdentityInterface, RateLimitInterface {
+class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
+{
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
 
     public $password;
 
-    public static function tableName() {
+    public static function tableName()
+    {
         return '{{%user}}';
     }
 
     /**
      * @inheritdoc
      */
-    public function rules() {
+    public function rules()
+    {
         return [
             [['firstname', 'lastname', 'type'], 'required'],
             [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
@@ -38,7 +41,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ];
     }
 
-    public function attributeLabels() {
+    public function attributeLabels()
+    {
         return [
             'firstname' => 'First name',
             'lastname' => 'Last name',
@@ -49,10 +53,14 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ];
     }
 
-    public function fields() {
-        return [
+    public function fields()
+    {
+        $user = [
             'id',
             'code',
+            'full_name' => function () {
+                return $this->firstname . ' ' . $this->lastname;
+            },
             'firstname',
             'lastname',
             'phone',
@@ -62,9 +70,17 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'is_boarded',
             'token'
         ];
+
+        if (Yii::$app->controller->id != 'auth') {
+            if (($key = array_search('is_boarded', $user)) !== false) unset($user[$key]);
+            if (($key = array_search('token', $user)) !== false) unset($user[$key]);
+        }
+
+        return $user;
     }
 
-    public function extraFields() {
+    public function extraFields()
+    {
         return [
             'status',
             'created_at',
@@ -72,22 +88,41 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ];
     }
 
-    public function getImage() {
+    public function getImage()
+    {
         return Yii::getAlias('@webroot') . '/images/users/' . $this->image;
     }
 
-    public function getUserPreference() {
+    public function getUserPreference()
+    {
         return $this->hasOne(UserPreference::className(), ['user_id' => 'id']);
     }
 
-    public static function findIdentity($id) {
+    public function getUserProfile()
+    {
+        return $this->hasOne(UserProfile::className(), ['user_id' => 'id']);
+    }
+
+    public function getRemarks()
+    {
+        return $this->hasOne(Remarks::className(), ['receiver_id' => 'id']);
+    }
+
+    public function getHomeworks()
+    {
+        return $this->hasMany(Homeworks::className(), ['student_id' => 'id']);
+    }
+
+    public static function findIdentity($id)
+    {
         return static::findOne(['AND', ['id' => $id], ['!=', 'status', self::STATUS_DELETED]]);
     }
 
     /**
      * @inheritdoc
      */
-    public static function findIdentityByAccessToken($token, $type = null) {
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
         return static::findOne(['token' => $token]);
 
         if ($user = static::findOne(['AND', ['token' => $token], ['!=', 'status', self::STATUS_DELETED]])) {
@@ -109,21 +144,24 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     /**
      * @inheritdoc
      */
-    public function getId() {
+    public function getId()
+    {
         return $this->getPrimaryKey();
     }
 
     /**
      * @inheritdoc
      */
-    public function getAuthKey() {
+    public function getAuthKey()
+    {
         return $this->auth_key;
     }
 
     /**
      * @inheritdoc
      */
-    public function validateAuthKey($authKey) {
+    public function validateAuthKey($authKey)
+    {
         return $this->getAuthKey() === $authKey;
     }
 
@@ -133,11 +171,13 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      * @param string $password password to validate
      * @return bool if password provided is valid for current user
      */
-    public function validatePassword($password) {
+    public function validatePassword($password)
+    {
         return Yii::$app->security->validatePassword($password, $this->password_hash);
     }
 
-    public function updateAccessToken() {
+    public function updateAccessToken()
+    {
         $token = Yii::$app->security->generateRandomString(200);
         $this->token = $token;
         if (!$this->save(false)) {
@@ -147,7 +187,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return $this->token;
     }
 
-    public function resetAccessToken() {
+    public function resetAccessToken()
+    {
         $model = static::findOne(['id' => Yii::$app->user->id]);
         if (!$model) {
             return false;
@@ -161,7 +202,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return true;
     }
 
-    public static function isPasswordResetTokenValid($token) {
+    public static function isPasswordResetTokenValid($token)
+    {
         if (empty($token)) {
             return false;
         }
@@ -171,16 +213,18 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             return false;
         }
 
-        return $user->token_expires >= date('Y-m-d h:i:s',time());
+        return $user->token_expires >= date('Y-m-d h:i:s', time());
     }
 
-    public function generatePasswordResetToken() {
+    public function generatePasswordResetToken()
+    {
         $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
         date_default_timezone_set("Africa/Lagos");
-        $this->token_expires  = date('Y-m-d h:i:s',strtotime("+30 minute", time()));
+        $this->token_expires = date('Y-m-d h:i:s', strtotime("+30 minute", time()));
     }
 
-    public static function findByPasswordResetToken($token) {
+    public static function findByPasswordResetToken($token)
+    {
         if (!static::isPasswordResetTokenValid($token)) {
             return null;
         }
@@ -190,13 +234,15 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ]);
     }
 
-    public function getTeacherClass() {
-        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
+    public function getTeacherClass()
+    {
+        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->groupBy(['class_id']);
     }
 
-    public function getClasses() {
+    public function getClasses()
+    {
         return $this->hasMany(Classes::className(), ['id' => 'class_id'])
-                    ->via('teacherClass');
+            ->via('teacherClass');
     }
 
     /**
@@ -204,47 +250,56 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      *
      * @param string $password
      */
-    public function setPassword($password) {
+    public function setPassword($password)
+    {
         $this->password_hash = Yii::$app->security->generatePasswordHash($password);
     }
 
-    public function getPassword() {
+    public function getPassword()
+    {
         return $this->password;
     }
 
-    public function removePasswordResetToken() {
+    public function removePasswordResetToken()
+    {
         $this->password_reset_token = null;
     }
 
     /**
      * Generates "remember me" authentication key
      */
-    public function generateAuthKey() {
+    public function generateAuthKey()
+    {
         $this->auth_key = Yii::$app->security->generateRandomString();
 
         return $this->auth_key;
     }
 
-    public static function find() {
-        return parent::find()->andWhere(['<>', 'status', self::STATUS_DELETED]);
+    public static function find()
+    {
+        return parent::find()->andWhere(['<>', 'user.status', self::STATUS_DELETED]);
     }
 
-    public function getRateLimit($request, $action) {
+    public function getRateLimit($request, $action)
+    {
         return [$this->rateLimit, 1]; // $rateLimit requests per second
     }
 
-    public function loadAllowance($request, $action) {
+    public function loadAllowance($request, $action)
+    {
         return [$this->allowance, $this->allowance_updated_at];
     }
 
-    public function saveAllowance($request, $action, $allowance, $timestamp) {
+    public function saveAllowance($request, $action, $allowance, $timestamp)
+    {
         $this->allowance = $allowance;
         $this->allowance_updated_at = $timestamp;
         $this->save();
     }
 
     //This action is called before saving
-    public function beforeSave($insert) {
+    public function beforeSave($insert)
+    {
         if ($this->isNewRecord) {
             $this->created_at = time();
             $this->updated_at = time();

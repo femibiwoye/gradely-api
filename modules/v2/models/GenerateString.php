@@ -14,11 +14,11 @@ class GenerateString extends Widget
     {
         parent::init();
         if ($this->type == 'char')
-            $type = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            $type = "abcdefghijklmnopqrstuvwxyz";
         elseif ($this->type == 'number')
             $type = "0123456789";
         else
-            $type = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            $type = "0123456789abcdefghijklmnopqrstuvwxyz";
 
         $this->length = substr(str_shuffle(str_repeat($type, $this->length)), 0, $this->length);
 
