@@ -92,4 +92,8 @@ class Classes extends \yii\db\ActiveRecord
     {
         return $this->hasMany(StudentSchool::className(), ['class_id' => 'id']);
     }
+
+    public function getHomeworks() {
+    	return $this->hasMany(Homeworks::className(), ['class_id' => 'id']);
+    }
 }

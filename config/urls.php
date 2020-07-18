@@ -37,6 +37,13 @@ return [
     'POST v2/teacher/comment/<post_id:\d+>' => 'v2/teacher/feed/feed-comment',
     'POST v2/teacher/like/<post_id:\d+>' => 'v2/teacher/feed/feed-like',
     'POST v2/teacher/like-comment/<comment_id:\d+>' => 'v2/teacher/feed/comment-like',
+    'POST v2/teacher/announcement' => 'v2/teacher/feed/create',
+    'GET v2/teacher/feed' => 'v2/teacher/feed/index',
+
+    //Homework Class
+    'GET v2/teacher/homework/<class_id:\d+>' => 'v2/teacher/homework/class-homeworks',
+    'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
+    'DELETE v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/delete-homework',
 
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
