@@ -70,7 +70,7 @@ class AuthController extends Controller
         if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
             return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'This is an unknown user type');
         }
-
+        
         $form = new SignupForm(['scenario' => "$type-signup"]);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {

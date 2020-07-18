@@ -22,17 +22,13 @@ class SignupForm extends Model
     public function rules()
     {
         return [
-            [['first_name', 'last_name','password'], 'required'],
+            [['first_name', 'last_name', 'password'], 'required'],
             [['first_name', 'last_name', 'password'], 'filter', 'filter' => 'trim'],
 
             ['email', 'trim'],
             ['email', 'email', 'message' => 'Provide a valid email address'],
             ['email', 'string', 'min' => 8, 'max' => 50],
-            ['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken.', 'when' => function() {
-                if (empty($this->email)) {
-                    return true;
-                }
-            }],
+            ['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken.'],
             ['email', 'match', 'pattern' => "/^[@a-zA-Z0-9+._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
 
             ['phone', 'trim'],
@@ -45,9 +41,9 @@ class SignupForm extends Model
             [['email', 'phone'], 'required', 'on' => 'teacher-signup'],
             [['email', 'phone'], 'required', 'on' => 'parent-signup'],
 
-            [['school_name', 'email', 'phone','country'], 'required', 'on' => 'school-signup'],
+            [['school_name', 'email', 'phone', 'country'], 'required', 'on' => 'school-signup'],
 
-            [['class','country'], 'required', 'on' => 'student-signup'],
+            [['class', 'country'], 'required', 'on' => 'student-signup'],
             [['email'], 'safe', 'on' => 'student-signup'],
         ];
     }
@@ -64,9 +60,11 @@ class SignupForm extends Model
         $user = new User;
         $user->firstname = $this->first_name;
         $user->lastname = $this->last_name;
-        $user->phone = $this->phone;
+        if (!empty($this->phone))
+            $user->phone = $this->phone;
         $user->type = $type;
-        $user->email = $this->email;
+        if (!empty($this->email))
+            $user->email = $this->email;
         $user->class = $this->class;
         $user->setPassword($this->password);
         $user->generatePasswordResetToken();

@@ -28,13 +28,13 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function rules()
     {
         return [
-            [['firstname', 'lastname', 'type'], 'required'],
-            [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
-            [['class', 'is_boarded'], 'integer'],
-
-            ['email', 'filter', 'filter' => 'trim'],
-            ['email', 'email', 'message' => 'Provide a valid email address'],
-            ['email', 'unique', 'targetAttribute' => ['email'], 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address is already exit'],
+//            [['firstname', 'lastname', 'type'], 'required'],
+//            [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
+//            [['class', 'is_boarded'], 'integer'],
+//
+//            ['email', 'filter', 'filter' => 'trim'],
+//            ['email', 'email', 'message' => 'Provide a valid email address'],
+//            ['email', 'unique', 'targetAttribute' => ['email'], 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address is already exit'],
 
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
