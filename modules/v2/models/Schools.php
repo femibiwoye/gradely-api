@@ -32,6 +32,7 @@ use yii\behaviors\SluggableBehavior;
  * @property string|null $phone2
  * @property string|null $school_email
  * @property string|null $school_type
+ * @property string|null $naming_format
  * @property string $created_at
  *
  * @property SchoolOptions[] $schoolOptions
@@ -39,6 +40,7 @@ use yii\behaviors\SluggableBehavior;
 class Schools extends \yii\db\ActiveRecord
 {
     const SCENERIO_EDIT_SCHOOL_PROFILE = 'edit_school_profile';
+
     /**
      * {@inheritdoc}
      */
@@ -73,7 +75,7 @@ class Schools extends \yii\db\ActiveRecord
         return [
             //[['user_id', 'slug', 'abbr'], 'required'],
             [['user_id'], 'integer'],
-            [['about'], 'string'],
+            [['about', 'naming_format'], 'string'],
             [['created_at'], 'safe'],
             [['slug', 'name', 'logo', 'banner', 'tagline', 'address'], 'string', 'max' => 255],
             [['abbr'], 'string', 'max' => 10],
@@ -81,8 +83,8 @@ class Schools extends \yii\db\ActiveRecord
             [['postal_code', 'establish_date'], 'string', 'max' => 20],
             [['contact_role'], 'string', 'max' => 50],
             [['phone', 'phone2'], 'string', 'max' => 15],
-            [['name','about','address','city','state','country','postal_code','website','phone','school_email'], 'required',
-                 'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
+            [['name', 'about', 'address', 'city', 'state', 'country', 'postal_code', 'website', 'phone', 'school_email'], 'required',
+                'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
             ],
             [['name', 'abbr'], 'required', 'on' => 'school_signup'],
         ];
@@ -130,5 +132,10 @@ class Schools extends \yii\db\ActiveRecord
     public function getSchoolOptions()
     {
         return $this->hasMany(SchoolOptions::className(), ['school_id' => 'id']);
+    }
+
+    public function getClasses()
+    {
+        return $this->hasMany(Classes::className(), ['school_id' => 'id']);
     }
 }

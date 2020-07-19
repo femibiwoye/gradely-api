@@ -48,9 +48,14 @@ return [
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
 
-//School classes
+    //School Types
+    'GET v2/school/general/school-type' => 'v2/school/general/school-type',
+    'GET v2/school/general/school-naming-format' => 'v2/school/general/school-naming-format',
+
+    //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
         'GET <id:\d+>' => 'view',
+        'POST generate' => 'generate-classes'
     ]],
 
     ['class' => 'yii\rest\UrlRule', 'controller' => ['module\v2\signup'], 'extraPatterns' => [

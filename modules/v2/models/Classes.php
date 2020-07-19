@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use yii\behaviors\SluggableBehavior;
 
 /**
  * This is the model class for table "classes".
@@ -27,6 +28,28 @@ class Classes extends \yii\db\ActiveRecord
 	{
 		return 'classes';
 	}
+
+    /**
+     * Get and ensure unique name for class slug and class abbreviation
+     * @return array
+     */
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'class_name',
+                'ensureUnique' => true
+            ],
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'abbreviation',
+                //'ensureUnique' => true,
+                'slugAttribute' => 'abbreviation'
+            ]
+
+        ];
+    }
 
 	/**
 	 * {@inheritdoc}
