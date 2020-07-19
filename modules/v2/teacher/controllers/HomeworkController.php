@@ -75,4 +75,27 @@ class HomeworkController extends ActiveController
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Homework record deleted');
     }
+
+    public function actionExtendDate($homework_id) {
+        $close_date = Yii::$app->request->post('close_date');
+        $model = Homeworks::findOne(['id' => $homework_id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
+        }
+
+        if ($model->teacher_id != Yii::$app->user->id) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework belongs to other teacher');
+        }
+
+        if (strtotime($close_date) <= time()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Close date should not be in the past.');
+        }
+
+        $model->close_date = $close_date;
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework date not update');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework date updated');
+    }
 }

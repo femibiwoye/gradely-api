@@ -44,6 +44,7 @@ return [
     'GET v2/teacher/homework/<class_id:\d+>' => 'v2/teacher/homework/class-homeworks',
     'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
     'DELETE v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/delete-homework',
+    'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
 
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
