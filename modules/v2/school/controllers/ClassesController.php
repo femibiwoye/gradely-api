@@ -10,7 +10,7 @@ use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
-use app\modules\v2\teacher\models\ClassForm;
+use app\modules\v2\school\models\ClassForm;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\data\ArrayDataProvider;
@@ -76,7 +76,6 @@ class ClassesController extends ActiveController
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-
         $getAllClasses = Classes::find()
             ->select([
                 'classes.id',
@@ -114,10 +113,11 @@ class ClassesController extends ActiveController
         return (new ApiResponse)->success(null, ApiResponse::NOT_FOUND, 'Class not found!');
     }
 
+    /** Create a single class
+     * @return ApiResponse
+     */
     public function actionCreate()
     {
-
-        return Utility::getSchoolAccess();
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
         $form = new ClassForm(['scenario' => ClassForm::SCENERIO_CREATE_CLASS]);
@@ -127,61 +127,31 @@ class ClassesController extends ActiveController
         }
 
         if (!$model = $form->newClass($school)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not updated!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class is not updated');
         }
 
         return (new ApiResponse)->success($model);
+    }
 
+    public function actionGenerateClasses()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
+        if (count($school->classes) > 5)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes are already generated');
 
-
-
-
-        $model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id])->one();
-        if ($model->type != SharedConstant::TYPE_TEACHER || !$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher not found!');
-        }
-
-        $form = new UpdateTeacherForm;
+        $form = new ClassForm(['scenario' => ClassForm::SCENERIO_GENERATE_CLASSES]);
         $form->attributes = Yii::$app->request->post();
-        $form->user = $model;
+
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        if (!$model = $form->updateTeacher()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not updated!');
+        if (!$form->generateClasses($school)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes was not generated');
         }
-
-        return (new ApiResponse)->success($model);
-
-
-
-        $classes = new Classes(['scenario' => Classes::SCENERIO_CREATE_CLASS]);
-        $classes->attributes = \Yii::$app->request->post();
-
-        return $classes->attributes;
-
-        if ($classes->validate()) {
-            $classes->school_id = Utility::getSchoolId();
-            $classes->global_class_id = $this->request['global_class_id'];
-            $classes->class_name = $this->request['class_name'];
-            $classes->class_code = $this->request['class_code'];
-            $classes->slug = \yii\helpers\Inflector::slug($this->request['class_name']);
-            $classes->abbreviation = Utility::abreviate($classes->slug);
-
-            if ($classes->save()) {
-                return[
-                    'code' => 200,
-                    'message' => "Successfully created"
-                ];
-            }
-
-            $classes->validate();
-            Yii::info('[Class generated succesfully] Error:'.$classes->validate().'');
-            return $classes;
-        }
-        return $classes->errors;
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        return (new ApiResponse)->success($school->classes,null,count($school->classes).' classes generated!');
     }
 
     public function actionUpdateClass($id)

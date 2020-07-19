@@ -19,4 +19,5 @@ class SharedConstant {
 	const FEED_TYPE = 'feed';
 	const COMMENT_TYPE = 'comment';
 	const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image'];
+	const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 }

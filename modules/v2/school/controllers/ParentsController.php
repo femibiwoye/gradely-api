@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
@@ -22,7 +23,7 @@ use yii\rest\ActiveController;
  */
 class ParentsController extends ActiveController
 {
-    public $modelClass = 'app\modules\v2\models\SchoolParents';
+    public $modelClass = 'app\modules\v2\models\Parents';
 
     /**
      * @return array
@@ -61,6 +62,7 @@ class ParentsController extends ActiveController
     public function actions()
     {
         $actions = parent::actions();
+        unset($actions['index']);
         unset($actions['create']);
         unset($actions['update']);
         unset($actions['delete']);
@@ -71,13 +73,14 @@ class ParentsController extends ActiveController
 
     public function actionIndex()
     {
-        $school = Schools::findOne(['user_id' => Yii::$app->user->id]);
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $classes = StudentSchool::find()
             ->where(['school_id' => $school->id]);
 
         if (!$classes->exists()) {
             return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
+
         //Get Students ID
         $studentID = ArrayHelper::getColumn($classes->all(), 'student_id');
         $parentsID = Parents::findAll(['student_id' => $studentID]);
@@ -96,15 +99,18 @@ class ParentsController extends ActiveController
             'allModels' =>$parentLists,
             'sort' => [
                 'attributes' => ['id', 'firstname', 'lastname','email'],
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                    'firstname' => SORT_ASC,
+                ]
             ],
             'pagination' => [
-                'pageSize' => 30,
+                //'defaultPageSize' => 1, //With this, you can specify how many number of content you want per page
+                'pageSize' => 30, // This is a fixed number of content to be rendered per page.
             ],
         ]);
 
-
-
-        return (new ApiResponse)->success($dataProvider->allModels, ApiResponse::SUCCESSFUL, count($parentsID) . ' parents found');
+        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, count($parentsID) . ' parents found');
     }
 
     /**
