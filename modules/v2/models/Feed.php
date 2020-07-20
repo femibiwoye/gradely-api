@@ -21,7 +21,8 @@ class Feed extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['type', 'class_id', 'description'], 'required'],
+            [['type', 'class_id', 'description', 'view_by'], 'required'],
+            ['view_by', 'teacherViewBy'],
             [['user_id', 'reference_id', 'likes', 'class_id', 'global_class_id', 'status'], 'integer'],
             [['description', 'type', 'view_by'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
@@ -61,8 +62,8 @@ class Feed extends \yii\db\ActiveRecord
             'id',
             'description',
             'type',
-            'likesCount'=>'feedLikeCount',
-            'commentCount'=>'feedCommentCount',
+            'likesCount' => 'feedLikeCount',
+            'commentCount' => 'feedCommentCount',
             'token',
             'view_by',
             'user',
@@ -71,6 +72,15 @@ class Feed extends \yii\db\ActiveRecord
             'class',
             'global_class_id' => 'globalClass'
         ];
+    }
+
+    public function teacherViewBy($value)
+    {
+        if (!in_array($this->view_by, SharedConstant::TEACHER_VIEW_BY)) {
+            $this->addError('view_by', "'$this->view_by' is not a valid option");
+            return false;
+        }
+        return true;
     }
 
     public function getUser()
@@ -140,13 +150,13 @@ class Feed extends \yii\db\ActiveRecord
     public function beforeSave($insert)
     {
         $this->global_class_id = Classes::findOne(['id' => $this->class_id])->global_class_id;
-		if ($this->isNewRecord) {
+        if ($this->isNewRecord) {
             $this->token = GenerateString::widget();
             $this->created_at = date('y-m-d H-i-s');
             //$this->updated_at = date('y-m-d H-i-s');
         } else {
             $this->updated_at = date('y-m-d H-i-s');
         }
-		return parent::beforeSave($insert);
-	}
+        return parent::beforeSave($insert);
+    }
 }
