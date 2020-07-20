@@ -21,4 +21,6 @@ class SharedConstant {
 	const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image'];
 	const TEACHER_VIEW_BY = ['all', 'class', 'student'];
 	const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+	const SCHOOL_FORMAT = ['year','ss'];
+	const SCHOOL_TYPE = ['all','primary','secondary'];
 }

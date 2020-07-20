@@ -7,6 +7,7 @@ return [
     //School Types
     'GET v2/school/general/school-type' => 'v2/school/general/school-type',
     'GET v2/school/general/school-naming-format' => 'v2/school/general/school-naming-format',
+    'PUT v2/school/general/update-format-type' => 'v2/school/general/update-format-type',
 
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
@@ -16,7 +17,7 @@ return [
 
     //School Profile
     'PUT v2/school/profile/update-email' => 'v2/school/profile/update-email',
-    'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password',
+    'PUT v2/school/profile/update-password' => 'v2/school/profile/update-password',
     'PUT v2/teacher/profile' => 'v2/teacher/profile/update',
     'GET v2/teacher/profile/preference' => 'v2/teacher/profile/preference',
     'PUT v2/teacher/profile/preference' => 'v2/teacher/profile/update-preference',

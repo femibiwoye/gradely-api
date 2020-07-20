@@ -2,9 +2,13 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\SchoolNamingFormat;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolType;
+use app\modules\v2\school\models\ClassForm;
+use app\modules\v2\school\models\SchoolProfile;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\auth\HttpBearerAuth;
@@ -65,14 +69,41 @@ class GeneralController extends ActiveController
     }
 
 
+    /**
+     * This returns school types.
+     * e.g primary, secondary, primary and secondary
+     * @return ApiResponse
+     */
     public function actionSchoolType()
     {
-        return (new ApiResponse)->success(SchoolType::find()->where(['status'=>1])->all(), ApiResponse::SUCCESSFUL, 'Found');
+        return (new ApiResponse)->success(SchoolType::find()->where(['status' => 1])->all(), ApiResponse::SUCCESSFUL, 'Found');
     }
 
+    /**
+     * This returns the format to be used in naming the classes.
+     * E.g Primary, Junior Secondary school, Senior Secondary school OR Year1-12
+     * @return ApiResponse
+     */
     public function actionSchoolNamingFormat()
     {
-        return (new ApiResponse)->success(SchoolNamingFormat::find()->where(['status'=>1])->all(), ApiResponse::SUCCESSFUL, 'Found');
+        return (new ApiResponse)->success(SchoolNamingFormat::find()->where(['status' => 1])->all(), ApiResponse::SUCCESSFUL, 'Found');
+    }
+
+    public function actionUpdateFormatType()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $form = new SchoolProfile(['scenario' => 'format-type']);
+        $form->attributes = Yii::$app->request->post();
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!$school = $form->updateFormats($school)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class is not updated');
+        }
+
+        return (new ApiResponse)->success($school);
     }
 
 
