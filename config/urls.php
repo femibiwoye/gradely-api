@@ -46,21 +46,5 @@ return [
     'DELETE v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/delete-homework',
     'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
 
-    //School Parents
-    'GET v2/school/parents' => 'v2/school/parents',
 
-    //School Types
-    'GET v2/school/general/school-type' => 'v2/school/general/school-type',
-    'GET v2/school/general/school-naming-format' => 'v2/school/general/school-naming-format',
-
-    //School Classes
-    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
-        'GET <id:\d+>' => 'view',
-        'POST generate' => 'generate-classes'
-    ]],
-
-    ['class' => 'yii\rest\UrlRule', 'controller' => ['module\v2\signup'], 'extraPatterns' => [
-        'POST create' => 'create',
-        'OPTIONS signup' => 'options',
-    ]],
 ];

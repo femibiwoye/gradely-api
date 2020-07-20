@@ -7,7 +7,7 @@ use Yii;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{feed, ApiResponse, Homeworks, TutorSession, FeedComment, FeedLike};
+use app\modules\v2\models\{Feed, ApiResponse, Homeworks, TutorSession, FeedComment, FeedLike};
 use app\modules\v2\components\SharedConstant;
 
 class FeedController extends ActiveController
