@@ -2,7 +2,7 @@
 /yii.bat
 /yii_test
 /yii_test.bat
-config/db.php
+config/var.php
 composer.lock
 runtime
 .github
