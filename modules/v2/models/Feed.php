@@ -70,7 +70,8 @@ class Feed extends \yii\db\ActiveRecord
             'reference',
             'subject',
             'class',
-            'global_class_id' => 'globalClass'
+            'global_class_id' => 'globalClass',
+            'comment' => 'miniComment'
         ];
     }
 
@@ -134,7 +135,12 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getFeedCommentCount()
     {
-        return $this->hasOne(FeedComment::className(), ['feed_id' => 'id'])->count();
+        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->count();
+    }
+
+    public function getMiniComment()
+    {
+        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->limit(2)->orderBy('id DESC');
     }
 
     public function FeedDisliked()

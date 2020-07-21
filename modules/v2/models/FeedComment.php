@@ -43,6 +43,7 @@ class FeedComment extends \yii\db\ActiveRecord
 			'feed_id',
 			'user_id',
 			'comment',
+            'user'
 		];
 	}
 

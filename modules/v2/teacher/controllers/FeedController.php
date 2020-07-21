@@ -145,10 +145,7 @@ class FeedController extends ActiveController
 
     public function actionIndex()
     {
-        $models = $this->modelClass::find()->where(['OR',
-            ['user_id' => Yii::$app->user->id],
-            ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
-        ])->all();
+        $models = $this->modelClass::find()->all();
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
