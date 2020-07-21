@@ -5,6 +5,7 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
+use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
@@ -86,7 +87,6 @@ class ClassesController extends ActiveController
                 'global_class_id',
                 'school_id',
                 'schools.name school_name'
-
             ])
             ->leftJoin('schools', 'schools.id = classes.school_id')
             ->where(['school_id' => $school->id])
@@ -97,6 +97,21 @@ class ClassesController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No classes available!');
         }
         return (new ApiResponse)->success($getAllClasses->all(), ApiResponse::SUCCESSFUL, $getAllClasses->count() . ' classes found');
+    }
+
+    public function actionGroupClasses()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $globalClasses = Utility::getMyGlobalClassesID($school->school_type);
+        $classes = [];
+
+        foreach ($globalClasses as $class) {
+            $globalTemp = Utility::getGlobalClasses($class->id, $school);
+            $classes[] = array_merge($globalTemp, ['classes' => $class->getSchoolClasses($school->id)]);
+        }
+
+        return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL);
     }
 
     public function actionView($id)
@@ -151,7 +166,7 @@ class ClassesController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes was not generated');
         }
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        return (new ApiResponse)->success($school->classes,null,count($school->classes).' classes generated!');
+        return (new ApiResponse)->success($school->classes, null, count($school->classes) . ' classes generated!');
     }
 
     public function actionUpdateClass($id)

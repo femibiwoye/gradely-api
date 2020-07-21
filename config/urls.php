@@ -12,6 +12,12 @@ return [
     'PUT v2/general/update-boarding' => 'v2/general/update-boarding',
     'GET v2/general/boarding-status' => 'v2/general/boarding-status',
 
+    //Current User
+    'GET v2/general/user' => 'v2/general/user',
+
+    //Services
+    'GET v2/services/cloudinary' => 'v2/services/cloudinary',
+
     //Teacher Profile
     'PUT v2/teacher/profile/update-email' => 'v2/teacher/profile/update-email',
     'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password',

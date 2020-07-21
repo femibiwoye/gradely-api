@@ -12,6 +12,7 @@ return [
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
         'GET <id:\d+>' => 'view',
+        'GET group-classes' => 'group-classes',
         'POST generate' => 'generate-classes'
     ]],
 

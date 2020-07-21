@@ -56,7 +56,11 @@ class GeneralController extends Controller
         } else {
             return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND);
         }
+    }
 
+    public function actionUser()
+    {
+        return (new ApiResponse)->success(User::findOne(Yii::$app->user->id));
     }
 }
 
