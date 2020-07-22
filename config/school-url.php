@@ -19,7 +19,7 @@ return [
     //School Profile
     'PUT v2/school/profile/update-email' => 'v2/school/profile/update-email',
     'PUT v2/school/profile/update-password' => 'v2/school/profile/update-password',
-    'PUT v2/teacher/profile' => 'v2/teacher/profile/update',
+    'PUT v2/school/profile' => 'v2/school/profile/update',
     'GET v2/teacher/profile/preference' => 'v2/teacher/profile/preference',
     'PUT v2/teacher/profile/preference' => 'v2/teacher/profile/update-preference',
     'DELETE v2/teacher/profile/delete-account' => 'v2/teacher/profile/delete-account',

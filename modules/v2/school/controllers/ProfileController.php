@@ -4,6 +4,7 @@ namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
 use app\modules\v2\teacher\models\TeacherUpdatePasswordForm;
+use app\modules\v2\teacher\models\UpdateTeacherForm;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\components\{SharedConstant};
@@ -110,11 +111,8 @@ class ProfileController extends ActiveController
     public function actionUpdate()
     {
         $model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id])->one();
-        if ($model->type != SharedConstant::TYPE_TEACHER || !$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher not found!');
-        }
 
-        $form = new UpdateTeacherForm;
+        $form = new UpdateTeacherForm();
         $form->attributes = Yii::$app->request->post();
         $form->user = $model;
         if (!$form->validate()) {
@@ -122,7 +120,7 @@ class ProfileController extends ActiveController
         }
 
         if (!$model = $form->updateTeacher()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not updated!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Profile is not updated');
         }
 
         return (new ApiResponse)->success($model);
