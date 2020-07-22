@@ -94,4 +94,22 @@ class HomeworkController extends ActiveController
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework close date updated');
     }
+
+    public function actionRestartHomework($homework_id) {
+        $password = Yii::$app->request->post('password');
+        if (!Yii::$app->user->identity->validatePassword($password)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password cannot be validated!');
+        }
+
+        $model = Homeworks::findOne(['id' => $homework_id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
+        }
+
+        if (!$model->getRestartHomework()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not restarted');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record restarted successfully.');
+    }
 }
