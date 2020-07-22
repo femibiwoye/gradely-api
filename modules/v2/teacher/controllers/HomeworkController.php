@@ -78,13 +78,9 @@ class HomeworkController extends ActiveController
 
     public function actionExtendDate($homework_id) {
         $close_date = Yii::$app->request->post('close_date');
-        $model = Homeworks::findOne(['id' => $homework_id]);
-        if (!$model) {
+        $model = Homeworks::find()->where(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id])->one();
+        if (!$model || ($model->teacher_id != Yii::$app->user->id)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
-        }
-
-        if ($model->teacher_id != Yii::$app->user->id) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework belongs to other teacher');
         }
 
         if (strtotime($close_date) <= time()) {
@@ -96,6 +92,6 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework date not update');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework date updated');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework close date updated');
     }
 }
