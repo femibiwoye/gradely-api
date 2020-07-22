@@ -89,7 +89,7 @@ class Classes extends \yii\db\ActiveRecord
 		];
 	}
 
-	/*public function fields() {
+	public function fields() {
 		return [
 			'id',
 			'school_id',
@@ -98,9 +98,10 @@ class Classes extends \yii\db\ActiveRecord
 			'class_name',
 			'abbreviation',
 			'class_code',
-			'created_at'
+			'created_at',
+			'homeworks',
 		];
-	}*/
+	}
 
 	public function getSchool() {
 		return $this->hasOne(Schools::className(), ['id' => 'school_id']);

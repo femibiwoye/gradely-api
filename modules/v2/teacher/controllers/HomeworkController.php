@@ -45,12 +45,12 @@ class HomeworkController extends ActiveController
     }
 
     public function actionClassHomeworks($class_id) {
-        $model = Classes::findOne(['id' => $class_id]);
+        $model = Classes::find()->where(['id' => $class_id])->all();
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
+            return (new ApiResponse)->success(Homeworks::find()->where(['teacher_id' => Yii::$app->user->id])->all(), ApiResponse::SUCCESSFUL, 'Class record found');
         }
 
-        return (new ApiResponse)->success($model->homeworks ? $model->homeworks : $model, ApiResponse::SUCCESSFUL, 'Class record found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Class record found');
     }
 
     public function actionHomework($homework_id) {
