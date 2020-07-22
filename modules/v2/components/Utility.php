@@ -20,15 +20,18 @@ class Utility extends ActiveRecord
      *
      * @return array
      */
-    public static function getSchoolAccess()
+    public static function getSchoolAccess($userID=null)
     {
+
+        if (empty($userID))
+            $userID = Yii::$app->user->id;
 
         $schools = Schools::find()
             ->select(['user_id', 'id'])
-            ->where(['user_id' => Yii::$app->user->id])
+            ->where(['user_id' => $userID])
             ->all();
 
-        $schoolAdmin = SchoolAdmin::findAll(['user_id' => Yii::$app->user->id, 'status' => 1]);
+        $schoolAdmin = SchoolAdmin::findAll(['user_id' => $userID, 'status' => 1]);
 
         $schools = ArrayHelper::merge(ArrayHelper::getColumn($schools, 'id'), ArrayHelper::getColumn($schoolAdmin, 'school_id'));
 

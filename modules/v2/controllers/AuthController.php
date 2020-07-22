@@ -3,9 +3,12 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\SignupForm;
 use Yii;
 use app\modules\v2\models\{Login, User, ApiResponse, PasswordResetRequestForm, ResetPasswordForm};
+use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\Response;
@@ -16,7 +19,6 @@ use yii\web\Response;
  */
 class AuthController extends Controller
 {
-
 
 
     public function behaviors()
@@ -52,9 +54,11 @@ class AuthController extends Controller
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
             $user->updateAccessToken();
+            if ($user->type == 'school')
+                $user = array_merge(ArrayHelper::toArray($user), ['school' => Schools::findOne(['id' => Utility::getSchoolAccess($user->id)])]);
             return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE,'You provided invalid login details');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
         }
     }
 
@@ -70,7 +74,7 @@ class AuthController extends Controller
         if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
             return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'This is an unknown user type');
         }
-        
+
         $form = new SignupForm(['scenario' => "$type-signup"]);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
@@ -82,6 +86,9 @@ class AuthController extends Controller
         }
 
         $user->updateAccessToken();
+        if ($user->type == 'school')
+            $user = array_merge(ArrayHelper::toArray($user), ['school' => Schools::findOne(['id' => Utility::getSchoolAccess($user->id)])]);
+        
         return (new ApiResponse)->success($user, null, 'You have successfully signed up as a' . $type);
     }
 

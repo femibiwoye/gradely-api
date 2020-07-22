@@ -47,8 +47,9 @@ return [
     'GET v2/teacher/feed' => 'v2/teacher/feed/index',
 
     //Homework Class
-    'GET v2/teacher/homework/<class_id:\d+>' => 'v2/teacher/homework/class-homeworks',
-    'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
+
+    'GET v2/teacher/homework/<class_id:\d*>' => 'v2/teacher/homework/class-homeworks',
+    'GET v2/teacher/homework/view/<homework_id:\d+>' => 'v2/teacher/homework/homework',
     'DELETE v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/delete-homework',
     'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
 
