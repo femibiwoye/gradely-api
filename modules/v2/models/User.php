@@ -68,7 +68,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'type',
             'email',
             'is_boarded',
-            'token'
+            'token',
+            'profile'=>'userProfile'
         ];
 
         if (Yii::$app->controller->id != 'auth') {

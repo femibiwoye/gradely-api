@@ -2,6 +2,8 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\Schools;
 use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
 use app\modules\v2\teacher\models\TeacherUpdatePasswordForm;
 use app\modules\v2\teacher\models\UpdateTeacherForm;
@@ -18,7 +20,7 @@ use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
  */
 class ProfileController extends ActiveController
 {
-    public $modelClass = 'app\modules\v2\models\User';
+    public $modelClass = 'app\modules\v2\models\UserModel';
 
     public function behaviors()
     {
@@ -158,12 +160,31 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    public function actionUpdateSchool()
+    {
+        $model = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found!');
+        }
+
+        $model->attributes = Yii::$app->request->post();
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User preference not updated');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
+
     public function actionDeleteAccount()
     {
         $user_id = Yii::$app->user->id;
-        $model = User::find()->andWhere(['id' => $user_id])->andWhere(['type' => SharedConstant::TYPE_TEACHER])->one();
+        $model = User::find()->andWhere(['id' => $user_id])->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
+        }
+
+        if(Schools::find()->where(['user_id'=>$user_id])->one()){
+
         }
 
         $model->email = $model->email . '-deleted';

@@ -48,6 +48,7 @@ class UserPreference extends \yii\db\ActiveRecord {
 	public function fields() {
 		return [
 			'id',
+			'user_id',
 			'weekly_progress_report',
 			'product_update',
 			'offer',

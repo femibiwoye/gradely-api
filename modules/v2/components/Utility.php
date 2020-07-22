@@ -20,7 +20,7 @@ class Utility extends ActiveRecord
      *
      * @return array
      */
-    public static function getSchoolAccess($userID=null)
+    public static function getSchoolAccess($userID = null)
     {
 
         if (empty($userID))
@@ -100,6 +100,13 @@ class Utility extends ActiveRecord
             $classes = GlobalClass::find()->andWhere(['status' => 1])->all();
 
         return $classes;
+    }
+
+    public static function getSchoolAdditionalData($userID)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess($userID)]);
+        $school_owner = $school->user_id == $userID ? 1 : 0;
+        return ['school_id' => $school->id,'state' => $school->state, 'country' => $school->country, 'school_name' => $school->name, 'school_owner' => $school_owner];
     }
 
 }
