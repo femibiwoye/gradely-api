@@ -59,4 +59,23 @@ class GlobalClass extends \yii\db\ActiveRecord
     {
         return $this->hasMany(Feed::className(), ['global_class' => 'id']);
     }
+
+    public function getSchoolClasses($id)
+    {
+        return Classes::find()
+            ->select([
+                'classes.id',
+                'classes.slug',
+                'class_code',
+                'class_name',
+                'abbreviation',
+                'global_class_id',
+                'school_id',
+                'schools.name school_name'
+            ])
+            ->leftJoin('schools', 'schools.id = classes.school_id')
+            ->where(['school_id' => $id,'global_class_id'=>$this->id])
+            ->asArray()
+            ->all();
+    }
 }
