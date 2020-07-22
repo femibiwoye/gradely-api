@@ -54,7 +54,7 @@ class HomeworkController extends ActiveController
     }
 
     public function actionHomework($homework_id) {
-        $model = $this->modelClass::findOne(['id' => $homework_id]);
+        $model = $this->modelClass::find()->where(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id])->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
         }
