@@ -39,7 +39,6 @@ use yii\behaviors\SluggableBehavior;
  */
 class Schools extends \yii\db\ActiveRecord
 {
-    const SCENERIO_EDIT_SCHOOL_PROFILE = 'edit_school_profile';
 
     /**
      * {@inheritdoc}
@@ -83,9 +82,7 @@ class Schools extends \yii\db\ActiveRecord
             [['postal_code', 'establish_date'], 'string', 'max' => 20],
             [['contact_role'], 'string', 'max' => 50],
             [['phone', 'phone2'], 'string', 'max' => 15],
-            [['name', 'about', 'address', 'city', 'state', 'country', 'postal_code', 'website', 'phone', 'school_email'], 'required',
-                'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
-            ],
+
             [['name', 'abbr'], 'required', 'on' => 'school_signup'],
         ];
     }
@@ -116,8 +113,8 @@ class Schools extends \yii\db\ActiveRecord
             'contact_role' => 'Contact Role',
             'contact_email' => 'Contact Email',
             'contact_image' => 'Contact Image',
-            'phone' => 'Phone',
-            'phone2' => 'Phone2',
+            'phone' => 'School Phone',
+            'phone2' => 'Contact Phone',
             'school_email' => 'School Email',
             'school_type' => 'School Type',
             'created_at' => 'Created At',

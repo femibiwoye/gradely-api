@@ -4,6 +4,7 @@ namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Schools;
+use app\modules\v2\school\models\SchoolProfile;
 use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
 use app\modules\v2\teacher\models\TeacherUpdatePasswordForm;
 use app\modules\v2\teacher\models\UpdateTeacherForm;
@@ -163,12 +164,18 @@ class ProfileController extends ActiveController
     public function actionUpdateSchool()
     {
         $model = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $form = new SchoolProfile(['scenario' => SchoolProfile::SCENERIO_EDIT_SCHOOL_PROFILE]);
+        $form->attributes = Yii::$app->request->post();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found!');
         }
 
-        $model->attributes = Yii::$app->request->post();
-        if (!$model->save()) {
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+        //$model->attributes = $form->attributes;
+        if (!$form->updateSchool($model)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User preference not updated');
         }
 
@@ -183,7 +190,7 @@ class ProfileController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
         }
 
-        if(Schools::find()->where(['user_id'=>$user_id])->one()){
+        if (Schools::find()->where(['user_id' => $user_id])->one()) {
 
         }
 
