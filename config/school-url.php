@@ -22,5 +22,13 @@ return [
     'PUT v2/school/profile' => 'v2/school/profile/update',
     'GET v2/school/profile/preference' => 'v2/school/school/preference',
     'PUT v2/school/profile/preference' => 'v2/school/profile/update-preference',
-    'DELETE v2/school/profile/delete-account' => 'v2/school/profile/delete-account',
+    'PUT v2/school/profile/update-school' => 'v2/school/profile/update-school',
+    'DELETE v2/school/profile/delete-personal' => 'v2/school/profile/delete-personal',
+    'DELETE v2/school/profile/delete-school' => 'v2/school/profile/delete-school',
+
+    //School Preferences
+    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/preferences'], 'extraPatterns' => [
+        'GET curriculum' => 'curriculum',
+        'POST new-curriculum' => 'new-curriculum',
+    ]],
 ];

@@ -144,9 +144,18 @@ class Homeworks extends \yii\db\ActiveRecord
 		return $this->homework_annoucements;
 	}
 
-	public function getCompletion()
-    {
-        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+    public function getQuizSummaryRecord() {
+    	return $this->hasMany(QuizSummary::className(), ['homework_id' => 'id']);
+    }
+
+    public function getRestartHomework() {
+    	foreach ($this->quizSummaryRecord as $quizSummary) {
+    		if (!$quizSummary->delete()) {
+    			return false;
+    		}
+    	}
+
+    	return true;
     }
 
 }
