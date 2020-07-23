@@ -4,12 +4,9 @@ namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
+use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
 use app\modules\v2\school\models\PreferencesForm;
-use app\modules\v2\school\models\SchoolProfile;
-use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
-use app\modules\v2\teacher\models\TeacherUpdatePasswordForm;
-use app\modules\v2\teacher\models\UpdateTeacherForm;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\components\{SharedConstant};
@@ -74,8 +71,13 @@ class PreferencesController extends ActiveController
     public function actionCurriculum()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        $examType = ExamType::find()->where(['OR', ['school_id' => null], ['school_id' => $school->id]]);
-        return (new ApiResponse)->success($examType->all(), ApiResponse::SUCCESSFUL, $examType->count() . ' classes found');
+        $examType = ExamType::find()
+            ->alias('e')
+            ->select(['e.*', new Expression('CASE WHEN s.curriculum_id IS NULL THEN 0 ELSE 1 END as active')])
+            ->leftJoin('school_curriculum s', "s.curriculum_id = e.id AND s.school_id = $school->id")
+            ->where(['OR', ['e.school_id' => null], ['e.school_id' => $school->id]]);
+
+        return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL, $examType->count() . ' classes found');
     }
 
     public function actionNewCurriculum()
@@ -87,11 +89,46 @@ class PreferencesController extends ActiveController
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        if (!$model = $form->updateFormats($school)) {
+        if (!$model = $form->addCurriculum($school)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class is not updated');
         }
 
         return (new ApiResponse)->success($model);
+    }
+
+    /**
+     * This update school curriculum onChecked.
+     * When you check, it will be added to school curriculum list
+     * When you uncheck, it will remove the curriculum from the list.
+     *
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionUpdateCurriculum()
+    {
+        $form = new PreferencesForm(['scenario' => 'update-curriculum']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $curriculum = SchoolCurriculum::find()->where(['school_id' => $school->id, 'curriculum_id' => $form->curriculum_id]);
+        if ($curriculum->exists()) {
+            $curriculum->one()->delete();
+            return (new ApiResponse)->success(false, null, 'Curriculum removed!');
+        } else {
+            if (!ExamType::find()->where(['id' => $form->curriculum_id])->exists()) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid curriculum!');
+            }
+            $new = new SchoolCurriculum();
+            $new->curriculum_id = $form->curriculum_id;
+            $new->school_id = $school->id;
+            $new->save();
+            return (new ApiResponse)->success(true, null, 'Curriculum added!');
+        }
     }
 
 }

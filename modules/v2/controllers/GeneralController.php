@@ -2,10 +2,12 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -60,7 +62,10 @@ class GeneralController extends Controller
 
     public function actionUser()
     {
-        return (new ApiResponse)->success(User::findOne(Yii::$app->user->id));
+        $user = User::findOne(Yii::$app->user->id);
+        if ($user->type == 'school')
+            $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+        return (new ApiResponse)->success($user);
     }
 }
 

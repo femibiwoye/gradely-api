@@ -76,6 +76,10 @@ class ExamType extends \yii\db\ActiveRecord
         ];
     }
 
+
+
+
+
     /**
      * Gets query for [[SchoolCurriculums]].
      *

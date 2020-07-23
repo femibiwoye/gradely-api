@@ -30,5 +30,6 @@ return [
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/preferences'], 'extraPatterns' => [
         'GET curriculum' => 'curriculum',
         'POST new-curriculum' => 'new-curriculum',
+        'PUT update-curriculum' => 'update-curriculum',
     ]],
 ];

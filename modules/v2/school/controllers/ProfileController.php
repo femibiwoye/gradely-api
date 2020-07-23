@@ -12,6 +12,7 @@ use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\components\{SharedConstant};
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
@@ -125,6 +126,9 @@ class ProfileController extends ActiveController
         if (!$model = $form->updateTeacher()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Profile is not updated');
         }
+
+
+        $model = array_merge(ArrayHelper::toArray($model), Utility::getSchoolAdditionalData($model->id));
 
         return (new ApiResponse)->success($model);
     }

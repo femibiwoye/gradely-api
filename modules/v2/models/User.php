@@ -73,7 +73,6 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ];
 
         if (Yii::$app->controller->id != 'auth') {
-            if (($key = array_search('is_boarded', $user)) !== false) unset($user[$key]);
             if (($key = array_search('token', $user)) !== false) unset($user[$key]);
         }
 
