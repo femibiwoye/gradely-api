@@ -4,6 +4,8 @@ namespace app\modules\v2\school\models;
 
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\SchoolSubject;
+use app\modules\v2\models\Subjects;
 use Yii;
 use yii\base\Model;
 use app\modules\v2\models\{Classes};
@@ -85,6 +87,7 @@ class ClassForm extends Classes
                     return false;
                 }
             }
+            $this->populateSubjects($school);
             $dbtransaction->commit();
             return true;
         } catch (\Exception $e) {
@@ -94,8 +97,30 @@ class ClassForm extends Classes
 
     }
 
+
+    public function populateSubjects(Schools $school)
+    {
+        $types = $school->school_type == 'all' ? ['all', 'primary', 'secondary'] : [$school->school_type, 'all'];
+        $subjects = Subjects::find()->where(['status' => 1, 'category' => $types])->all();
+
+        foreach ($subjects as $subject) {
+            if (SchoolSubject::find()->where(['school_id' => $school->id, 'subject_id' => $subject->id])->exists()) {
+                continue;
+            }
+            $model = new SchoolSubject();
+            $model->school_id = $school->id;
+            $model->subject_id = $subject->id;
+            $model->save();
+        }
+
+        return true;
+    }
+
     private function newClassModel($school, $globalID)
     {
+        if (Classes::find()->where(['school_id' => $school->id, 'global_class_id' => $globalID])->exists()) {
+            return true;
+        }
         $classNames = $this->classNames($school, $globalID);
         $classes = new Classes();
         $classes->school_id = $school->id;

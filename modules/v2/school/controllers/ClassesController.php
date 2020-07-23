@@ -5,19 +5,11 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
-use app\modules\v2\models\GlobalClass;
-use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
-use app\modules\v2\models\StudentSchool;
-use app\modules\v2\models\User;
-use app\modules\v2\models\UserModel;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
-use yii\data\ActiveDataProvider;
-use yii\data\ArrayDataProvider;
 use yii\filters\AccessControl;
 use yii\filters\auth\HttpBearerAuth;
-use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 
 
@@ -152,8 +144,8 @@ class ClassesController extends ActiveController
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        if (count($school->classes) > 5)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes are already generated');
+//        if (count($school->classes) > 5)
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes are already generated');
 
         $form = new ClassForm(['scenario' => ClassForm::SCENERIO_GENERATE_CLASSES]);
         $form->attributes = Yii::$app->request->post();
@@ -191,7 +183,7 @@ class ClassesController extends ActiveController
                         'code' => '200',
                         'message' => "Class update succesful"
                     ];
-                } catch (Exception $exception) {
+                } catch (\Exception $exception) {
                     Yii::info('[Class update successful] ' . $exception->getMessage());
                     return [
                         'code' => '500',
