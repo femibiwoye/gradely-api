@@ -140,6 +140,27 @@ class ClassesController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    public function actionUpdate()
+    {
+        $form = new ClassForm(['scenario' => ClassForm::SCENERIO_UPDATE_CLASS]);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $classModel = Classes::find()->where(['school_id' => $school->id, 'id' => $form->id]);
+        if (!$classModel->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This is not a valid class!');
+        }
+
+        $model = $classModel->one();
+        $model->class_name = $form->class_name;
+        $model->save();
+
+        return (new ApiResponse)->success($model,null,'Class successfully updated.');
+    }
+
     public function actionGenerateClasses()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -159,46 +180,6 @@ class ClassesController extends ActiveController
         }
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         return (new ApiResponse)->success($school->classes, null, count($school->classes) . ' classes generated!');
-    }
-
-    public function actionUpdateClass($id)
-    {
-
-        $classes = new Classes(['scenario' => Classes::SCENERIO_UPDATE_CLASS]);
-        $classes->attributes = \Yii::$app->request->post();
-        if ($classes->validate()) {
-
-            $getClass = Classes::find()->where(['id' => $id])->one();
-            if (!empty($getClass)) {
-
-                $getClass->global_class_id = $this->request['global_class_id'];
-                $getClass->class_name = $this->request['class_name'];
-                $getClass->abbreviation = $this->request['class_code'];
-
-                try {
-
-                    $getClass->save();
-                    Yii::info('[Class update successful] school_id:' . $id . '');
-                    return [
-                        'code' => '200',
-                        'message' => "Class update succesful"
-                    ];
-                } catch (\Exception $exception) {
-                    Yii::info('[Class update successful] ' . $exception->getMessage());
-                    return [
-                        'code' => '500',
-                        'message' => $exception->getMessage()
-                    ];
-                }
-            }
-
-            Yii::info('[class does not exist] Class ID:' . $id);
-            return [
-                'code' => 200,
-                'message' => 'class does not exist'
-            ];
-        }
-        return $classes->errors;
     }
 
 

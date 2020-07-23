@@ -33,7 +33,7 @@ class ClassForm extends Classes
 
             [['school_type', 'school_format'], 'required', 'on' => self::SCENERIO_GENERATE_CLASSES],
 
-            [['global_class_id', 'class_name', 'abbreviation'], 'required', 'on' => self::SCENERIO_UPDATE_CLASS]
+            [['id', 'class_name'], 'required', 'on' => self::SCENERIO_UPDATE_CLASS],
         ];
     }
 
