@@ -18,16 +18,19 @@ class PreferencesForm extends Model
     public $country;
     public $description;
 
+    public $curriculum_id;
+
     public function rules()
     {
         return [
             [['name', 'country','description'], 'required', 'on' => 'curriculum-request'],
+            [['curriculum_id'], 'required', 'on' => 'update-curriculum'],
 
         ];
     }
 
 
-    public function updateFormats($school)
+    public function addCurriculum($school)
     {
         $newCurriculum = new ExamType();
         $newCurriculum->name = $this->name;

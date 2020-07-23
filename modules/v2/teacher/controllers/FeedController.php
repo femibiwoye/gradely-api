@@ -50,11 +50,11 @@ class FeedController extends ActiveController
     {
         $new_announcements = array_merge((new Homeworks)->getnewHomeworks(), (new TutorSession)->getNewSessions());
         if (!$new_announcements) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Annoucements not found!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No record found!');
         }
 
         array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
-        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, 'Annoucements found');
+        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements).' records found!');
     }
 
     public function actionFeedComment($post_id)
