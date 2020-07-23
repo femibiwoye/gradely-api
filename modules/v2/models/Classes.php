@@ -39,7 +39,7 @@ class Classes extends \yii\db\ActiveRecord
             [
                 'class' => SluggableBehavior::className(),
                 'attribute' => 'class_name',
-                'ensureUnique' => true
+                //'ensureUnique' => true
             ],
             [
                 'class' => SluggableBehavior::className(),
