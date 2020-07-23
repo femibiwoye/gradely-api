@@ -6,12 +6,15 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\SchoolSubject;
+use app\modules\v2\models\Subjects;
 use app\modules\v2\school\models\PreferencesForm;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\components\{SharedConstant};
 use yii\db\Expression;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
@@ -130,6 +133,32 @@ class PreferencesController extends ActiveController
             return (new ApiResponse)->success(true, null, 'Curriculum added!');
         }
     }
+
+    /**
+     * Lists of subjects in the school
+     *
+     * @return ApiResponse
+     */
+    public function actionSubjects()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $mySubjects = SchoolSubject::find()
+            ->alias('s')
+            ->select(['subjects.*', 'count(c.subject_id) classes_count'])
+            ->where(['s.school_id' => $school->id, 's.status' => 1])
+            ->leftJoin('teacher_class_subjects c', "c.subject_id = s.subject_id AND c.school_id = $school->id")
+            ->innerJoin('subjects', "subjects.id = s.subject_id")
+            ->groupBy(['s.subject_id', 'c.subject_id'])
+            ->asArray();
+
+        if (!$mySubjects->exists()) {
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No subject available!');
+        }
+        return (new ApiResponse)->success($mySubjects->all(), ApiResponse::SUCCESSFUL, $mySubjects->count() . ' subjects found');
+    }
+
+
 
 }
 

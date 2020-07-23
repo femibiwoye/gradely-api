@@ -4,8 +4,10 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
+use app\modules\v2\school\models\ClassForm;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
@@ -54,6 +56,11 @@ class GeneralController extends Controller
     public function actionUpdateBoarding()
     {
         if (UserModel::updateAll(['is_boarded' => 1], ['id' => Yii::$app->user->id])) {
+            if (Yii::$app->user->identity->type = 'school') {
+                $classForm = new ClassForm();
+                $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+                $classForm->populateSubjects($school);
+            }
             return (new ApiResponse)->success(null, null, 'User is successfully boarded');
         } else {
             return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND);
