@@ -5,6 +5,7 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\SchoolNamingFormat;
+use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolType;
 use app\modules\v2\school\models\ClassForm;
@@ -104,6 +105,12 @@ class GeneralController extends ActiveController
         }
 
         return (new ApiResponse)->success($school);
+    }
+
+    public function actionSchoolRoles()
+    {
+        return (new ApiResponse)->success(SchoolRole::find()->select('title, slug')->where(['status' => 1])->all(), ApiResponse::SUCCESSFUL, 'Found');
+
     }
 
 
