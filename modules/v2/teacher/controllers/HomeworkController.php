@@ -7,6 +7,7 @@ use app\modules\v2\models\{Homeworks, Classes, ApiResponse};
 use app\modules\v2\components\SharedConstant;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
+use app\modules\v2\teacher\models\HomeworkForm;
 
 class HomeworkController extends ActiveController
 {
@@ -42,6 +43,21 @@ class HomeworkController extends ActiveController
         unset($actions['index']);
         unset($actions['view']);
         return $actions;
+    }
+
+    public function actionCreate() {
+        $form = new HomeworkForm;
+        $form->attributes = Yii::$app->request->post();
+        $form->teacher_id = Yii::$app->user->id;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!$model = $form->createHomework()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not inserted!');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record inserted successfully');
     }
 
     public function actionClassHomeworks($class_id) {
