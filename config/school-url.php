@@ -4,9 +4,10 @@ return [
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
 
-    //School Types
+    //School General
     'GET v2/school/general/school-type' => 'v2/school/general/school-type',
     'GET v2/school/general/school-naming-format' => 'v2/school/general/school-naming-format',
+    'GET v2/school/general/school-roles' => 'v2/school/general/school-roles',
     'PUT v2/school/general/update-format-type' => 'v2/school/general/update-format-type',
 
     //School Classes
