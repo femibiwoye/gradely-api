@@ -142,14 +142,22 @@ class PreferencesController extends ActiveController
     public function actionSubjects()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-
         $mySubjects = SchoolSubject::find()
             ->alias('s')
-            ->select(['subjects.*', 'count(c.subject_id) classes_count'])
+            ->select([
+                's.school_id',
+                'subjects.id',
+                'subjects.slug',
+                'subjects.name',
+                'subjects.description',
+                'count(d.class_id) class_subject_count',
+                //'count(c.id) teacher_class_count'
+            ])
             ->where(['s.school_id' => $school->id, 's.status' => 1])
-            ->leftJoin('teacher_class_subjects c', "c.subject_id = s.subject_id AND c.school_id = $school->id")
+            //->leftJoin('teacher_class_subjects c', "c.subject_id = s.subject_id AND c.school_id = '$school->id'")
+            ->leftJoin('class_subjects d', "d.subject_id = s.subject_id AND d.school_id = '$school->id'")
             ->innerJoin('subjects', "subjects.id = s.subject_id")
-            ->groupBy(['s.subject_id', 'c.subject_id'])
+            ->groupBy(['s.subject_id'])
             ->asArray();
 
         if (!$mySubjects->exists()) {
@@ -158,6 +166,25 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($mySubjects->all(), ApiResponse::SUCCESSFUL, $mySubjects->count() . ' subjects found');
     }
 
+    public function actionAddSubject()
+    {
+        $form = new PreferencesForm(['scenario' => 'add-subject']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (Subjects::find()->where(['name' => $form->name])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::ALREADY_REPORTED,'Subject exist');
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (!$model = $form->addSubject($school)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not created');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
 
 
 }

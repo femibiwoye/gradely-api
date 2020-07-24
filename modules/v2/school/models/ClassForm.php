@@ -101,7 +101,9 @@ class ClassForm extends Classes
     public function populateSubjects(Schools $school)
     {
         $types = $school->school_type == 'all' ? ['all', 'primary', 'secondary'] : [$school->school_type, 'all'];
-        $subjects = Subjects::find()->where(['status' => 1, 'category' => $types])->all();
+        $subjects = Subjects::find()->where(['status' => 1, 'category' => $types])
+            ->andWhere(['OR',['school_id'=>null],['approved'=>1]])
+            ->all();
 
         foreach ($subjects as $subject) {
             if (SchoolSubject::find()->where(['school_id' => $school->id, 'subject_id' => $subject->id])->exists()) {
