@@ -66,12 +66,15 @@ class Feed extends \yii\db\ActiveRecord
             'commentCount' => 'feedCommentCount',
             'token',
             'view_by',
+            'myLike',
+            'created_at',
+            'updated_at',
             'user',
             'reference',
             'subject',
             'class',
             'global_class_id' => 'globalClass',
-            'comment' => 'miniComment'
+            'comment' => 'miniComment',
         ];
     }
 
@@ -126,6 +129,11 @@ class Feed extends \yii\db\ActiveRecord
     public function getFeedLike()
     {
         return $this->hasOne(FeedLike::className(), ['parent_id' => 'id'])->andWhere(['type' => SharedConstant::FEED_TYPE]);
+    }
+
+    public function getMyLike()
+    {
+        return $this->hasOne(FeedLike::className(), ['parent_id' => 'id'])->andWhere(['type' => SharedConstant::FEED_TYPE, 'user_id' => Yii::$app->user->id])->exists() ? 1 : 0;
     }
 
     public function getFeedLikeCount()

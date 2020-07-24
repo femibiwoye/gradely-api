@@ -33,5 +33,6 @@ return [
         'POST new-curriculum' => 'new-curriculum',
         'PUT update-curriculum' => 'update-curriculum',
         'GET subjects' => 'subjects',
+        'POST add-subject' => 'add-subject',
     ]],
 ];
