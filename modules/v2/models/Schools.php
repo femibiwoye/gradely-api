@@ -5,45 +5,10 @@ namespace app\modules\v2\models;
 use Yii;
 use yii\behaviors\SluggableBehavior;
 
-/**
- * This is the model class for table "schools".
- *
- * @property int $id
- * @property int $user_id
- * @property string $slug
- * @property string|null $name
- * @property string $abbr
- * @property string|null $logo
- * @property string|null $banner
- * @property string|null $tagline
- * @property string|null $about
- * @property string|null $address
- * @property string|null $city
- * @property string|null $state
- * @property string|null $country
- * @property string|null $postal_code
- * @property string|null $website
- * @property string|null $establish_date
- * @property string|null $contact_name
- * @property string|null $contact_role
- * @property string|null $contact_email
- * @property string|null $contact_image
- * @property string|null $phone
- * @property string|null $phone2
- * @property string|null $school_email
- * @property string|null $school_type
- * @property string|null $naming_format
- * @property string $created_at
- *
- * @property SchoolOptions[] $schoolOptions
- */
 class Schools extends \yii\db\ActiveRecord
 {
     const SCENERIO_EDIT_SCHOOL_PROFILE = 'edit_school_profile';
 
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
         return 'schools';
@@ -67,9 +32,6 @@ class Schools extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
@@ -90,9 +52,6 @@ class Schools extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -124,11 +83,6 @@ class Schools extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * Gets query for [[SchoolOptions]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
     public function getSchoolOptions()
     {
         return $this->hasMany(SchoolOptions::className(), ['school_id' => 'id']);
