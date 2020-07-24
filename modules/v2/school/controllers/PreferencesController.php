@@ -4,6 +4,7 @@ namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
+use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
@@ -175,7 +176,7 @@ class PreferencesController extends ActiveController
         }
 
         if (Subjects::find()->where(['name' => $form->name])->exists()) {
-            return (new ApiResponse)->error(null, ApiResponse::ALREADY_REPORTED,'Subject exist');
+            return (new ApiResponse)->error(null, ApiResponse::ALREADY_REPORTED, 'Subject exist');
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -184,6 +185,75 @@ class PreferencesController extends ActiveController
         }
 
         return (new ApiResponse)->success($model);
+    }
+
+    public function actionUsers()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $mySubjects = SchoolAdmin::find()
+            ->alias('s')
+            ->select([
+                's.*',
+                'u.firstname',
+                'u.lastname',
+                'u.email',
+                'u.image',
+                'r.title',
+            ])
+            ->where(['s.school_id' => $school->id])
+            ->innerJoin('user u', "u.id = s.user_id")
+            ->innerJoin('school_role r', "r.slug = s.level")
+            ->asArray();
+
+        if (!$mySubjects->exists()) {
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No user available!');
+        }
+        return (new ApiResponse)->success($mySubjects->all(), ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionDeactivateUser()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id, 'status' => 1]);
+        if (!$model->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist or already disabled');
+
+        $model = $model->one();
+        $model->status = 0;
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'User has been disabled!');
+
+    }
+
+    public function actionRemoveUser()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
+        if (!$model->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist');
+
+        $model->one()->delete();
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User has been removed!');
+
     }
 
 

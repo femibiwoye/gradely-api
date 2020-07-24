@@ -23,4 +23,5 @@ class SharedConstant {
 	const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 	const SCHOOL_FORMAT = ['year','ss'];
 	const SCHOOL_TYPE = ['all','primary','secondary'];
+	const SCHOOL_OWNER_ROLE = 'owner';
 }

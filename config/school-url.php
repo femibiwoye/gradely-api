@@ -19,6 +19,7 @@ return [
     ]],
 
     //School Profile
+    'GET v2/school/profile/school' => 'v2/school/profile/school',
     'PUT v2/school/profile/update-email' => 'v2/school/profile/update-email',
     'PUT v2/school/profile/update-password' => 'v2/school/profile/update-password',
     'PUT v2/school/profile' => 'v2/school/profile/update',
@@ -34,6 +35,9 @@ return [
         'POST new-curriculum' => 'new-curriculum',
         'PUT update-curriculum' => 'update-curriculum',
         'GET subjects' => 'subjects',
+        'GET users' => 'users',
         'POST add-subject' => 'add-subject',
+        'PUT deactivate-user' => 'deactivate-user',
+        'PUT remove-user' => 'remove-user',
     ]],
 ];

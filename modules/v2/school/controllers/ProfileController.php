@@ -165,6 +165,13 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    public function actionSchool()
+    {
+        $model = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        return (new ApiResponse)->success($model);
+
+    }
+
     public function actionUpdateSchool()
     {
         $model = Schools::findOne(['id' => Utility::getSchoolAccess()]);
