@@ -38,6 +38,18 @@ class Utility extends ActiveRecord
         return array_unique($schools);
     }
 
+
+    public static function getSchoolRole(Schools $school)
+    {
+        if ($school->user_id == Yii::$app->user->id)
+            return 'owner';
+
+        $model = SchoolAdmin::find()->where(['user_id' => Yii::$app->user->id, 'school_id' => $school->id]);
+        if ($model->exists())
+            return $model->one()->level;
+        return null;
+    }
+
     /**
      *
      * This return IDs of classes teacher belongs to.
@@ -106,7 +118,7 @@ class Utility extends ActiveRecord
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess($userID)]);
         $school_owner = $school->user_id == $userID ? 1 : 0;
-        return ['school_id' => $school->id,'state' => $school->state, 'country' => $school->country, 'school_name' => $school->name, 'school_owner' => $school_owner];
+        return ['school_id' => $school->id, 'state' => $school->state, 'country' => $school->country, 'school_name' => $school->name, 'school_owner' => $school_owner];
     }
 
 }

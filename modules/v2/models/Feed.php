@@ -21,7 +21,7 @@ class Feed extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['type', 'class_id', 'description', 'view_by'], 'required'],
+            [['type', 'class_id', 'view_by'], 'required'],
             ['view_by', 'teacherViewBy'],
             [['user_id', 'reference_id', 'likes', 'class_id', 'global_class_id', 'status'], 'integer'],
             [['description', 'type', 'view_by'], 'string'],

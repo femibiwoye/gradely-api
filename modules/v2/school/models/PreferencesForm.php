@@ -24,12 +24,15 @@ class PreferencesForm extends Model
     public $curriculum_id;
     public $classes;
 
+    public $user_id;
+
     public function rules()
     {
         return [
             [['name', 'country', 'description'], 'required', 'on' => 'curriculum-request'],
             [['curriculum_id'], 'required', 'on' => 'update-curriculum'],
             [['name', 'description', 'classes'], 'required', 'on' => 'add-subject'],
+            [['user_id'], 'required', 'on' => 'update-user'],
 
         ];
     }
