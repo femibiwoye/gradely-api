@@ -15,7 +15,7 @@ use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
  */
 class ProfileController extends ActiveController
 {
-    public $modelClass = 'app\modules\v2\models\User';
+    public $modelClass = 'app\modules\v2\models\UserModel';
 
     public function behaviors()
     {

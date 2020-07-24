@@ -54,4 +54,9 @@ return [
     'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
     'PUT v2/teacher/homework/<homework_id:\d+>/restart' => 'v2/teacher/homework/restart-homework',
     'POST v2/teacher/homework' => 'v2/teacher/homework/create'
+
+    //Invites
+    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
+        'POST school-admin' => 'school-admin',
+    ]],
 ];

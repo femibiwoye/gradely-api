@@ -39,9 +39,8 @@ class ServicesController extends Controller
     {
         $response = [
             'cloud_name' => 'gradely',
-            'cloudinary_api_key' => '596849949737384',
-            'cloudinary_api_secret' => 'BUkJQPz2ZKtNdUt_v2UgSdQ-EBU',
-            'cloudinary_base_delivery' => 'https://api.cloudinary.com/v1_1/gradely',
+            'preset'=>'gradely',
+            'cloudinary_base_delivery' => 'http://res.cloudinary.com/gradely',
             'cloudinary_base_api' => 'https://api.cloudinary.com/v1_1/gradely'
         ];
 

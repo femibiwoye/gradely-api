@@ -55,7 +55,7 @@ class AuthController extends Controller
         if ($model->validate() && $user = $model->login()) {
             $user->updateAccessToken();
             if ($user->type == 'school')
-                $user = array_merge(ArrayHelper::toArray($user), ['school' => Schools::findOne(['id' => Utility::getSchoolAccess($user->id)])]);
+                $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
             return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
@@ -87,8 +87,9 @@ class AuthController extends Controller
 
         $user->updateAccessToken();
         if ($user->type == 'school')
-            $user = array_merge(ArrayHelper::toArray($user), ['school' => Schools::findOne(['id' => Utility::getSchoolAccess($user->id)])]);
-        
+            $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+
+
         return (new ApiResponse)->success($user, null, 'You have successfully signed up as a' . $type);
     }
 

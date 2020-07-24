@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use yii\behaviors\SluggableBehavior;
 
 class ExamType extends \yii\db\ActiveRecord
 {
@@ -10,6 +11,17 @@ class ExamType extends \yii\db\ActiveRecord
 	{
 		return 'exam_type';
 	}
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'name',
+                'ensureUnique' => true
+            ],
+        ];
+    }
 
 	public function rules()
 	{

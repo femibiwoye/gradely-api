@@ -2,6 +2,9 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\Schools;
+use app\modules\v2\school\models\SchoolProfile;
 use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
 use app\modules\v2\teacher\models\TeacherUpdatePasswordForm;
 use app\modules\v2\teacher\models\UpdateTeacherForm;
@@ -9,6 +12,7 @@ use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\components\{SharedConstant};
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
@@ -18,7 +22,7 @@ use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
  */
 class ProfileController extends ActiveController
 {
-    public $modelClass = 'app\modules\v2\models\User';
+    public $modelClass = 'app\modules\v2\models\UserModel';
 
     public function behaviors()
     {
@@ -123,6 +127,9 @@ class ProfileController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Profile is not updated');
         }
 
+
+        $model = array_merge(ArrayHelper::toArray($model), Utility::getSchoolAdditionalData($model->id));
+
         return (new ApiResponse)->success($model);
     }
 
@@ -158,12 +165,37 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    public function actionUpdateSchool()
+    {
+        $model = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $form = new SchoolProfile(['scenario' => SchoolProfile::SCENERIO_EDIT_SCHOOL_PROFILE]);
+        $form->attributes = Yii::$app->request->post();
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found!');
+        }
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+        //$model->attributes = $form->attributes;
+        if (!$form->updateSchool($model)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User preference not updated');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
+
     public function actionDeleteAccount()
     {
         $user_id = Yii::$app->user->id;
-        $model = User::find()->andWhere(['id' => $user_id])->andWhere(['type' => SharedConstant::TYPE_TEACHER])->one();
+        $model = User::find()->andWhere(['id' => $user_id])->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
+        }
+
+        if (Schools::find()->where(['user_id' => $user_id])->one()) {
+
         }
 
         $model->email = $model->email . '-deleted';

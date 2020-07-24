@@ -50,11 +50,11 @@ class FeedController extends ActiveController
     {
         $new_announcements = array_merge((new Homeworks)->getnewHomeworks(), (new TutorSession)->getNewSessions());
         if (!$new_announcements) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Annoucements not found!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No record found!');
         }
 
         array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
-        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, 'Annoucements found');
+        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements).' records found!');
     }
 
     public function actionFeedComment($post_id)
@@ -145,7 +145,12 @@ class FeedController extends ActiveController
 
     public function actionIndex()
     {
-        $models = $this->modelClass::find()->all();
+        $models = $this->modelClass::find()
+            ->where(['OR',
+                ['user_id' => Yii::$app->user->id],
+                ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
+            ])
+            ->orderBy('id DESC')->all();
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
