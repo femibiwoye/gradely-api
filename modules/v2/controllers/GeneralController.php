@@ -4,6 +4,7 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Country;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
@@ -73,6 +74,11 @@ class GeneralController extends Controller
         if ($user->type == 'school')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
         return (new ApiResponse)->success($user);
+    }
+
+    public function actionCountry()
+    {
+        return (new ApiResponse)->success(Country::find()->all());
     }
 }
 
