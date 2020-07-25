@@ -123,7 +123,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        //return static::findOne(['token' => $token]);
+        return static::findOne(['token' => $token]);
 
         if ($user = static::find()->where(['AND', ['token' => $token], ['<>', 'status', self::STATUS_DELETED]])->one()) {
             /**
