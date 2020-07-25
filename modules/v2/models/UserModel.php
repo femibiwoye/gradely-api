@@ -109,6 +109,16 @@ class UserModel extends User
         ];
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+        if ($this->isRelationPopulated('parentChildren'))
+            $fields['parentChildren'] = 'parentChildren';
+
+        return $fields;
+    }
+
+
     /**
      * Gets query for [[Catchups]].
      *
@@ -154,7 +164,7 @@ class UserModel extends User
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getParents0()
+    public function getParentStudent()
     {
         return $this->hasMany(Parents::className(), ['student_id' => 'id']);
     }
@@ -264,7 +274,13 @@ class UserModel extends User
      */
     public function getParentChildren()
     {
-        $studentID = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => $this->id, 'status' => 1])->all(), 'student_id');
-        return UserModel::find()->where(['id' => $studentID])->all();
+        return $this->hasMany(self::className(), ['id' => 'student_id'])->via('parentLists');
     }
+
+    public function getParentLists()
+    {
+        return $this->hasMany(Parents::className(), ['parent_id' => 'id']);
+    }
+
+
 }

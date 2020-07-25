@@ -194,22 +194,44 @@ class PreferencesController extends ActiveController
         $mySubjects = SchoolAdmin::find()
             ->alias('s')
             ->select([
-                's.*',
+                //'s.id',
+                's.school_id',
+                's.user_id',
+                's.level',
+                's.status',
                 'u.firstname',
                 'u.lastname',
                 'u.email',
                 'u.image',
                 'r.title',
+                "'0' AS `owner`",
             ])
             ->where(['s.school_id' => $school->id])
             ->innerJoin('user u', "u.id = s.user_id")
             ->innerJoin('school_role r', "r.slug = s.level")
-            ->asArray();
+            ->asArray()->all();
 
-        if (!$mySubjects->exists()) {
+        $schoolOwner = [
+            'school_id' => "$school->id",
+            'user_id' => "$school->user_id",
+            'level' => 'owner',
+            'status' => "1",
+            'firstname' => $school->user->firstname,
+            'lastname' => $school->user->lastname,
+            'email' => $school->user->email,
+            'image' => $school->user->image,
+            'title' => 'Owner',
+            'owner' => '1',
+        ];
+
+
+        //$all = $mySubjects->all();
+        array_unshift($mySubjects, $schoolOwner);
+
+        if (!$mySubjects) {
             return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No user available!');
         }
-        return (new ApiResponse)->success($mySubjects->all(), ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success($mySubjects, ApiResponse::SUCCESSFUL);
     }
 
     public function actionChangeUserRole()
@@ -225,7 +247,7 @@ class PreferencesController extends ActiveController
         }
 
         $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
-        if (!$model->exists() || !SchoolRole::find()->where(['slug'=>$form->role,'status'=>1])->exists())
+        if (!$model->exists() || !SchoolRole::find()->where(['slug' => $form->role, 'status' => 1])->exists())
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist or role is not valid');
 
         $model = $model->one();
