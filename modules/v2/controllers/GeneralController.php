@@ -48,7 +48,7 @@ class GeneralController extends Controller
 
         //TODO This populateSubjects here should be removed in production.
         // It's temporarily here for development.
-        if (Yii::$app->user->identity->type = 'school') {
+        if (Yii::$app->user->identity->type == 'school') {
             $classForm = new ClassForm();
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $classForm->populateSubjects($school);
@@ -65,7 +65,7 @@ class GeneralController extends Controller
     public function actionUpdateBoarding()
     {
         if (UserModel::updateAll(['is_boarded' => 1], ['id' => Yii::$app->user->id])) {
-            if (Yii::$app->user->identity->type = 'school') {
+            if (Yii::$app->user->identity->type == 'school') {
                 $classForm = new ClassForm();
                 $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
                 $classForm->populateSubjects($school);
