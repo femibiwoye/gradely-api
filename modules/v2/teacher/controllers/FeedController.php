@@ -55,7 +55,7 @@ class FeedController extends ActiveController
         }
 
         array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
-        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements).' records found!');
+        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements) . ' records found!');
     }
 
     public function actionFeedComment($post_id)
@@ -158,14 +158,18 @@ class FeedController extends ActiveController
 
         $provider = new ActiveDataProvider([
             'query' => $models,
+//            'id' => function ($model) {
+//                return $model->id;
+//            },
             'pagination' => [
-                'pageSize' => 4,
+                'pageSize' => 2,
+                'validatePage'=>false,
             ],
             'sort' => [
                 'attributes' => ['updated_at'],
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Feeds found');
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' Feeds found');
     }
 }

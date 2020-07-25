@@ -76,4 +76,14 @@ class SchoolAdmin extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Schools::className(), ['id' => 'school_id']);
     }
+
+    /**
+     * Gets query for [[School]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getRole()
+    {
+        return $this->hasOne(SchoolRole::className(), ['slug' => 'level']);
+    }
 }

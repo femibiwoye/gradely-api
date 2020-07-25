@@ -118,7 +118,21 @@ class Utility extends ActiveRecord
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess($userID)]);
         $school_owner = $school->user_id == $userID ? 1 : 0;
-        return ['school_id' => $school->id, 'state' => $school->state, 'country' => $school->country, 'school_name' => $school->name, 'school_owner' => $school_owner];
+
+        $role = 'None';
+        if ($school->user_id == $userID)
+            $role = 'Owner';
+        elseif ($schoolAdmin = SchoolAdmin::findOne(['user_id' => $userID, 'status' => 1]))
+            $role = $schoolAdmin->role->title;
+
+        return [
+            'school_id' => $school->id,
+            'state' => $school->state,
+            'country' => $school->country,
+            'school_name' => $school->name,
+            'school_owner' => $school_owner,
+            'role' => $role
+        ];
     }
 
 }
