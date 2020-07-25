@@ -4,6 +4,7 @@ namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Schools;
+use app\modules\v2\school\models\PreferencesForm;
 use app\modules\v2\school\models\SchoolProfile;
 use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
 use app\modules\v2\teacher\models\TeacherUpdatePasswordForm;
@@ -193,7 +194,7 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
-    public function actionDeleteAccount()
+    public function actionDeletePersonalAccount()
     {
         $user_id = Yii::$app->user->id;
         $model = User::find()->andWhere(['id' => $user_id])->one();
@@ -201,8 +202,10 @@ class ProfileController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
         }
 
-        if (Schools::find()->where(['user_id' => $user_id])->one()) {
-
+        $school = Schools::find()->where(['user_id' => $user_id]);
+        if ($school->exists()) {
+            $school = $school->one();
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "You need to assign '$school->name' ownership to another user or delete school before you can delete your personal account.");
         }
 
         $model->email = $model->email . '-deleted';
@@ -215,6 +218,37 @@ class ProfileController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User account deleted successfully');
+    }
+
+    public function actionDeleteSchoolAccount()
+    {
+        $user_id = Yii::$app->user->id;
+        $model = User::find()->andWhere(['id' => $user_id])->one();
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
+        }
+
+        $form = new PreferencesForm(['scenario' => 'verify-password']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!Yii::$app->security->validatePassword($form->password, Yii::$app->user->identity->password_hash)) {
+            $form->addError('password', 'Current password is incorrect!');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $school = Schools::find()->where(['user_id' => $user_id]);
+        if (!$school->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "You do not have permission to delete this school");
+        }
+
+        if (!$school->one()->delete()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School account not deleted!');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'School account deleted successfully');
     }
 }
 

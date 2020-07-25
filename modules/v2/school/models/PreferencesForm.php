@@ -25,6 +25,9 @@ class PreferencesForm extends Model
     public $classes;
 
     public $user_id;
+    public $role;
+
+    public $password;
 
     public function rules()
     {
@@ -33,6 +36,8 @@ class PreferencesForm extends Model
             [['curriculum_id'], 'required', 'on' => 'update-curriculum'],
             [['name', 'description', 'classes'], 'required', 'on' => 'add-subject'],
             [['user_id'], 'required', 'on' => 'update-user'],
+            [['user_id','role'], 'required', 'on' => 'update-user-role'],
+            [['password'], 'required', 'on' => 'verify-password'],
 
         ];
     }

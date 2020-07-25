@@ -6,6 +6,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\SchoolCurriculum;
+use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
@@ -211,6 +212,29 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($mySubjects->all(), ApiResponse::SUCCESSFUL);
     }
 
+    public function actionChangeUserRole()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user-role']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
+        if (!$model->exists() || !SchoolRole::find()->where(['slug'=>$form->role,'status'=>1])->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist or role is not valid');
+
+        $model = $model->one();
+        $model->level = $form->role;
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'User has been disabled!');
+
+    }
+
     public function actionDeactivateUser()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -234,6 +258,29 @@ class PreferencesController extends ActiveController
 
     }
 
+    public function actionActivateUser()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id, 'status' => 0]);
+        if (!$model->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist or already active');
+
+        $model = $model->one();
+        $model->status = 1;
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'User has been enabled!');
+
+    }
+
     public function actionRemoveUser()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -248,7 +295,7 @@ class PreferencesController extends ActiveController
 
         $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
         if (!$model->exists())
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User does not exist');
 
         $model->one()->delete();
 
