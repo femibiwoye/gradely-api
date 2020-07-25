@@ -158,7 +158,7 @@ class FeedController extends ActiveController
         $provider = new \yii\data\ArrayDataProvider([
             'allModels' => $models,
             'pagination' => [
-                'pageSize' => 50,
+                'pageSize' => 4,
             ],
             'sort' => [
                 'attributes' => ['updated_at'],

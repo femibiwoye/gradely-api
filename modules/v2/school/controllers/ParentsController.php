@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Parents;
@@ -40,7 +41,7 @@ class ParentsController extends ActiveController
         ];
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
-            'class' => HttpBearerAuth::className(),
+            'class' => CustomHttpBearerAuth::className(),
         ];
 
         //Control user type that can access this
@@ -73,6 +74,7 @@ class ParentsController extends ActiveController
 
     public function actionIndex()
     {
+        // return date_default_timezone_get().' - '.date('d M Y h:i:s');
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $classes = StudentSchool::find()
             ->where(['school_id' => $school->id]);

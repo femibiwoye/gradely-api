@@ -45,9 +45,17 @@ class GeneralController extends Controller
     public function actionBoardingStatus()
     {
         $isBoarded = UserModel::findOne(Yii::$app->user->id)->is_boarded;
+
+        //TODO This populateSubjects here should be removed in production.
+        // It's temporarily here for development.
+        if (Yii::$app->user->identity->type = 'school') {
+            $classForm = new ClassForm();
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $classForm->populateSubjects($school);
+        }
+
+
         return (new ApiResponse)->success($isBoarded, null, $isBoarded == 1 ? 'User is boarded' : 'User has not boarded');
-
-
     }
 
     /**
