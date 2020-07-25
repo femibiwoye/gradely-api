@@ -114,7 +114,6 @@ class ClassForm extends Classes
             $model->subject_id = $subject->id;
             $model->save();
         }
-
         return true;
     }
 
