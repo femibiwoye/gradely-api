@@ -4,6 +4,7 @@ namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\Utility;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -150,13 +151,13 @@ class FeedController extends ActiveController
                 ['user_id' => Yii::$app->user->id],
                 ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
             ])
-            ->orderBy('id DESC')->all();
-        if (!$models) {
+            ->orderBy('id DESC');
+        if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
 
-        $provider = new \yii\data\ArrayDataProvider([
-            'allModels' => $models,
+        $provider = new ActiveDataProvider([
+            'query' => $models,
             'pagination' => [
                 'pageSize' => 4,
             ],
