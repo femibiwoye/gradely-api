@@ -6,6 +6,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Country;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\States;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use app\modules\v2\school\models\ClassForm;
@@ -87,6 +88,11 @@ class GeneralController extends Controller
     public function actionCountry()
     {
         return (new ApiResponse)->success(Country::find()->all());
+    }
+
+    public function actionState($country)
+    {
+        return (new ApiResponse)->success(States::find()->where(['country'=>$country])->all());
     }
 }
 
