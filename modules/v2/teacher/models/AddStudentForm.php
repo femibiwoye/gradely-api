@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\v2\teacher\models;
 
+use app\modules\v2\models\StudentSchool;
 use Yii;
 use yii\base\Model;
 use app\modules\v2\models\{Classes, SignupForm, Parents, GenerateString, User, InviteLog};
@@ -47,8 +48,24 @@ class AddStudentForm extends Model {
 			return false;
 		}
 
+		$this->addToClass($user);
+
 		return $user;
 	}
+
+    /**
+     * This add the student to class immediately teacher register the child
+     * @param $user
+     */
+	private function addToClass($user)
+    {
+        $model = new StudentSchool();
+        $model->class_id = $this->class_id;
+        $model->student_id = $user->id;
+        $model->school_id = Classes::findOne(['id'=>$this->class_id])->school_id;
+        $model->status = 1;
+        $model->save();
+    }
 
 	public function addStudents($type)
 	{
@@ -58,6 +75,8 @@ class AddStudentForm extends Model {
 				if (!$student = $this->addStudent($type, $student)) {
 					return false;
 				}
+
+
 
 				array_push($this->added_students, $student);
 			}

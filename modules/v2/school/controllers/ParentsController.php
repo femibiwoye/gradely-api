@@ -8,13 +8,10 @@ use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
-use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
 use yii\data\ActiveDataProvider;
-use yii\data\ArrayDataProvider;
 use yii\filters\AccessControl;
-use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 

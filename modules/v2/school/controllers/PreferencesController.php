@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\SchoolAdmin;
@@ -18,7 +19,6 @@ use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
-use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
 
 /**
@@ -40,10 +40,7 @@ class PreferencesController extends ActiveController
         ];
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
-            'class' => CompositeAuth::className(),
-            'authMethods' => [
-                HttpBearerAuth::className(),
-            ],
+            'class' => CustomHttpBearerAuth::className(),
         ];
 
         //Control user type that can access this
