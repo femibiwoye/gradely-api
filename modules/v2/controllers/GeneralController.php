@@ -4,7 +4,9 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Country;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\States;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use app\modules\v2\school\models\ClassForm;
@@ -44,9 +46,17 @@ class GeneralController extends Controller
     public function actionBoardingStatus()
     {
         $isBoarded = UserModel::findOne(Yii::$app->user->id)->is_boarded;
+
+        //TODO This populateSubjects here should be removed in production.
+        // It's temporarily here for development.
+        if (Yii::$app->user->identity->type == 'school') {
+            $classForm = new ClassForm();
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $classForm->populateSubjects($school);
+        }
+
+
         return (new ApiResponse)->success($isBoarded, null, $isBoarded == 1 ? 'User is boarded' : 'User has not boarded');
-
-
     }
 
     /**
@@ -56,7 +66,7 @@ class GeneralController extends Controller
     public function actionUpdateBoarding()
     {
         if (UserModel::updateAll(['is_boarded' => 1], ['id' => Yii::$app->user->id])) {
-            if (Yii::$app->user->identity->type = 'school') {
+            if (Yii::$app->user->identity->type == 'school') {
                 $classForm = new ClassForm();
                 $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
                 $classForm->populateSubjects($school);
@@ -73,6 +83,16 @@ class GeneralController extends Controller
         if ($user->type == 'school')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
         return (new ApiResponse)->success($user);
+    }
+
+    public function actionCountry()
+    {
+        return (new ApiResponse)->success(Country::find()->all());
+    }
+
+    public function actionState($country)
+    {
+        return (new ApiResponse)->success(States::find()->where(['country'=>$country])->all());
     }
 }
 

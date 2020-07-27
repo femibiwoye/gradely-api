@@ -4,6 +4,7 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\SchoolRole;
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
 use yii\filters\auth\CompositeAuth;
@@ -55,13 +56,13 @@ class InvitesController extends ActiveController
 
     public function actionSchoolAdmin()
     {
-
-        if (Yii::$app->user->identity->type != 'school')
-            return (new ApiResponse)->error(null, ApiResponse::BAD_REQUEST, 'You are not a valid user type');
-
-
         $form = new InviteLog(['scenario' => InviteLog::SCENARIO_SCHOOL_INVITE_ADMIN]);
         $form->attributes = Yii::$app->request->post();
+
+        if (Yii::$app->user->identity->type != 'school' || !SchoolRole::find()->where(['slug'=>$form->role])->exists())
+            return (new ApiResponse)->error(null, ApiResponse::BAD_REQUEST, 'You are not a valid user type or role');
+
+
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }

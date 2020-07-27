@@ -4,6 +4,7 @@ namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\Utility;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -54,7 +55,7 @@ class FeedController extends ActiveController
         }
 
         array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
-        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements).' records found!');
+        return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements) . ' records found!');
     }
 
     public function actionFeedComment($post_id)
@@ -150,21 +151,25 @@ class FeedController extends ActiveController
                 ['user_id' => Yii::$app->user->id],
                 ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
             ])
-            ->orderBy('id DESC')->all();
-        if (!$models) {
+            ->orderBy('id DESC');
+        if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
 
-        $provider = new \yii\data\ArrayDataProvider([
-            'allModels' => $models,
+        $provider = new ActiveDataProvider([
+            'query' => $models,
+//            'id' => function ($model) {
+//                return $model->id;
+//            },
             'pagination' => [
-                'pageSize' => 50,
+                'pageSize' => 2,
+                'validatePage'=>false,
             ],
             'sort' => [
                 'attributes' => ['updated_at'],
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Feeds found');
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' Feeds found');
     }
 }

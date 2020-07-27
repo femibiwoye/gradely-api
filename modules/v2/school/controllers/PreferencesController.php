@@ -2,9 +2,12 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
+use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\SchoolCurriculum;
+use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
@@ -16,7 +19,6 @@ use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
-use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
 
 /**
@@ -38,10 +40,7 @@ class PreferencesController extends ActiveController
         ];
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
-            'class' => CompositeAuth::className(),
-            'authMethods' => [
-                HttpBearerAuth::className(),
-            ],
+            'class' => CustomHttpBearerAuth::className(),
         ];
 
         //Control user type that can access this
@@ -175,7 +174,7 @@ class PreferencesController extends ActiveController
         }
 
         if (Subjects::find()->where(['name' => $form->name])->exists()) {
-            return (new ApiResponse)->error(null, ApiResponse::ALREADY_REPORTED,'Subject exist');
+            return (new ApiResponse)->error(null, ApiResponse::ALREADY_REPORTED, 'Subject exist');
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -184,6 +183,143 @@ class PreferencesController extends ActiveController
         }
 
         return (new ApiResponse)->success($model);
+    }
+
+    public function actionUsers()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $mySubjects = SchoolAdmin::find()
+            ->alias('s')
+            ->select([
+                //'s.id',
+                's.school_id',
+                's.user_id',
+                's.level',
+                's.status',
+                'u.firstname',
+                'u.lastname',
+                'u.email',
+                'u.image',
+                'r.title',
+                "'0' AS `owner`",
+            ])
+            ->where(['s.school_id' => $school->id])
+            ->innerJoin('user u', "u.id = s.user_id")
+            ->innerJoin('school_role r', "r.slug = s.level")
+            ->asArray()->all();
+
+        $schoolOwner = [
+            'school_id' => "$school->id",
+            'user_id' => "$school->user_id",
+            'level' => 'owner',
+            'status' => "1",
+            'firstname' => $school->user->firstname,
+            'lastname' => $school->user->lastname,
+            'email' => $school->user->email,
+            'image' => $school->user->image,
+            'title' => 'Owner',
+            'owner' => '1',
+        ];
+
+
+        //$all = $mySubjects->all();
+        array_unshift($mySubjects, $schoolOwner);
+
+        if (!$mySubjects) {
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No user available!');
+        }
+        return (new ApiResponse)->success($mySubjects, ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionChangeUserRole()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user-role']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
+        if (!$model->exists() || !SchoolRole::find()->where(['slug' => $form->role, 'status' => 1])->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist or role is not valid');
+
+        $model = $model->one();
+        $model->level = $form->role;
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'User has been disabled!');
+
+    }
+
+    public function actionDeactivateUser()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id, 'status' => 1]);
+        if (!$model->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist or already disabled');
+
+        $model = $model->one();
+        $model->status = 0;
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'User has been disabled!');
+
+    }
+
+    public function actionActivateUser()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id, 'status' => 0]);
+        if (!$model->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User either does not exist or already active');
+
+        $model = $model->one();
+        $model->status = 1;
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'User has been enabled!');
+
+    }
+
+    public function actionRemoveUser()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (Utility::getSchoolRole($school) != SharedConstant::SCHOOL_OWNER_ROLE)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot perform this action');
+
+        $form = new PreferencesForm(['scenario' => 'update-user']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
+        if (!$model->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User does not exist');
+
+        $model->one()->delete();
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User has been removed!');
+
     }
 
 

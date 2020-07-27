@@ -2,18 +2,16 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
-use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
 use yii\data\ActiveDataProvider;
-use yii\data\ArrayDataProvider;
 use yii\filters\AccessControl;
-use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 
@@ -40,7 +38,7 @@ class ParentsController extends ActiveController
         ];
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
-            'class' => HttpBearerAuth::className(),
+            'class' => CustomHttpBearerAuth::className(),
         ];
 
         //Control user type that can access this
@@ -73,6 +71,7 @@ class ParentsController extends ActiveController
 
     public function actionIndex()
     {
+        // return date_default_timezone_get().' - '.date('d M Y h:i:s');
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $classes = StudentSchool::find()
             ->where(['school_id' => $school->id]);
@@ -86,19 +85,13 @@ class ParentsController extends ActiveController
         $parentsID = Parents::findAll(['student_id' => $studentID]);
 
         $parentsList = UserModel::find()
-            ->where(['AND', ['id' => $parentsID, 'type' => 'parent'], ['<>', 'status', 0]])
-            ->all();
+            ->with(['parentChildren'])
+            ->where(['AND', ['id' => $parentsID, 'type' => 'parent'], ['<>', 'status', 0]]);
 
-        $parentLists = [];
-        foreach ($parentsList as $index => $parent) {
-            $children = $parent->parentChildren;
-            $parentLists[$index] = array_merge(ArrayHelper::toArray($parent), ['children' => ArrayHelper::toArray($children)]);
-        }
-
-         $dataProvider = new ArrayDataProvider([
-            'allModels' =>$parentLists,
+        $dataProvider = new ActiveDataProvider([
+            'query' => $parentsList,
             'sort' => [
-                'attributes' => ['id', 'firstname', 'lastname','email'],
+                'attributes' => ['id', 'firstname', 'lastname', 'email'],
                 'defaultOrder' => [
                     'id' => SORT_DESC,
                     'firstname' => SORT_ASC,
@@ -106,15 +99,10 @@ class ParentsController extends ActiveController
             ],
             'pagination' => [
                 //'defaultPageSize' => 1, //With this, you can specify how many number of content you want per page
-                'pageSize' => 30, // This is a fixed number of content to be rendered per page.
+                'pageSize' => 20, // This is a fixed number of content to be rendered per page.
             ],
         ]);
 
         return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, count($parentsID) . ' parents found');
     }
-
-    /**
-     * {@inheritdoc}
-     */
-
 }

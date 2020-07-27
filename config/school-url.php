@@ -19,14 +19,15 @@ return [
     ]],
 
     //School Profile
+    'GET v2/school/profile/school' => 'v2/school/profile/school',
     'PUT v2/school/profile/update-email' => 'v2/school/profile/update-email',
     'PUT v2/school/profile/update-password' => 'v2/school/profile/update-password',
     'PUT v2/school/profile' => 'v2/school/profile/update',
-    'GET v2/school/profile/preference' => 'v2/school/school/preference',
+    'GET v2/school/profile/preference' => 'v2/school/profile/preference',
     'PUT v2/school/profile/preference' => 'v2/school/profile/update-preference',
     'PUT v2/school/profile/update-school' => 'v2/school/profile/update-school',
-    'DELETE v2/school/profile/delete-personal' => 'v2/school/profile/delete-personal',
-    'DELETE v2/school/profile/delete-school' => 'v2/school/profile/delete-school',
+    'DELETE v2/school/profile/delete-personal' => 'v2/school/profile/delete-personal-account',
+    'DELETE v2/school/profile/delete-school' => 'v2/school/profile/delete-school-account',
 
     //School Preferences
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/preferences'], 'extraPatterns' => [
@@ -34,6 +35,11 @@ return [
         'POST new-curriculum' => 'new-curriculum',
         'PUT update-curriculum' => 'update-curriculum',
         'GET subjects' => 'subjects',
+        'GET users' => 'users',
         'POST add-subject' => 'add-subject',
+        'PUT activate-user' => 'activate-user',
+        'PUT change-user-role' => 'change-user-role',
+        'PUT deactivate-user' => 'deactivate-user',
+        'PUT remove-user' => 'remove-user',
     ]],
 ];

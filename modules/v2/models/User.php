@@ -125,7 +125,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
         return static::findOne(['token' => $token]);
 
-        if ($user = static::findOne(['AND', ['token' => $token], ['!=', 'status', self::STATUS_DELETED]])) {
+        if ($user = static::find()->where(['AND', ['token' => $token], ['<>', 'status', self::STATUS_DELETED]])->one()) {
             /**
              * This token is expired if expiry date is greater than current time.
              **/
@@ -136,6 +136,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
                 return $user;
             } else {
                 $user->token = null;
+                $user->token_expires = null;
                 $user->save();
             }
         }

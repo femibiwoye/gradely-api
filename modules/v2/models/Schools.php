@@ -42,7 +42,7 @@ class Schools extends \yii\db\ActiveRecord
             [['abbr'], 'string', 'max' => 10],
             [['city', 'state', 'country', 'website', 'contact_name', 'contact_email', 'contact_image', 'school_email', 'school_type'], 'string', 'max' => 100],
             [['postal_code', 'establish_date'], 'string', 'max' => 20],
-            [['contact_role'], 'string', 'max' => 50],
+            [['contact_role','timezone','boarding_type'], 'string', 'max' => 50],
             [['phone', 'phone2'], 'string', 'max' => 15],
 
             [['name', 'abbr'], 'required', 'on' => 'school_signup'],
@@ -83,6 +83,11 @@ class Schools extends \yii\db\ActiveRecord
     public function getSchoolOptions()
     {
         return $this->hasMany(SchoolOptions::className(), ['school_id' => 'id']);
+    }
+
+    public function getUser()
+    {
+        return $this->hasOne(User::className(), ['id' => 'user_id']);
     }
 
     public function getClasses()

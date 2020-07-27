@@ -11,6 +11,8 @@ return [
     //Onboarding
     'PUT v2/general/update-boarding' => 'v2/general/update-boarding',
     'GET v2/general/boarding-status' => 'v2/general/boarding-status',
+    'GET v2/general/country' => 'v2/general/country',
+    'GET v2/general/state' => 'v2/general/state',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',

@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
@@ -9,7 +10,6 @@ use app\modules\v2\models\Schools;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
 use yii\filters\AccessControl;
-use yii\filters\auth\HttpBearerAuth;
 use yii\rest\ActiveController;
 
 
@@ -35,7 +35,7 @@ class ClassesController extends ActiveController
         ];
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
-            'class' => HttpBearerAuth::className(),
+            'class' => CustomHttpBearerAuth::className(),
         ];
 
         //Control user type that can access this
