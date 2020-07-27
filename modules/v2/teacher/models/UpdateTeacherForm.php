@@ -17,9 +17,10 @@ class UpdateTeacherForm extends Model
     public $image;
     public $gender;
     public $phone;
-    public $dob;
-    public $mob;
-    public $yob;
+//    public $dob;
+//    public $mob;
+//    public $yob;
+    public $birth_date;
     public $address;
     public $street;
     public $country;
@@ -37,7 +38,8 @@ class UpdateTeacherForm extends Model
         return [
             [['firstname', 'lastname'], 'required'],
             [['firstname', 'lastname'], 'filter', 'filter' => 'trim'],
-            [['dob', 'mob', 'yob'], 'integer'],
+            //[['dob', 'mob', 'yob'], 'integer'],
+            [['birth_date'], 'date', 'format' => 'dd-mm-yyyy'],
             [['gender'], 'string', 'max' => 50],
             [['address', 'street', 'state', 'city', 'country', 'postal_code', 'about', 'image'], 'string', 'max' => 255],
 
@@ -85,6 +87,10 @@ class UpdateTeacherForm extends Model
     private function updateTeacherUserProfile()
     {
         $user_profile = UserProfile::find()->where(['user_id' => $this->user->id])->one();
+        $date = strtotime($this->birth_date);
+        $user_profile->dob = date('d', $date);
+        $user_profile->mob = date('m', $date);
+        $user_profile->yob = date('Y', $date);
         $user_profile->attributes = $this->attributes;
         if (!$user_profile->save()) {
             return false;

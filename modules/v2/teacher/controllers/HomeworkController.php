@@ -61,6 +61,29 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record inserted successfully');
     }
 
+    public function actionUpdate($homework_id) {
+        $model = $this->modelClass::findOne(['id' => $homework_id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record found!');
+        }
+
+        $form = new HomeworkForm;
+        $form->attributes = $model->attributes;
+        $form->attributes = Yii::$app->request->post();
+        $form->homework_model = $model;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $form->removeAttachments();
+
+        if (!$model = $form->updateHomework($model)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not updated!');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record updated successfully');        
+    }
+
     public function actionCreateLesson() {
         $form = new HomeworkForm;
         $form->attributes = Yii::$app->request->post();

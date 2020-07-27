@@ -26,6 +26,7 @@ class HomeworkForm extends Model {
 	public $close_date;
 	public $view_by;
 	public $homework_type;
+	public $homework_model;
 
 	public function rules()
 	{
@@ -45,6 +46,60 @@ class HomeworkForm extends Model {
 		];
 	}
 
+	public function updateHomework($model) {
+		$model->attributes = $this->attributes;
+		$dbtransaction = Yii::$app->db->beginTransaction();
+		try {
+			if (!$this->homework_model->save(false)) {
+				return false;
+			}
+
+			if (!$this->updatePracticeMaterial($model->id)) {
+				return false;
+			}
+
+			$dbtransaction->commit();
+		} catch (Exception $ex) {
+			$dbtransaction->rollBack();
+			return false;
+		}
+
+		return $this->homework_model;
+	}
+
+	public function updatePracticeMaterial($homework_id) {
+		if (empty($this->attachments)) {
+			return true;
+		}
+
+		foreach ($this->attachments as $attachment) {
+			if (isset($attachment['id'])) {
+				$model = PracticeMaterial::findOne(['id' => $attachment['id']]);
+			} else {
+				$model = new PracticeMaterial;
+				$model->user_id = $this->teacher_id;
+				$model->practice_id = $homework_id;
+			}
+
+			$model->attributes = $attachment;
+			if (!$model->save(false)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	public function removeAttachments() {
+		$remove_attachment_ids = array_diff(array_column($this->homework_model->practiceMaterials, 'id'), array_column($this->attachments, 'id'));
+		if ($remove_attachment_ids) {
+			$remove_attachment_ids = array_values($remove_attachment_ids);
+			PracticeMaterial::deleteAll(['id' => $remove_attachment_ids]);
+		}
+
+		return true;
+	}
+
 	public function createHomework() {
 		$model = new Homeworks;
 		$model->attributes = $this->attributes;
@@ -55,7 +110,7 @@ class HomeworkForm extends Model {
 				return false;
 			}
 
-			if (!$feed = $this->addFeed()) {
+			if (!$feed = $this->addFeed($model->id)) {
 				return false;
 			}
 
@@ -101,6 +156,7 @@ class HomeworkForm extends Model {
 			$model->attributes = $attachment;
 			$model->user_id = $this->teacher_id;
 			$model->practice_id = $homework_id;
+			$model->type = SharedConstant::PRACTICE_TYPES[1];
 			if (!$model->save(false)) {
 				return false;
 			}
@@ -109,12 +165,13 @@ class HomeworkForm extends Model {
 		return true;
 	}
 
-	public function addFeed() {
+	public function addFeed($homework_id) {
 		$model = new Feed;
 		$model->type = $this->homework_type ? $this->homework_type : SharedConstant::FEED_TYPES[2];
 		$model->class_id = $this->class_id;
 		$model->view_by = $this->view_by; 
 		$model->user_id = $this->teacher_id;
+		$model->reference_id = $homework_id;
 		if (!$model->save(false)) {
 			return false;
 		}
@@ -128,9 +185,14 @@ class HomeworkForm extends Model {
 		}
 
 		foreach ($this->attachments as $attachment) {
-			$model = new PracticeMaterial;
+			if (isset($attachment['id'])) {
+				$model = PracticeMaterial::findOne(['id' => $attachment['id']]);
+			} else {
+				$model = new PracticeMaterial;
+				$model->user_id = $this->teacher_id;
+			}
+
 			$model->attributes = $attachment;
-			$model->user_id = $this->teacher_id;
 			if (!$model->validate()) {
 				$this->addError($attachment->title . ' is not successfully validated!');
 			}
