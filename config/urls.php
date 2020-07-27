@@ -13,6 +13,7 @@ return [
     'GET v2/general/boarding-status' => 'v2/general/boarding-status',
     'GET v2/general/country' => 'v2/general/country',
     'GET v2/general/state' => 'v2/general/state',
+    'GET v2/general/timezone' => 'v2/general/timezone',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',
@@ -56,6 +57,7 @@ return [
     'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
     'PUT v2/teacher/homework/<homework_id:\d+>/restart' => 'v2/teacher/homework/restart-homework',
     'POST v2/teacher/homework' => 'v2/teacher/homework/create',
+    'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

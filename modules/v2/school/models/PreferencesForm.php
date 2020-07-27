@@ -28,6 +28,7 @@ class PreferencesForm extends Model
     public $role;
 
     public $password;
+    public $timezone;
 
     public function rules()
     {
@@ -38,6 +39,7 @@ class PreferencesForm extends Model
             [['user_id'], 'required', 'on' => 'update-user'],
             [['user_id','role'], 'required', 'on' => 'update-user-role'],
             [['password'], 'required', 'on' => 'verify-password'],
+            [['timezone'], 'required', 'on' => 'update-timezone'],
 
         ];
     }

@@ -11,6 +11,7 @@ use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
+use app\modules\v2\models\Timezone;
 use app\modules\v2\school\models\PreferencesForm;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
@@ -319,6 +320,27 @@ class PreferencesController extends ActiveController
         $model->one()->delete();
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User has been removed!');
+
+    }
+
+
+    public function actionTimezone()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $form = new PreferencesForm(['scenario' => 'update-timezone']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!Timezone::find()->where(['name' => $form->timezone])->exists()) {
+            $form->addError('timezone', 'Unknown timezone is provided');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+        $school->timezone = $form->timezone;
+        $school->save();
+        return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'Timezone updated');
 
     }
 

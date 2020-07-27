@@ -12,6 +12,7 @@ use app\modules\v2\components\SharedConstant;
 class HomeworkForm extends Model {
 
 	public $attachments;
+	public $feed_attachments;
 	public $teacher_id;
 	public $subject_id;
 	public $class_id;
@@ -24,6 +25,7 @@ class HomeworkForm extends Model {
 	public $open_date;
 	public $close_date;
 	public $view_by;
+	public $homework_type;
 
 	public function rules()
 	{
@@ -31,13 +33,14 @@ class HomeworkForm extends Model {
 			[['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'slug', 'title', 'topic_id', 'curriculum_id', 'open_date', 'close_date'], 'required'],
 			[['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id'], 'integer'],
 			[['open_date', 'close_date'], 'safe'],
-			[['slug', 'title'], 'string', 'max' => 255],
+			[['slug', 'title', 'homework_type'], 'string', 'max' => 255],
 			['class_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id']],
 			['teacher_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id']],
 			['subject_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id', 'subject_id' => 'subject_id']],
 			['school_id', 'exist', 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],
 			['exam_type_id', 'exist', 'targetClass' => ExamType::className(), 'targetAttribute' => ['exam_type_id' => 'id']],
 			['attachments', 'validateAttachment'],
+			['feed_attachments', 'validateFeedAttachments'],
 			['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
 		];
 	}
@@ -45,9 +48,14 @@ class HomeworkForm extends Model {
 	public function createHomework() {
 		$model = new Homeworks;
 		$model->attributes = $this->attributes;
+		$model->type = $this->homework_type;
 		$dbtransaction = Yii::$app->db->beginTransaction();
 		try {
 			if (!$model->save(false)) {
+				return false;
+			}
+
+			if (!$feed = $this->addFeed()) {
 				return false;
 			}
 
@@ -55,7 +63,7 @@ class HomeworkForm extends Model {
 				return false;
 			}
 
-			if (!$this->addFeed()) {
+			if ($this->feed_attachments && !$this->addFeedAttachment($feed->id)) {
 				return false;
 			}
 
@@ -66,6 +74,21 @@ class HomeworkForm extends Model {
 		}
 
 		return $model;
+	}
+
+	public function addFeedAttachment($feed_id) {
+		foreach ($this->feed_attachments as $feed_attachment) {
+			$model = new PracticeMaterial;
+			$model->attributes = $feed_attachment;
+			$model->user_id = $this->teacher_id;
+			$model->practice_id = $feed_id;
+			$model->type = SharedConstant::FEED_TYPE;
+			if (!$model->save(false)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public function addPracticeMaterial($homework_id) {
@@ -88,7 +111,7 @@ class HomeworkForm extends Model {
 
 	public function addFeed() {
 		$model = new Feed;
-		$model->type = SharedConstant::FEED_TYPES[2];
+		$model->type = $this->homework_type ? $this->homework_type : SharedConstant::FEED_TYPES[2];
 		$model->class_id = $this->class_id;
 		$model->view_by = $this->view_by; 
 		$model->user_id = $this->teacher_id;
@@ -96,10 +119,27 @@ class HomeworkForm extends Model {
 			return false;
 		}
 
-		return true;
+		return $model;
 	}
 
 	public function validateAttachment() {
+		if (empty($this->attachments)) {
+			return true;
+		}
+
+		foreach ($this->attachments as $attachment) {
+			$model = new PracticeMaterial;
+			$model->attributes = $attachment;
+			$model->user_id = $this->teacher_id;
+			if (!$model->validate()) {
+				$this->addError($attachment->title . ' is not successfully validated!');
+			}
+		}
+
+		return true;
+	}
+
+	public function validateFeedAttachments() {
 		if (empty($this->attachments)) {
 			return true;
 		}
