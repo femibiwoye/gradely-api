@@ -13,6 +13,7 @@ return [
     'GET v2/general/boarding-status' => 'v2/general/boarding-status',
     'GET v2/general/country' => 'v2/general/country',
     'GET v2/general/state' => 'v2/general/state',
+    'GET v2/general/timezone' => 'v2/general/timezone',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',
