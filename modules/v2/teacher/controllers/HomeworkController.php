@@ -49,6 +49,7 @@ class HomeworkController extends ActiveController
         $form = new HomeworkForm;
         $form->attributes = Yii::$app->request->post();
         $form->teacher_id = Yii::$app->user->id;
+        $form->homework_type = SharedConstant::FEED_TYPES[2];
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
