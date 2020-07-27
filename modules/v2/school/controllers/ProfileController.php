@@ -185,7 +185,7 @@ class ProfileController extends ActiveController
         }
         //$model->attributes = $form->attributes;
         if (!$form->updateSchool($model)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User preference not updated');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School profile not updated');
         }
 
         return (new ApiResponse)->success($model);
