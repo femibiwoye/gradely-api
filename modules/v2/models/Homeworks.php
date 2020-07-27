@@ -5,33 +5,8 @@ namespace app\modules\v2\models;
 use Yii;
 use app\modules\v2\components\SharedConstant;
 
-/**
- * This is the model class for table "homeworks".
- *
- * @property int $id
- * @property int $teacher_id
- * @property int $subject_id
- * @property int $class_id
- * @property int $school_id
- * @property int $exam_type_id
- * @property string $slug
- * @property string $title
- * @property string|null $description
- * @property int $topic_id
- * @property int $curriculum_id
- * @property int $publish_status
- * @property string $access_status
- * @property string $open_date
- * @property string $close_date
- * @property int|null $duration Duration should be in minutes 
- * @property int $status
- * @property string $created_at
- */
 class Homeworks extends \yii\db\ActiveRecord
 {
-	/**
-	 * {@inheritdoc}
-	 */
 	private $homework_annoucements = [];
 	public static function tableName()
 	{
@@ -156,6 +131,10 @@ class Homeworks extends \yii\db\ActiveRecord
     	}
 
     	return true;
+    }
+
+    public function getPracticeMaterials() {
+    	return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id']);
     }
 
 }
