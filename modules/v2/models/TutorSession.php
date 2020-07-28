@@ -4,6 +4,32 @@ namespace app\modules\v2\models;
 
 use Yii;
 
+/**
+ * This is the model class for table "tutor_session".
+ *
+ * @property int $id
+ * @property int $requester_id
+ * @property int|null $student_id
+ * @property string|null $title
+ * @property string $repetition
+ * @property int|null $class
+ * @property int|null $subject_id
+ * @property int $session_count
+ * @property int|null $curriculum_id
+ * @property string $category Either paid, free, covid19 or class
+ * @property string|null $availability
+ * @property int $is_school
+ * @property string|null $preferred_client
+ * @property string|null $meeting_token For daily.co, this is used to set the host
+ * @property string|null $meeting_room this is use to determine the room for this class
+ * @property string|null $meta Any additional data
+ * @property string $status
+ * @property string $created_at
+ *
+ * @property ClassAttendance[] $classAttendances
+ * @property TutorSessionTiming[] $tutorSessionTimings
+ */
+
 class TutorSession extends \yii\db\ActiveRecord {
 	/**
 	 * {@inheritdoc}
