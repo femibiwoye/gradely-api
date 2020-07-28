@@ -107,7 +107,6 @@ class Feed extends \yii\db\ActiveRecord
 
     public function savePost()
     {
-
         $form = new Feed();
         $form->attributes = Yii::$app->request->post();
         $form->teacher_id = Yii::$app->user->id;
@@ -124,6 +123,47 @@ class Feed extends \yii\db\ActiveRecord
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 
+    }
+
+    public function saveVideoFeed()
+    {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$model = $this->save(false)) {
+                return false;
+            }
+
+            if (!$this->attachmentSave($this->id)) {
+                return false;
+            }
+
+            $dbtransaction->commit();
+        } catch (Exception $ex) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+
+        return $this;
+    }
+
+    public function attachmentSave($feed_id)
+    {
+        $file = Yii::$app->request->post('file');
+        if (!$file) {
+            return false;
+        }
+
+        $model = new PracticeMaterial;
+        $model->attributes = $file;
+        $model->filetype = SharedConstant::FEED_TYPES[4];
+        $model->raw = SharedConstant::PRACTICE_TYPES[0];
+        $model->user_id = $this->user_id;
+        $model->practice_id = $feed_id;
+        if (!$model->save()) {
+            return false;
+        }
+
+        return true;
     }
 
     public function teacherViewBy($value)
