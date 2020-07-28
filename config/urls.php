@@ -60,6 +60,9 @@ return [
     'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
     'PUT v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/update',
 
+    //Reports
+    'GET v2/teacher/library/documents' => 'v2/teacher/library/index',
+
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin',
