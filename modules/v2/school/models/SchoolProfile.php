@@ -20,7 +20,10 @@ class SchoolProfile extends Schools
             [['school_type', 'naming_format'], 'required', 'on' => 'format-type'],
             ['naming_format', 'validateFormat', 'on' => 'format-type'],
 
-            [['name', 'about', 'address', 'city', 'state', 'country', 'phone', 'school_email', 'contact_name', 'contact_email', 'phone', 'contact_role', 'establish_date'], 'required',
+            [['name', 'tagline', 'address', 'city', 'state', 'country', 'phone', 'school_email', 'contact_name', 'contact_email', 'phone', 'contact_role', 'establish_date'], 'required',
+                'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
+            ],
+            [['logo', 'about', 'banner', 'website', 'contact_image', 'postal_code', 'boarding_type'], 'safe',
                 'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
             ]
         ];
