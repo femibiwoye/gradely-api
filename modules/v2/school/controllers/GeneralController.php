@@ -5,13 +5,17 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Classes;
+use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\SchoolNamingFormat;
 use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolType;
+use app\modules\v2\models\TutorSession;
 use app\modules\v2\school\models\SchoolProfile;
 use Yii;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 
 
@@ -68,6 +72,69 @@ class GeneralController extends ActiveController
         return $actions;
     }
 
+
+    public function actionSummary($startRange = null, $endRange = null)
+    {
+
+        $dateTime = date('Y-m-d H:i:s');
+
+        $allHomeWorkCount = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1])->count();
+
+        $pastHomework = Homeworks::find()
+            ->where(['AND', ['school_id' => Utility::getSchoolAccess()], ['<', 'close_date', $dateTime]
+            ])->count();
+
+        $activeHomeWork = Homeworks::find()->where(['AND',
+            ['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'access_status' => 1],
+            ['>', 'close_date', $dateTime],
+            ['<', 'open_date', $dateTime],
+        ])->count();
+
+        $yetToStartHomeWork = Homeworks::find()->where([
+            'AND',
+            [
+                'school_id' => Utility::getSchoolAccess(),
+                'status' => 1,
+                'publish_status' => 1],
+            ['>', 'open_date', $dateTime]
+        ])->count();
+
+
+        $schoolClasses = ArrayHelper::getColumn(Classes::find()->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
+
+        $liveClassSessions = TutorSession::find()
+            ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses])
+            ->count();
+
+        $pendingSessions = TutorSession::find()
+            ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses, 'status' => 'pending'])
+            ->count();
+
+
+        $ongoingSessions = TutorSession::find()
+            ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses, 'status' => 'ongoing'])
+            ->count();
+
+
+        $completedSessions = TutorSession::find()
+            ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses, 'status' => 'completed'])
+            ->count();
+
+
+        $data = [
+            'allHomework' => $allHomeWorkCount,
+            'pastHomework' => $pastHomework,
+            'activeHomeWork' => $activeHomeWork,
+            'yetToStartHomeWork' => $yetToStartHomeWork,
+            //'homeworkRange' => $homeworkRange,
+            'liveClassSessions' => $liveClassSessions,
+            'pendingSessions' => $pendingSessions,
+            'ongoingSessions' => $ongoingSessions,
+            'completedSessions' => $completedSessions
+        ];
+
+        return (new ApiResponse)->success($data, ApiResponse::SUCCESSFUL);
+    }
 
     /**
      * This returns school types.

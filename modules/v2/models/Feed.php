@@ -5,6 +5,32 @@ namespace app\modules\v2\models;
 use Yii;
 use app\modules\v2\components\SharedConstant;
 
+/**
+ * This is the model class for table "feed".
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $reference_id it is a post created for homework or live class or any other activities that is not just a plain text post.
+ * @property string|null $subject_id If the post is related to a subject
+ * @property string|null $description This is body of post
+ * @property string|null $type Post is plain text, homework is homework related post, lesson is live class, recommendation is for recommendation post
+ * @property int|null $likes
+ * @property string $token Is a unique string for each post. Case be used to share or access post.
+ * @property int|null $class_id class_id from classes table.
+ * @property int|null $global_class_id
+ * @property string|null $view_by Who can see it. school means all member of school, teacher, student, parent. \nTeacher means teachers in class only. \nClass means teachers, students and parents in class. \nParent means parents of students in a class only. Student on teacher end means to be seen by student only.
+ * @property int $status 1 means post can be seem, 0 means post should not be seen.
+ * @property string $created_at
+ * @property string|null $updated_at
+ * @property string|null $tag
+ *
+ * @property Classes $class
+ * @property GlobalClass $globalClass
+ * @property Homeworks $reference
+ * @property User $user
+ * @property FeedComment[] $feedComments
+ */
+
 class Feed extends \yii\db\ActiveRecord
 {
     /**
@@ -75,7 +101,29 @@ class Feed extends \yii\db\ActiveRecord
             'class',
             'global_class_id' => 'globalClass',
             'comment' => 'miniComment',
+            'attachments' => 'attachments',
         ];
+    }
+
+    public function savePost()
+    {
+
+        $form = new Feed();
+        $form->attributes = Yii::$app->request->post();
+        $form->teacher_id = Yii::$app->user->id;
+        $form->homework_type = SharedConstant::FEED_TYPES[3];
+        $form->attachments = Yii::$app->request->post('lesson_notes');
+        $form->feed_attachments = Yii::$app->request->post('feed_attachments');
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!$model = $form->createHomework()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Lesson record not inserted!');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
+
     }
 
     public function teacherViewBy($value)
@@ -159,6 +207,11 @@ class Feed extends \yii\db\ActiveRecord
         }
 
         return true;
+    }
+
+    public function getAttachments()
+    {
+        return $this->hasMany(PracticeMaterial::className(),['practice_id'=>'id']);
     }
 
     public function beforeSave($insert)

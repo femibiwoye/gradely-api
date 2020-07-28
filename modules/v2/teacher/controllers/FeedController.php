@@ -3,6 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\Utility;
+use app\modules\v2\teacher\models\PostForm;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
@@ -129,20 +130,23 @@ class FeedController extends ActiveController
 
     public function actionCreate()
     {
-        $model = new Feed;
+        $model = new PostForm(['scenario' => 'new-post']);
         $model->attributes = Yii::$app->request->post();
-        $model->user_id = Yii::$app->user->id;
-
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        if (!$model->save(false)) {
+        if (!$response = $model->newPost()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Announcement not made');
         }
 
-        return (new ApiResponse)->success(ArrayHelper::toArray($model), ApiResponse::SUCCESSFUL, 'Announcement made successfully');
+        return (new ApiResponse)->success(ArrayHelper::toArray($response), ApiResponse::SUCCESSFUL, 'Announcement made successfully');
     }
+
+
+
+
+
 
     public function actionIndex()
     {

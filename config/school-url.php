@@ -5,6 +5,7 @@ return [
     'GET v2/school/parents' => 'v2/school/parents',
 
     //School General
+    'GET v2/school/summary' => 'v2/school/general/summary',
     'GET v2/school/general/school-type' => 'v2/school/general/school-type',
     'GET v2/school/general/school-naming-format' => 'v2/school/general/school-naming-format',
     'GET v2/school/general/school-roles' => 'v2/school/general/school-roles',
