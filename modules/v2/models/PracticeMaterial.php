@@ -27,6 +27,21 @@ class PracticeMaterial extends \yii\db\ActiveRecord
 		];
 	}
 
+	public function fields()
+	{
+		return [
+			'title',
+			'extension',
+			'created_at',
+			'filename',
+			'filetype',
+			'extension',
+			'raw',
+			'description',
+			'updated_at'
+		];
+	}
+
 	public function attributeLabels()
 	{
 		return [
