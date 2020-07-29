@@ -86,7 +86,7 @@ class StudentProfile extends User
             ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.teacher_id = " . Yii::$app->user->id)
             ->count();
 
-        return $studentCount / $homeworkCount * 100;
+        return $homeworkCount > 0 ? $studentCount / $homeworkCount * 100 : 0;
 
         $attempted_questions = 0;
         foreach ($this->homework as $homework) {

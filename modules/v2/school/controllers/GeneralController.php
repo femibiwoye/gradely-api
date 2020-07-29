@@ -7,6 +7,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Homeworks;
+use app\modules\v2\models\RequestCall;
 use app\modules\v2\models\SchoolNamingFormat;
 use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
@@ -176,6 +177,25 @@ class GeneralController extends ActiveController
     public function actionSchoolRoles()
     {
         return (new ApiResponse)->success(SchoolRole::find()->select('title, slug')->where(['status' => 1])->all(), ApiResponse::SUCCESSFUL, 'Found');
+
+    }
+
+    public function actionRequestCall()
+    {
+
+        $form = new RequestCall(['scenario' => 'new-call']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $form->user_id = $school->id;
+        if (!$form->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully requested.');
+        }
+
+        return (new ApiResponse)->success($form);
 
     }
 

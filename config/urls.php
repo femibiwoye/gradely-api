@@ -62,9 +62,11 @@ return [
 
     //Reports
     'GET v2/teacher/library/documents' => 'v2/teacher/library/index',
+    'POST v2/teacher/library/video' => 'v2/teacher/library/feed-video',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin',
+        'POST school-teacher' => 'school-teacher',
     ]],
 ];

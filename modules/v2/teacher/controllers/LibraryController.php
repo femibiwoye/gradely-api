@@ -5,7 +5,7 @@ namespace app\modules\v2\teacher\controllers;
 use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{TeacherClass, ApiResponse};
+use app\modules\v2\models\{TeacherClass, ApiResponse, Feed};
 use app\modules\v2\components\SharedConstant;
 
 class LibraryController extends ActiveController
@@ -90,5 +90,20 @@ class LibraryController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');	
+	}
+
+	public function actionFeedVideo() {
+		$model = new Feed;
+		$model->attributes = Yii::$app->request->post();
+		$model->user_id = Yii::$app->user->id;
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated!');
+		}
+
+		if (!$model->saveVideoFeed()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not inserted');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record inserted');
 	}
 }
