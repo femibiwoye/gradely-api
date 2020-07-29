@@ -59,7 +59,7 @@ class InvitesController extends ActiveController
         $form = new InviteLog(['scenario' => InviteLog::SCENARIO_SCHOOL_INVITE_ADMIN]);
         $form->attributes = Yii::$app->request->post();
 
-        if (Yii::$app->user->identity->type != 'school' || !SchoolRole::find()->where(['slug'=>$form->role])->exists())
+        if (Yii::$app->user->identity->type != 'school' || !SchoolRole::find()->where(['slug' => $form->role])->exists())
             return (new ApiResponse)->error(null, ApiResponse::BAD_REQUEST, 'You are not a valid user type or role');
 
 
@@ -71,6 +71,27 @@ class InvitesController extends ActiveController
 
         if (!$model = $form->schoolInviteAdmin($school)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not invite school user');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
+
+    public function actionSchoolTeacher()
+    {
+        $form = new InviteLog(['scenario' => InviteLog::SCENARIO_SCHOOL_INVITE_TEACHER]);
+        $form->attributes = Yii::$app->request->post();
+
+        if (Yii::$app->user->identity->type != 'school')
+            return (new ApiResponse)->error(null, ApiResponse::BAD_REQUEST, 'You are not a valid user');
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $form->sender_id = $school->id;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!$model = $form->schoolInviteTeacher()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not invite teacher');
         }
 
         return (new ApiResponse)->success($model);

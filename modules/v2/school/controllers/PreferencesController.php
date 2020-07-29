@@ -174,10 +174,6 @@ class PreferencesController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        if (Subjects::find()->where(['name' => $form->name])->exists()) {
-            return (new ApiResponse)->error(null, ApiResponse::ALREADY_REPORTED, 'Subject exist');
-        }
-
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         if (!$model = $form->addSubject($school)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not created');
