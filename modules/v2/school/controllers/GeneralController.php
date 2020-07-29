@@ -79,14 +79,14 @@ class GeneralController extends ActiveController
 
         $dateTime = date('Y-m-d H:i:s');
 
-        $allHomeWorkCount = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1])->count();
+        $allHomeWorkCount = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1,'status'=>1])->count();
 
         $pastHomework = Homeworks::find()
-            ->where(['AND', ['school_id' => Utility::getSchoolAccess()], ['<', 'close_date', $dateTime]
+            ->where(['AND', ['school_id' => Utility::getSchoolAccess(),'status'=>1], ['<', 'close_date', $dateTime]
             ])->count();
 
         $activeHomeWork = Homeworks::find()->where(['AND',
-            ['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'access_status' => 1],
+            ['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'access_status' => 1,'status'=>1],
             ['>', 'close_date', $dateTime],
             ['<', 'open_date', $dateTime],
         ])->count();

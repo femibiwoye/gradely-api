@@ -108,6 +108,8 @@ class Homeworks extends \yii\db\ActiveRecord
 			'close_date',
 			'score',
 			'status' => 'statusMessage',
+            'topics',
+            'attachments'
 		];
 	}
 
@@ -176,6 +178,21 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getPracticeMaterials() {
     	return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id']);
+    }
+
+    public function getTopicsID()
+    {
+        return $this->hasMany(PracticeTopics::className(),['practice_id'=>'id']);
+    }
+
+    public function getTopics()
+    {
+        return $this->hasMany(SubjectTopics::className(),['id'=>'topic_id'])->via('topicsID');
+    }
+
+    public function getAttachments()
+    {
+        return $this->hasMany(PracticeMaterial::className(),['practice_id'=>'id'])->andWhere(['type'=>'practice']);
     }
 
 }
