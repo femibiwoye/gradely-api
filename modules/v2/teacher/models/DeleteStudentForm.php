@@ -18,7 +18,7 @@ class DeleteStudentForm extends Model {
 		return [
 			[['student_id', 'class_id', 'teacher_id'], 'required'],
 			['class_id', 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => 'id'],
-			['teacher_id', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['teacher_id' => 'teacher_id', 'class_id' => 'class_id'], 'message' => 'Class belongs to other teacher'],
+			['teacher_id', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['teacher_id' => 'teacher_id', 'class_id' => 'class_id'], 'message' => 'Class belong to other teacher'],
 			['class_id', 'exist', 'targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'student_id' => 'student_id'], 'message' => 'Student does not exist in this class'],
 		];
 	}
