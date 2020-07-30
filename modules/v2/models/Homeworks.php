@@ -107,13 +107,18 @@ class Homeworks extends \yii\db\ActiveRecord
 			'open_date',
 			'close_date',
 			'score',
-			'status' => 'statusMessage',
+			'status' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
 			'expiry_status' => 'expiryStatus',
-			'publish_status' => 'publishStatus'
+			'publish_status' => 'publishStatus',
             'topics',
             'attachments'
 		];
 	}
+
+    public static function find()
+    {
+        return parent::find()->where(['status' => 1]);
+    }
 
 	public function getExpiryStatus() {
 		if (time() > strtotime($this->close_date)) {
@@ -124,7 +129,7 @@ class Homeworks extends \yii\db\ActiveRecord
 	}
 
 	public function getPublishStatus() {
-		return $this->status;
+		return $this->publish_status;
 	}
 
 	public function getSubject() {
@@ -141,7 +146,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
 	public function getScore() {
 		if (!$this->quizSummary) {
-			return '';
+			return null;
 		}
 
 		return $this->quizSummary->score;
