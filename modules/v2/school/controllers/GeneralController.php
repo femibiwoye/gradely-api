@@ -7,6 +7,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Homeworks;
+use app\modules\v2\models\RequestCall;
 use app\modules\v2\models\SchoolNamingFormat;
 use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
@@ -78,14 +79,14 @@ class GeneralController extends ActiveController
 
         $dateTime = date('Y-m-d H:i:s');
 
-        $allHomeWorkCount = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1])->count();
+        $allHomeWorkCount = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1,'status'=>1])->count();
 
         $pastHomework = Homeworks::find()
-            ->where(['AND', ['school_id' => Utility::getSchoolAccess()], ['<', 'close_date', $dateTime]
+            ->where(['AND', ['school_id' => Utility::getSchoolAccess(),'status'=>1], ['<', 'close_date', $dateTime]
             ])->count();
 
         $activeHomeWork = Homeworks::find()->where(['AND',
-            ['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'access_status' => 1],
+            ['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'access_status' => 1,'status'=>1],
             ['>', 'close_date', $dateTime],
             ['<', 'open_date', $dateTime],
         ])->count();
@@ -176,6 +177,25 @@ class GeneralController extends ActiveController
     public function actionSchoolRoles()
     {
         return (new ApiResponse)->success(SchoolRole::find()->select('title, slug')->where(['status' => 1])->all(), ApiResponse::SUCCESSFUL, 'Found');
+
+    }
+
+    public function actionRequestCall()
+    {
+
+        $form = new RequestCall(['scenario' => 'new-call']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $form->user_id = $school->id;
+        if (!$form->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully requested.');
+        }
+
+        return (new ApiResponse)->success($form);
 
     }
 

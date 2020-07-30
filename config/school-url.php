@@ -1,6 +1,10 @@
 <?php
 
 return [
+
+    //School Teacher
+    'GET v2/school/teacher' => 'v2/school/teacher/index',
+
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
 
@@ -10,6 +14,7 @@ return [
     'GET v2/school/general/school-naming-format' => 'v2/school/general/school-naming-format',
     'GET v2/school/general/school-roles' => 'v2/school/general/school-roles',
     'PUT v2/school/general/update-format-type' => 'v2/school/general/update-format-type',
+    'POST v2/school/general/request-call' => 'v2/school/general/request-call',
 
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
@@ -44,4 +49,6 @@ return [
         'PUT remove-user' => 'remove-user',
         'PUT timezone' => 'timezone'
     ]],
+
+
 ];
