@@ -61,7 +61,7 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCreate()
+    public function actionCreate($type)
     {
         $form = new HomeworkForm(['scenario' => 'create-homework']);
         $form->attributes = Yii::$app->request->post();
@@ -74,11 +74,18 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        if (!$model = $form->createHomework()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not inserted!');
+
+        if (!in_array($type,SharedConstant::HOMEWORK_TYPES)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Invalid type value');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record inserted successfully');
+        $typeName = ucfirst($type);
+
+        if (!$model = $form->createHomework($type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $typeName . ' record not inserted!');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, $typeName . ' record inserted successfully');
     }
 
     public function actionUpdate($homework_id)
@@ -104,24 +111,23 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record updated successfully');
     }
 
-    public function actionCreateLesson()
-    {
-        $form = new HomeworkForm;
-        $form->attributes = Yii::$app->request->post();
-        $form->teacher_id = Yii::$app->user->id;
-        $form->homework_type = SharedConstant::FEED_TYPES[3];
-        $form->attachments = Yii::$app->request->post('lesson_notes');
-        $form->feed_attachments = Yii::$app->request->post('feed_attachments');
-        if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        if (!$model = $form->createHomework()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Lesson record not inserted!');
-        }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
-    }
+//    public function actionCreateLesson()
+//    {
+//        $form = new HomeworkForm;
+//        $form->attributes = Yii::$app->request->post();
+//        $form->teacher_id = Yii::$app->user->id;
+//        $form->attachments = Yii::$app->request->post('lesson_notes');
+//        $form->feed_attachments = Yii::$app->request->post('feed_attachments');
+//        if (!$form->validate()) {
+//            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//        }
+//
+//        if (!$model = $form->createHomework('lesson')) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Lesson record not inserted!');
+//        }
+//
+//        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
+//    }
 
     public function actionClassHomeworks($class_id = null)
     {
