@@ -132,9 +132,9 @@ class HomeworkController extends ActiveController
     public function actionClassHomeworks($class_id = null)
     {
         if ($class_id) {
-            $model = $this->modelClass::find()->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1])->all();
+            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1])->all();
         } else
-            $model = $this->modelClass::find()->where(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1])->all();
+            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1])->all();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
@@ -145,7 +145,7 @@ class HomeworkController extends ActiveController
 
     public function actionHomework($homework_id)
     {
-        $model = $this->modelClass::find()->where(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id])->one();
+        $model = $this->modelClass::find()->andWhere(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id])->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
         }
@@ -171,7 +171,7 @@ class HomeworkController extends ActiveController
     public function actionExtendDate($homework_id)
     {
         $close_date = Yii::$app->request->post('close_date');
-        $model = Homeworks::find()->where(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->one();
+        $model = Homeworks::find()->andWhere(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->one();
         if (!$model || ($model->teacher_id != Yii::$app->user->id)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
         }
