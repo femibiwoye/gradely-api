@@ -61,9 +61,9 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCreate()
+    public function actionCreate($type)
     {
-        $form = new HomeworkForm;
+        $form = new HomeworkForm(['scenario' => 'create-homework']);
         $form->attributes = Yii::$app->request->post();
 
         $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
@@ -74,29 +74,35 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        if (!$model = $form->createHomework()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not inserted!');
+
+        if (!in_array($type,SharedConstant::HOMEWORK_TYPES)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Invalid type value');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record inserted successfully');
+        $typeName = ucfirst($type);
+
+        if (!$model = $form->createHomework($type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $typeName . ' record not inserted!');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, $typeName . ' record inserted successfully');
     }
 
     public function actionUpdate($homework_id)
     {
-        $model = $this->modelClass::findOne(['id' => $homework_id]);
+        $model = $this->modelClass::findOne(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record found!');
         }
 
-        $form = new HomeworkForm;
-        $form->attributes = $model->attributes;
+        $form = new HomeworkForm(['scenario' => 'update-homework']);
         $form->attributes = Yii::$app->request->post();
-        $form->homework_model = $model;
+        //$form->homework_model = $model;
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
-
-        $form->removeAttachments();
+        //$form->attributes = $model->attributes;
+        //$form->removeAttachments();
 
         if (!$model = $form->updateHomework($model)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not updated!');
@@ -105,39 +111,36 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record updated successfully');
     }
 
-    public function actionCreateLesson()
+//    public function actionCreateLesson()
+//    {
+//        $form = new HomeworkForm;
+//        $form->attributes = Yii::$app->request->post();
+//        $form->teacher_id = Yii::$app->user->id;
+//        $form->attachments = Yii::$app->request->post('lesson_notes');
+//        $form->feed_attachments = Yii::$app->request->post('feed_attachments');
+//        if (!$form->validate()) {
+//            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//        }
+//
+//        if (!$model = $form->createHomework('lesson')) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Lesson record not inserted!');
+//        }
+//
+//        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
+//    }
+
+    public function actionClassHomeworks($class_id = null)
     {
-        $form = new HomeworkForm;
-        $form->attributes = Yii::$app->request->post();
-        $form->teacher_id = Yii::$app->user->id;
-        $form->homework_type = SharedConstant::FEED_TYPES[3];
-        $form->attachments = Yii::$app->request->post('lesson_notes');
-        $form->feed_attachments = Yii::$app->request->post('feed_attachments');
-        if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
+        if ($class_id) {
+            $model = $this->modelClass::find()->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1])->all();
+        } else
+            $model = $this->modelClass::find()->where(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1])->all();
 
-        if (!$model = $form->createHomework()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Lesson record not inserted!');
-        }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
-    }
-
-    public function actionClassHomeworks($class_id)
-    {
-        $model = Classes::findOne(['id' => $class_id]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
-        return (new ApiResponse)->success($model->homeworks ? $model->homeworks : $model, ApiResponse::SUCCESSFUL, 'Class record found');
-        $model = Classes::find()->where(['id' => $class_id])->all();
-        if (!$model) {
-            return (new ApiResponse)->success(Homeworks::find()->where(['teacher_id' => Yii::$app->user->id])->all(), ApiResponse::SUCCESSFUL, 'Class record found');
-        }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Class record found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
     }
 
     public function actionHomework($homework_id)
@@ -152,7 +155,7 @@ class HomeworkController extends ActiveController
 
     public function actionDeleteHomework($homework_id)
     {
-        $model = $this->modelClass::findOne(['id' => $homework_id]);
+        $model = $this->modelClass::findOne(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
         }
@@ -168,7 +171,7 @@ class HomeworkController extends ActiveController
     public function actionExtendDate($homework_id)
     {
         $close_date = Yii::$app->request->post('close_date');
-        $model = Homeworks::find()->where(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id])->one();
+        $model = Homeworks::find()->where(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->one();
         if (!$model || ($model->teacher_id != Yii::$app->user->id)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
         }
@@ -188,11 +191,17 @@ class HomeworkController extends ActiveController
     public function actionRestartHomework($homework_id)
     {
         $password = Yii::$app->request->post('password');
+
+
+        if (empty($password)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password is required');
+        }
+
         if (!Yii::$app->user->identity->validatePassword($password)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password cannot be validated!');
         }
 
-        $model = Homeworks::findOne(['id' => $homework_id]);
+        $model = Homeworks::findOne(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
         }

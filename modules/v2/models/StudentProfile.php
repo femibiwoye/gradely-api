@@ -77,13 +77,13 @@ class StudentProfile extends User
         $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1]);
 
         $homeworkCount = Homeworks::find()
-            ->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class->class_id])
+            ->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class->class_id, 'status' => 1])
             ->count();
 
         $studentCount = QuizSummary::find()
             ->alias('q')
             ->where(['q.student_id' => $this->id, 'q.class_id' => $class->class_id, 'submit' => 1])
-            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.teacher_id = " . Yii::$app->user->id)
+            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.id = 1 AND homeworks.teacher_id = " . Yii::$app->user->id)
             ->count();
 
         return $homeworkCount > 0 ? $studentCount / $homeworkCount * 100 : 0;

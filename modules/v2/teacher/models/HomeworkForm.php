@@ -32,7 +32,8 @@ class HomeworkForm extends Model
     public function rules()
     {
         return [
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'topics_id', 'open_date', 'close_date', 'tag', 'attachments', 'feed_attachments'], 'required'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'topics_id', 'open_date', 'close_date', 'tag', 'attachments', 'feed_attachments'], 'required','on' => 'create-homework'],
+            [['title', 'open_date', 'close_date', 'tag'], 'required','on' => 'update-homework'],
             [['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
             [['open_date', 'close_date'], 'safe'],
@@ -51,18 +52,23 @@ class HomeworkForm extends Model
 
     public function updateHomework($model)
     {
-        $model->attributes = $this->attributes;
+        //$model->attributes = $this->attributes;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$this->homework_model->save(false)) {
+            $model->title = $this->title;
+            $model->tag = $this->tag;
+            $model->open_date = $this->open_date;
+            $model->close_date = $this->close_date;
+            if (!$model->save(false)) {
                 return false;
             }
 
-            if (!$this->addPracticeTopics($model->id)) {
-                return false;
-            }
 
-            if (!$this->updatePracticeMaterial($model->id)) {
+//            if (!$this->addPracticeTopics($model->id)) {
+//                return false;
+//            }
+
+            if (!$this->updatePracticeMaterial($model)) {
                 return false;
             }
 
@@ -72,7 +78,7 @@ class HomeworkForm extends Model
             return false;
         }
 
-        return $this->homework_model;
+        return $model;
     }
 
     public function addPracticeTopics($practiceID)
@@ -87,7 +93,7 @@ class HomeworkForm extends Model
         }
     }
 
-    public function updatePracticeMaterial($homework_id)
+    public function updatePracticeMaterial($homework)
     {
         if (empty($this->attachments)) {
             return true;
@@ -98,8 +104,9 @@ class HomeworkForm extends Model
                 $model = PracticeMaterial::findOne(['id' => $attachment['id']]);
             } else {
                 $model = new PracticeMaterial;
-                $model->user_id = $this->teacher_id;
-                $model->practice_id = $homework_id;
+                $model->user_id = $homework->teacher_id;
+                $model->practice_id = $homework->id;
+                $model->type = 'practice';
             }
 
             $model->attributes = $attachment;
@@ -124,11 +131,11 @@ class HomeworkForm extends Model
         return true;
     }
 
-    public function createHomework()
+    public function createHomework($type)
     {
         $model = new Homeworks();
         $model->attributes = $this->attributes;
-        $model->type = 'homework';
+        $model->type = $type;
         $model->exam_type_id = SubjectTopics::find()->where(['id' => $this->topics_id])->one()->exam_type_id;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
