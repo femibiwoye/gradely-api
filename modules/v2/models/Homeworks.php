@@ -67,7 +67,21 @@ class Homeworks extends \yii\db\ActiveRecord
 			'close_date',
 			'score',
 			'status' => 'statusMessage',
+			'expiry_status' => 'expiryStatus',
+			'publish_status' => 'publishStatus'
 		];
+	}
+
+	public function getExpiryStatus() {
+		if (time() > strtotime($this->close_date)) {
+			return 'closed';
+		} else {
+			return 'open';
+		}
+	}
+
+	public function getPublishStatus() {
+		return $this->status;
 	}
 
 	public function getSubject() {
