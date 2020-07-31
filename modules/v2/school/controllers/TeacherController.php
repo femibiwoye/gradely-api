@@ -75,14 +75,14 @@ class TeacherController extends ActiveController
     {
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        $teachersID = SchoolTeachers::find()->where(['school_id'=>$school->id,'status'=>1])->all();
-        $model = UserModel::find()->where(['type'=>'teacher','id' => ArrayHelper::getColumn($teachersID,'teacher_id')])
-            ->with(['teacherClassesList','teacherSubjectList'])
+        $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 1])->all();
+        $model = UserModel::find()->where(['type' => 'teacher', 'id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
+            ->with(['teacherClassesList', 'teacherSubjectList'])
             ->groupBy(['id']);
 
         $teachers = new ActiveDataProvider([
             'query' => $model,
-            'sort'=>[
+            'sort' => [
                 'attributes' => ['id', 'firstname', 'lastname', 'email'],
                 'defaultOrder' => [
                     'id' => SORT_DESC,
@@ -95,18 +95,18 @@ class TeacherController extends ActiveController
         return (new ApiResponse)->success($teachers->getModels());
     }
 
-    public function actionUnverified()
+    public function actionPending()
     {
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        $teachersID = SchoolTeachers::find()->where(['school_id'=>$school->id,'status'=>1])->all();
-        $model = UserModel::find()->where(['type'=>'teacher','id' => ArrayHelper::getColumn($teachersID,'teacher_id')])
-            ->with(['teacherClassesList','teacherSubjectList'])
+        $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 0])->all();
+        $model = UserModel::find()->where(['type' => 'teacher', 'id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
+            ->with(['teacherFirstClass'])
             ->groupBy(['id']);
 
         $teachers = new ActiveDataProvider([
             'query' => $model,
-            'sort'=>[
+            'sort' => [
                 'attributes' => ['id', 'firstname', 'lastname', 'email'],
                 'defaultOrder' => [
                     'id' => SORT_DESC,
@@ -117,6 +117,43 @@ class TeacherController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($teachers->getModels());
+    }
+
+    public function actionAcceptTeacher($id = 0)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        if ($id > 0 && $model = SchoolTeachers::findOne(['teacher_id' => $id, 'school_id' => $school->id, 'status' => 0])) {
+            $model->status = 1;
+            if ($model->save())
+                return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Teacher accepted!');
+        }
+
+        if ($id == 0) {
+            if (SchoolTeachers::updateAll(['status' => 1], ['school_id' => $school->id, 'status' => 0])) {
+                return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Pending teachers has been accepted!');
+            }
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid requests');
+    }
+
+    public function actionDeclineTeacher($id = null)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        if ($id > 0 && $model = SchoolTeachers::findOne(['teacher_id' => $id, 'status' => 0])) {
+            $model->delete();
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Teacher declined & removed!');
+        }
+
+        if ($id == 0) {
+            if (SchoolTeachers::deleteAll(['school_id' => $school->id, 'status' => 0])) {
+                return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Pending teachers declined and removed!');
+            }
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid requests');
     }
 
 

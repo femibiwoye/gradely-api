@@ -118,6 +118,9 @@ class UserModel extends User
         if ($this->isRelationPopulated('teacherClassesList'))
             $fields['teacherClasses'] = 'teacherClassesList';
 
+        if ($this->isRelationPopulated('teacherFirstClass'))
+            $fields['teacherFirstClass'] = 'teacherFirstClass';
+
         if ($this->isRelationPopulated('teacherSubjectList'))
             $fields['teacherSubjects'] = 'teacherSubjectList';
 
@@ -291,6 +294,11 @@ class UserModel extends User
     public function getTeacherClassesList()
     {
         return $this->hasMany(Classes::className(), ['id' => 'class_id'])->via('teacherClasses');
+    }
+
+    public function getTeacherFirstClass()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->via('teacherClasses');
     }
 
     public function getTeacherSubjects()

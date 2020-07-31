@@ -141,8 +141,6 @@ class HomeworkForm extends Model
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
-                print_r($model->errors);
-                die;
                 return false;
             }
 
