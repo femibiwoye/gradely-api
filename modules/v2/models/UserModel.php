@@ -112,8 +112,11 @@ class UserModel extends User
     public function fields()
     {
         $fields = parent::fields();
-        if ($this->isRelationPopulated('parentChildren'))
+        if ($this->isRelationPopulated('parentChildren')) {
             $fields['parentChildren'] = 'parentChildren';
+            $fields['parentChildrenRelationship'] = 'parentChildrenRelationship';
+            $fields['parentStudentSchools'] = 'parentStudentSchools';
+        }
 
         if ($this->isRelationPopulated('teacherClassesList'))
             $fields['teacherClasses'] = 'teacherClassesList';
@@ -284,6 +287,15 @@ class UserModel extends User
     public function getParentChildren()
     {
         return $this->hasMany(self::className(), ['id' => 'student_id'])->via('parentLists');
+    }
+
+    public function getParentChildrenRelationship()
+    {
+        return $this->hasMany(Parents::className(), ['student_id' => 'id'])->andWhere(['parent_id'=>$this->id])->via('parentChildren');
+    }
+    public function getParentStudentSchools()
+    {
+        return $this->hasMany(StudentSchool::className(), ['student_id' => 'id'])->via('parentChildren');
     }
 
     public function getParentLists()
