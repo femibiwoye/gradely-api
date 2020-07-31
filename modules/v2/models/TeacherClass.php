@@ -21,81 +21,93 @@ use app\modules\v2\components\SharedConstant;
  */
 class TeacherClass extends \yii\db\ActiveRecord
 {
-	/**
-	 * {@inheritdoc}
-	 */
-	public static function tableName()
-	{
-		return 'teacher_class';
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'teacher_class';
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function rules()
-	{
-		return [
-			[['teacher_id', 'school_id', 'class_id'], 'required'],
-			[['teacher_id', 'school_id', 'class_id', 'status'], 'integer'],
-			['status', 'default', 'value' => SharedConstant::VALUE_ZERO],
-			[['created_at'], 'safe'],
-			[['school_id'], 'exist', 'skipOnError' => true, 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],
-			[['teacher_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']],
-			[['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
-		];
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['teacher_id', 'school_id', 'class_id'], 'required'],
+            [['teacher_id', 'school_id', 'class_id', 'status'], 'integer'],
+            ['status', 'default', 'value' => SharedConstant::VALUE_ZERO],
+            [['created_at'], 'safe'],
+            [['school_id'], 'exist', 'skipOnError' => true, 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],
+            [['teacher_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']],
+            [['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
+        ];
+    }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function attributeLabels()
-	{
-		return [
-			'id' => 'ID',
-			'teacher_id' => 'Teacher ID',
-			'school_id' => 'School ID',
-			'class_id' => 'Class ID',
-			'status' => 'Status',
-			'created_at' => 'Created At',
-		];
-	}
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'teacher_id' => 'Teacher ID',
+            'school_id' => 'School ID',
+            'class_id' => 'Class ID',
+            'status' => 'Status',
+            'created_at' => 'Created At',
+        ];
+    }
 
-	/**
-	 * Gets query for [[School]].
-	 *
-	 * @return \yii\db\ActiveQuery
-	 */
+    /**
+     * Gets query for [[School]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
 
-	public function getSchool()
-	{
-		return $this->hasOne(Schools::className(), ['id' => 'school_id']);
-	}
+    public function getSchool()
+    {
+        return $this->hasOne(Schools::className(), ['id' => 'school_id']);
+    }
 
-	/**
-	 * Gets query for [[Teacher]].
-	 *
-	 * @return \yii\db\ActiveQuery
-	 */
-	public function getTeacher()
-	{
-		return $this->hasOne(User::className(), ['id' => 'teacher_id']);
-	}
+    /**
+     * Gets query for [[Teacher]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getTeacher()
+    {
+        return $this->hasOne(User::className(), ['id' => 'teacher_id']);
+    }
 
-	/**
-	 * Gets query for [[Class]].
-	 *
-	 * @return \yii\db\ActiveQuery
-	 */
-	public function getClass()
-	{
-		return $this->hasOne(Classes::className(), ['id' => 'class_id']);
-	}
+    /**
+     * Gets query for [[Class]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getClass()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class_id']);
+    }
 
-	public function beforeSave($insert) {
-		if ($this->isNewRecord) {
-			$this->created_at = date('y-m-d H-i-s');
-		}
+    public function addSchoolTeacher($status = 0)
+    {
+        if (!SchoolTeachers::find()->where(['school_id' => $this->school_id, 'teacher_id' => $this->teacher_id])->exists()) {
+            $model = new SchoolTeachers();
+            $model->school_id = $this->school_id;
+            $model->teacher_id = $this->teacher_id;
+            $model->status = $status;
+            $model->save();
+        }
+    }
 
-		return parent::beforeSave($insert);
-	}
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord) {
+            $this->created_at = date('y-m-d H-i-s');
+        }
+
+        return parent::beforeSave($insert);
+    }
 }

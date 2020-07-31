@@ -28,6 +28,8 @@ class TeacherSchoolForm extends Model {
 			return false;
 		}
 
+		//Check and add teacher to school_teacher is not exists
+		$model->addSchoolTeacher();
 		return $model;
 	}
 }

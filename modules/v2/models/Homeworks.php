@@ -117,7 +117,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return parent::find()->where(['status' => 1]);
+        return parent::find()->where(['homeworks.status' => 1]);
     }
 
 	public function getExpiryStatus() {

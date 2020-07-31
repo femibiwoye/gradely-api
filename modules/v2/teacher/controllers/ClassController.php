@@ -90,6 +90,7 @@ class ClassController extends ActiveController
 		if (!$model->save()) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not successfully added!');
 		}
+		$model->addSchoolTeacher(1);
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher added successfully');
 	}
