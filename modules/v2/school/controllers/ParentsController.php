@@ -86,7 +86,7 @@ class ParentsController extends ActiveController
 
         $parentsList = UserModel::find()
             ->with(['parentChildren'])
-            ->where(['AND', ['id' => $parentsID, 'type' => 'parent'], ['<>', 'status', 0]]);
+            ->where(['AND', ['id' => $parentsID, 'type' => 'parent']]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $parentsList,
