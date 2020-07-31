@@ -15,8 +15,8 @@ use app\modules\v2\components\SharedConstant;
 class HomeworkForm extends Model
 {
 
+    public $practice_attachments;
     public $attachments;
-    public $feed_attachments;
     public $teacher_id;
     public $subject_id;
     public $class_id;
@@ -32,8 +32,9 @@ class HomeworkForm extends Model
     public function rules()
     {
         return [
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'topics_id', 'open_date', 'close_date', 'tag', 'attachments', 'feed_attachments'], 'required','on' => 'create-homework'],
-            [['title', 'open_date', 'close_date', 'tag'], 'required','on' => 'update-homework'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'open_date', 'close_date', 'tag', 'attachments', 'view_by'], 'required', 'on' => 'create-homework'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'attachments', 'practice_attachments'], 'required', 'on' => 'create-lesson'],
+            [['title', 'open_date', 'close_date', 'tag'], 'required', 'on' => 'update-homework'],
             [['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
             [['open_date', 'close_date'], 'safe'],
@@ -42,10 +43,10 @@ class HomeworkForm extends Model
             ['teacher_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id']],
             ['subject_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id', 'subject_id' => 'subject_id']],
             ['school_id', 'exist', 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],
-            [['attachments'], 'validateAttachment'],
-            [['feed_attachments'], 'validateFeedAttachment'],
+            [['attachments'], 'validateFeedAttachment'],
+            [['practice_attachments'], 'validateAttachment'],
             //validateTopicCurriculum Validates open_date and close_date, tag and topic
-            ['topics_id', 'validateTopicCurriculum'],
+            //['topics_id', 'validateTopicCurriculum'],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
         ];
     }
@@ -95,11 +96,11 @@ class HomeworkForm extends Model
 
     public function updatePracticeMaterial($homework)
     {
-        if (empty($this->attachments)) {
+        if (empty($this->practice_attachments)) {
             return true;
         }
 
-        foreach ($this->attachments as $attachment) {
+        foreach ($this->practice_attachments as $attachment) {
             if (isset($attachment['id'])) {
                 $model = PracticeMaterial::findOne(['id' => $attachment['id']]);
             } else {
@@ -122,7 +123,7 @@ class HomeworkForm extends Model
 
     public function removeAttachments()
     {
-        $remove_attachment_ids = array_diff(array_column($this->homework_model->practiceMaterials, 'id'), array_column($this->attachments, 'id'));
+        $remove_attachment_ids = array_diff(array_column($this->homework_model->practiceMaterials, 'id'), array_column($this->practice_attachments, 'id'));
         if ($remove_attachment_ids) {
             $remove_attachment_ids = array_values($remove_attachment_ids);
             PracticeMaterial::deleteAll(['id' => $remove_attachment_ids]);
@@ -136,10 +137,12 @@ class HomeworkForm extends Model
         $model = new Homeworks();
         $model->attributes = $this->attributes;
         $model->type = $type;
-        $model->exam_type_id = SubjectTopics::find()->where(['id' => $this->topics_id])->one()->exam_type_id;
+        //$model->exam_type_id = SubjectTopics::find()->where(['id' => $this->topics_id])->one()->exam_type_id;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
+                print_r($model->errors);
+                die;
                 return false;
             }
 
@@ -151,7 +154,7 @@ class HomeworkForm extends Model
                 return false;
             }
 
-            if ($this->feed_attachments && !$this->addFeedAttachment($feed->id)) {
+            if ($this->attachments && !$this->addFeedAttachment($feed->id)) {
                 return false;
             }
 
@@ -166,7 +169,7 @@ class HomeworkForm extends Model
 
     public function addFeedAttachment($feed_id)
     {
-        foreach ($this->feed_attachments as $feed_attachment) {
+        foreach ($this->attachments as $feed_attachment) {
             $model = new PracticeMaterial;
             $model->attributes = $feed_attachment;
             $model->user_id = $this->teacher_id;
@@ -182,11 +185,11 @@ class HomeworkForm extends Model
 
     public function addPracticeMaterial($homework_id)
     {
-        if (empty($this->attachments)) {
+        if (empty($this->practice_attachments)) {
             return true;
         }
 
-        foreach ($this->attachments as $attachment) {
+        foreach ($this->practice_attachments as $attachment) {
 
 
             $model = new PracticeMaterial;
@@ -219,11 +222,14 @@ class HomeworkForm extends Model
 
     public function validateAttachment($title = null)
     {
-        if (empty($this->attachments)) {
+        $name = !empty($title)?$title:'practice_attachments';
+
+        if (empty($this->$name)) {
             return true;
         }
 
-        foreach ($this->attachments as $attachment) {
+
+        foreach ($this->$name as $attachment) {
             if (isset($attachment['id'])) {
                 $model = PracticeMaterial::findOne(['id' => $attachment['id']]);
             } else {
@@ -242,7 +248,7 @@ class HomeworkForm extends Model
 
     public function validateFeedAttachment()
     {
-        $this->validateAttachment('feed_attachments');
+        $this->validateAttachment('attachments');
     }
 
     public function validateTopicCurriculum()
