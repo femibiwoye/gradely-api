@@ -82,11 +82,12 @@ class ParentsController extends ActiveController
 
         //Get Students ID
         $studentID = ArrayHelper::getColumn($classes->all(), 'student_id');
-        $parentsID = Parents::find()->where(['student_id' => $studentID, 'status' => 1])->all();
+        $parentsID = Parents::find()->where(['student_id' => $studentID,'status'=>1])->all();
+
 
         $parentsList = UserModel::find()
             ->with(['parentChildren'])
-            ->where(['AND', ['id' => $parentsID, 'type' => 'parent'], ['<>', 'status', 0]]);
+            ->where(['AND', ['id' => ArrayHelper::getColumn($parentsID,'parent_id'), 'type' => 'parent'], ['<>', 'status', 0]]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $parentsList,
