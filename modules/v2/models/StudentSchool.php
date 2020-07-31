@@ -53,6 +53,14 @@ class StudentSchool extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+        $fields['class'] = 'class';
+
+        return $fields;
+    }
+
     public function getStudent()
     {
         return $this->hasOne(Student::className(), ['id' => 'student_id']);
@@ -65,6 +73,6 @@ class StudentSchool extends \yii\db\ActiveRecord
 
     public function getParents()
     {
-        return $this->hasMany(Parents::className(),['student_id'=>'student_id']);
+        return $this->hasMany(Parents::className(), ['student_id' => 'student_id']);
     }
 }

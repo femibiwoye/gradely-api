@@ -156,7 +156,7 @@ class Feed extends \yii\db\ActiveRecord
         $model = new PracticeMaterial;
         $model->attributes = $file;
         $model->filetype = SharedConstant::FEED_TYPES[4];
-        $model->raw = SharedConstant::PRACTICE_TYPES[0];
+        $model->type = SharedConstant::PRACTICE_TYPES[0];
         $model->user_id = $this->user_id;
         $model->practice_id = $feed_id;
         if (!$model->save()) {
