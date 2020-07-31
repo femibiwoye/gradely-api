@@ -63,7 +63,12 @@ class HomeworkController extends ActiveController
 
     public function actionCreate($type)
     {
-        $form = new HomeworkForm(['scenario' => 'create-homework']);
+
+        if (!in_array($type,SharedConstant::HOMEWORK_TYPES)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Invalid type value');
+        }
+
+        $form = new HomeworkForm(['scenario' => 'create-'.$type]);
         $form->attributes = Yii::$app->request->post();
 
         $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
@@ -72,11 +77,6 @@ class HomeworkController extends ActiveController
         $form->teacher_id = Yii::$app->user->id;
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-
-        if (!in_array($type,SharedConstant::HOMEWORK_TYPES)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Invalid type value');
         }
 
         $typeName = ucfirst($type);

@@ -95,6 +95,30 @@ class TeacherController extends ActiveController
         return (new ApiResponse)->success($teachers->getModels());
     }
 
+    public function actionUnverified()
+    {
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $teachersID = SchoolTeachers::find()->where(['school_id'=>$school->id,'status'=>1])->all();
+        $model = UserModel::find()->where(['type'=>'teacher','id' => ArrayHelper::getColumn($teachersID,'teacher_id')])
+            ->with(['teacherClassesList','teacherSubjectList'])
+            ->groupBy(['id']);
+
+        $teachers = new ActiveDataProvider([
+            'query' => $model,
+            'sort'=>[
+                'attributes' => ['id', 'firstname', 'lastname', 'email'],
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                    'firstname' => SORT_ASC,
+                ]
+            ],
+            'pagination' => ['pageSize' => 16]
+        ]);
+
+        return (new ApiResponse)->success($teachers->getModels());
+    }
+
 
 }
 

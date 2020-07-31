@@ -54,6 +54,21 @@ class SchoolTeachers extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+        if ($this->isRelationPopulated('teacher'))
+            $fields['teacher'] = 'teacher';
+
+        if ($this->isRelationPopulated('teacherClassesList'))
+            $fields['teacherClasses'] = 'teacherClassesList';
+
+        if ($this->isRelationPopulated('teacherSubjectList'))
+            $fields['teacherSubjects'] = 'teacherSubjectList';
+
+        return $fields;
+    }
+
     /**
      * Gets query for [[School]].
      *
