@@ -73,6 +73,11 @@ class HomeworkController extends ActiveController
         $form = new HomeworkForm(['scenario' => 'create-' . $type]);
         $form->attributes = Yii::$app->request->post();
 
+        if (empty($form->class_id)) {
+            $form->addError('class_id', 'Provide class_id');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Provide class ID');
+        }
+
         $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
 
         $form->school_id = $schoolID;
