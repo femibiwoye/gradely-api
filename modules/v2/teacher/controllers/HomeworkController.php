@@ -2,11 +2,13 @@
 
 namespace app\modules\v2\teacher\controllers;
 
-use app\modules\v2\models\SubjectTopics;
+use app\modules\v2\models\Subjects;
+use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
 use app\modules\v2\models\{Homeworks, Classes, ApiResponse};
 use app\modules\v2\components\SharedConstant;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\teacher\models\HomeworkForm;
@@ -64,11 +66,11 @@ class HomeworkController extends ActiveController
     public function actionCreate($type)
     {
 
-        if (!in_array($type,SharedConstant::HOMEWORK_TYPES)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Invalid type value');
+        if (!in_array($type, SharedConstant::HOMEWORK_TYPES)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid type value');
         }
 
-        $form = new HomeworkForm(['scenario' => 'create-'.$type]);
+        $form = new HomeworkForm(['scenario' => 'create-' . $type]);
         $form->attributes = Yii::$app->request->post();
 
         $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
@@ -211,5 +213,16 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record restarted successfully.');
+    }
+
+    public function actionSubject($class_id)
+    {
+        $subjects = TeacherClassSubjects::find()->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'status' => 1])->groupBy('subject_id')->all();
+        $subjects = Subjects::findAll(['id' => ArrayHelper::getColumn($subjects, 'subject_id'), 'status' => 1]);
+        if (!$subjects) {
+            return (new ApiResponse)->error(null, ApiResponse::NO_CONTENT, 'No subject found');
+        }
+
+        return (new ApiResponse)->success($subjects, ApiResponse::SUCCESSFUL, count($subjects) . ' subjects found');
     }
 }
