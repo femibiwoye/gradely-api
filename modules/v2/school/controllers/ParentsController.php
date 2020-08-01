@@ -82,12 +82,12 @@ class ParentsController extends ActiveController
 
         //Get Students ID
         $studentID = ArrayHelper::getColumn($classes->all(), 'student_id');
-        $parentsID = Parents::find()->where(['student_id' => $studentID,'status'=>1])->all();
+        $parentsID = Parents::find()->where(['student_id' => $studentID, 'status' => 1])->all();
 
 
         $parentsList = UserModel::find()
             ->with(['parentChildren'])
-            ->where(['AND', ['id' => ArrayHelper::getColumn($parentsID,'parent_id'), 'type' => 'parent'], ['<>', 'status', 0]]);
+            ->where(['AND', ['id' => ArrayHelper::getColumn($parentsID, 'parent_id'), 'type' => 'parent'], ['<>', 'status', 0]]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $parentsList,
@@ -103,7 +103,8 @@ class ParentsController extends ActiveController
                 'pageSize' => 20, // This is a fixed number of content to be rendered per page.
             ],
         ]);
+        //return $dataProvider->pagination->pageSize;
 
-        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, count($parentsID) . ' parents found');
+        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, count($parentsID) . ' parents found', $dataProvider);
     }
 }

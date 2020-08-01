@@ -13,6 +13,7 @@ class ApiResponse
     public $message;
     public $code;
     public $data;
+    public $pagination;
 
 
     const UNKNOWN_RESPONSE = 0;
@@ -94,20 +95,24 @@ class ApiResponse
         self::UNKNOWN_ERROR => "Something unknown went wrong",
     ];
 
-    function message($name = null, $message = null, $code = null, $models = null)
+    function message($name = null, $message = null, $code = null, $models = null, $pagination = null)
     {
         $this->name = $name;
         $this->message = $message ? $message : $this->getMessage($code);
         $this->code = $code ? $code : 999;
         $this->data = $models;
+        if (!empty($pagination))
+            $this->pagination = $this->paginate($pagination);
+        else
+            unset($this->pagination);
 
         return $this;
     }
 
-    function success($models = null, $code = null, $message = null)
+    function success($models = null, $code = null, $message = null, $pagination = null)
     {
         //Yii::$app->response->statusCode = $code;
-        return $this->message("success", $message, $code ? $code : self::SUCCESSFUL, $models);
+        return $this->message("success", $message, $code ? $code : self::SUCCESSFUL, $models, $pagination);
     }
 
     function error($models = null, $code = null, $message = null)
@@ -131,5 +136,16 @@ class ApiResponse
     function getMessage($code = 0)
     {
         return $this->codes[$code];
+    }
+
+    function paginate($pagination)
+    {
+        $pagesize = $pagination->pagination->pageSize;
+        $total = $pagination->totalCount;
+        return [
+            'pageSize' => $pagesize,
+            'totalCount' => $total,
+            'pageCount' => (int)(($total + $pagesize - 1) / $pagesize)
+        ];
     }
 }

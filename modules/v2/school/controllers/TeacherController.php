@@ -89,10 +89,10 @@ class TeacherController extends ActiveController
                     'firstname' => SORT_ASC,
                 ]
             ],
-            'pagination' => ['pageSize' => 16]
+            'pagination' => ['pageSize' => 20]
         ]);
 
-        return (new ApiResponse)->success($teachers->getModels());
+        return (new ApiResponse)->success($teachers->getModels(),null,null,$teachers);
     }
 
     public function actionPending()
@@ -113,10 +113,10 @@ class TeacherController extends ActiveController
                     'firstname' => SORT_ASC,
                 ]
             ],
-            'pagination' => ['pageSize' => 16]
+            'pagination' => ['pageSize' => 20]
         ]);
 
-        return (new ApiResponse)->success($teachers->getModels());
+        return (new ApiResponse)->success($teachers->getModels(),null,null,$teachers);
     }
 
     public function actionAcceptTeacher($id = 0)
