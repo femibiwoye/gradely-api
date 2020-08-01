@@ -114,8 +114,8 @@ class UserModel extends User
         $fields = parent::fields();
         if ($this->isRelationPopulated('parentChildren')) {
             $fields['parentChildren'] = 'parentChildren';
-            $fields['parentChildrenRelationship'] = 'parentChildrenRelationship';
-            $fields['parentStudentSchools'] = 'parentStudentSchools';
+            //$fields['parentChildrenRelationship'] = 'parentChildrenRelationship';
+            //$fields['parentStudentSchools'] = 'parentStudentSchools';
         }
 
         if ($this->isRelationPopulated('teacherClassesList'))
@@ -286,7 +286,13 @@ class UserModel extends User
      */
     public function getParentChildren()
     {
-        return $this->hasMany(self::className(), ['id' => 'student_id'])->via('parentLists');
+        return $this->hasMany(self::className(), ['id' => 'student_id'])
+            ->leftJoin('parents p','p.student_id = user.id AND p.parent_id = '.$this->id)
+            ->leftJoin('student_school s',"s.student_id = user.id")
+            ->leftJoin('classes c',"c.id = s.class_id AND s.status= '1'")
+            ->select(['user.id','firstname','lastname','user.code','email','image','type','p.parent_id','p.role','c.id class_id','c.class_name','c.class_code'])
+            ->asArray()
+            ->via('parentLists');
     }
 
     public function getParentChildrenRelationship()
