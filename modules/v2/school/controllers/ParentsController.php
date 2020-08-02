@@ -100,7 +100,7 @@ class ParentsController extends ActiveController
             ],
             'pagination' => [
                 //'defaultPageSize' => 1, //With this, you can specify how many number of content you want per page
-                'pageSize' => 20, // This is a fixed number of content to be rendered per page.
+                'pageSize' => 1, // This is a fixed number of content to be rendered per page.
             ],
         ]);
         //return $dataProvider->pagination->pageSize;
