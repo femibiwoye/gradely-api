@@ -145,7 +145,8 @@ class ApiResponse
         return [
             'pageSize' => $pagesize,
             'totalCount' => $total,
-            'pageCount' => (int)(($total + $pagesize - 1) / $pagesize)
+            'pageCount' => (int)(($total + $pagesize - 1) / $pagesize),
+            'currentPage' => $pagination->pagination->page + 1
         ];
     }
 }

@@ -30,7 +30,6 @@ use app\modules\v2\components\SharedConstant;
  * @property User $user
  * @property FeedComment[] $feedComments
  */
-
 class Feed extends \yii\db\ActiveRecord
 {
     /**
@@ -251,7 +250,7 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getAttachments()
     {
-        return $this->hasMany(PracticeMaterial::className(),['practice_id'=>'id']);
+        return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id']);
     }
 
     public function beforeSave($insert)
