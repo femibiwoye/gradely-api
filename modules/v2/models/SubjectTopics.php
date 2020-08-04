@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v1\models\QuizSummary;
 use Yii;
 
 /**
@@ -102,5 +103,15 @@ class SubjectTopics extends \yii\db\ActiveRecord
     public function getVideoAssigns()
     {
         return $this->hasMany(VideoAssign::className(), ['topic_id' => 'id']);
+    }
+
+    public function getTopicPerformanceByID($id,$studentID)
+    {
+        $model = QuizSummary::find()->where(['topic_id'=>$id,'student_id'=>$studentID]);
+        if($model->sum('correct')>0) {
+            return $model->sum('correct') / $model->sum('total_questions') * 100;
+        }else{
+            return 0;
+        }
     }
 }
