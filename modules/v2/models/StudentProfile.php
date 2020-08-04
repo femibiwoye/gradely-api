@@ -2,7 +2,6 @@
 
 namespace app\modules\v2\models;
 
-use app\modules\v1\models\SubjectTopics;
 use app\modules\v2\components\StudentAnalytics;
 use Yii;
 use app\modules\v2\components\SharedConstant;
@@ -184,7 +183,7 @@ class StudentProfile extends User
                 foreach ($topics as $data) {
                     if ($data->getTopicPerformanceByID($data->id, $this->id) >= 75) {
                         $excellence[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getTopicPerformanceByID($data->id, $this->id) >= 50 && $data->topicPerformance < 75) {
+                    } elseif ($data->getTopicPerformanceByID($data->id, $this->id) >= 50 && $data->getTopicPerformanceByID($data->id, $this->id) < 75) {
                         $averages[] = $this->topicPerformanceMini($data);
                     } elseif ($data->getTopicPerformanceByID($data->id, $this->id) < 50) {
                         $struggling[] = $this->topicPerformanceMini($data);
