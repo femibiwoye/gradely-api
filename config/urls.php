@@ -65,6 +65,9 @@ return [
     //Reports
     'GET v2/teacher/library/documents' => 'v2/teacher/library/index',
     'POST v2/teacher/library/video' => 'v2/teacher/library/feed-video',
+    'GET v2/teacher/library/discussion' => 'v2/teacher/library/discussion',
+    'GET v2/teacher/library/video' => 'v2/teacher/library/video',
+    'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',    
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

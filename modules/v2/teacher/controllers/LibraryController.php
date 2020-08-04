@@ -5,7 +5,7 @@ namespace app\modules\v2\teacher\controllers;
 use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{TeacherClass, ApiResponse, Feed};
+use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks};
 use app\modules\v2\components\SharedConstant;
 
 class LibraryController extends ActiveController
@@ -105,5 +105,135 @@ class LibraryController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record inserted');
+	}
+
+	public function actionDiscussion() {
+		$class_id = Yii::$app->request->get('class_id');
+		$date = Yii::$app->request->get('date');
+		$sort = Yii::$app->request->get('sort');
+		$teacher_id = Yii::$app->user->id;
+		$model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
+		$model->addRule(['class_id', 'teacher_id'], 'integer')
+			->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		$model = Feed::find()->where(['user_id' => $teacher_id, 'type' => SharedConstant::FEED_TYPES[0]]);
+
+		if ($class_id) {
+			$model = $model->andWhere(['class_id' => $class_id]);
+
+		}
+
+		if ($date) {
+			$model = $model->andWhere('created_at >= :date_value', [':date_value' => $date]);
+		}
+
+		if ($sort) {
+			if ($sort == 'newest') {
+				$model = $model->orderBy(['created_at' => SORT_DESC]);
+			} elseif ($sort == 'oldest') {
+				$model = $model->orderBy(['created_at' => SORT_ASC]);
+			} elseif ($sort == 'a-z') {
+				$model = $model->orderBy(['description' => SORT_ASC]);
+			} elseif ($sort == 'z-a') {
+				$model = $model->orderBy(['description' => SORT_DESC]);
+			} else {
+				$model = $model->orderBy(['created_at' => SORT_DESC]);
+			}
+		}
+
+		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
+	}
+
+	public function actionVideo() {
+		$class_id = Yii::$app->request->get('class_id');
+		$format = Yii::$app->request->get('format');
+		$date = Yii::$app->request->get('date');
+		$sort = Yii::$app->request->get('sort');
+		$teacher_id = Yii::$app->user->id;
+		$model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
+		$model->addRule(['class_id', 'teacher_id'], 'integer')
+			->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		$model = $this->modelClass::find()
+					->andWhere(['practice_material.type' => SharedConstant::FEED_TYPES[4]]);
+
+		if ($class_id) {
+			$model = $model->innerJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
+						->andWhere(['homeworks.class_id' => $class_id]);
+		}
+
+		if ($format) {
+			$model = $model->andWhere(['extension' => $format]);
+		}
+
+		if ($date) {
+			$model = $model->andWhere('practice_material.created_at >= :date_value', [':date_value' => $date]);
+		}
+
+		if ($sort) {
+			if ($sort == 'newest') {
+				$model = $model->orderBy(['created_at' => SORT_DESC]);
+			} elseif ($sort == 'oldest') {
+				$model = $model->orderBy(['created_at' => SORT_ASC]);
+			} elseif ($sort == 'a-z') {
+				$model = $model->orderBy(['title' => SORT_ASC]);
+			} elseif ($sort == 'z-a') {
+				$model = $model->orderBy(['title' => SORT_DESC]);
+			} else {
+				$model = $model->orderBy(['created_at' => SORT_DESC]);
+			}
+		}
+
+		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
+	}
+
+	public function actionAssessment() {
+		$class_id = Yii::$app->request->get('class_id');
+		$format = Yii::$app->request->get('format');
+		$date = Yii::$app->request->get('date');
+		$sort = Yii::$app->request->get('sort');
+		$teacher_id = Yii::$app->user->id;
+		$model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
+		$model->addRule(['class_id', 'teacher_id'], 'integer')
+			->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		$model = Homeworks::find()->where(['teacher_id' => $teacher_id, 'type' => SharedConstant::HOMEWORK_TYPES[0]]);
+
+		if ($class_id) {
+			$model = $model->andWhere(['class_id' => $class_id]);
+
+		}
+
+		if ($date) {
+			$model = $model->andWhere('practice_material.created_at >= :date_value', [':date_value' => $date]);
+		}
+
+		if ($sort) {
+			if ($sort == 'newest') {
+				$model = $model->orderBy(['created_at' => SORT_DESC]);
+			} elseif ($sort == 'oldest') {
+				$model = $model->orderBy(['created_at' => SORT_ASC]);
+			} elseif ($sort == 'a-z') {
+				$model = $model->orderBy(['title' => SORT_ASC]);
+			} elseif ($sort == 'z-a') {
+				$model = $model->orderBy(['title' => SORT_DESC]);
+			} else {
+				$model = $model->orderBy(['created_at' => SORT_DESC]);
+			}
+		}
+
+		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
 }
