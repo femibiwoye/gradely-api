@@ -28,12 +28,13 @@ class HomeworkForm extends Model
     public $view_by;
     public $homework_model;
     public $tag;
+    public $description;
 
     public function rules()
     {
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'open_date', 'close_date', 'tag', 'attachments', 'view_by'], 'required', 'on' => 'create-homework'],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'attachments', 'practice_attachments'], 'required', 'on' => 'create-lesson'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'description', 'attachments', 'practice_attachments'], 'required', 'on' => 'create-lesson'],
             [['title', 'open_date', 'close_date', 'tag'], 'required', 'on' => 'update-homework'],
             [['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
@@ -220,7 +221,7 @@ class HomeworkForm extends Model
 
     public function validateAttachment($title = null)
     {
-        $name = !empty($title)?$title:'practice_attachments';
+        $name = !empty($title) ? $title : 'practice_attachments';
 
         if (empty($this->$name)) {
             return true;
