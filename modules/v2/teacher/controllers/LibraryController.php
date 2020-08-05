@@ -3,6 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks};
@@ -89,7 +90,20 @@ class LibraryController extends ActiveController
 			}
 		}
 
-		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');	
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage'=>false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' record found',$provider);
+
+        //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
 
 	public function actionFeedVideo() {
@@ -145,7 +159,20 @@ class LibraryController extends ActiveController
 			}
 		}
 
-		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage'=>false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' record found',$provider);
+
+		//return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
 
 	public function actionVideo() {
@@ -192,7 +219,20 @@ class LibraryController extends ActiveController
 			}
 		}
 
-		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage'=>false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' record found',$provider);
+
+        //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
 
 	public function actionAssessment() {
@@ -234,6 +274,19 @@ class LibraryController extends ActiveController
 			}
 		}
 
-		return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage'=>false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' record found',$provider);
+
+        //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
 }
