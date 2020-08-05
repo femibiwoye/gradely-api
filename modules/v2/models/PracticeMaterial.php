@@ -21,7 +21,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
 			[['practice_id', 'user_id', 'downloadable'], 'integer'],
 			[['filetype', 'description','raw'], 'string'],
 			[['created_at', 'updated_at'], 'safe'],
-			[['title', 'filename'], 'string', 'max' => 100],
+			[['title'], 'string', 'max' => 100],
 			[['filesize', 'download_count', 'extension'], 'string', 'max' => 45],
 			[['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
 		];
