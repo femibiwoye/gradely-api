@@ -27,4 +27,5 @@ class SharedConstant {
 	const SCHOOL_TYPE = ['all','primary','secondary'];
 	const SCHOOL_OWNER_ROLE = 'owner';
 	const PRACTICE_TYPES = ['feed', 'practice'];
+	const QUIZ_SUMMARY_TYPE = ['homework'];
 }
