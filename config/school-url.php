@@ -22,6 +22,9 @@ return [
     //School students
     'GET v2/school/students/<class_id:\d+>' => 'v2/school/classes/student-in-class',
 
+    //School class homeworks
+    'GET v2/school/homeworks/<class_id:\d+>' => 'v2/school/homework/class-homeworks',
+
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
         'GET <id:\d+>' => 'view',
