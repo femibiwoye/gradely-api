@@ -9,7 +9,7 @@ use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{Feed, ApiResponse, Homeworks, TutorSession, FeedComment, FeedLike};
+use app\modules\v2\models\{Feed, ApiResponse, Homeworks, TutorSession, FeedComment, FeedLike, Classes};
 use app\modules\v2\components\SharedConstant;
 
 class FeedController extends ActiveController
@@ -150,12 +150,22 @@ class FeedController extends ActiveController
 
     public function actionIndex()
     {
-        $models = $this->modelClass::find()
+        if (Yii::$app->user->identity->type == SharedConstant::ACCOUNT_TYPE[1]) {
+            $models = $this->modelClass::find()
             ->where(['OR',
                 ['user_id' => Yii::$app->user->id],
                 ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
             ])
             ->orderBy('id DESC');
+        } else if (Yii::$app->user->identity->type == SharedConstant::ACCOUNT_TYPE[0]) {
+            $classes = ArrayHelper::getColumn(Classes::find()
+                        ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
+
+            $models = $this->modelClass::find()
+                    ->where(['OR', ['user_id' => Yii::$app->user->id], ['class_id' => $classes]])
+                    ->orderBy('id DESC');
+        }
+        
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
