@@ -19,6 +19,9 @@ return [
     'PUT v2/school/general/update-format-type' => 'v2/school/general/update-format-type',
     'POST v2/school/general/request-call' => 'v2/school/general/request-call',
 
+    //School students
+    'GET v2/school/students/<class_id:\d+>' => 'v2/school/classes/student-in-class',
+
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
         'GET <id:\d+>' => 'view',
