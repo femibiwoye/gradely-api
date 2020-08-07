@@ -35,6 +35,7 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
+            'except' => ['country', 'state', 'timezone']
         ];
 
         return $behaviors;

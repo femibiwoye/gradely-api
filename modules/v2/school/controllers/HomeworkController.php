@@ -5,6 +5,7 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\{Utility};
 use app\modules\v2\models\{Homeworks, TeacherClass, ApiResponse};
+use app\modules\v2\models\Schools;
 use Yii;
 use yii\rest\ActiveController;
 
@@ -49,7 +50,8 @@ class HomeworkController extends ActiveController
 	}
 
 	public function actionClassHomeworks($class_id) {
-		$school_id = Utility::getSchoolAccess()[0];
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
         $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id']]);
 

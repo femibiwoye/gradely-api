@@ -182,7 +182,8 @@ class ClassesController extends ActiveController
     }
 
     public function actionStudentInClass($class_id) {
-        $school_id = Utility::getSchoolAccess()[0];
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
         $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id']]);
 

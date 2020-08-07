@@ -8,6 +8,7 @@ return [
     'PUT v2/school/teacher/accept-teacher/<id:\d+>' => 'v2/school/teacher/accept-teacher',
     'PUT v2/school/teacher/decline-teacher/<id:\d+>' => 'v2/school/teacher/decline-teacher',
 
+
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
 
