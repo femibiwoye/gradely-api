@@ -3,13 +3,9 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
-use app\modules\v2\components\Utility;
-use app\modules\v2\models\Schools;
-use app\modules\v2\models\SchoolTeachers;
-use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{User, ApiResponse};
-use app\modules\v2\components\{SharedConstant};
+use app\modules\v2\models\{User, ApiResponse, SchoolTeachers, Schools, UserModel, StudentSchool};
+use app\modules\v2\components\{SharedConstant, Utility};
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -71,14 +67,27 @@ class TeacherController extends ActiveController
      * @return Response|string
      */
 
-    public function actionIndex()
+    public function actionIndex($class_id = null)
     {
+        if ($class_id) {
+            $school_id = Utility::getSchoolAccess()[0];
+            $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
+            $model->addRule(['class_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
 
-        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 1])->all();
-        $model = UserModel::find()->where(['type' => 'teacher', 'id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
+            $model = UserModel::find()
+                    ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id')
+                    ->where(['user.type' => 'teacher', 'teacher_class.class_id' => $class_id])
+                    ->with(['teacherClassesList', 'teacherSubjectList'])->groupBy(['id']);
+        } else {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 1])->all();
+            $model = UserModel::find()->where(['type' => 'teacher', 'id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
             ->with(['teacherClassesList', 'teacherSubjectList'])
             ->groupBy(['id']);
+        }
 
         $teachers = new ActiveDataProvider([
             'query' => $model,
