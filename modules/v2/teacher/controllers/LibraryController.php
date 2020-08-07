@@ -7,6 +7,7 @@ use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks};
+use app\modules\v2\teacher\models\HomeworkSummary;
 use app\modules\v2\components\SharedConstant;
 
 class LibraryController extends ActiveController
@@ -288,5 +289,25 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' record found',$provider);
 
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
+	}
+
+	public function actionHomeworkSummary() {
+		$id = Yii::$app->request->get('id');
+		$data = Yii::$app->request->get('data');
+		$model = new \yii\base\DynamicModel(compact('id', 'data'));
+		$model->addRule(['id', 'data'], 'required')
+			->addRule(['id'], 'integer')
+			->addRule(['data'], 'string');
+
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		$model = HomeworkSummary::find()->where(['homework_id' => $id])->all();
+		if (!$model) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
 	}
 }

@@ -67,7 +67,8 @@ return [
     'POST v2/teacher/library/video' => 'v2/teacher/library/feed-video',
     'GET v2/teacher/library/discussion' => 'v2/teacher/library/discussion',
     'GET v2/teacher/library/video' => 'v2/teacher/library/video',
-    'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',    
+    'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',
+    'GET v2/teacher/report/homework' => 'v2/teacher/library/homework-summary',    
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
