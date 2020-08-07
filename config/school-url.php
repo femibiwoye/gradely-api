@@ -8,6 +8,7 @@ return [
     'PUT v2/school/teacher/accept-teacher/<id:\d+>' => 'v2/school/teacher/accept-teacher',
     'PUT v2/school/teacher/decline-teacher/<id:\d+>' => 'v2/school/teacher/decline-teacher',
 
+
     //School Parents
     'GET v2/school/parents' => 'v2/school/parents',
 
@@ -18,6 +19,14 @@ return [
     'GET v2/school/general/school-roles' => 'v2/school/general/school-roles',
     'PUT v2/school/general/update-format-type' => 'v2/school/general/update-format-type',
     'POST v2/school/general/request-call' => 'v2/school/general/request-call',
+
+    //School students
+    'GET v2/school/students/<class_id:\d+>' => 'v2/school/classes/student-in-class',
+    'GET v2/school/classes/<student_id:\d+>' => 'v2/school/profile/student-classes',
+    'GET v2/school/homeworks/<student_id:\d+>' => 'v2/school/profile/student-homeworks',
+
+    //School class homeworks
+    'GET v2/school/homeworks/<class_id:\d+>' => 'v2/school/homework/class-homeworks',
 
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [

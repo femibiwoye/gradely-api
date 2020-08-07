@@ -3,14 +3,13 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
-use app\modules\v2\components\Utility;
-use app\modules\v2\models\ApiResponse;
-use app\modules\v2\models\Classes;
-use app\modules\v2\models\Schools;
+use app\modules\v2\components\{Utility, SharedConstant};
+use app\modules\v2\models\{Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User};
 use app\modules\v2\school\models\ClassForm;
 use Yii;
 use yii\filters\AccessControl;
 use yii\rest\ActiveController;
+use yii\helpers\ArrayHelper;
 
 
 /**
@@ -182,5 +181,27 @@ class ClassesController extends ActiveController
         return (new ApiResponse)->success($school->classes, null, count($school->classes) . ' classes generated!');
     }
 
+    public function actionStudentInClass($class_id) {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
+        $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id']]);
 
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id])->all(), 'student_id');
+
+        $students = User::find()->where(['id' => $student_ids])
+                                ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
+                                ->orderBy('id DESC');
+
+        if (!$students) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Students not found');
+        }
+
+        return (new ApiResponse)->success($students->all(), ApiResponse::SUCCESSFUL, 'Students record found');
+
+    }
 }
