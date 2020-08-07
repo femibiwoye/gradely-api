@@ -11,7 +11,7 @@ use app\modules\v2\teacher\models\TeacherUpdateEmailForm;
 use app\modules\v2\teacher\models\TeacherUpdatePasswordForm;
 use app\modules\v2\teacher\models\UpdateTeacherForm;
 use Yii;
-use app\modules\v2\models\{User, ApiResponse, UserPreference};
+use app\modules\v2\models\{User, ApiResponse, UserPreference, StudentSchool, Classes};
 use app\modules\v2\components\{SharedConstant};
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -246,6 +246,27 @@ class ProfileController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'School account deleted successfully');
+    }
+
+    public function actionStudentClasses($student_id) {
+        $school_id = Utility::getSchoolAccess()[0];
+        $model = new \yii\base\DynamicModel(compact('student_id', 'school_id'));
+        $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $classes = Classes::find()
+                    ->innerJoin('student_school', 'student_school.class_id = classes.id')
+                    ->where(['student_school.student_id' => $student_id]);
+
+        
+        if (!$classes) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
+        }
+
+        return (new ApiResponse)->success($classes->all(), ApiResponse::SUCCESSFUL, 'Classes found');
     }
 }
 
