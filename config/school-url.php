@@ -21,8 +21,8 @@ return [
 
     //School students
     'GET v2/school/students/<class_id:\d+>' => 'v2/school/classes/student-in-class',
-    'GET v2/school/classes/<student_id:\d+>' => 'v2/school/profile/student-classes',
-    'GET v2/school/homeworks/<student_id:\d+>' => 'v2/school/profile/student-homeworks',
+    'GET v2/school/classes/<student_id:\d+>' => 'v2/school/classes/student-classes',
+    'GET v2/school/homeworks/<student_id:\d+>' => 'v2/school/classes/student-homeworks',
 
     //School class homeworks
     'GET v2/school/homeworks/<class_id:\d+>' => 'v2/school/homework/class-homeworks',
