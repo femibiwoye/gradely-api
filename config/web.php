@@ -60,7 +60,10 @@ $config = [
                 ],
             ],
         ],
-        'db' => $db,
+
+        'db' => $db['db'],
+        'notification' => $db['main'],
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
