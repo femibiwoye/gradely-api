@@ -160,7 +160,7 @@ class ClassesController extends ActiveController
         $model->class_name = $form->class_name;
         $model->save();
 
-        return (new ApiResponse)->success($model,null,'Class successfully updated.');
+        return (new ApiResponse)->success($model, null, 'Class successfully updated.');
     }
 
     public function actionGenerateClasses()
@@ -184,7 +184,8 @@ class ClassesController extends ActiveController
         return (new ApiResponse)->success($school->classes, null, count($school->classes) . ' classes generated!');
     }
 
-    public function actionStudentInClass($class_id) {
+    public function actionStudentInClass($class_id)
+    {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
@@ -207,4 +208,30 @@ class ClassesController extends ActiveController
         return (new ApiResponse)->success($students->all(), ApiResponse::SUCCESSFUL, 'Students record found');
 
     }
+
+    public function actionDelete($class_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $password = Yii::$app->request->post('password');
+
+
+        if (empty($password)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password is required');
+        }
+
+        if (!Yii::$app->user->identity->validatePassword($password)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password cannot be validated!');
+        }
+
+        $model = Classes::findOne(['id' => $class_id, 'school_id' => $school->id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
+        }
+
+        if (!Homeworks::find()->where(['class_id' => $model->id])->exists() && $model->delete())
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Class deleted.');
+        else
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class could not be deleted.');
+    }
+
 }

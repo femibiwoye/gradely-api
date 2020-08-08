@@ -69,6 +69,7 @@ class PreferencesController extends ActiveController
         unset($actions['index']);
         unset($actions['view']);
         return $actions;
+        return $actions;
     }
 
     public function actionCurriculum()
@@ -172,12 +173,13 @@ class PreferencesController extends ActiveController
     {
         $form = new PreferencesForm(['scenario' => 'add-subject']);
         $form->attributes = Yii::$app->request->post();
+        $classes = Yii::$app->request->post('classes');
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        if (!$model = $form->addSubject($school)) {
+        if (!$model = $form->addSubject($school, $classes)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not created');
         }
 
@@ -357,7 +359,6 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'Address updated');
 
     }
-
 
 }
 

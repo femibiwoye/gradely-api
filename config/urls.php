@@ -74,5 +74,6 @@ return [
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin',
         'POST school-teacher' => 'school-teacher',
+        'GET verify' => 'verify',
     ]],
 ];
