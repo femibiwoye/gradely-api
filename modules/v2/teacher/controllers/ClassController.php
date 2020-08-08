@@ -2,6 +2,10 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentDetails;
+use app\modules\v2\models\StudentSchool;
 use Yii;
 use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool, StudentProfile};
 use yii\rest\ActiveController;
@@ -195,14 +199,22 @@ class ClassController extends ActiveController
 
 	public function actionGetStudent($id)
 	{
-		$form = new StudentProfile;
-		$form->student_id = $id;
-		$form->teacher_id = Yii::$app->user->id;
-		if (!$form->validate())
-		{
-			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-		}
+        $detail = StudentDetails::findOne(['id'=>$id]);
+        if (!$detail->checkStudentInTeacherClass()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'This student does not belong to your school');
+        }
 
-		return (new ApiResponse)->success(StudentProfile::findOne(['id' => $id], null, 'Records found'));
+        return (new ApiResponse)->success($detail);
+
+
+//		$form = new StudentProfile;
+//		$form->student_id = $id;
+//		$form->teacher_id = Yii::$app->user->id;
+//		if (!$form->validate())
+//		{
+//			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//		}
+//
+//		return (new ApiResponse)->success(StudentProfile::findOne(['id' => $id], null, 'Records found'));
 	}
 }

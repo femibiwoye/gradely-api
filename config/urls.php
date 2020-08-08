@@ -27,7 +27,7 @@ return [
     'PUT v2/teacher/profile' => 'v2/teacher/profile/update',
     'GET v2/teacher/profile/preference' => 'v2/teacher/profile/preference',
     'PUT v2/teacher/profile/preference' => 'v2/teacher/profile/update-preference',
-    'DELETE v2/teacher/profile/delete-account' => 'v2/teacher/profile/delete-account',
+    'DELETE v2/teacher/profile/delete-personal' => 'v2/teacher/profile/delete-account',
 
     //Teacher classes
     'DELETE v2/teacher/student/remove/<student_id:\d+>/<class_id:\d+>' => 'v2/teacher/class/delete-student',
@@ -42,12 +42,12 @@ return [
     'POST v2/teacher/student/add-multiple' => 'v2/teacher/class/add-student',
 
     //Feed Class
-    'GET v2/teacher/upcoming' => 'v2/teacher/feed/upcoming',
-    'POST v2/teacher/comment/<post_id:\d+>' => 'v2/teacher/feed/feed-comment',
-    'POST v2/teacher/like/<post_id:\d+>' => 'v2/teacher/feed/feed-like',
-    'POST v2/teacher/like-comment/<comment_id:\d+>' => 'v2/teacher/feed/comment-like',
-    'POST v2/teacher/announcement' => 'v2/teacher/feed/create',
-    'GET v2/teacher/feed' => 'v2/teacher/feed/index',
+    'GET v2/upcoming' => 'v2/feed/upcoming',
+    'POST v2/comment/<post_id:\d+>' => 'v2/feed/feed-comment',
+    'POST v2/like/<post_id:\d+>' => 'v2/feed/feed-like',
+    'POST v2/like-comment/<comment_id:\d+>' => 'v2/feed/comment-like',
+    'POST v2/announcement' => 'v2/feed/create',
+    'GET v2/feed' => 'v2/feed/index',
 
     //Homework Class
 

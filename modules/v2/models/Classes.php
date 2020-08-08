@@ -93,17 +93,12 @@ class Classes extends \yii\db\ActiveRecord
 
     public function fields()
     {
-        return [
-            'id',
-            'school_id',
-            'global_class_id',
-            'slug',
-            'class_name',
-            'abbreviation',
-            'class_code',
-            'created_at',
-            'homeworks'
-        ];
+        $fields = parent::fields();
+        if ($this->isRelationPopulated('homeworks'))
+            $fields['homeworks'] = 'homeworks';
+
+
+        return $fields;
     }
 
 

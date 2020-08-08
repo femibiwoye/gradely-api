@@ -7,6 +7,7 @@ use app\modules\v2\components\{Utility, SharedConstant};
 use app\modules\v2\models\{Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User, Homeworks};
 use app\modules\v2\school\models\ClassForm;
 use Yii;
+use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\rest\ActiveController;
 use yii\helpers\ArrayHelper;
@@ -76,11 +77,13 @@ class ClassesController extends ActiveController
                 'class_name',
                 'abbreviation',
                 'global_class_id',
-                'school_id',
-                'schools.name school_name'
+                'classes.school_id',
+                'schools.name school_name',
+                new Expression('CASE WHEN h.class_id IS NULL THEN 1 ELSE 0 END as can_delete')
             ])
             ->leftJoin('schools', 'schools.id = classes.school_id')
-            ->where(['school_id' => $school->id])
+            ->leftJoin('homeworks h', "h.class_id = classes.id AND h.school_id = classes.school_id")
+            ->where(['classes.school_id' => $school->id])
             ->asArray();
 
 
@@ -194,8 +197,8 @@ class ClassesController extends ActiveController
         $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id])->all(), 'student_id');
 
         $students = User::find()->where(['id' => $student_ids])
-                                ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
-                                ->orderBy('id DESC');
+            ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
+            ->orderBy('id DESC');
 
         if (!$students) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Students not found');
@@ -203,43 +206,5 @@ class ClassesController extends ActiveController
 
         return (new ApiResponse)->success($students->all(), ApiResponse::SUCCESSFUL, 'Students record found');
 
-    }
-
-    public function actionStudentClasses($student_id) {
-        $school_id = Utility::getSchoolAccess()[0];
-        $model = new \yii\base\DynamicModel(compact('student_id', 'school_id'));
-        $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
-
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        $classes = Classes::find()
-                    ->innerJoin('student_school', 'student_school.class_id = classes.id')
-                    ->where(['student_school.student_id' => $student_id]);
-
-        
-        if (!$classes) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
-        }
-
-        return (new ApiResponse)->success($classes->all(), ApiResponse::SUCCESSFUL, 'Classes found');
-    }
-
-    public function actionStudentHomeworks($student_id) {
-        $school_id = Utility::getSchoolAccess()[0];
-        $model = new \yii\base\DynamicModel(compact('student_id', 'school_id'));
-        $model->addRule(['student_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
-
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        $homeworks = Homeworks::find()->where(['student_id' => $student_id])->all();
-        if (!$homeworks) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homeworks not found!');
-        }
-
-        return (new ApiResponse)->success($homeworks, ApiResponse::SUCCESSFUL, 'Homeworks found');
     }
 }
