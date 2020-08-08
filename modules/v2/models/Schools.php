@@ -63,7 +63,8 @@ class Schools extends \yii\db\ActiveRecord
             [
                 'class' => SluggableBehavior::className(),
                 'attribute' => 'name',
-                'ensureUnique' => true
+                'ensureUnique' => true,
+                'immutable' => true
             ],
             [
                 'class' => SluggableBehavior::className(),
