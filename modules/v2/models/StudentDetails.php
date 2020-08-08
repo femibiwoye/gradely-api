@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use app\modules\v2\components\StudentAnalytics;
+use app\modules\v2\components\Utility;
 use Yii;
 use app\modules\v2\components\SharedConstant;
 use yii\base\Model;
@@ -71,14 +72,22 @@ class StudentDetails extends User
 
         $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1]);
 
+        if (Yii::$app->user->identity->type == 'teacher') {
+            $condition = ['teacher_id' => Yii::$app->user->id];
+            $condition2 = " AND homeworks.teacher_id = " . Yii::$app->user->id;
+        } elseif (Yii::$app->user->identity->type == 'school') {
+            $condition = ['school_id' => Utility::getSchoolAccess()];
+            $condition2 = "";
+        }
+
         $homeworkCount = Homeworks::find()
-            ->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class->class_id, 'status' => 1])
+            ->where(['AND',$condition, ['class_id' => $class->class_id, 'status' => 1]])
             ->count();
 
         $studentCount = QuizSummary::find()
             ->alias('q')
             ->where(['q.student_id' => $this->id, 'q.class_id' => $class->class_id, 'submit' => 1])
-            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.id = 1 AND homeworks.teacher_id = " . Yii::$app->user->id)
+            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.id = 1".$condition2)
             ->count();
 
         return $homeworkCount > 0 ? $studentCount / $homeworkCount * 100 : 0;
@@ -134,9 +143,9 @@ class StudentDetails extends User
 
     public function checkStudentInTeacherClass()
     {
-        $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id])->all();
+        $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id,'status'=>1])->all();
         foreach ($teacher_classes as $teacher_class) {
-            if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $this->id])->one()) {
+            if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $this->id])->exists()) {
                 return true;
             }
         }
