@@ -30,6 +30,8 @@ class PreferencesForm extends Model
     public $password;
     public $timezone;
 
+    public $slug;
+
     public function rules()
     {
         return [
@@ -37,9 +39,12 @@ class PreferencesForm extends Model
             [['curriculum_id'], 'required', 'on' => 'update-curriculum'],
             [['name', 'description'], 'required', 'on' => 'add-subject'],
             [['user_id'], 'required', 'on' => 'update-user'],
-            [['user_id','role'], 'required', 'on' => 'update-user-role'],
+            [['user_id', 'role'], 'required', 'on' => 'update-user-role'],
             [['password'], 'required', 'on' => 'verify-password'],
             [['timezone'], 'required', 'on' => 'update-timezone'],
+
+            [['slug'], 'required', 'on' => 'update-slug'],
+            ['slug', 'unique', 'targetClass' => 'app\modules\v2\models\Schools', 'message' => 'Address already takens', 'on' => 'update-slug']
 
         ];
     }

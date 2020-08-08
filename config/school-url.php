@@ -67,7 +67,8 @@ return [
         'PUT change-user-role' => 'change-user-role',
         'PUT deactivate-user' => 'deactivate-user',
         'PUT remove-user' => 'remove-user',
-        'PUT timezone' => 'timezone'
+        'PUT timezone' => 'timezone',
+        'PUT slug' => 'slug'
     ]],
 
 

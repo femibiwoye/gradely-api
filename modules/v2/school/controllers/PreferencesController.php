@@ -340,6 +340,22 @@ class PreferencesController extends ActiveController
 
     }
 
+    public function actionSlug()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $form = new PreferencesForm(['scenario' => 'update-slug']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $school->slug = $form->slug;
+        $school->save();
+        return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'Address updated');
+
+    }
+
 
 }
 
