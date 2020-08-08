@@ -7,6 +7,7 @@ use app\modules\v2\components\{Utility, SharedConstant};
 use app\modules\v2\models\{Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User, Homeworks};
 use app\modules\v2\school\models\ClassForm;
 use Yii;
+use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\rest\ActiveController;
 use yii\helpers\ArrayHelper;
@@ -76,11 +77,13 @@ class ClassesController extends ActiveController
                 'class_name',
                 'abbreviation',
                 'global_class_id',
-                'school_id',
-                'schools.name school_name'
+                'classes.school_id',
+                'schools.name school_name',
+                new Expression('CASE WHEN h.class_id IS NULL THEN 1 ELSE 0 END as can_delete')
             ])
             ->leftJoin('schools', 'schools.id = classes.school_id')
-            ->where(['school_id' => $school->id])
+            ->leftJoin('homeworks h', "h.class_id = classes.id AND h.school_id = classes.school_id")
+            ->where(['classes.school_id' => $school->id])
             ->asArray();
 
 

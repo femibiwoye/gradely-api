@@ -152,11 +152,13 @@ class PreferencesController extends ActiveController
                 'subjects.description',
                 'count(d.class_id) class_subject_count',
                 //'count(c.id) teacher_class_count'
+                new Expression('CASE WHEN h.subject_id IS NULL THEN 1 ELSE 0 END as can_delete')
             ])
             ->where(['s.school_id' => $school->id, 's.status' => 1])
             //->leftJoin('teacher_class_subjects c', "c.subject_id = s.subject_id AND c.school_id = '$school->id'")
             ->leftJoin('class_subjects d', "d.subject_id = s.subject_id AND d.school_id = '$school->id'")
             ->innerJoin('subjects', "subjects.id = s.subject_id")
+            ->leftJoin('homeworks h', "h.subject_id = s.subject_id AND h.school_id = s.school_id")
             ->groupBy(['s.subject_id'])
             ->asArray();
 
