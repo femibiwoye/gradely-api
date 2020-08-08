@@ -63,6 +63,11 @@ class QuizSummary extends \yii\db\ActiveRecord {
         return $this->hasOne(Homeworks::className(),['id'=>'homework_id'])->andWhere(['homeworks.teacher_id'=>Yii::$app->user->id]);
     }
 
+    public function getChildHomework()
+    {
+        return $this->hasOne(Homeworks::className(),['id'=>'homework_id']);
+    }
+
     public function getSubject()
     {
         return $this->hasOne(Subjects::className(),['id'=>'subject_id']);

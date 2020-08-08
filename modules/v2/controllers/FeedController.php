@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v2\teacher\controllers;
+namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\teacher\models\PostForm;
@@ -144,28 +144,24 @@ class FeedController extends ActiveController
     }
 
 
-
-
-
-
     public function actionIndex()
     {
-        if (Yii::$app->user->identity->type == SharedConstant::ACCOUNT_TYPE[1]) {
+        if (Yii::$app->user->identity->type == 'teacher') {
             $models = $this->modelClass::find()
-            ->where(['OR',
-                ['user_id' => Yii::$app->user->id],
-                ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
-            ])
-            ->orderBy('id DESC');
-        } else if (Yii::$app->user->identity->type == SharedConstant::ACCOUNT_TYPE[0]) {
+                ->where(['OR',
+                    ['user_id' => Yii::$app->user->id],
+                    ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
+                ]);
+
+        } else if (Yii::$app->user->identity->type == 'school') {
             $classes = ArrayHelper::getColumn(Classes::find()
-                        ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
+                ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
 
             $models = $this->modelClass::find()
-                    ->where(['OR', ['user_id' => Yii::$app->user->id], ['class_id' => $classes]])
-                    ->orderBy('id DESC');
+                ->where(['OR', ['user_id' => Yii::$app->user->id], ['class_id' => $classes]]);
         }
-        
+        $models = $models->orderBy('id DESC');
+
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
@@ -177,13 +173,13 @@ class FeedController extends ActiveController
 //            },
             'pagination' => [
                 'pageSize' => 2,
-                'validatePage'=>false,
+                'validatePage' => false,
             ],
             'sort' => [
                 'attributes' => ['updated_at'],
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount.' Feeds found',$provider);
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' Feeds found for '.Yii::$app->user->identity->type, $provider);
     }
 }

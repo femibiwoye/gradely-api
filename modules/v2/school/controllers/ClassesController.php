@@ -194,8 +194,8 @@ class ClassesController extends ActiveController
         $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id])->all(), 'student_id');
 
         $students = User::find()->where(['id' => $student_ids])
-                                ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
-                                ->orderBy('id DESC');
+            ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
+            ->orderBy('id DESC');
 
         if (!$students) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Students not found');
@@ -203,43 +203,5 @@ class ClassesController extends ActiveController
 
         return (new ApiResponse)->success($students->all(), ApiResponse::SUCCESSFUL, 'Students record found');
 
-    }
-
-    public function actionStudentClasses($student_id) {
-        $school_id = Utility::getSchoolAccess()[0];
-        $model = new \yii\base\DynamicModel(compact('student_id', 'school_id'));
-        $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
-
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        $classes = Classes::find()
-                    ->innerJoin('student_school', 'student_school.class_id = classes.id')
-                    ->where(['student_school.student_id' => $student_id]);
-
-        
-        if (!$classes) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
-        }
-
-        return (new ApiResponse)->success($classes->all(), ApiResponse::SUCCESSFUL, 'Classes found');
-    }
-
-    public function actionStudentHomeworks($student_id) {
-        $school_id = Utility::getSchoolAccess()[0];
-        $model = new \yii\base\DynamicModel(compact('student_id', 'school_id'));
-        $model->addRule(['student_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
-
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        $homeworks = Homeworks::find()->where(['student_id' => $student_id])->all();
-        if (!$homeworks) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homeworks not found!');
-        }
-
-        return (new ApiResponse)->success($homeworks, ApiResponse::SUCCESSFUL, 'Homeworks found');
     }
 }

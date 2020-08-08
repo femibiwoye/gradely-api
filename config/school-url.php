@@ -20,23 +20,29 @@ return [
     'PUT v2/school/general/update-format-type' => 'v2/school/general/update-format-type',
     'POST v2/school/general/request-call' => 'v2/school/general/request-call',
 
-    //School students
-    'GET v2/school/students/<class_id:\d+>' => 'v2/school/classes/student-in-class',
-    'GET v2/school/classes/<student_id:\d+>' => 'v2/school/classes/student-classes',
-    'GET v2/school/homeworks/<student_id:\d+>' => 'v2/school/classes/student-homeworks',
 
     //School class homeworks
     'GET v2/school/homeworks/<class_id:\d+>' => 'v2/school/homework/class-homeworks',
     'GET v2/school/homework-review/<homework_id:\d+>' => 'v2/school/homework/homework-review',
     'GET v2/school/homework-performance/<homework_id:\d+>' => 'v2/school/homework/homework-performance',
 
+
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
         'GET <id:\d+>' => 'view',
         'GET group-classes' => 'group-classes',
         'POST generate' => 'generate-classes',
-        'PUT update' => 'update'
+        'PUT update' => 'update',
+        'GET students/<class_id:\d+>' =>'student-in-class'
     ]],
+
+
+    //School Student
+    'GET v2/school/student/class-homework/<student_id:\d+>' => 'v2/school/student/student-class-homework',
+    'GET v2/school/student/homework/<student_id:\d+>' => 'v2/school/student/student-homework',
+    //Student profile
+    'GET v2/school/student/profile/<student_id:\d+>' => 'v2/school/student/profile',
+    'GET v2/school/student/summary/<student_id:\d+>' => 'v2/school/student/summary',
 
     //School Profile
     'GET v2/school/profile/school' => 'v2/school/profile/school',
