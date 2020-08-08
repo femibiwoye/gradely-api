@@ -28,6 +28,7 @@ return [
     //School class homeworks
     'GET v2/school/homeworks/<class_id:\d+>' => 'v2/school/homework/class-homeworks',
     'GET v2/school/homework-review/<homework_id:\d+>' => 'v2/school/homework/homework-review',
+    'GET v2/school/homework-performance/<homework_id:\d+>' => 'v2/school/homework/homework-performance',
 
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [

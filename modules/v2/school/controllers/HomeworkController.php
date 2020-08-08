@@ -84,4 +84,22 @@ class HomeworkController extends ActiveController
 
 		return (new ApiResponse)->success($homework, ApiResponse::SUCCESSFUL, 'Homeworks record found');
 	}
+
+	public function actionHomeworkPerformance($homework_id) {
+		$school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+		$school_id = $school->id;
+		$model = new \yii\base\DynamicModel(compact('homework_id', 'school_id'));
+		$model->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id', 'school_id' => 'school_id']]);
+
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		$homework = Homeworks::find()->where(['id' => $homework_id])->one();
+		if (!$homework) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homeworks not found');
+		}
+
+		return (new ApiResponse)->success($homework->homeworkPerformance, ApiResponse::SUCCESSFUL, 'Homework Performance record found');
+	}
 }

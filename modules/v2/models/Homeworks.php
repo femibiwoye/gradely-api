@@ -116,7 +116,8 @@ class Homeworks extends \yii\db\ActiveRecord
             'attachments',
             'average',
             'completion',
-            'questions' => 'homeworkQuestions'
+            'questions' => 'homeworkQuestions',
+            'homework_performance' => 'homeworkPerformance'
 		];
 	}
 
@@ -144,6 +145,34 @@ class Homeworks extends \yii\db\ActiveRecord
     		->innerJoin('homework_questions', 'questions.id = homework_questions.question_id')
     		->where(['homework_questions.homework_id' => $this->id])
     		->all();	
+    }
+
+    public function getHomeworkPerformance() {
+    	foreach ($this->homeworkQuestions as $homeworkQuestion) {
+    		return [
+    			'question_object' => $homeworkQuestion,
+    			'missed_student' => $this->getMissedStudents($homeworkQuestion->id),
+    			'correct_student' => $this->getCorrectStudents($homeworkQuestion->id),
+    		];
+    	}
+    }
+
+    //work on the key of the arrays (start from here)
+
+    public function getMissedStudents($question_id) {
+    	return User::find()
+    		->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
+    		->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
+    		->andWhere('quiz_summary_details.selected <> quiz_summary_details.answer')
+    		->all();
+    }
+
+    public function getCorrectStudents($question_id) {
+    	return User::find()
+    		->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
+    		->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
+    		->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')
+    		->all();
     }
 
     public function getCompletion() {
