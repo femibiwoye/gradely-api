@@ -97,6 +97,35 @@ class InvitesController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    public function actionVerify($token)
+    {
+        if ($model = InviteLog::findOne(['token' => $token, 'status' => 0]))
+            return (new ApiResponse)->success($model);
+        else
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid or expired token');
+    }
+
+    public function actionVerified($token)
+    {
+        if (!$model = InviteLog::findOne(['token' => $token, 'status' => 0]))
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid or expired token');
+
+
+        if ($model->sender_type == 'school' && $model->receiver_type == 'school') {
+
+        } elseif ($model->sender_type == 'school' && $model->receiver_type == 'teacher') {
+
+        }elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
+
+        }elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
+
+        }
+
+
+        return (new ApiResponse)->success($model);
+
+    }
+
 
     /**
      * Login action.

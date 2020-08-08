@@ -33,7 +33,8 @@ return [
         'GET group-classes' => 'group-classes',
         'POST generate' => 'generate-classes',
         'PUT update' => 'update',
-        'GET students/<class_id:\d+>' =>'student-in-class'
+        'GET students/<class_id:\d+>' => 'student-in-class',
+        'DELETE <class_id:\d+>' => 'delete'
     ]],
 
 
@@ -68,7 +69,7 @@ return [
         'PUT deactivate-user' => 'deactivate-user',
         'PUT remove-user' => 'remove-user',
         'PUT timezone' => 'timezone',
-        'PUT slug' => 'slug'
+        'PUT slug' => 'slug',
     ]],
 
 

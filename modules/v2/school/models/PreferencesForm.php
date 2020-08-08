@@ -73,17 +73,17 @@ class PreferencesForm extends Model
      * @param $school
      * @return bool|void
      */
-    public function addSubject($school)
+    public function addSubject($school, $classes)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            $count = Classes::find()->where(['id' => $this->classes, 'school_id' => $school->id])->count();
-            if (is_array($this->classes) && count($this->classes) == $count) {
+            $count = Classes::find()->where(['id' => $classes, 'school_id' => $school->id])->count();
+            if (is_array($classes) && count($classes) == $count) {
                 $newModel = new Subjects();
                 $newModel->school_id = $school->id;
                 $newModel->attributes = $this->attributes;
                 $newModel->save();
-                foreach ($this->classes as $key => $class) {
+                foreach ($classes as $key => $class) {
                     $model = new ClassSubjects();
                     $model->class_id = $class;
                     $model->school_id = $school->id;
