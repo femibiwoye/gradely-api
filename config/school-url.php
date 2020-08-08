@@ -3,7 +3,7 @@
 return [
 
     //School Teacher
-    'GET v2/school/teacher' => 'v2/school/teacher/index',
+    'GET v2/school/teacher/<class_id:\d*>' => 'v2/school/teacher/index',
     'GET v2/school/teacher/pending' => 'v2/school/teacher/pending',
     'PUT v2/school/teacher/accept-teacher/<id:\d+>' => 'v2/school/teacher/accept-teacher',
     'PUT v2/school/teacher/decline-teacher/<id:\d+>' => 'v2/school/teacher/decline-teacher',
@@ -22,11 +22,12 @@ return [
 
     //School students
     'GET v2/school/students/<class_id:\d+>' => 'v2/school/classes/student-in-class',
-    'GET v2/school/classes/<student_id:\d+>' => 'v2/school/profile/student-classes',
-    'GET v2/school/homeworks/<student_id:\d+>' => 'v2/school/profile/student-homeworks',
+    'GET v2/school/classes/<student_id:\d+>' => 'v2/school/classes/student-classes',
+    'GET v2/school/homeworks/<student_id:\d+>' => 'v2/school/classes/student-homeworks',
 
     //School class homeworks
     'GET v2/school/homeworks/<class_id:\d+>' => 'v2/school/homework/class-homeworks',
+    'GET v2/school/homework-review/<homework_id:\d+>' => 'v2/school/homework/homework-review',
 
     //School Classes
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/classes'], 'extraPatterns' => [
