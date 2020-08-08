@@ -130,6 +130,7 @@ class Utility extends ActiveRecord
             'state' => $school->state,
             'country' => $school->country,
             'school_name' => $school->name,
+            'school_slug' => $school->slug,
             'school_owner' => $school_owner,
             'role' => $role
         ];

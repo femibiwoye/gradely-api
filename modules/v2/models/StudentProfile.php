@@ -192,6 +192,10 @@ class StudentProfile extends User
             }
         }
 
+        $excellence = array_slice($excellence, 0, 5);
+        $averages = array_slice($averages, 0, 5);
+        $struggling = array_slice($struggling, 0, 5);
+
         return [
             'excellence' => $excellence,
             'average' => $averages,

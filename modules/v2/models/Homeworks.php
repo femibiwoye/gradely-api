@@ -38,6 +38,8 @@ use yii\behaviors\SluggableBehavior;
 class Homeworks extends \yii\db\ActiveRecord
 {
 	private $homework_annoucements = [];
+	private $sum_of_correct_answers;
+	private $sum_of_attempts;
 	public static function tableName()
 	{
 		return 'homeworks';
@@ -111,13 +113,52 @@ class Homeworks extends \yii\db\ActiveRecord
 			'expiry_status' => 'expiryStatus',
 			'publish_status' => 'publishStatus',
             'topics',
-            'attachments'
+            'attachments',
+            'average',
+            'completion',
+            'questions' => 'homeworkQuestions'
 		];
 	}
 
     public static function find()
     {
         return parent::find()->where(['homeworks.status' => 1]);
+    }
+
+    public function getAverage() {
+    	//getting those records which are submitted
+    	$quizSummaries = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+    	if (!$quizSummaries) {
+    		return SharedConstant::VALUE_ZERO;
+    	}
+
+    	foreach ($quizSummaries as $quizSummary) {
+    		$this->sum_of_correct_answers = $this->sum_of_correct_answers + $quizSummary->correct;
+    	}
+
+    	return ($this->sum_of_correct_answers / $quizSummaries[0]->total_questions) * 100 . '%';
+    }
+
+    public function getHomeworkQuestions() {
+    	return Questions::find()
+    		->innerJoin('homework_questions', 'questions.id = homework_questions.question_id')
+    		->where(['homework_questions.homework_id' => $this->id])
+    		->all();	
+    }
+
+    public function getCompletion() {
+    	$quizSummaryRecords = $this->getQuizSummaryRecord()->all();
+    	if (!$quizSummaryRecords) {
+    		return SharedConstant::VALUE_ZERO;
+    	}
+
+    	foreach ($quizSummaryRecords as $quizSummaryRecord) {
+    		if ($quizSummaryRecord->submit = SharedConstant::VALUE_ONE) {
+    			$this->sum_of_attempts = $this->sum_of_attempts + SharedConstant::VALUE_ONE;
+    		}
+    	}
+
+    	return ($this->sum_of_attempts / count($quizSummaryRecords)) * 100 . '%';
     }
 
 	public function getExpiryStatus() {
