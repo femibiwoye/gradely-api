@@ -59,6 +59,7 @@ return [
     //School Preferences
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/preferences'], 'extraPatterns' => [
         'GET curriculum' => 'curriculum',
+        'GET pending-user' => 'pending-user',
         'POST new-curriculum' => 'new-curriculum',
         'PUT update-curriculum' => 'update-curriculum',
         'GET subjects' => 'subjects',
