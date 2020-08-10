@@ -40,6 +40,7 @@ return [
     'POST v2/teacher/class/add-teacher' => 'v2/teacher/class/add-teacher',
     'POST v2/teacher/class/add-teacher-class' => 'v2/teacher/class/add-teacher-school',
     'POST v2/teacher/student/add-multiple' => 'v2/teacher/class/add-student',
+    'DELETE v2/teacher/class/<class_id:\d+>' => 'v2/teacher/class/remove-class',
 
     //Feed Class
     'GET v2/upcoming' => 'v2/feed/upcoming',
@@ -50,7 +51,6 @@ return [
     'GET v2/feed' => 'v2/feed/index',
 
     //Homework Class
-
     'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
     'GET v2/teacher/homework/class' => 'v2/teacher/homework/class-homeworks',
     'GET v2/teacher/homework/class/<class_id:\d*>' => 'v2/teacher/homework/class-homeworks',
@@ -68,7 +68,7 @@ return [
     'GET v2/teacher/library/discussion' => 'v2/teacher/library/discussion',
     'GET v2/teacher/library/video' => 'v2/teacher/library/video',
     'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',
-    'GET v2/teacher/report/homework' => 'v2/teacher/library/homework-summary',    
+    'GET v2/teacher/report/homework' => 'v2/teacher/library/homework-summary',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
