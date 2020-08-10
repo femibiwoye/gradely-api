@@ -5,6 +5,7 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
+use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\SchoolRole;
@@ -358,6 +359,13 @@ class PreferencesController extends ActiveController
         $school->save();
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'Address updated');
 
+    }
+
+    public function actionPendingUser()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $model = InviteLog::find()->where(['status' => 0, 'sender_id' => $school->id, 'receiver_type' => 'school', 'sender_type' => 'school'])->all();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
 }
