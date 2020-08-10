@@ -84,6 +84,10 @@ class GeneralController extends Controller
         $user = User::findOne(Yii::$app->user->id);
         if ($user->type == 'school')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+
+        elseif ($user->type == 'teacher')
+            $user = array_merge(ArrayHelper::toArray($user), Utility::getTeacherAdditionalData($user->id));
+
         return (new ApiResponse)->success($user);
     }
 

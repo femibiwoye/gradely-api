@@ -136,4 +136,12 @@ class Utility extends ActiveRecord
         ];
     }
 
+    public static function getTeacherAdditionalData($userID)
+    {
+
+        return [
+            'has_class' => TeacherClass::find()->where(['teacher_id' => $userID, 'status' => 1])->exists() ? 1:0
+        ];
+    }
+
 }
