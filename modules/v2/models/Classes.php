@@ -91,9 +91,11 @@ class Classes extends \yii\db\ActiveRecord
     }
 
 
+
     public function fields()
     {
         $fields = parent::fields();
+        //$fields['homeworks'] = 'homeworks';
         if ($this->isRelationPopulated('homeworks'))
             $fields['homeworks'] = 'homeworks';
 
