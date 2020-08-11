@@ -303,11 +303,11 @@ class LibraryController extends ActiveController
 			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
-		$model = HomeworkSummary::find()->where(['homework_id' => $id])->all();
+		$model = Homeworks::find()->where(['id' => $id])->one();
 		if (!$model) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
 		}
 
-		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+		return (new ApiResponse)->success($model->getHomeworkSummary(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
 }
