@@ -205,7 +205,7 @@ class HomeworkController extends ActiveController
         }
 
         if (!Yii::$app->user->identity->validatePassword($password)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password cannot be validated!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password is not correct!');
         }
 
         $model = Homeworks::findOne(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1]);
