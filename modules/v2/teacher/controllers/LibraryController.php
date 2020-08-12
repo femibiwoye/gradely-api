@@ -6,7 +6,7 @@ use Yii;
 use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks, User};
+use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks, User, Questions};
 use app\modules\v2\teacher\models\HomeworkSummary;
 use app\modules\v2\components\SharedConstant;
 
@@ -312,6 +312,11 @@ class LibraryController extends ActiveController
 			
 		} else if ($data == 'summary') {
 			$model = Homeworks::find()->where(['id' => $id])->one();
+		} else {
+			$model = Questions::find()
+						->innerJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
+						->where(['quiz_summary_details.homework_id' => $id])
+						->all();
 		}
 
 		if (!$model) {
