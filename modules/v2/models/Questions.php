@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use app\modules\v2\components\SharedConstant;
 
 class Questions extends \yii\db\ActiveRecord
 {
@@ -57,6 +58,29 @@ class Questions extends \yii\db\ActiveRecord
             'status' => 'Status',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function fields() {
+        return [
+            'id',
+            'question',
+            'option_a',
+            'option_b',
+            'option_c',
+            'option_d',
+            'option_e',
+            'answer',
+            'type',
+            'correct_students' => 'quizSummaryDetails'
+        ];
+    }
+
+    public function getQuizSummaryDetails() {
+        return User::find()
+                ->innerJoin('quiz_summary_details', 'quiz_summary_details.student_id = user.id')
+                ->where('quiz_summary_details.selected = quiz_summary_details.answer')
+                ->andWhere(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
+                ->all();
     }
 
     public function getComprehension()

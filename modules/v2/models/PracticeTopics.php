@@ -52,11 +52,26 @@ class PracticeTopics extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields() {
+        return [
+            'score',
+        ];
+    }
+
     /**
      * Gets query for [[Practice]].
      *
      * @return \yii\db\ActiveQuery
      */
+
+    public function getQuizSummary() {
+        return $this->hasOne(QuizSummary::className(), ['topic_id' => 'id']);
+    }
+
+    public function getScore() {
+        return $this->quizSummary->correct / $this->quizSummary->total_questions * 100 . "%";
+    }
+
     public function getPractice()
     {
         return $this->hasOne(Homeworks::className(), ['id' => 'practice_id']);

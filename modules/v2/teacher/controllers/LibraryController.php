@@ -6,7 +6,7 @@ use Yii;
 use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks};
+use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks, User, Questions};
 use app\modules\v2\teacher\models\HomeworkSummary;
 use app\modules\v2\components\SharedConstant;
 
@@ -303,11 +303,26 @@ class LibraryController extends ActiveController
 			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 		}
 
-		$model = HomeworkSummary::find()->where(['homework_id' => $id])->all();
+		if ($data == 'student') {
+			$model = User::find()
+						->innerJoin('quiz_summary', 'quiz_summary.student_id = user.id')
+						->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
+						->andWhere(['quiz_summary.homework_id' => $id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
+						->all();
+			
+		} else if ($data == 'summary') {
+			$model = Homeworks::find()->where(['id' => $id])->one();
+		} else {
+			$model = Questions::find()
+						->innerJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
+						->where(['quiz_summary_details.homework_id' => $id])
+						->all();
+		}
+
 		if (!$model) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
 		}
 
-		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+		return (new ApiResponse)->success($data == 'summary' ? $model->getHomeworkSummary() : $model, ApiResponse::SUCCESSFUL, 'Record found');
 	}
 }

@@ -42,6 +42,11 @@ class Homeworks extends \yii\db\ActiveRecord
     private $homework_annoucements = [];
     private $sum_of_correct_answers;
     private $sum_of_attempts;
+    private $total = SharedConstant::VALUE_ZERO;
+    private $struggling_students = SharedConstant::VALUE_ZERO;
+    private $average_students = SharedConstant::VALUE_ZERO;
+    private $excellent_students = SharedConstant::VALUE_ZERO;
+
 
     public static function tableName()
     {
@@ -130,6 +135,76 @@ class Homeworks extends \yii\db\ActiveRecord
         return parent::find()->where(['homeworks.status' => 1]);
     }
 
+    public function getHomeworkSummary()
+    {
+        return [
+            'average' => $this->average,
+            'completion_rate' => $this->completedRate,
+            'expected_students' => $this->studentExpected,
+            'submitted_students' => $this->studentsSubmitted,
+            'struggling_students' => $this->strugglingStudents,
+            'average_students' => $this->averageStudents,
+            'excellence_students' => $this->excellentStudents,
+
+        ];
+    }
+
+    public function getCompletedRate()
+    {
+        $completed = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+
+        return count($completed) * 100 / count($this->getQuizSummaryRecord()->all());
+    }
+
+    public function getStudentExpected()
+    {
+        return count($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE]));
+    }
+
+    public function getStudentsSubmitted()
+    {
+        return (int)$this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->count();
+    }
+
+    public function getStrugglingStudents()
+    {
+        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+        foreach ($models as $model) {
+            $marks = $model->correct * 100 / $model->total_questions;
+            if ($marks < 50) {
+                $this->struggling_students = $this->struggling_students + 1;
+            }
+        }
+
+        return $this->struggling_students;
+    }
+
+    public function getAverageStudents()
+    {
+        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+        foreach ($models as $model) {
+            $marks = $model->correct * 100 / $model->total_questions;
+            if ($marks > 50 && $marks < 75) {
+                $this->average_students = $this->average_students + 1;
+            }
+        }
+
+        return $this->average_students;
+    }
+
+    public function getExcellentStudents()
+    {
+        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+        foreach ($models as $model) {
+            $marks = $model->correct * 100 / $model->total_questions;
+            if ($marks > 75) {
+                $this->excellent_students = $this->excellent_students + 1;
+            }
+        }
+
+        return $this->excellent_students;
+    }
+
     public function getAverage()
     {
         //getting those records which are submitted
@@ -142,7 +217,7 @@ class Homeworks extends \yii\db\ActiveRecord
             $this->sum_of_correct_answers = $this->sum_of_correct_answers + $quizSummary->correct;
         }
 
-        return ($this->sum_of_correct_answers / $quizSummaries[0]->total_questions) * 100 . '%';
+        return $quizSummaries[0]->total_questions > 0 ? (double)round(($this->sum_of_correct_answers / $quizSummaries[0]->total_questions) * 100) : 0;
     }
 
     public function getHomeworkQuestions()

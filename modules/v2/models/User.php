@@ -69,7 +69,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'email',
             'is_boarded',
             'token',
-            'profile'=>'userProfile'
+            'profile'=>'userProfile',
+            'performance' => 'topics'
         ];
 
         if (Yii::$app->controller->id != 'auth') {
@@ -86,6 +87,13 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'created_at',
             'updated_at',
         ];
+    }
+
+    public function getTopics() {
+        return PracticeTopics::find()
+                ->innerJoin('quiz_summary', 'quiz_summary.homework_id = practice_topics.practice_id')
+                ->where(['quiz_summary.homework_id' => Yii::$app->request->get('id'), 'quiz_summary.student_id' => $this->id])
+                ->all();
     }
 
     public function getImage()
