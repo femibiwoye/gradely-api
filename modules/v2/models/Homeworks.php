@@ -135,7 +135,8 @@ class Homeworks extends \yii\db\ActiveRecord
         return parent::find()->where(['homeworks.status' => 1]);
     }
 
-    public function getHomeworkSummary() {
+    public function getHomeworkSummary()
+    {
         return [
             'average' => $this->average,
             'completion_rate' => $this->completedRate,
@@ -148,21 +149,25 @@ class Homeworks extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getCompletedRate() {
+    public function getCompletedRate()
+    {
         $completed = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
 
         return count($completed) * 100 / count($this->getQuizSummaryRecord()->all());
     }
 
-    public function getStudentExpected() {
+    public function getStudentExpected()
+    {
         return count($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE]));
     }
 
-    public function getStudentsSubmitted() {
-        return $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+    public function getStudentsSubmitted()
+    {
+        return (int)$this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->count();
     }
 
-    public function getStrugglingStudents() {
+    public function getStrugglingStudents()
+    {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
             $marks = $model->correct * 100 / $model->total_questions;
@@ -174,7 +179,8 @@ class Homeworks extends \yii\db\ActiveRecord
         return $this->struggling_students;
     }
 
-    public function getAverageStudents() {
+    public function getAverageStudents()
+    {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
             $marks = $model->correct * 100 / $model->total_questions;
@@ -186,7 +192,8 @@ class Homeworks extends \yii\db\ActiveRecord
         return $this->average_students;
     }
 
-    public function getExcellentStudents() {
+    public function getExcellentStudents()
+    {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
             $marks = $model->correct * 100 / $model->total_questions;
@@ -210,7 +217,7 @@ class Homeworks extends \yii\db\ActiveRecord
             $this->sum_of_correct_answers = $this->sum_of_correct_answers + $quizSummary->correct;
         }
 
-        return ($this->sum_of_correct_answers / $quizSummaries[0]->total_questions) * 100 . '%';
+        return $quizSummaries[0]->total_questions > 0 ? (double)round(($this->sum_of_correct_answers / $quizSummaries[0]->total_questions) * 100) : 0;
     }
 
     public function getHomeworkQuestions()
