@@ -53,7 +53,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ];
     }
 
-    public function fields()
+    /*public function fields()
     {
         $user = [
             'id',
@@ -78,7 +78,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         }
 
         return $user;
-    }
+    }*/
 
     public function extraFields()
     {

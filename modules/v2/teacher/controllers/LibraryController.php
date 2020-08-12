@@ -6,8 +6,8 @@ use Yii;
 use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks, User, Questions};
-use app\modules\v2\teacher\models\HomeworkSummary;
+use app\modules\v2\models\{TeacherClass, ApiResponse, Feed, Homeworks, User, Questions, PracticeTopics, Classes};
+use app\modules\v2\teacher\models\{HomeworkSummary, ClassReport};
 use app\modules\v2\components\SharedConstant;
 
 class LibraryController extends ActiveController
@@ -324,5 +324,34 @@ class LibraryController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($data == 'summary' ? $model->getHomeworkSummary() : $model, ApiResponse::SUCCESSFUL, 'Record found');
+	}
+
+	public function actionClassReport() {
+		$id = Yii::$app->request->get('class_id');
+		$data = Yii::$app->request->get('data');
+		$subject = Yii::$app->request->get('subject');
+		$term = Yii::$app->request->get('term');
+		$date = Yii::$app->request->get('date');
+		$model = new \yii\base\DynamicModel(compact('id', 'data', 'subject', 'term', 'date'));
+		$model->addRule(['id', 'data'], 'required')
+			->addRule(['id'], 'integer')
+			->addRule(['data', 'term', 'date', 'subject'], 'string');
+
+		if (!$model->validate()) {
+			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		/*$model = PracticeTopics::find()
+					->innerJoin('Homeworks', 'homeworks.id = practice_topics.practice_id')
+					->where(['homeworks.class_id' => $id])
+					->all();*/
+
+		$model = (new ClassReport)->getReport();
+
+		if (!$model) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+		}
+
+		return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
 	}
 }
