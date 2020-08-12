@@ -296,42 +296,5 @@ class LibraryController extends ActiveController
 
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
-
-    public function actionHomeworkSummary()
-    {
-        $id = Yii::$app->request->get('id');
-        $data = Yii::$app->request->get('data');
-        $model = new \yii\base\DynamicModel(compact('id', 'data'));
-        $model->addRule(['id', 'data'], 'required')
-            ->addRule(['id'], 'integer')
-            ->addRule(['data'], 'string');
-
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        if ($data == 'student') {
-            $model = UserModel::find()
-                //->with(['assessmentTopicsPerformance'])
-                ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
-                ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
-                ->andWhere(['qs.homework_id' => $id, 'qs.submit' => SharedConstant::VALUE_ONE, 'qs.type' => 'homework'])
-                ->all();
-        } else if ($data == 'summary') {
-            $model = Homeworks::find()->where(['id' => $id])->one();
-        } else {
-            $model = Questions::find()
-                ->innerJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
-                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type = 'homework'")
-                ->innerJoin('homeworks h', "h.id = quiz_summary_details.homework_id AND h.teacher_id = ".Yii::$app->user->id)
-                ->where(['quiz_summary_details.homework_id' => $id])
-                ->all();
-        }
-
-        if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-        }
-
-        return (new ApiResponse)->success($data == 'summary' ? $model->getHomeworkSummary() : $model, ApiResponse::SUCCESSFUL, 'Record found');
-    }
+    
 }
