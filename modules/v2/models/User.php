@@ -69,8 +69,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'email',
             'is_boarded',
             'token',
-            'profile'=>'userProfile',
-            'performance' => 'topics'
+            'profile' => 'userProfile',
+            //'performance' => 'topics'
         ];
 
         if (Yii::$app->controller->id != 'auth') {
@@ -89,11 +89,12 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         ];
     }
 
-    public function getTopics() {
+    public function getTopics()
+    {
         return PracticeTopics::find()
-                ->innerJoin('quiz_summary', 'quiz_summary.homework_id = practice_topics.practice_id')
-                ->where(['quiz_summary.homework_id' => Yii::$app->request->get('id'), 'quiz_summary.student_id' => $this->id])
-                ->all();
+            ->innerJoin('quiz_summary', 'quiz_summary.homework_id = practice_topics.practice_id')
+            ->where(['quiz_summary.homework_id' => Yii::$app->request->get('id'), 'quiz_summary.student_id' => $this->id])
+            ->all();
     }
 
     public function getImage()
@@ -251,8 +252,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function getClasses()
     {
         return $this->hasMany(Classes::className(), ['id' => 'class_id'])
-            ->leftJoin('schools s','s.id = classes.school_id')
-            ->select(['classes.*','s.name school_name'])
+            ->leftJoin('schools s', 's.id = classes.school_id')
+            ->select(['classes.*', 's.name school_name'])
             ->asArray()
             ->via('teacherClass');
     }

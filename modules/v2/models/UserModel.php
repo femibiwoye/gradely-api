@@ -3,6 +3,8 @@
 namespace app\modules\v2\models;
 
 
+use Yii;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -126,6 +128,9 @@ class UserModel extends User
 
         if ($this->isRelationPopulated('teacherSubjectList'))
             $fields['teacherSubjects'] = 'teacherSubjectList';
+
+        //if ($this->isRelationPopulated('assessmentTopicsPerformance'))
+            $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
 
         return $fields;
     }
@@ -287,18 +292,19 @@ class UserModel extends User
     public function getParentChildren()
     {
         return $this->hasMany(self::className(), ['id' => 'student_id'])
-            ->leftJoin('parents p','p.student_id = user.id AND p.parent_id = '.$this->id)
-            ->leftJoin('student_school s',"s.student_id = user.id")
-            ->leftJoin('classes c',"c.id = s.class_id AND s.status= '1'")
-            ->select(['user.id','firstname','lastname','user.code','email','image','type','p.parent_id','p.role','c.id class_id','c.class_name','c.class_code'])
+            ->leftJoin('parents p', 'p.student_id = user.id AND p.parent_id = ' . $this->id)
+            ->leftJoin('student_school s', "s.student_id = user.id")
+            ->leftJoin('classes c', "c.id = s.class_id AND s.status= '1'")
+            ->select(['user.id', 'firstname', 'lastname', 'user.code', 'email', 'image', 'type', 'p.parent_id', 'p.role', 'c.id class_id', 'c.class_name', 'c.class_code'])
             ->asArray()
             ->via('parentLists');
     }
 
     public function getParentChildrenRelationship()
     {
-        return $this->hasMany(Parents::className(), ['student_id' => 'id'])->andWhere(['parent_id'=>$this->id])->via('parentChildren');
+        return $this->hasMany(Parents::className(), ['student_id' => 'id'])->andWhere(['parent_id' => $this->id])->via('parentChildren');
     }
+
     public function getParentStudentSchools()
     {
         return $this->hasMany(StudentSchool::className(), ['student_id' => 'id'])->via('parentChildren');
@@ -329,5 +335,23 @@ class UserModel extends User
         return $this->hasMany(Subjects::className(), ['id' => 'subject_id'])->via('teacherSubjects');
     }
 
+    public function getAssessmentTopicsPerformance()
+    {
+        return $this->hasMany(QuizSummaryDetails::className(), ['student_id' => 'id'])
+            ->alias('qsd')
+            ->select([new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(hq.id))*100) as score'), 'qsd.topic_id',
+                'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
+                'COUNT(hq.id) as questionCount',
+                'st.topic as topic',
+                'qsd.homework_id as homework_id'
+            ])
+            ->innerJoin('homework_questions hq', 'hq.homework_id=qsd.homework_id')
+            ->innerJoin('quiz_summary qus', "qus.id = qsd.quiz_id AND qus.type = 'homework'")
+            ->leftJoin('subject_topics st', 'st.id=qsd.topic_id')
+            ->where(['qsd.homework_id' => Yii::$app->request->get('id')])
+            ->groupBy(['qsd.topic_id'])
+            ->orderBy('score DESC')
+            ->asArray();
+    }
 
 }
