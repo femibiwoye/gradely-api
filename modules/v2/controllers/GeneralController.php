@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Country;
@@ -109,6 +110,17 @@ class GeneralController extends Controller
             $model = $model->where(['area' => $area]);
 
         return (new ApiResponse)->success($model->all());
+    }
+
+    public function actionTerm()
+    {
+        //$term = SessionTermOnly::widget(['id' => 12]); // Current terms for users who does belongs to school. 12 is school_id
+        $term = SessionTermOnly::widget(['nonSchool' => true]); // Current terms for users who does not belong to school
+        $week = SessionTermOnly::widget(['nonSchool' => true,'weekOnly' => true]); // Current terms for users who does not belong to school
+
+        $return = ['term'=>$term,'week'=>$week];
+
+        return (new ApiResponse)->success($return);
     }
 }
 
