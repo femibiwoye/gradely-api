@@ -69,7 +69,6 @@ return [
     'GET v2/teacher/library/discussion' => 'v2/teacher/library/discussion',
     'GET v2/teacher/library/video' => 'v2/teacher/library/video',
     'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',
-    'GET v2/teacher/report/homework' => 'v2/teacher/library/homework-summary',
     'GET v2/teacher/report/class' => 'v2/teacher/library/class-report',
     'GET v2/report/homework' => 'v2/report/homework-summary',
 

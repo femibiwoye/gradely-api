@@ -297,41 +297,6 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
 
-	public function actionHomeworkSummary() {
-		$id = Yii::$app->request->get('id');
-		$data = Yii::$app->request->get('data');
-		$model = new \yii\base\DynamicModel(compact('id', 'data'));
-		$model->addRule(['id', 'data'], 'required')
-			->addRule(['id'], 'integer')
-			->addRule(['data'], 'string');
-
-		if (!$model->validate()) {
-			return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-		}
-
-		if ($data == 'student') {
-			$model = User::find()
-						->innerJoin('quiz_summary', 'quiz_summary.student_id = user.id')
-						->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
-						->andWhere(['quiz_summary.homework_id' => $id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
-						->all();
-			
-		} else if ($data == 'summary') {
-			$model = Homeworks::find()->where(['id' => $id])->one();
-		} else {
-			$model = Questions::find()
-						->innerJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
-						->where(['quiz_summary_details.homework_id' => $id])
-						->all();
-		}
-
-		if (!$model) {
-			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-		}
-
-		return (new ApiResponse)->success($data == 'summary' ? $model->getHomeworkSummary() : $model, ApiResponse::SUCCESSFUL, 'Record found');
-	}
-
 	public function actionClassReport() {
 		$id = Yii::$app->request->get('class_id');
 		$data = Yii::$app->request->get('data');
