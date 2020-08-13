@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 
+use app\modules\v2\components\InputNotification;
 use Yii;
 use yii\base\Model;
 
@@ -74,6 +75,11 @@ class SignupForm extends Model
             if (!$user->save() || !$this->generateCode($user) || !$this->createProfile($user)) {
                 return false;
             }
+
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('welcome_' . $user->type, $user->type, [[$user->type . '_id', $user->id]]))
+                return false;
+
 
             $dbtransaction->commit();
         } catch (Exception $e) {
