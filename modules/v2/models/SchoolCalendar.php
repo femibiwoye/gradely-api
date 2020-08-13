@@ -42,7 +42,7 @@ class SchoolCalendar extends \yii\db\ActiveRecord
             [['first_term_start', 'first_term_end', 'second_term_start', 'second_term_end', 'third_term_start', 'third_term_end', 'created_at'], 'safe'],
             [['session_name'], 'string', 'max' => 100],
             [['session_name'], 'string', 'max' => 100],
-            [['session_name','year','first_term_start','first_term_end','second_term_start',
+            [['first_term_start','first_term_end','second_term_start',
                 'second_term_end','third_term_start','third_term_end'], 'required',
                  'on' => self::SCENARIO_EDIT_SCHOOL_CALENDAR
             ]

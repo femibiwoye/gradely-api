@@ -62,6 +62,7 @@ return [
     'POST v2/teacher/homework/<type:[a-z/]+>' => 'v2/teacher/homework/create',
     //'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
     'PUT v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/update',
+    'GET v2/teacher/homework/draft/<class_id:\d+>' => 'v2/teacher/homework/homework-draft',
 
     //Reports
     'GET v2/teacher/library/documents' => 'v2/teacher/library/index',

@@ -77,7 +77,7 @@ class SignupForm extends Model
             }
 
             $notification = new InputNotification();
-            if (!$notification->NewNotification('welcome_' . $user->type, $user->type, [[$user->type . '_id', $user->id]]))
+            if (!$notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]))
                 return false;
 
 

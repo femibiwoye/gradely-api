@@ -7,6 +7,7 @@ use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
 use app\modules\v2\models\{Homeworks, Classes, ApiResponse};
 use app\modules\v2\components\SharedConstant;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -139,15 +140,53 @@ class HomeworkController extends ActiveController
     public function actionClassHomeworks($class_id = null)
     {
         if ($class_id) {
-            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1])->all();
+            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
         } else
-            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1])->all();
+            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
 
-        if (!$model) {
+        if (!$model->count() > 0) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
+
+    }
+
+    public function actionHomeworkDraft($class_id = null)
+    {
+        if ($class_id) {
+            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1, 'publish_status' => 0]);
+        } else
+            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 0]);
+
+        if (!$model->count() > 0) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
+
     }
 
     public function actionHomework($homework_id)

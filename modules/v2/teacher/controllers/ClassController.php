@@ -210,24 +210,13 @@ class ClassController extends ActiveController
         }
 
         return (new ApiResponse)->success($detail);
-
-
-//		$form = new StudentProfile;
-//		$form->student_id = $id;
-//		$form->teacher_id = Yii::$app->user->id;
-//		if (!$form->validate())
-//		{
-//			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-//		}
-//
-//		return (new ApiResponse)->success(StudentProfile::findOne(['id' => $id], null, 'Records found'));
     }
 
     public function actionRemoveClass($class_id)
     {
         $teacherClass = TeacherClass::findOne(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id]);
         if (!$teacherClass) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Class either does not exist or invalid!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class either does not exist or invalid!');
         }
 
         if ($teacherClass->delete()) {

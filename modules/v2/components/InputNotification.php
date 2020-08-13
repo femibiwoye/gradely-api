@@ -15,14 +15,18 @@ class InputNotification extends Model
 //    public $receiverType;
 //    public $fields;
 
-    public function NewNotification($actionName, $receiverType, $fields)
+//Fields is an array.
+//Value 1 in each array is field_name, value 2 in each array is field_value
+    public function NewNotification($actionName, $fields)
     {
+
+
         $action = Actions::findOne(['name' => $actionName]);
         parent::init();
         $notification = new Notifications();
         $notification->action_id = $action->id;
         $notification->action_name = $actionName;
-        $notification->receiver_type = $receiverType;
+        $notification->receiver_type = $action->receiver_type;
         if ($notification->save()) {
             foreach ($fields as $field) {
                 $notModel = new NotificationActionData();
