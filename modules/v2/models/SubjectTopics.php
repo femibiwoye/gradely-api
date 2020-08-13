@@ -4,6 +4,8 @@ namespace app\modules\v2\models;
 
 use app\modules\v1\models\QuizSummary;
 use Yii;
+use yii\helpers\ArrayHelper;
+use app\modules\v2\components\{SharedConstant};
 
 /**
  * This is the model class for table "subject_topics".
@@ -32,6 +34,9 @@ class SubjectTopics extends \yii\db\ActiveRecord
     /**
      * {@inheritdoc}
      */
+    private $struggling = [];
+    private $average = [];
+    private $excellence = [];
     public static function tableName()
     {
         return 'subject_topics';
@@ -73,6 +78,101 @@ class SubjectTopics extends \yii\db\ActiveRecord
             'status' => 'Status',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function getPerformance()
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->topic,
+            'description' => $this->description,
+            'week_number' => $this->week_number,
+            'term' => $this->term,
+            'exam_type_id' => $this->exam_type_id,
+            'status' => $this->status,
+            'struggling' => $this->strugglingStudents,
+            'average' => $this->averageStudents,
+            'excellence' => $this->excellenceStudents,
+        ];
+    }
+
+    public function getStrugglingStudents()
+    {
+        return $this->struggling;
+    }
+
+    public function getAverageStudents()
+    {
+        return $this->average;
+    }
+
+    public function getExcellentStudents()
+    {
+        return $this->excellence;
+    }
+
+    public function getStudentsInClass()
+    {
+        return ArrayHelper::getColumn(
+            StudentSchool::find()
+                ->select(['student_id'])
+                ->where(['class_id' => Yii::$app->request->get('class_id')])
+                ->all(),
+            'student_id'
+        );
+    }
+
+    public function getScore()
+    {
+        foreach ($this->studentsInClass as $student) {
+            $score = $this->getResult($student, $this->id);
+            if ($score > 75) {
+                $this->excellence = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score ." %"]);
+            } else if ($score >= 50 && $score < 75) {
+                $this->average = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score ." %"]);
+            } else {
+                $this->struggling = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score ." %"]);
+            }
+        }
+
+        return [
+            'id' => $this->id,
+            'title' => $this->topic,
+            'description' => $this->description,
+            'week_number' => $this->week_number,
+            'term' => $this->term,
+            'exam_type_id' => $this->exam_type_id,
+            'status' => $this->status,
+            'struggling' => $this->struggling,
+            'average' => $this->average,
+            'excellence' => $this->excellence,
+        ];
+    }
+
+    public function getStudent($student_id, $score)
+    {
+        return User::find()
+                ->select('id, firstname, image')
+                ->where(['id' => $student_id, 'type' => SharedConstant::ACCOUNT_TYPE[3]])
+                ->all();
+    }
+
+    public function getResult($student_id, $topic_id)
+    {
+        $query = QuizSummaryDetails::find()
+                    ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
+                    ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+                    ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => 18]);
+        
+        if (!$query->all()) {
+            return SharedConstant::VALUE_ZERO;
+        }
+
+        $total_attempts = count($query->all());
+        $total_correct = count($query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->all());
+
+        return ($total_correct / $total_attempts) * 100;
+
     }
 
     /**

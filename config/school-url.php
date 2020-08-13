@@ -3,6 +3,7 @@
 return [
 
     //School Teacher
+    'GET v2/school/teacher' => 'v2/school/teacher/index',
     'GET v2/school/teacher/<class_id:\d*>' => 'v2/school/teacher/index',
     'GET v2/school/teacher/pending' => 'v2/school/teacher/pending',
     'PUT v2/school/teacher/accept-teacher/<id:\d+>' => 'v2/school/teacher/accept-teacher',
@@ -71,6 +72,8 @@ return [
         'PUT remove-user' => 'remove-user',
         'PUT timezone' => 'timezone',
         'PUT slug' => 'slug',
+        'GET calendar' => 'calendar',
+        'PUT calendar' => 'update-calendar',
     ]],
 
 

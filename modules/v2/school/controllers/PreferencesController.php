@@ -7,6 +7,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\SchoolAdmin;
+use app\modules\v2\models\SchoolCalendar;
 use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
@@ -366,6 +367,37 @@ class PreferencesController extends ActiveController
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $model = InviteLog::find()->where(['status' => 0, 'sender_id' => $school->id, 'receiver_type' => 'school', 'sender_type' => 'school'])->all();
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionCalendar()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $model = SchoolCalendar::findOne(['school_id' => $school->id]);
+
+        return (new ApiResponse)->success($model);
+    }
+
+    public function actionUpdateCalendar()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $form = new SchoolCalendar(['scenario' => SchoolCalendar::SCENARIO_EDIT_SCHOOL_CALENDAR]);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolCalendar::findOne(['id'=>$school->id]);
+        $model->first_term_start = $form->first_term_start;
+        $model->first_term_end = $form->first_term_end;
+        $model->second_term_start = $form->second_term_start;
+        $model->second_term_end = $form->second_term_end;
+        $model->third_term_start = $form->third_term_start;
+        $model->third_term_end = $form->third_term_end;
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'School calendar updated');
+
     }
 
 }

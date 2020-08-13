@@ -62,6 +62,7 @@ return [
     'POST v2/teacher/homework/<type:[a-z/]+>' => 'v2/teacher/homework/create',
     //'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
     'PUT v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/update',
+    'GET v2/teacher/homework/draft/<class_id:\d+>' => 'v2/teacher/homework/homework-draft',
 
     //Reports
     'GET v2/teacher/library/documents' => 'v2/teacher/library/index',
@@ -69,10 +70,8 @@ return [
     'GET v2/teacher/library/discussion' => 'v2/teacher/library/discussion',
     'GET v2/teacher/library/video' => 'v2/teacher/library/video',
     'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',
-
+    'GET v2/teacher/report/class' => 'v2/teacher/library/class-report',
     'GET v2/report/homework' => 'v2/report/homework-summary',
-
-
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

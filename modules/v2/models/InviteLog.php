@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\InputNotification;
 use Yii;
 
 /**
@@ -122,8 +123,14 @@ class InviteLog extends \yii\db\ActiveRecord
         $model->sender_type = 'school';
         $model->receiver_type = 'teacher';
         $model->token = Yii::$app->security->generateRandomString(100);
-        if ($model->save())
+        if ($model->save()) {
+
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('school_invite_teacher', [['invitation_id', $model->id]]))
+                return false;
+
             return $model;
+        }
         return false;
     }
 
