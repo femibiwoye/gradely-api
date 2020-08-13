@@ -52,11 +52,16 @@ class PracticeTopics extends \yii\db\ActiveRecord
         ];
     }
 
-    public function fields() {
-        return [
-            'score',
-        ];
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        //if ($this->isRelationPopulated('score'))
+            $fields['score'] = 'score';
+
+        return $fields;
     }
+
 
     /**
      * Gets query for [[Practice]].
@@ -64,12 +69,16 @@ class PracticeTopics extends \yii\db\ActiveRecord
      * @return \yii\db\ActiveQuery
      */
 
-    public function getQuizSummary() {
+    public function getQuizSummary()
+    {
         return $this->hasOne(QuizSummary::className(), ['topic_id' => 'id']);
     }
 
-    public function getScore() {
-        return $this->quizSummary->correct / $this->quizSummary->total_questions * 100 . "%";
+    public function getScore()
+    {
+        return $quizSummary = QuizSummaryDetails::find()->where(['topic_id'=>$this->id])->all();
+
+        return $this->quizSummary;//$this->quizSummary->total_questions > 0 ? $this->quizSummary->correct / $this->quizSummary->total_questions * 100 : 0;
     }
 
     public function getPractice()

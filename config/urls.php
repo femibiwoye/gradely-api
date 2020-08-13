@@ -8,12 +8,13 @@ return [
     'POST v2/forgot-password' => 'v2/auth/forgot-password',
     'POST v2/reset-password' => 'v2/auth/reset-password',
 
-    //Onboarding
+    //Onboarding/General endpoints
     'PUT v2/general/update-boarding' => 'v2/general/update-boarding',
     'GET v2/general/boarding-status' => 'v2/general/boarding-status',
     'GET v2/general/country' => 'v2/general/country',
     'GET v2/general/state' => 'v2/general/state',
     'GET v2/general/timezone' => 'v2/general/timezone',
+    'GET v2/general/term' => 'v2/general/term',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',
@@ -70,6 +71,7 @@ return [
     'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',
     'GET v2/teacher/report/homework' => 'v2/teacher/library/homework-summary',
     'GET v2/teacher/report/class' => 'v2/teacher/library/class-report',
+    'GET v2/report/homework' => 'v2/report/homework-summary',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

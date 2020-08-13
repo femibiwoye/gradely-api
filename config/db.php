@@ -14,7 +14,7 @@ return ['db' => [
     //'schemaCache' => 'cache',
 ], 'main' => [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=' . HOST . ';dbname=' . DATABASE_NOTIFICATION,
+    'dsn' => 'mysql:host=' . HOST . ';dbname=' . DATABASE,
     'username' => USERNAME,
     'password' => PASSWORD,
     'charset' => 'utf8',
