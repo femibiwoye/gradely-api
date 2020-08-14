@@ -56,10 +56,8 @@ class ProfileController extends ActiveController
 	public function actionPendingParentInvitations()
 	{
 		$models = InviteLog::find()
-					->where(['sender_id' => Yii::$app->user->id, 'sender_type' => 'student', 'status' => SharedConstant::VALUE_ONE]);
-
-		print_r($models->createCommand()->getRawSql());
-		die();
+					->where(['sender_id' => Yii::$app->user->id, 'sender_type' => 'student', 'status' => SharedConstant::VALUE_ONE, 'receiver_type' => 'teacher'])
+					->all();
 
 		if (!$models) {
 			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
