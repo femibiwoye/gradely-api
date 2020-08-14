@@ -74,8 +74,6 @@ return [
     'GET v2/report/class' => 'v2/library/class-report',
     'GET v2/report/homework' => 'v2/report/homework-summary',
 
-
-
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin',
