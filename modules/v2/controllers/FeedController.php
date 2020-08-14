@@ -144,21 +144,26 @@ class FeedController extends ActiveController
     }
 
 
-    public function actionIndex()
+    public function actionIndex($class_id = null)
     {
         if (Yii::$app->user->identity->type == 'teacher') {
+            if (empty($class_id))
+                $class_id = isset(Utility::getTeacherClassesID(Yii::$app->user->id)[0]) ? Utility::getTeacherClassesID(Yii::$app->user->id)[0] : [];
+
             $models = $this->modelClass::find()
                 ->where(['OR',
                     ['user_id' => Yii::$app->user->id],
-                    ['class_id' => Utility::getTeacherClassesID(Yii::$app->user->id)]
+                    ['class_id' => $class_id]
                 ]);
 
         } else if (Yii::$app->user->identity->type == 'school') {
-            $classes = ArrayHelper::getColumn(Classes::find()
-                ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
+
+            if (empty($class_id))
+                $class_id = ArrayHelper::getColumn(Classes::find()
+                    ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id')[0];
 
             $models = $this->modelClass::find()
-                ->where(['OR', ['user_id' => Yii::$app->user->id], ['class_id' => $classes]]);
+                ->where(['OR', ['user_id' => Yii::$app->user->id], ['class_id' => $class_id]]);
         }
         $models = $models->orderBy('id DESC');
 
@@ -180,6 +185,6 @@ class FeedController extends ActiveController
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' Feeds found for '.Yii::$app->user->identity->type, $provider);
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' Feeds found for ' . Yii::$app->user->identity->type, $provider);
     }
 }

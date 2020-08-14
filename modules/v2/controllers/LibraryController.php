@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v2\teacher\controllers;
+namespace app\modules\v2\controllers;
 
 use app\modules\v2\models\UserModel;
 use Yii;
