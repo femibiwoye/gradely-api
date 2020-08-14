@@ -148,8 +148,9 @@ class PreferencesController extends ActiveController
         $mySubjects = SchoolSubject::find()
             ->alias('s')
             ->select([
+                's.id',
                 's.school_id',
-                'subjects.id',
+                'subjects.id as subject_id',
                 'subjects.slug',
                 'subjects.name',
                 'subjects.description',
@@ -194,6 +195,19 @@ class PreferencesController extends ActiveController
         }
 
         return (new ApiResponse)->success($model);
+    }
+
+    public function actionRemoveSubject($subject_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $model = SchoolSubject::find()->where(['school_id' => $school->id, 'id' => $subject_id]);
+        if (!$model->exists())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject does not exist');
+
+        $model->one()->delete();
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Subject has been removed!');
     }
 
     public function actionUsers()
@@ -396,7 +410,7 @@ class PreferencesController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $model = SchoolCalendar::findOne(['id' => $school->id]);
+        $model = SchoolCalendar::findOne(['school_id' => $school->id]);
         $model->first_term_start = $form->first_term_start;
         $model->first_term_end = $form->first_term_end;
         $model->second_term_start = $form->second_term_start;
@@ -405,6 +419,22 @@ class PreferencesController extends ActiveController
         $model->third_term_end = $form->third_term_end;
         $model->save();
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'School calendar updated');
+
+    }
+
+    public function actionResetCalendar()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $model = SchoolCalendar::findOne(['school_id' => $school->id]);
+        $model->first_term_start = Yii::$app->params['first_term_start'];
+        $model->first_term_end = Yii::$app->params['first_term_end'];
+        $model->second_term_start = Yii::$app->params['second_term_start'];
+        $model->second_term_end = Yii::$app->params['second_term_end'];
+        $model->third_term_start = Yii::$app->params['third_term_start'];
+        $model->third_term_end = Yii::$app->params['third_term_end'];
+        $model->save();
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'School calendar has been reset!');
 
     }
 
