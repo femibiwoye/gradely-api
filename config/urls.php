@@ -22,26 +22,6 @@ return [
     //Services
     'GET v2/services/cloudinary' => 'v2/services/cloudinary',
 
-    //Teacher Profile
-    'PUT v2/teacher/profile/update-email' => 'v2/teacher/profile/update-email',
-    'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password',
-    'PUT v2/teacher/profile' => 'v2/teacher/profile/update',
-    'GET v2/teacher/profile/preference' => 'v2/teacher/profile/preference',
-    'PUT v2/teacher/profile/preference' => 'v2/teacher/profile/update-preference',
-    'DELETE v2/teacher/profile/delete-personal' => 'v2/teacher/profile/delete-account',
-
-    //Teacher classes
-    'DELETE v2/teacher/student/remove/<student_id:\d+>/<class_id:\d+>' => 'v2/teacher/class/delete-student',
-    'GET v2/teacher/student/<id:\d+>' => 'v2/teacher/class/get-student',
-    'GET v2/teacher/students/<class_id:\d+>' => 'v2/teacher/class/students-in-class',
-    'GET v2/teacher/search-school' => 'v2/teacher/class/search-school',
-    'GET v2/teacher/class' => 'v2/teacher/class/teacher-class',
-    'GET v2/teacher/class/school/<id:\d+>' => 'v2/teacher/class/school',
-    'GET v2/teacher/class/<code:[a-zA-Z0-9/]+>' => 'v2/teacher/class/view',
-    'POST v2/teacher/class/add-teacher' => 'v2/teacher/class/add-teacher',
-    'POST v2/teacher/class/add-teacher-class' => 'v2/teacher/class/add-teacher-school',
-    'POST v2/teacher/student/add-multiple' => 'v2/teacher/class/add-student',
-    'DELETE v2/teacher/class/<class_id:\d+>' => 'v2/teacher/class/remove-class',
 
     //Feed Class
     'GET v2/upcoming' => 'v2/feed/upcoming',
@@ -51,19 +31,6 @@ return [
     'POST v2/announcement' => 'v2/feed/create',
     'GET v2/feed' => 'v2/feed/index',
     'GET v2/feed/<class_id:\d+>' => 'v2/feed/index',
-
-    //Homework Class
-    'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
-    'GET v2/teacher/homework/class' => 'v2/teacher/homework/class-homeworks',
-    'GET v2/teacher/homework/class/<class_id:\d*>' => 'v2/teacher/homework/class-homeworks',
-    'GET v2/teacher/homework/subject/<class_id:\d*>' => 'v2/teacher/homework/subject',
-    'DELETE v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/delete-homework',
-    'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
-    'PUT v2/teacher/homework/<homework_id:\d+>/restart' => 'v2/teacher/homework/restart-homework',
-    'POST v2/teacher/homework/<type:[a-z/]+>' => 'v2/teacher/homework/create',
-    //'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
-    'PUT v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/update',
-    'GET v2/teacher/homework/draft/<class_id:\d+>' => 'v2/teacher/homework/homework-draft',
 
     //Reports
     'GET v2/library/documents' => 'v2/library/index',
@@ -78,6 +45,7 @@ return [
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin',
         'POST school-teacher' => 'school-teacher',
+        'POST teacher-school' => 'teacher-school',
         'GET verify' => 'verify',
     ]],
 ];

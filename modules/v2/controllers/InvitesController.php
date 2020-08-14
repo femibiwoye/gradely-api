@@ -97,6 +97,26 @@ class InvitesController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    public function actionTeacherSchool()
+    {
+        $form = new InviteLog(['scenario' => InviteLog::SCENARIO_TEACHER_INVITE_SCHOOL]);
+        $form->attributes = Yii::$app->request->post();
+
+        if (Yii::$app->user->identity->type != 'teacher')
+            return (new ApiResponse)->error(null, ApiResponse::BAD_REQUEST, 'You are not a valid user');
+
+        $form->sender_id = Yii::$app->user->id;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!$model = $form->teacherInviteSchool()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not invite school');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
+
     public function actionVerify($token)
     {
         if ($model = InviteLog::findOne(['token' => $token, 'status' => 0]))

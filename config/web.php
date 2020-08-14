@@ -4,6 +4,7 @@ $db = require __DIR__ . '/db.php';
 $mainUrl = require 'urls.php';
 $schoolUrl = require 'school-url.php';
 $studentUrl = require 'student-url.php';
+$teacherUrl = require 'teacher-url.php';
 
 $config = [
     'id' => 'gradely-v2',
@@ -69,7 +70,7 @@ $config = [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => array_merge($mainUrl, $schoolUrl, $studentUrl),
+            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl),
         ],
 
     ],
