@@ -6,7 +6,7 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 
 use Yii;
 use yii\rest\ActiveController;
-use app\modules\v2\models\{SecurityQuestions, ApiResponse};
+use app\modules\v2\models\{SecurityQuestions, ApiResponse, SecurityQuestionAnswer};
 
 
 /**
@@ -56,5 +56,37 @@ class GeneralController extends ActiveController
         }
 
         return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Record not found');
+    }
+
+    public function actionSetSecurityQuestion()
+    {
+        $model = new SecurityQuestionAnswer;
+        $model->question = Yii::$app->request->post('question');
+        $model->user_id = Yii::$app->user->id;
+        $model->answer = Yii::$app->request->post('answer');
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Data not validated');
+        }
+
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Record not saved');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
+    }
+
+    public function actionUpdateSecurityQuestion($id)
+    {
+        $model = SecurityQuestionAnswer::findOne(['id' => $id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->answer = Yii::$app->request->post('answer');
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Answer not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Answer updated');
     }
 }
