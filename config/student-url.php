@@ -11,6 +11,8 @@ return [
 
     //student general
     'GET v2/student/questions' => 'v2/student/general/security-questions',
+    'POST v2/student/question' => 'v2/student/general/set-security-question',
+    'PUT v2/student/question/<id:\d+>' => 'v2/student/general/update-security-question',
 
     //student homeworks
     'GET v2/student/completed-homeworks' => 'v2/student/homework/completed-homeworks',
