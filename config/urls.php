@@ -74,6 +74,12 @@ return [
     'GET v2/report/class' => 'v2/library/class-report',
     'GET v2/report/homework' => 'v2/report/homework-summary',
 
+    //student profile
+    'GET v2/student/parents' => 'v2/student/profile/parents',
+    'GET v2/student/parent-invitations' => 'v2/student/profile/pending-parent-invitations',
+    'PUT v2/student/update-email' => 'v2/student/profile/update-email',
+    'PUT v2/student/update-password' => 'v2/student/profile/update-password',
+
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin',
