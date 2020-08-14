@@ -70,4 +70,27 @@ class HomeworkController extends ActiveController
 
 		return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
 	}
+
+	public function actionNewHomeworks()
+	{
+		$models = $this->modelClass::find()
+					->innerJoin('student_school', 'student_school.class_id = homeworks.class_id')
+					->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE])
+					->andWhere(['<', 'open_date', time()])
+					->andWhere(['>', 'close_date', time()]);
+
+		if (!$models) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+		}
+
+		$provider = new ActiveDataProvider([
+            'query' => $models,
+            'pagination' => [
+                'pageSize' => 10,
+                'validatePage' => false,
+            ],
+        ]);
+
+		return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+	}
 }

@@ -14,5 +14,5 @@ return [
 
     //student homeworks
     'GET v2/student/completed-homeworks' => 'v2/student/homework/completed-homeworks',
-
+    'GET v2/student/new-homeworks' => 'v2/student/homework/new-homeworks',
 ];
