@@ -69,9 +69,8 @@ class StudentController extends ActiveController
     }
 
 
-
-
-    public function actionStudentClassHomework($student_id) {
+    public function actionStudentClassHomework($student_id)
+    {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('student_id', 'school_id'));
@@ -93,7 +92,8 @@ class StudentController extends ActiveController
         return (new ApiResponse)->success($classes->all(), ApiResponse::SUCCESSFUL, 'Classes found');
     }
 
-    public function actionStudentHomework($student_id) {
+    public function actionStudentHomework($student_id)
+    {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $school_id = $school->id;
 
@@ -113,11 +113,26 @@ class StudentController extends ActiveController
         $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
 
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION,'This student does not belong to your school');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This student does not belong to your school');
         }
 
-        $detail = StudentDetails::findOne(['id'=>$student_id]);
+        $detail = StudentDetails::findOne(['id' => $student_id]);
         return (new ApiResponse)->success($detail);
+    }
+
+    public function actionRemoveStudent($student_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        if (!$student = StudentSchool::findOne(['school_id' => $school->id, 'student_id' => $student_id])) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student does not exist');
+        }
+
+        if (!$student->delete()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not removed');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student Removed!');
     }
 
 
