@@ -7,6 +7,7 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\ClassSubjects;
 use app\modules\v2\models\ExamType;
+use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
 use Yii;
 use yii\base\Model;
@@ -83,6 +84,14 @@ class PreferencesForm extends Model
                 $newModel->school_id = $school->id;
                 $newModel->attributes = $this->attributes;
                 $newModel->save();
+
+                $modelSch = new SchoolSubject();
+                $modelSch->school_id = $school->id;
+                $modelSch->subject_id = $newModel->id;
+                if (!$modelSch->save()) {
+                    return false;
+                }
+
                 foreach ($classes as $key => $class) {
                     $model = new ClassSubjects();
                     $model->class_id = $class;

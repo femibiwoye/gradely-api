@@ -53,11 +53,13 @@ class LibraryController extends ActiveController
         $format = Yii::$app->request->get('format');
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
-        $teacher_id = Yii::$app->user->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
-        $model->addRule(['class_id', 'teacher_id'], 'integer')
-            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
 
+        if(Yii::$app->user->identity->type == 'teacher') {
+            $teacher_id = Yii::$app->user->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $model->addRule(['class_id', 'teacher_id'], 'integer')
+                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+        }
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
