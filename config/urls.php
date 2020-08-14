@@ -50,6 +50,7 @@ return [
     'POST v2/like-comment/<comment_id:\d+>' => 'v2/feed/comment-like',
     'POST v2/announcement' => 'v2/feed/create',
     'GET v2/feed' => 'v2/feed/index',
+    'GET v2/feed/<class_id:\d+>' => 'v2/feed/index',
 
     //Homework Class
     'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework',
@@ -65,12 +66,12 @@ return [
     'GET v2/teacher/homework/draft/<class_id:\d+>' => 'v2/teacher/homework/homework-draft',
 
     //Reports
-    'GET v2/teacher/library/documents' => 'v2/teacher/library/index',
-    'POST v2/teacher/library/video' => 'v2/teacher/library/feed-video',
-    'GET v2/teacher/library/discussion' => 'v2/teacher/library/discussion',
-    'GET v2/teacher/library/video' => 'v2/teacher/library/video',
-    'GET v2/teacher/library/assessment' => 'v2/teacher/library/assessment',
-    'GET v2/teacher/report/class' => 'v2/teacher/library/class-report',
+    'GET v2/library/documents' => 'v2/library/index',
+    'POST v2/library/video' => 'v2/library/feed-video',
+    'GET v2/library/discussion' => 'v2/library/discussion',
+    'GET v2/library/video' => 'v2/library/video',
+    'GET v2/library/assessment' => 'v2/library/assessment',
+    'GET v2/report/class' => 'v2/library/class-report',
     'GET v2/report/homework' => 'v2/report/homework-summary',
 
     //Invites

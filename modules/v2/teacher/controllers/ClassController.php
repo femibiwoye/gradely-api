@@ -138,7 +138,7 @@ class ClassController extends ActiveController
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'School record found');
     }
 
-    public function actionAddTeacherSchool()
+    public function actionAddTeacherSchool($search = null)
     {
         $form = new TeacherSchoolForm;
         $form->attributes = Yii::$app->request->post();

@@ -171,6 +171,14 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($mySubjects->all(), ApiResponse::SUCCESSFUL, $mySubjects->count() . ' subjects found');
     }
 
+    public function actionSubjectDetails($subject_id)
+    {
+        if ($model = Subjects::findOne(['id' => $subject_id, 'status' => 1]))
+            return (new ApiResponse)->success($model);
+        else
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject does not exist');
+    }
+
     public function actionAddSubject()
     {
         $form = new PreferencesForm(['scenario' => 'add-subject']);
@@ -388,7 +396,7 @@ class PreferencesController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $model = SchoolCalendar::findOne(['id'=>$school->id]);
+        $model = SchoolCalendar::findOne(['id' => $school->id]);
         $model->first_term_start = $form->first_term_start;
         $model->first_term_end = $form->first_term_end;
         $model->second_term_start = $form->second_term_start;
