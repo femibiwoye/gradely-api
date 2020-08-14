@@ -45,6 +45,7 @@ return [
     //Student profile
     'GET v2/school/student/profile/<student_id:\d+>' => 'v2/school/student/profile',
     'GET v2/school/student/summary/<student_id:\d+>' => 'v2/school/student/summary',
+    'DELETE v2/school/student/<student_id:\d+>' => 'v2/school/student/remove-student',
 
     //School Profile
     'GET v2/school/profile/school' => 'v2/school/profile/school',
