@@ -9,4 +9,7 @@ return [
     'PUT v2/student/update-password' => 'v2/student/profile/update-password',
     'PUT v2/student' => 'v2/student/profile/update',
 
+    //student general
+    'GET v2/student/questions' => 'v2/student/general/security-questions',
+
 ];
