@@ -30,6 +30,9 @@ class Module extends \yii\base\Module
             'teacher' => [
                 'class' => 'app\modules\v2\teacher\Module',
             ],
+            'student' => [
+                'class' => 'app\modules\v2\student\Module',
+            ],
             /*'invite' => [
                 'class' => 'app\modules\v2\invite\Module',
             ]*/
