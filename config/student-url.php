@@ -12,4 +12,7 @@ return [
     //student general
     'GET v2/student/questions' => 'v2/student/general/security-questions',
 
+    //student homeworks
+    'GET v2/student/completed-homeworks' => 'v2/student/homework/completed-homeworks',
+
 ];
