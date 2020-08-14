@@ -76,9 +76,9 @@ class SignupForm extends Model
                 return false;
             }
 
-            $notification = new InputNotification();
-            if (!$notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]))
-                return false;
+//            $notification = new InputNotification();
+//            if (!$notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]))
+//                return false;
 
 
             $dbtransaction->commit();
