@@ -6,6 +6,7 @@ use Yii;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{Parents, ApiResponse, InviteLog};
 use app\modules\v2\components\{CustomHttpBearerAuth, SharedConstant};
+use app\modules\v2\student\models\StudentUpdateEmailForm;
 
 class ProfileController extends ActiveController
 {
@@ -56,7 +57,7 @@ class ProfileController extends ActiveController
 	public function actionPendingParentInvitations()
 	{
 		$models = InviteLog::find()
-					->where(['sender_id' => Yii::$app->user->id, 'sender_type' => 'student', 'status' => SharedConstant::VALUE_ONE, 'receiver_type' => 'teacher'])
+					->where(['sender_id' => Yii::$app->user->id, 'sender_type' => 'student', 'status' => SharedConstant::VALUE_ZERO, 'receiver_type' => 'teacher'])
 					->all();
 
 		if (!$models) {
@@ -65,6 +66,25 @@ class ProfileController extends ActiveController
 
 		return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Record found');
 
+	}
+
+	public function actionUpdateEmail()
+	{
+		$model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id])->one();
+
+		$form = new StudentUpdateEmailForm();
+		$form->attributes = Yii::$app->request->post();
+		$form->user = $model;
+		if (!$form->validate()) {
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+		}
+
+		$model->email = $form->email;
+		if (!$form->sendEmail() || !$model->save()) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Email is not updated!');
+		}
+
+		return (new ApiResponse)->success($model);
 	}
 }
 
