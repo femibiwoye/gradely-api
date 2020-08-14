@@ -4,8 +4,8 @@ namespace app\modules\v2\student\controllers;
 
 use Yii;
 use yii\rest\ActiveController;
-use app\modules\v2\models\{Parents, ApiResponse};
-use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\models\{Parents, ApiResponse, InviteLog};
+use app\modules\v2\components\{CustomHttpBearerAuth, SharedConstant};
 
 class ProfileController extends ActiveController
 {
@@ -51,6 +51,22 @@ class ProfileController extends ActiveController
 		}
 
 		return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Parents record found');
+	}
+
+	public function actionPendingParentInvitations()
+	{
+		$models = InviteLog::find()
+					->where(['sender_id' => Yii::$app->user->id, 'sender_type' => 'student', 'status' => SharedConstant::VALUE_ONE]);
+
+		print_r($models->createCommand()->getRawSql());
+		die();
+
+		if (!$models) {
+			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+		}
+
+		return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Record found');
+
 	}
 }
 
