@@ -6,7 +6,7 @@ use Yii;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{Parents, ApiResponse, InviteLog};
 use app\modules\v2\components\{CustomHttpBearerAuth, SharedConstant};
-use app\modules\v2\student\models\{StudentUpdateEmailForm, StudentUpdatePasswordForm};
+use app\modules\v2\student\models\{StudentUpdateEmailForm, StudentUpdatePasswordForm, UpdateStudentForm};
 
 class ProfileController extends ActiveController
 {
@@ -104,5 +104,27 @@ class ProfileController extends ActiveController
 
 		return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Password is successfully updated!');
 	}
+
+	public function actionUpdate()
+    {
+        $model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id, 'type' => 'student'])->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found!');
+        }
+
+        $form = new UpdateStudentForm;
+        $form->attributes = Yii::$app->request->post();
+        $form->user = $model;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!$model = $form->updateStudent()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student is not updated!');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
 }
 
