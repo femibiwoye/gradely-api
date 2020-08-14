@@ -15,8 +15,8 @@ return ['db' => [
 ], 'main' => [
     'class' => 'yii\db\Connection',
     'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . DATABASE_NOTIFICATION,
-    'username' => USERNAME,
-    'password' => PASSWORD,
+    'username' => NOTIFICATION_USERNAME,
+    'password' => NOTIFICATION_PASSWORD,
     'charset' => 'utf8',
 ],
 ];
