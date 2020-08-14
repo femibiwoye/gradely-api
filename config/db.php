@@ -12,6 +12,7 @@ return ['db' => [
     //'enableSchemaCache' => true,
     //'schemaCacheDuration' => 60,
     //'schemaCache' => 'cache',
+
 ], 'main' => [
     'class' => 'yii\db\Connection',
     'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . DATABASE_NOTIFICATION,
