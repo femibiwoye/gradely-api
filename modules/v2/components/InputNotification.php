@@ -21,7 +21,7 @@ class InputNotification extends Model
     {
 
 
-        /*$action = Actions::findOne(['name' => $actionName]);
+        $action = Actions::findOne(['name' => $actionName]);
         parent::init();
         $notification = new Notifications();
         $notification->action_id = $action->id;
@@ -40,7 +40,7 @@ class InputNotification extends Model
             }
             return true;
         }
-        return false;*/
+        return false;
     }
 
 }
