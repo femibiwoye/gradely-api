@@ -36,6 +36,7 @@ class InviteLog extends \yii\db\ActiveRecord
     const SCENARIO_SCHOOL_INVITE_ADMIN = 'invite-school-admin';
     const SCENARIO_SCHOOL_INVITE_TEACHER = 'invite-school-teacher';
     const SCENARIO_STUDENT_INVITE_PARENT = 'invite-student-teacher';
+    const SCENARIO_TEACHER_INVITE_SCHOOL = 'invite-teacher-school';
 
     public $role;
 
@@ -64,6 +65,10 @@ class InviteLog extends \yii\db\ActiveRecord
             [['receiver_email', 'receiver_name', 'receiver_phone'], 'required', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
             ['receiver_email', 'email', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
             ['receiver_email', 'validateInvitationRepetetion', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
+
+            [['receiver_email', 'receiver_name', 'receiver_phone'], 'required', 'on' => self::SCENARIO_TEACHER_INVITE_SCHOOL],
+            ['receiver_email', 'email', 'on' => self::SCENARIO_TEACHER_INVITE_SCHOOL],
+            ['receiver_email', 'validateRepetetion', 'on' => self::SCENARIO_TEACHER_INVITE_SCHOOL],
         ];
     }
 
@@ -143,8 +148,8 @@ class InviteLog extends \yii\db\ActiveRecord
     public function schoolInviteTeacher()
     {
         $model = new InviteLog();
-        $model->receiver_name = $this->receiver_email;
         $model->receiver_email = $this->receiver_email;
+        $model->receiver_name = $this->receiver_name;
         $model->receiver_phone = $this->receiver_phone;
         if (is_array($this->receiver_subjects))
             $model->receiver_subjects = json_encode($this->receiver_subjects);
@@ -160,6 +165,22 @@ class InviteLog extends \yii\db\ActiveRecord
             if (!$notification->NewNotification('school_invite_teacher', [['invitation_id', $model->id]]))
                 return false;
 
+            return $model;
+        }
+        return false;
+    }
+
+    public function teacherInviteSchool()
+    {
+        $model = new InviteLog();
+        $model->receiver_email = $this->receiver_email;
+        $model->receiver_name = $this->receiver_name;
+        $model->receiver_phone = $this->receiver_phone;
+        $model->sender_id = $this->sender_id;
+        $model->sender_type = 'teacher';
+        $model->receiver_type = 'school';
+        $model->token = Yii::$app->security->generateRandomString(100);
+        if ($model->save()) {
             return $model;
         }
         return false;
