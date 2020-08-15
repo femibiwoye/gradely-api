@@ -49,12 +49,31 @@ class PreferenceController extends ActiveController
 
     public function actionIndex()
     {
-        $models = UserPreference::find()->where(['user_id' => Yii::$app->user->id])->all();
+        $models = UserPreference::findOne(['user_id' => Yii::$app->user->id]);
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
         return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionUpdate($id)
+    {
+        $model = UserPreference::findOne(['user_id' => Yii::$app->user->id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->attributes = Yii::$app->request->post();
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+        }
+
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
     }
 }
 

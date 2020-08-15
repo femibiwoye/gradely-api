@@ -23,9 +23,10 @@ return [
 
     //student preference
     'GET v2/student/preference' => 'v2/student/preference/index',
+    'PUT v2/student/preference/<id:\d+>' => 'v2/student/preference/update',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
-        'POST student-parent' => 'student-parent',
+        'POST student-parent' => 'student-parent'
     ]],
 ];
