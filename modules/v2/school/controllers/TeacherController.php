@@ -3,6 +3,8 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\models\StudentDetails;
+use app\modules\v2\models\TeacherProfile;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, SchoolTeachers, Schools, UserModel, StudentSchool, Classes};
 use app\modules\v2\components\{SharedConstant, Utility};
@@ -78,15 +80,15 @@ class TeacherController extends ActiveController
             }
 
             $model = UserModel::find()
-                    ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id')
-                    ->where(['user.type' => 'teacher', 'teacher_class.class_id' => $class_id])
-                    ->with(['teacherClassesList', 'teacherSubjectList'])->groupBy(['id']);
+                ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id')
+                ->where(['user.type' => 'teacher', 'teacher_class.class_id' => $class_id])
+                ->with(['teacherClassesList', 'teacherSubjectList'])->groupBy(['id']);
         } else {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 1])->all();
             $model = UserModel::find()->where(['type' => 'teacher', 'id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
-            ->with(['teacherClassesList', 'teacherSubjectList'])
-            ->groupBy(['id']);
+                ->with(['teacherClassesList', 'teacherSubjectList'])
+                ->groupBy(['id']);
         }
 
         $teachers = new ActiveDataProvider([
@@ -101,7 +103,7 @@ class TeacherController extends ActiveController
             'pagination' => ['pageSize' => 20]
         ]);
 
-        return (new ApiResponse)->success($teachers->getModels(),null,null,$teachers);
+        return (new ApiResponse)->success($teachers->getModels(), null, null, $teachers);
     }
 
     public function actionPending()
@@ -125,7 +127,7 @@ class TeacherController extends ActiveController
             'pagination' => ['pageSize' => 20]
         ]);
 
-        return (new ApiResponse)->success($teachers->getModels(),null,null,$teachers);
+        return (new ApiResponse)->success($teachers->getModels(), null, null, $teachers);
     }
 
     public function actionAcceptTeacher($id = 0)
@@ -163,6 +165,21 @@ class TeacherController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid requests');
+    }
+
+    public function actionProfile($teacher_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('teacher_id', 'school_id'));
+        $model->addRule(['teacher_id'], 'exist', ['targetClass' => SchoolTeachers::className(), 'targetAttribute' => ['teacher_id' => 'teacher_id', 'school_id' => 'school_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This teacher does not belong to your school');
+        }
+
+        $detail = TeacherProfile::findOne(['id' => $teacher_id]);
+        return (new ApiResponse)->success($detail);
     }
 
 

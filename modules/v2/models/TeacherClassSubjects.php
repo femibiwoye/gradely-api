@@ -4,6 +4,21 @@ namespace app\modules\v2\models;
 
 use Yii;
 
+/**
+ * This is the model class for table "teacher_class_subjects".
+ *
+ * @property int $id
+ * @property int $teacher_id
+ * @property int $subject_id
+ * @property int $class_id
+ * @property int $school_id
+ * @property int $status
+ * @property string $created_at
+ *
+ * @property Classes $class
+ * @property User $teacher
+ * @property Subjects $subject
+ */
 class TeacherClassSubjects extends \yii\db\ActiveRecord
 {
     public static function tableName()

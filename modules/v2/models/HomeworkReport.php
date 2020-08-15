@@ -5,39 +5,9 @@ namespace app\modules\v2\models;
 use app\modules\v2\components\Utility;
 use Yii;
 use app\modules\v2\components\SharedConstant;
-use yii\behaviors\SluggableBehavior;
 use yii\helpers\ArrayHelper;
 
-/**
- * This is the model class for table "homeworks".
- *
- * @property int $id
- * @property int|null $student_id
- * @property int|null $teacher_id
- * @property int $subject_id
- * @property int|null $class_id
- * @property int|null $school_id
- * @property int $exam_type_id
- * @property string $slug
- * @property string $title
- * @property string|null $description
- * @property int|null $topic_id
- * @property int|null $curriculum_id
- * @property int $publish_status
- * @property string $access_status
- * @property string|null $open_date
- * @property string|null $close_date
- * @property int|null $duration Duration should be in minutes
- * @property string $type Homework is students regular take home. Practice is students self created assessment. Diagnostic is an auto-generated assessment to know the level of the child. Recommendation is a suggested/recommended practice/material/videos to help improve their level of knowledge. Catchup is a gamified practice. Lesson is a material created by teacher for student to learn.
- * @property string|null $tag Tag is used to identify homework sub category. Maybe it is an homework, quiz or exam
- * @property int $status
- * @property string $created_at
- *
- * @property Feed[] $feeds
- * @property HomeworkQuestions[] $homeworkQuestions
- * @property PracticeTopics[] $practiceTopics
- */
-class Homeworks extends \yii\db\ActiveRecord
+class HomeworkReport extends Homeworks
 {
     private $homework_annoucements = [];
     private $sum_of_correct_answers;
@@ -47,63 +17,6 @@ class Homeworks extends \yii\db\ActiveRecord
     private $average_students = SharedConstant::VALUE_ZERO;
     private $excellent_students = SharedConstant::VALUE_ZERO;
 
-
-    public static function tableName()
-    {
-        return 'homeworks';
-    }
-
-    public function behaviors()
-    {
-        return [
-            [
-                'class' => SluggableBehavior::className(),
-                'attribute' => 'title',
-                'ensureUnique' => true,
-            ]
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required'],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id'], 'integer'],
-            [['description', 'access_status'], 'string'],
-            [['open_date', 'close_date', 'created_at'], 'safe'],
-            [['slug', 'title'], 'string', 'max' => 255],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'teacher_id' => 'Teacher ID',
-            'subject_id' => 'Subject ID',
-            'class_id' => 'Class ID',
-            'school_id' => 'School ID',
-            'exam_type_id' => 'Exam Type ID',
-            'slug' => 'Slug',
-            'title' => 'Title',
-            'description' => 'Description',
-            'topic_id' => 'Topic ID',
-            'curriculum_id' => 'Curriculum ID',
-            'publish_status' => 'Publish Status',
-            'access_status' => 'Access Status',
-            'open_date' => 'Open Date',
-            'close_date' => 'Close Date',
-            'duration' => 'Duration',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-        ];
-    }
 
     public function fields()
     {
@@ -125,8 +38,8 @@ class Homeworks extends \yii\db\ActiveRecord
             'attachments',
             'average',
             'completion',
-//            'questions' => 'homeworkQuestions',
-//            'homework_performance' => 'homeworkPerformance'
+            'questions' => 'homeworkQuestions',
+            'homework_performance' => 'homeworkPerformance'
         ];
     }
 

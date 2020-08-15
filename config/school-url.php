@@ -5,6 +5,7 @@ return [
     //School Teacher
     'GET v2/school/teacher' => 'v2/school/teacher/index',
     'GET v2/school/teacher/<class_id:\d*>' => 'v2/school/teacher/index',
+    'GET v2/school/teacher/profile/<teacher_id:\d*>' => 'v2/school/teacher/profile',
     'GET v2/school/teacher/pending' => 'v2/school/teacher/pending',
     'PUT v2/school/teacher/accept-teacher/<id:\d+>' => 'v2/school/teacher/accept-teacher',
     'PUT v2/school/teacher/decline-teacher/<id:\d+>' => 'v2/school/teacher/decline-teacher',

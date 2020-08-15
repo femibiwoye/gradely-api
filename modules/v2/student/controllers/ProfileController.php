@@ -4,7 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use Yii;
 use yii\rest\ActiveController;
-use app\modules\v2\models\{Parents, ApiResponse, InviteLog};
+use app\modules\v2\models\{Parents, ApiResponse, InviteLog, StudentDetails};
 use app\modules\v2\components\{CustomHttpBearerAuth, SharedConstant};
 use app\modules\v2\student\models\{StudentUpdateEmailForm, StudentUpdatePasswordForm, UpdateStudentForm};
 
@@ -125,6 +125,16 @@ class ProfileController extends ActiveController
         }
 
         return (new ApiResponse)->success($model);
+    }
+
+    public function actionReport()
+    {
+    	$model = StudentDetails::findOne(['id' => Yii::$app->user->id]);
+    	if (!$model) {
+    		return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student report not found');
+    	}
+
+    	return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student report found');
     }
 }
 

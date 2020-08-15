@@ -216,6 +216,7 @@ class HomeworkController extends ActiveController
 
     public function actionExtendDate($homework_id)
     {
+        $open_Date = Yii::$app->request->post('open_date');
         $close_date = Yii::$app->request->post('close_date');
         $model = Homeworks::find()->andWhere(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->one();
         if (!$model || ($model->teacher_id != Yii::$app->user->id)) {
@@ -227,6 +228,7 @@ class HomeworkController extends ActiveController
         }
 
         $model->close_date = $close_date;
+        $model->open_date = $open_Date;
         if (!$model->save(false)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework date not update');
         }
