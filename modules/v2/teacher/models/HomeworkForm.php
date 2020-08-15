@@ -36,7 +36,7 @@ class HomeworkForm extends Model
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'open_date', 'close_date', 'tag', 'attachments', 'view_by'], 'required', 'on' => 'create-homework'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'description', 'attachments', 'practice_attachments'], 'required', 'on' => 'create-lesson'],
-            [['title', 'open_date', 'close_date', 'tag'], 'required', 'on' => 'update-homework'],
+            [['title', 'tag'], 'required', 'on' => 'update-homework'],
             [['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
             [['open_date', 'close_date'], 'safe'],
@@ -60,8 +60,6 @@ class HomeworkForm extends Model
         try {
             $model->title = $this->title;
             $model->tag = $this->tag;
-            $model->open_date = $this->open_date;
-            $model->close_date = $this->close_date;
             if (!$model->save(false)) {
                 return false;
             }
@@ -71,15 +69,15 @@ class HomeworkForm extends Model
 //                return false;
 //            }
 
-            if (!$this->updatePracticeMaterial($model)) {
-                return false;
-            }
+//            if (!$this->updatePracticeMaterial($model)) {
+//                return false;
+//            }
 
             $notification = new InputNotification();
             $teacher = $notification->NewNotification('teacher_set_homework_teacher', [['homework_id', $model->id]]);
             $student = $notification->NewNotification('teacher_set_homework_student', [['homework_id', $model->id]]);
             $parent = $notification->NewNotification('teacher_set_homework_parent', [['homework_id', $model->id]]);
-            if (!$student || !$teacher || $parent)
+            if (!$student || !$teacher || !$parent)
                 return false;
 
             $dbtransaction->commit();
