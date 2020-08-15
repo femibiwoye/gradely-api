@@ -20,4 +20,9 @@ return [
 
     //student class
     'POST v2/student/class' => 'v2/student/class/student-class',
+
+    //student invites
+    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
+        'POST student-parent' => 'student-parent',
+    ]],
 ];

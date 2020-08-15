@@ -35,6 +35,7 @@ class InviteLog extends \yii\db\ActiveRecord
 
     const SCENARIO_SCHOOL_INVITE_ADMIN = 'invite-school-admin';
     const SCENARIO_SCHOOL_INVITE_TEACHER = 'invite-school-teacher';
+    const SCENARIO_STUDENT_INVITE_PARENT = 'invite-student-teacher';
 
     public $role;
 
@@ -59,6 +60,10 @@ class InviteLog extends \yii\db\ActiveRecord
             [['receiver_email', 'receiver_name', 'receiver_phone', 'receiver_class', 'receiver_subjects'], 'required', 'on' => self::SCENARIO_SCHOOL_INVITE_TEACHER],
             ['receiver_email', 'email', 'on' => self::SCENARIO_SCHOOL_INVITE_TEACHER],
             ['receiver_email', 'validateRepetetion', 'on' => self::SCENARIO_SCHOOL_INVITE_TEACHER],
+
+            [['receiver_email', 'receiver_name', 'receiver_phone'], 'required', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
+            ['receiver_email', 'email', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
+            ['receiver_email', 'validateInvitationRepetetion', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
         ];
     }
 
@@ -99,6 +104,32 @@ class InviteLog extends \yii\db\ActiveRecord
         if ($model->save())
             return $model;
         return false;
+    }
+
+    public function studentInviteParent()
+    {
+        $model = new InviteLog;
+        $model->receiver_name = $this->receiver_name;
+        $model->receiver_email = $this->receiver_email;
+        $model->receiver_phone = $this->receiver_phone;
+        $model->sender_id = $this->sender_id;
+        $model->receiver_type = 'parent';
+        $model->sender_type = $this->sender_type;
+        $model->extra_data = $this->extra_data;
+        $model->token = Yii::$app->security->generateRandomString(100);
+        if (!$model->save()) {
+            return false;
+        }
+
+        return $model;
+    }
+
+    public function validateInvitationRepetetion()
+    {
+        if (InviteLog::find()->where(['sender_id' => $this->sender_id, 'receiver_email' => $this->receiver_email])->exists()) {
+            $this->addError('receiver_email', 'Invitation has already been sent to the parent');
+            return false;
+        }
     }
 
     public function validateRepetetion()
