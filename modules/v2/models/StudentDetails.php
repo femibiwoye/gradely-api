@@ -15,6 +15,15 @@ use yii\helpers\ArrayHelper;
  */
 class StudentDetails extends User
 {
+    private $hard_questions = SharedConstant::VALUE_ZERO;
+    private $medium_questions = SharedConstant::VALUE_ZERO;
+    private $easy_questions = SharedConstant::VALUE_ZERO;
+    private $easy_score = SharedConstant::VALUE_ZERO;
+    private $medium_score = SharedConstant::VALUE_ZERO;
+    private $hard_score = SharedConstant::VALUE_ZERO;
+    private $score = SharedConstant::VALUE_ZERO;
+    private $improvement = SharedConstant::VALUE_ZERO;
+    private $direction;
 
     public function fields()
     {
@@ -33,7 +42,8 @@ class StudentDetails extends User
             'homework',
             'completion_rate' => 'totalHomeworks',
             'positions' => 'statistics',
-            'performance' => 'performance'
+            'performance' => 'performance',
+            'feeds' => 'feeds'
         ];
     }
 
@@ -67,6 +77,11 @@ class StudentDetails extends User
             ->all();
     }
 
+    public function getFeeds()
+    {
+        return Feed::find()->where(['user_id' => $this->id])->limit(5)->all();
+    }
+
     public function getTotalHomeworks()
     {
 
@@ -78,16 +93,19 @@ class StudentDetails extends User
         } elseif (Yii::$app->user->identity->type == 'school') {
             $condition = ['school_id' => Utility::getSchoolAccess()];
             $condition2 = "";
+        } elseif (Yii::$app->user->identity->type == 'student') {
+            $condition = ['student_id' => Yii::$app->user->id];
+            $condition2 = "homeworks.student_id = " . Yii::$app->user->id;
         }
 
         $homeworkCount = Homeworks::find()
-            ->where(['AND',$condition, ['class_id' => $class->class_id, 'status' => 1]])
+            ->where(['AND',$condition, [/*'class_id' => $class->class_id,*/ 'status' => 1]])
             ->count();
 
         $studentCount = QuizSummary::find()
             ->alias('q')
-            ->where(['q.student_id' => $this->id, 'q.class_id' => $class->class_id, 'submit' => 1])
-            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.id = 1".$condition2)
+            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1])
+            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.id = ".$condition2)
             ->count();
 
         return $homeworkCount > 0 ? $studentCount / $homeworkCount * 100 : 0;
@@ -124,14 +142,91 @@ class StudentDetails extends User
 
             $totalAttempt = $summary->count();
             $correctAttempt = $summary->andWhere(['=', 'selected', new Expression('`answer`')])->count();
+            $this->getQuestionsDifficulty($summary, $topic);
             $topicScore = ($correctAttempt / $totalAttempt) * 100;
 
             $statistics = ['score' => $topicScore, 'attempted' => $totalAttempt, 'correct' => $correctAttempt, 'improvement' => null, 'direction' => null]; //Direction is up|down
+            $topic_progress = ['hard' => $this->hard_questions, 'medium' => $this->medium_questions, 'easy' => $this->easy_questions, 'score' => $this->score, 'improvement' => $this->improvement, 'direction' => $this->direction];
             $topicDetails = SubjectTopics::findOne(['id' => $topic]);
 
-            $groupPerformance[] = array_merge(ArrayHelper::toArray($topicDetails), ['stastistics' => $statistics]);
+            $groupPerformance[] = array_merge(ArrayHelper::toArray($topicDetails), ['stastistics' => $statistics, 'topic_progress' => $topic_progress]);
         }
         return $groupPerformance;
+    } 
+
+    public function getQuestion($question_id)
+    {
+        $model = Questions::findOne(['id' => $question_id]);
+        return $model->difficulty;
+    }
+
+    public function getQuestionsDifficulty($summary, $topic)
+    {
+        $this->getRecentAttempts($summary, $topic);
+        $correctAttempts = $summary->andWhere(['=', 'selected', new Expression('`answer`')])->all();
+        foreach ($correctAttempts as $correctAttempt) {
+            if ($this->getQuestion($correctAttempt->question_id) == SharedConstant::QUESTION_DIFFICULTY[0]) {
+                $this->hard_questions = $this->hard_questions + SharedConstant::VALUE_ONE;
+            } elseif ($this->getQuestion($correctAttempt->question_id) == SharedConstant::QUESTION_DIFFICULTY[1]) {
+                $this->medium_questions = $this->medium_questions + SharedConstant::VALUE_ONE;
+            } elseif ($this->getQuestion($correctAttempt->question_id) == SharedConstant::QUESTION_DIFFICULTY[2]) {
+                $this->easy_questions = $this->easy_questions + SharedConstant::VALUE_ONE;
+            }
+        }
+
+        $this->easy_score = ((($this->easy_questions / 6) * 100) * 40) / 100;
+        $this->medium_score = ((($this->medium_questions / 6) * 100) * 30) / 100;
+        $this->hard_score = ((($this->hard_questions / 6) * 100) * 30) / 100;
+        $this->score = $this->easy_score + $this->medium_score + $this->hard_score;
+    }
+
+    public function getRecentAttempts($summary, $topic)
+    {
+        $easy_questions = SharedConstant::VALUE_ZERO;
+        $medium_questions = SharedConstant::VALUE_ZERO;
+        $hard_questions = SharedConstant::VALUE_ZERO;
+        $score = [];
+        $recent_attempts = $summary
+                        ->where(['student_id' => $this->id, 'topic_id' => $topic])
+                        ->orderBy(['topic_id' => SORT_DESC])
+                        ->limit(2);
+        
+        foreach ($recent_attempts->all() as $recent_attempt) {
+            if ($recent_attempt->selected != $recent_attempt->answer) {
+                continue;
+            }
+
+            if ($this->getQuestion($recent_attempt->question_id) == SharedConstant::QUESTION_DIFFICULTY[0]) {
+                $hard_questions = SharedConstant::VALUE_ONE;
+            } elseif ($this->getQuestion($recent_attempt->question_id) == SharedConstant::QUESTION_DIFFICULTY[1]) {
+                $medium_questions = SharedConstant::VALUE_ONE;
+            } elseif ($this->getQuestion($recent_attempt->question_id) == SharedConstant::QUESTION_DIFFICULTY[2]) {
+                $easy_questions = SharedConstant::VALUE_ONE;
+            }
+
+            $easy_score = ((($easy_questions / 6) * 100) * 40) / 100;
+            $medium_score = ((($medium_questions / 6) * 100) * 30) / 100;
+            $hard_score = ((($hard_questions / 6) * 100) * 30) / 100;
+
+            array_push($score, ($easy_score + $medium_score + $hard_score));
+        }
+
+        if (sizeof($score) > SharedConstant::VALUE_ONE) {
+            if ($score[1] > $score[0]) {
+                $this->direction = 'up';
+                $difference = $score[1] - $score[0];
+                $this->improvement = ceil(($difference * 10) / 100);
+            } else {
+                $this->direction = 'down';
+                $difference = $score[1] - $score[0];
+                $this->improvement = ceil(($difference * 10) / 100);
+            }
+        } else {
+            $this->direction = null;
+            $this->improvement = null;
+        }
+
+        return true;
     }
 
     public function getStatistics()
