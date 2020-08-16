@@ -302,4 +302,23 @@ class ClassController extends ActiveController
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
+
+    public function actionQuestion($question_id)
+    {
+        $form = new \yii\base\DynamicModel(compact('question_id'));
+        $form->addRule(['question_id'], 'required');
+        $form->addRule(['question_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['question_id' => 'id']]);    
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = Questions::findOne(['id' => $question_id]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
 }
