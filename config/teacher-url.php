@@ -44,4 +44,5 @@ return [
 
     //Questions
     'GET v2/teacher/class-questions' => 'v2/teacher/class/questions',
+    'GET v2/teacher/homework-questions' => 'v2/teacher/homework/questions',
 ];
