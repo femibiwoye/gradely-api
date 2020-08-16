@@ -41,4 +41,7 @@ return [
 
     //Topics
     'GET v2/teacher/class-topics' => 'v2/teacher/class/topics',
+
+    //Questions
+    'GET v2/teacher/class-questions' => 'v2/teacher/class/questions',
 ];
