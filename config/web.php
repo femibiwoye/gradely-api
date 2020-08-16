@@ -5,6 +5,7 @@ $mainUrl = require 'urls.php';
 $schoolUrl = require 'school-url.php';
 $studentUrl = require 'student-url.php';
 $teacherUrl = require 'teacher-url.php';
+$parentUrl = require 'parent-url.php';
 
 $config = [
     'id' => 'gradely-v2',
@@ -70,7 +71,7 @@ $config = [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl),
+            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl),
         ],
 
     ],
@@ -83,14 +84,14 @@ if (YII_ENV_DEV) {
     $config['modules']['debug'] = [
         'class' => 'yii\debug\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        //'allowedIPs' => ['127.0.0.1', '::1', '192.168.*.*'],
     ];
 
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        'allowedIPs' => ['127.0.0.1', '::1', '172.24.0.1'],
+        //'allowedIPs' => ['127.0.0.1', '::1', '192.168.*.*'],
     ];
 }
 
