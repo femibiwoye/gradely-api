@@ -278,4 +278,28 @@ class ClassController extends ActiveController
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
     }
+
+    public function actionSearchTopic()
+    {
+        $class_id = Yii::$app->request->get('class_id');
+        $subject_id = Yii::$app->request->get('subject_id');
+        $topic = Yii::$app->request->get('topic');
+        $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'topic'));
+        $form->addRule(['class_id', 'subject_id', 'topic'], 'required');
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = SubjectTopics::find()
+                    ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
+                    ->andWhere(['like', 'topic' , '%' . $topic . '%', false])
+                    ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
 }

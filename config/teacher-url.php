@@ -41,6 +41,7 @@ return [
 
     //Topics
     'GET v2/teacher/class-topics' => 'v2/teacher/class/topics',
+    'GET v2/teacher/topic' => 'v2/teacher/class/search-topic',
 
     //Questions
     'GET v2/teacher/class-questions' => 'v2/teacher/class/questions',
