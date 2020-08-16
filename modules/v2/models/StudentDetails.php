@@ -36,7 +36,9 @@ class StudentDetails extends User
             'email',
             'phone',
             'type',
+            'type',
             'profile' => 'userProfile',
+            'parents' => 'studentParents',
             'remarks' => 'remarks',
             'topics' => 'topicBreakdown',
             'homework',
@@ -80,6 +82,25 @@ class StudentDetails extends User
     public function getFeeds()
     {
         return Feed::find()->where(['user_id' => $this->id])->limit(5)->all();
+    }
+
+    public function getStudentParents()
+    {
+        return Parents::find()
+            ->alias('p')
+            ->select([
+                'u.id as id',
+                'p.role',
+                'CONCAT(u.firstname," ",u.lastname) as name',
+                "u.image",
+                "u.email",
+                "u.phone"
+            ])
+            ->leftJoin('user u',"u.id = p.parent_id AND u.type = 'parent'")
+            ->where(['student_id'=>$this->id,'p.status'=>1])
+            ->asArray()
+            ->all();
+
     }
 
     public function getTotalHomeworks()
@@ -178,7 +199,7 @@ class StudentDetails extends User
         $this->easy_score = ((($this->easy_questions / 6) * 100) * 40) / 100;
         $this->medium_score = ((($this->medium_questions / 6) * 100) * 30) / 100;
         $this->hard_score = ((($this->hard_questions / 6) * 100) * 30) / 100;
-        $this->score = $this->easy_score + $this->medium_score + $this->hard_score;
+        $this->score = round($this->easy_score + $this->medium_score + $this->hard_score);
     }
 
     public function getRecentAttempts($summary, $topic)
@@ -189,6 +210,7 @@ class StudentDetails extends User
         $score = [];
         $recent_attempts = $summary
             ->where(['student_id' => $this->id, 'topic_id' => $topic])
+            //->groupBy('quiz_id')
             ->orderBy(['topic_id' => SORT_DESC])
             ->limit(2);
 
