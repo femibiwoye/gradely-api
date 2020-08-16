@@ -34,9 +34,11 @@ return [
     'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
     'PUT v2/teacher/homework/<homework_id:\d+>/restart' => 'v2/teacher/homework/restart-homework',
     'POST v2/teacher/homework/<type:[a-z/]+>' => 'v2/teacher/homework/create',
+
     //'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
     'PUT v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/update',
     'GET v2/teacher/homework/draft/<class_id:\d+>' => 'v2/teacher/homework/homework-draft',
 
-
+    //Topics
+    'GET v2/teacher/class-topics' => 'v2/teacher/class/topics',
 ];

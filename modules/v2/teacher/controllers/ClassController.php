@@ -9,7 +9,7 @@ use app\modules\v2\models\StudentDetails;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
-use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool, StudentProfile};
+use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool, StudentProfile, SubjectTopics};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
@@ -223,5 +223,29 @@ class ClassController extends ActiveController
             TeacherClassSubjects::deleteAll(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id]);
         }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Teacher removed!');
+    }
+
+    public function actionTopics()
+    {
+        $class_id = Yii::$app->request->get('class_id');
+        $subject_id = Yii::$app->request->get('subject_id');
+        $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
+        $form->addRule(['class_id', 'subject_id'], 'required');
+        $form->addRule(['class_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = SubjectTopics::find()
+                    ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
+                    ->orderBy(['term' => SORT_ASC])
+                    ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 }
