@@ -8,8 +8,18 @@ use app\modules\v2\models\SchoolTeachers;
 use app\modules\v2\models\StudentDetails;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClassSubjects;
+use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{Classes, ApiResponse, TeacherClass, User, SearchSchool, StudentProfile};
+use app\modules\v2\models\{Classes,
+    ApiResponse,
+    TeacherClass,
+    User,
+    SearchSchool,
+    StudentProfile,
+    SubjectTopics,
+    Questions};
+use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
@@ -112,6 +122,30 @@ class ClassController extends ActiveController
         }
 
         return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL, 'Classes found');
+    }
+
+    public function actionClassTeacher($class_id)
+    {
+        if (!TeacherClass::find()->where(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->count()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not believe to this class');
+        }
+        $teacherID = ArrayHelper::getColumn(TeacherClass::find()->where(['class_id' => $class_id, 'status' => 1])->all(), 'teacher_id');
+        $model = UserModel::find()->where(['type' => 'teacher', 'id' => $teacherID])
+            ->groupBy(['id']);
+
+        $teachers = new ActiveDataProvider([
+            'query' => $model,
+            'sort' => [
+                'attributes' => ['id', 'firstname', 'lastname', 'email'],
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                    'firstname' => SORT_ASC,
+                ]
+            ],
+            'pagination' => ['pageSize' => 20]
+        ]);
+
+        return (new ApiResponse)->success($teachers->getModels(), null, null, $teachers);
     }
 
     public function actionTeacherClass()
@@ -223,5 +257,102 @@ class ClassController extends ActiveController
             TeacherClassSubjects::deleteAll(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id]);
         }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Teacher removed!');
+    }
+
+    public function actionTopics()
+    {
+        $class_id = Yii::$app->request->get('class_id');
+        $subject_id = Yii::$app->request->get('subject_id');
+        $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
+        $form->addRule(['class_id', 'subject_id'], 'required');
+        $form->addRule(['class_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = SubjectTopics::find()
+            ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
+            ->orderBy(['term' => SORT_ASC])
+            ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionQuestions()
+    {
+        $class_id = Yii::$app->request->get('class_id');
+        $subject_id = Yii::$app->request->get('subject_id');
+        $topic_id = Yii::$app->request->get('topic_id');
+        $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'topic_id'));
+        $form->addRule(['class_id', 'subject_id', 'topic_id'], 'required');
+        $form->addRule(['class_id', 'subject_id', 'topic_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id', 'topic_id' => 'topic_id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = Questions::find()
+            ->where(['subject_id' => $subject_id, 'class_id' => $class_id, 'topic_id' => $topic_id]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $provider = new \yii\data\ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 10,
+            ]
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionSearchTopic()
+    {
+        $class_id = Yii::$app->request->get('class_id');
+        $subject_id = Yii::$app->request->get('subject_id');
+        $topic = Yii::$app->request->get('topic');
+        $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'topic'));
+        $form->addRule(['class_id', 'subject_id', 'topic'], 'required');
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = SubjectTopics::find()
+            ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
+            ->andWhere(['like', 'topic', '%' . $topic . '%', false])
+            ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionQuestion($question_id)
+    {
+        $form = new \yii\base\DynamicModel(compact('question_id'));
+        $form->addRule(['question_id'], 'required');
+        $form->addRule(['question_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['question_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = Questions::findOne(['id' => $question_id]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 }

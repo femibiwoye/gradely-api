@@ -5,7 +5,7 @@ namespace app\modules\v2\teacher\controllers;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions};
 use app\modules\v2\components\SharedConstant;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
@@ -270,5 +270,28 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($subjects, ApiResponse::SUCCESSFUL, count($subjects) . ' subjects found');
+    }
+
+    public function actionQuestions()
+    {
+        $homework_id = Yii::$app->request->get('homework_id');
+        $form = new \yii\base\DynamicModel(compact('homework_id'));
+        $form->addRule(['homework_id'], 'required');
+        $form->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = Questions::find()
+                    ->innerJoin('homework_questions', 'homework_questions.question_id = questions.id')
+                    ->where(['homework_questions.homework_id' => $homework_id])
+                    ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 }

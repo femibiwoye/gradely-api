@@ -91,21 +91,22 @@ class StudentDetails extends User
             $condition = ['teacher_id' => Yii::$app->user->id];
             $condition2 = " AND homeworks.teacher_id = " . Yii::$app->user->id;
         } elseif (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $condition = ['school_id' => Utility::getSchoolAccess()];
-            $condition2 = "";
+            $condition2 = " AND homeworks.school_id = " . $school->id;
         } elseif (Yii::$app->user->identity->type == 'student') {
             $condition = ['student_id' => Yii::$app->user->id];
             $condition2 = "homeworks.student_id = " . Yii::$app->user->id;
         }
 
         $homeworkCount = Homeworks::find()
-            ->where(['AND',$condition, [/*'class_id' => $class->class_id,*/ 'status' => 1]])
+            ->where(['AND', $condition, [/*'class_id' => $class->class_id,*/ 'status' => 1]])
             ->count();
 
         $studentCount = QuizSummary::find()
             ->alias('q')
             ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1])
-            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.id = ".$condition2)
+            ->innerJoin('homeworks', "homeworks.id = q.homework_id" . $condition2)
             ->count();
 
         return $homeworkCount > 0 ? $studentCount / $homeworkCount * 100 : 0;
@@ -152,7 +153,7 @@ class StudentDetails extends User
             $groupPerformance[] = array_merge(ArrayHelper::toArray($topicDetails), ['stastistics' => $statistics, 'topic_progress' => $topic_progress]);
         }
         return $groupPerformance;
-    } 
+    }
 
     public function getQuestion($question_id)
     {
@@ -187,10 +188,10 @@ class StudentDetails extends User
         $hard_questions = SharedConstant::VALUE_ZERO;
         $score = [];
         $recent_attempts = $summary
-                        ->where(['student_id' => $this->id, 'topic_id' => $topic])
-                        ->orderBy(['topic_id' => SORT_DESC])
-                        ->limit(2);
-        
+            ->where(['student_id' => $this->id, 'topic_id' => $topic])
+            ->orderBy(['topic_id' => SORT_DESC])
+            ->limit(2);
+
         foreach ($recent_attempts->all() as $recent_attempt) {
             if ($recent_attempt->selected != $recent_attempt->answer) {
                 continue;
@@ -238,7 +239,7 @@ class StudentDetails extends User
 
     public function checkStudentInTeacherClass()
     {
-        $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id,'status'=>1])->all();
+        $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => 1])->all();
         foreach ($teacher_classes as $teacher_class) {
             if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $this->id])->exists()) {
                 return true;
