@@ -18,6 +18,7 @@ return [
     'GET v2/teacher/search-school' => 'v2/teacher/class/search-school',
     'GET v2/teacher/class' => 'v2/teacher/class/teacher-class',
     'GET v2/teacher/teachers/<class_id:\d+>' => 'v2/teacher/class/class-teacher',
+    'GET v2/teacher/class/<class_id:\d+>' => 'v2/teacher/class/class-details',
     'GET v2/teacher/class/school/<id:\d+>' => 'v2/teacher/class/school',
     'GET v2/teacher/class/<code:[a-zA-Z0-9/]+>' => 'v2/teacher/class/view',
     'POST v2/teacher/class/add-teacher' => 'v2/teacher/class/add-teacher',

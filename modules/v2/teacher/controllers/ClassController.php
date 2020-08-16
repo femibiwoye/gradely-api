@@ -355,4 +355,23 @@ class ClassController extends ActiveController
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
+
+    public function actionClassDetails($class_id)
+    {
+        $teacherClass = TeacherClass::findOne(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id]);
+        if (!$teacherClass) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class either does not exist or invalid!');
+        }
+
+        $getClass = Classes::find()
+            ->where(['classes.id' => $class_id])
+            ->joinWith(['school', 'globalClass'])
+            ->asArray()
+            ->one();
+        if ($getClass) {
+            return (new ApiResponse)->success($getClass, ApiResponse::SUCCESSFUL, 'Class found');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::NOT_FOUND, 'Class not found!');
+    }
 }
