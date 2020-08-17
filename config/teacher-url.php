@@ -51,4 +51,7 @@ return [
     'GET v2/teacher/question/<question_id:\d+>' => 'v2/teacher/class/question',
     'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/homework/homework-questions',
     'POST v2/teacher/question' => 'v2/teacher/homework/question',
+
+    //Report error
+    'POST v2/report/error-report/<type:\w+>' => 'v2/teacher/homework/report-error',
 ];

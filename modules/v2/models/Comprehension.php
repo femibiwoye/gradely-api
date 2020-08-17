@@ -4,33 +4,13 @@ namespace app\modules\v2\models;
 
 use Yii;
 
-/**
- * This is the model class for table "comprehension".
- *
- * @property int $id
- * @property string $title
- * @property string $body
- * @property int $status
- * @property int $created_by
- * @property int|null $updated_by
- * @property string $created_at
- * @property string|null $updated_at
- *
- * @property Questions[] $questions
- */
 class Comprehension extends \yii\db\ActiveRecord
 {
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
         return 'comprehension';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
@@ -42,9 +22,6 @@ class Comprehension extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -59,11 +36,6 @@ class Comprehension extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * Gets query for [[Questions]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
     public function getQuestions()
     {
         return $this->hasMany(Questions::className(), ['comprehension_id' => 'id']);
