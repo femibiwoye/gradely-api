@@ -130,7 +130,7 @@ class StudentDetails extends User
             ->innerJoin('homeworks', "homeworks.id = q.homework_id" . $condition2)
             ->count();
 
-        return $homeworkCount > 0 ? $studentCount / $homeworkCount * 100 : 0;
+        return $homeworkCount > 0 ? round($studentCount / $homeworkCount * 100) : 0;
 
         $attempted_questions = 0;
         foreach ($this->homework as $homework) {
