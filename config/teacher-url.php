@@ -50,4 +50,5 @@ return [
     'GET v2/teacher/homework-questions' => 'v2/teacher/homework/questions',
     'GET v2/teacher/question/<question_id:\d+>' => 'v2/teacher/class/question',
     'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/homework/homework-questions',
+    'POST v2/teacher/question' => 'v2/teacher/homework/question',
 ];
