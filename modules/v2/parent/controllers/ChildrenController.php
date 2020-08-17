@@ -4,13 +4,10 @@ namespace app\modules\v2\parent\controllers;
 
 use Yii;
 use app\modules\v2\components\CustomHttpBearerAuth;
-use app\modules\v2\components\Utility;
-use app\modules\v2\components\SharedConstant;
 //models
-use app\modules\v2\models\{parents, ApiResponse, User};
+use app\modules\v2\models\{Parents, ApiResponse, User};
 
 
-use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\rest\ActiveController;
 use yii\helpers\ArrayHelper;
@@ -20,7 +17,7 @@ use yii\helpers\ArrayHelper;
  */
 class ChildrenController extends ActiveController
 {
-    public $modelClass='app\modules\v2\models\Parent';
+    public $modelClass = 'app\modules\v2\models\Parents';
 
     /**
      * @return array
@@ -69,15 +66,22 @@ class ChildrenController extends ActiveController
 
     public function actionList()
     {
-        $parent_id =  Yii::$app->user->id;
-        $students = parents::find()->where(['parent_id' => $parent_id])->all();
+        $parent_id = Yii::$app->user->id;
+        $students = Parents::find()
+            ->joinWith(['studentClass'])
+            ->where(['parent_id' => $parent_id])
+            ->all();
 
-        foreach ($students as $k=> $student) {
-            $students[$k]= User::find()->where(['id'=>$student->student_id])->one();
+        foreach ($students as $k => $student) {
+            $students[$k] = User::find()
+                ->where(['id' => $student->student_id])
+                ->one();
+
+            $students[$k] = array_merge(ArrayHelper::toArray($students[$k]), ['class' => $student->studentClass]);
         }
 
         if (!$students) {
-            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No Parent information available!');
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
 
         return (new ApiResponse)->success($students, ApiResponse::SUCCESSFUL);

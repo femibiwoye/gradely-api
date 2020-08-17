@@ -60,7 +60,23 @@ class Parents extends \yii\db\ActiveRecord
         ];
     }
 
-    public function beforeSave($insert) {
+    public function getStudentProfile()
+    {
+        return $this->hasOne(UserModel::className(), ['id' => 'student_id']);
+    }
+
+    public function getStudentClass()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->via('studentSchool');
+    }
+
+    public function getStudentSchool()
+    {
+        return $this->hasOne(StudentSchool::className(), ['student_id' => 'student_id']);
+    }
+
+    public function beforeSave($insert)
+    {
         if ($this->isNewRecord) {
             $this->created_at = date('Y-m-d H:i:s');;
         }
