@@ -12,7 +12,7 @@ use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\teacher\models\HomeworkForm;
+use app\modules\v2\teacher\models\{HomeworkForm, HomeworkQuestionsForm};
 
 class HomeworkController extends ActiveController
 {
@@ -293,5 +293,21 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionHomeworkQuestions($homework_id)
+    {
+        $form = new HomeworkQuestionsForm;
+        $form->attributes = Yii::$app->request->post();
+        $form->homework_id = $homework_id;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validaton failed');
+        }
+
+        if (!$form->saveHomeworkQuestion()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not inserted');
+        }
+
+        return (new ApiResponse)->success($form->HomeworkQuestionModels, ApiResponse::SUCCESSFUL, 'Record inserted');
     }
 }
