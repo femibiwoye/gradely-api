@@ -5,14 +5,14 @@ namespace app\modules\v2\teacher\controllers;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions, ReportError};
 use app\modules\v2\components\SharedConstant;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\teacher\models\HomeworkForm;
+use app\modules\v2\teacher\models\{HomeworkForm, HomeworkQuestionsForm};
 
 class HomeworkController extends ActiveController
 {
@@ -293,5 +293,55 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionHomeworkQuestions($homework_id)
+    {
+        $form = new HomeworkQuestionsForm;
+        $form->attributes = Yii::$app->request->post();
+        $form->homework_id = $homework_id;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validaton failed');
+        }
+
+        if (!$form->saveHomeworkQuestion()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not inserted');
+        }
+
+        return (new ApiResponse)->success($form->HomeworkQuestionModels, ApiResponse::SUCCESSFUL, 'Record inserted');
+    }
+
+    public function actionQuestion()
+    {
+        $model = new Questions;
+        $model->attributes = Yii::$app->request->post();
+        $model->teacher_id = Yii::$app->user->identity->id;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+        }
+
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
+    }
+
+    public function actionReportError($type = null)
+    {
+        $model = new ReportError;
+        $model->attributes = Yii::$app->request->post();
+        $model->user_id = Yii::$app->user->identity->id;
+        $model->reference_id = Yii::$app->request->post('question_id');
+        $model->type = $type;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Data not validated');
+        }
+
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not inserted');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record inserted');
     }
 }

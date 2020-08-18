@@ -18,6 +18,7 @@ return [
     'GET v2/teacher/search-school' => 'v2/teacher/class/search-school',
     'GET v2/teacher/class' => 'v2/teacher/class/teacher-class',
     'GET v2/teacher/teachers/<class_id:\d+>' => 'v2/teacher/class/class-teacher',
+    'GET v2/teacher/class/<class_id:\d+>' => 'v2/teacher/class/class-details',
     'GET v2/teacher/class/school/<id:\d+>' => 'v2/teacher/class/school',
     'GET v2/teacher/class/<code:[a-zA-Z0-9/]+>' => 'v2/teacher/class/view',
     'POST v2/teacher/class/add-teacher' => 'v2/teacher/class/add-teacher',
@@ -45,7 +46,14 @@ return [
     'GET v2/teacher/topic' => 'v2/teacher/class/search-topic',
 
     //Questions
-    'GET v2/teacher/class-questions' => 'v2/teacher/class/questions',
-    'GET v2/teacher/homework-questions' => 'v2/teacher/homework/questions',
-    'GET v2/teacher/question/<question_id:\d+>' => 'v2/teacher/class/question',
+    'GET v2/teacher/class-questions' => 'v2/teacher/question/class-questions',
+    'GET v2/teacher/homework-questions' => 'v2/teacher/question/questions',
+    'GET v2/teacher/question/<question_id:\d+>' => 'v2/teacher/question/view',
+    'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/question/homework-questions',
+    'POST v2/teacher/question' => 'v2/teacher/question/create',
+    'DELETE v2/teacher/question/<id:\d+>' => 'v2/teacher/question/delete',
+    'PUT v2/teacher/question/<id:\d+>' => 'v2/teacher/question/update',
+
+    //Report error
+    'POST v2/report/error-report/<type:\w+>' => 'v2/teacher/homework/report-error',
 ];

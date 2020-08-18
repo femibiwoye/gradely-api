@@ -52,7 +52,7 @@ class GeneralController extends ActiveController
     {
         $models = SecurityQuestions::find()->all();
         if (!$models) {
-            return (new ApiRespone)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
         return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Record not found');

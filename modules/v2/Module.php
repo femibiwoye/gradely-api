@@ -33,6 +33,9 @@ class Module extends \yii\base\Module
             'student' => [
                 'class' => 'app\modules\v2\student\Module',
             ],
+            'parent' => [
+                'class' => 'app\modules\v2\parent\Module',
+            ],
             /*'invite' => [
                 'class' => 'app\modules\v2\invite\Module',
             ]*/

@@ -10,8 +10,8 @@ return [
     'PUT v2/student' => 'v2/student/profile/update',
 
     //student general
-    'GET v2/student/questions' => 'v2/student/general/security-questions',
-    'POST v2/student/question' => 'v2/student/general/set-security-question',
+    'GET v2/student/security-questions' => 'v2/student/general/security-questions',
+    'PUT v2/student/security-question' => 'v2/student/general/set-security-question',
     'PUT v2/student/question/<id:\d+>' => 'v2/student/general/update-security-question',
 
     //student homeworks
