@@ -153,7 +153,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         $completed = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
 
-        return count($completed) * 100 / count($this->getQuizSummaryRecord()->all());
+        return count($this->getQuizSummaryRecord()->all()) > 0 ? count($completed) * 100 / count($this->getQuizSummaryRecord()->all()) : 0;
     }
 
     public function getStudentExpected()

@@ -4,6 +4,7 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\HomeworkReport;
 use app\modules\v2\models\Questions;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\UserModel;
@@ -83,7 +84,7 @@ class ReportController extends ActiveController
                 ->andWhere(['qs.homework_id' => $id, 'qs.submit' => SharedConstant::VALUE_ONE, 'qs.type' => 'homework'])
                 ->all();
         } else if ($data == 'summary') {
-            $model = Homeworks::find()->where(['id' => $id])->one();
+            $model = HomeworkReport::find()->where(['id' => $id])->one();
         } else {
             $model = Questions::find()
                 ->innerJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
