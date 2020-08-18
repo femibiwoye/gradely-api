@@ -52,6 +52,7 @@ return [
     'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/question/homework-questions',
     'POST v2/teacher/question' => 'v2/teacher/question/create',
     'DELETE v2/teacher/question/<id:\d+>' => 'v2/teacher/question/delete',
+    'PUT v2/teacher/question/<id:\d+>' => 'v2/teacher/question/update',
 
     //Report error
     'POST v2/report/error-report/<type:\w+>' => 'v2/teacher/homework/report-error',

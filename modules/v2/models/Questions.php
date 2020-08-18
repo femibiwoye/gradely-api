@@ -99,4 +99,9 @@ class Questions extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Comprehension::className(), ['id' => 'comprehension_id']);
     }
+
+    public static function find()
+    {
+        return parent::find()->andWhere(['<>', 'status', SharedConstant::STATUS_DELETED]);
+    }
 }
