@@ -46,11 +46,12 @@ return [
     'GET v2/teacher/topic' => 'v2/teacher/class/search-topic',
 
     //Questions
-    'GET v2/teacher/class-questions' => 'v2/teacher/class/questions',
-    'GET v2/teacher/homework-questions' => 'v2/teacher/homework/questions',
-    'GET v2/teacher/question/<question_id:\d+>' => 'v2/teacher/class/question',
-    'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/homework/homework-questions',
-    'POST v2/teacher/question' => 'v2/teacher/homework/question',
+    'GET v2/teacher/class-questions' => 'v2/teacher/question/class-questions',
+    'GET v2/teacher/homework-questions' => 'v2/teacher/question/questions',
+    'GET v2/teacher/question/<question_id:\d+>' => 'v2/teacher/question/view',
+    'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/question/homework-questions',
+    'POST v2/teacher/question' => 'v2/teacher/question/create',
+    'DELETE v2/teacher/question/<id:\d+>' => 'v2/teacher/question/delete',
 
     //Report error
     'POST v2/report/error-report/<type:\w+>' => 'v2/teacher/homework/report-error',
