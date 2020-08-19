@@ -117,7 +117,7 @@ class StudentDetails extends User
             $condition2 = " AND homeworks.school_id = " . $school->id;
         } elseif (Yii::$app->user->identity->type == 'student') {
             $condition = ['student_id' => Yii::$app->user->id];
-            $condition2 = "homeworks.student_id = " . Yii::$app->user->id;
+            $condition2 = " AND homeworks.student_id = " . Yii::$app->user->id;
         }
 
         $homeworkCount = Homeworks::find()

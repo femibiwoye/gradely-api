@@ -2,7 +2,9 @@
 
 namespace app\modules\v2\student\controllers;
 
+use app\modules\v2\models\User;
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{Parents, ApiResponse, InviteLog, StudentDetails};
 use app\modules\v2\components\{CustomHttpBearerAuth, SharedConstant};
@@ -44,14 +46,28 @@ class ProfileController extends ActiveController
     public function actionParents()
     {
         $models = Parents::find()
+            ->alias('a')
+            ->select([
+                'u.id',
+                'u.firstname',
+                'u.lastname',
+                'u.image',
+                'u.email',
+                'u.phone',
+                'a.role',
+                'a.created_at',
+            ])
+            ->innerJoin('user u', 'u.id = a.parent_id')
             ->where(['student_id' => Yii::$app->user->id])
+            ->asArray()
             ->all();
 
         if (!$models) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Parents record not found');
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
 
-        return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Parents record found');
+        return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL);
+
     }
 
     public function actionPendingParentInvitations()
