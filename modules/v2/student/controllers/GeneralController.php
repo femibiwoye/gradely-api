@@ -60,7 +60,8 @@ class GeneralController extends ActiveController
 
     public function actionSetSecurityQuestion()
     {
-        $model = new SecurityQuestionAnswer;
+        if (!$model = SecurityQuestionAnswer::findOne(['user_id' => Yii::$app->user->id]))
+            $model = new SecurityQuestionAnswer;
         $model->question = Yii::$app->request->post('question');
         $model->user_id = Yii::$app->user->id;
         $model->answer = Yii::$app->request->post('answer');
@@ -69,18 +70,19 @@ class GeneralController extends ActiveController
         }
 
         if (!$model->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'Record not saved');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 
-    public function actionUpdateSecurityQuestion($id)
+    public function actionUpdateSecurityQuestion()
     {
-        $model = SecurityQuestionAnswer::findOne(['id' => $id]);
-        if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-        }
+
+        if (!$model = SecurityQuestionAnswer::findOne(['user_id' => Yii::$app->user->id]))
+            if (!$model) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            }
 
         $model->answer = Yii::$app->request->post('answer');
         if (!$model->save(false)) {

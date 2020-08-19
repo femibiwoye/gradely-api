@@ -14,6 +14,7 @@ return [
     //Teacher classes
     'DELETE v2/teacher/student/remove/<student_id:\d+>/<class_id:\d+>' => 'v2/teacher/class/delete-student',
     'GET v2/teacher/student/<id:\d+>' => 'v2/teacher/class/get-student',
+    'POST v2/teacher/student/remark/<id:\d+>' => 'v2/teacher/class/send-student-remark',
     'GET v2/teacher/students/<class_id:\d+>' => 'v2/teacher/class/students-in-class',
     'GET v2/teacher/search-school' => 'v2/teacher/class/search-school',
     'GET v2/teacher/class' => 'v2/teacher/class/teacher-class',
@@ -43,12 +44,12 @@ return [
 
     //Topics
     'GET v2/teacher/class-topics' => 'v2/teacher/class/topics',
-    'GET v2/teacher/topic' => 'v2/teacher/class/search-topic',
+    'GET v2/teacher/search-topic' => 'v2/teacher/class/search-topic',
 
     //Questions
     'GET v2/teacher/class-questions' => 'v2/teacher/question/class-questions',
     'GET v2/teacher/homework-questions' => 'v2/teacher/question/questions',
-    'GET v2/teacher/question/<question_id:\d+>' => 'v2/teacher/question/view',
+    'GET v2/teacher/question' => 'v2/teacher/question/view',
     'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/question/homework-questions',
     'POST v2/teacher/question' => 'v2/teacher/question/create',
     'DELETE v2/teacher/question/<id:\d+>' => 'v2/teacher/question/delete',

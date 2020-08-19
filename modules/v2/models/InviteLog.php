@@ -35,7 +35,7 @@ class InviteLog extends \yii\db\ActiveRecord
 
     const SCENARIO_SCHOOL_INVITE_ADMIN = 'invite-school-admin';
     const SCENARIO_SCHOOL_INVITE_TEACHER = 'invite-school-teacher';
-    const SCENARIO_STUDENT_INVITE_PARENT = 'invite-student-teacher';
+    const SCENARIO_STUDENT_INVITE_PARENT = 'invite-student-parent';
     const SCENARIO_TEACHER_INVITE_SCHOOL = 'invite-teacher-school';
 
     public $role;
@@ -62,7 +62,7 @@ class InviteLog extends \yii\db\ActiveRecord
             ['receiver_email', 'email', 'on' => self::SCENARIO_SCHOOL_INVITE_TEACHER],
             ['receiver_email', 'validateRepetetion', 'on' => self::SCENARIO_SCHOOL_INVITE_TEACHER],
 
-            [['receiver_email', 'receiver_name', 'receiver_phone'], 'required', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
+            [['receiver_email', 'receiver_name', 'receiver_phone', 'role'], 'required', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
             ['receiver_email', 'email', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
             ['receiver_email', 'validateInvitationRepetetion', 'on' => self::SCENARIO_STUDENT_INVITE_PARENT],
 
@@ -120,7 +120,7 @@ class InviteLog extends \yii\db\ActiveRecord
         $model->sender_id = $this->sender_id;
         $model->receiver_type = 'parent';
         $model->sender_type = $this->sender_type;
-        $model->extra_data = $this->extra_data;
+        $model->extra_data = $this->role;
         $model->token = Yii::$app->security->generateRandomString(100);
         if (!$model->save()) {
             return false;
@@ -186,7 +186,7 @@ class InviteLog extends \yii\db\ActiveRecord
         return false;
     }
 
-    public function schoolReinviteTeacher($id)
+    public function InviteAgain($id)
     {
         if ($id) {
             $schoolID = Schools::find()
@@ -195,8 +195,8 @@ class InviteLog extends \yii\db\ActiveRecord
                 ->one();
             $model = InviteLog::find()->where(['sender_id' => $schoolID->id, 'id' => $id])->one();
             if (!empty($model)) {
-                $this->sendEmail($model, $schoolID);
-                $this->sendSMS($model, $schoolID);
+//                $this->sendEmail($model, $schoolID);
+//                $this->sendSMS($model, $schoolID);
                 Yii::$app->session->setFlash('info', 'Invitation has been sent.');
             }
         }

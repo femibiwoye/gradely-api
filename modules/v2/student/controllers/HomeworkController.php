@@ -16,51 +16,51 @@ use app\modules\v2\components\SharedConstant;
  */
 class HomeworkController extends ActiveController
 {
-	public $modelClass = 'app\modules\v2\models\Homeworks';
+    public $modelClass = 'app\modules\v2\models\Homeworks';
 
-	/**
-	 * @return array
-	 */
-	public function behaviors()
-	{
-		$behaviors = parent::behaviors();
+    /**
+     * @return array
+     */
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
 
-		//For CORS
-		$auth = $behaviors['authenticator'];
-		unset($behaviors['authenticator']);
-		$behaviors['corsFilter'] = [
-			'class' => \yii\filters\Cors::className(),
-		];
-		$behaviors['authenticator'] = $auth;
-		$behaviors['authenticator'] = [
-			'class' => CustomHttpBearerAuth::className(),
-		];
+        //For CORS
+        $auth = $behaviors['authenticator'];
+        unset($behaviors['authenticator']);
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::className(),
+        ];
+        $behaviors['authenticator'] = $auth;
+        $behaviors['authenticator'] = [
+            'class' => CustomHttpBearerAuth::className(),
+        ];
 
-		return $behaviors;
-	}
+        return $behaviors;
+    }
 
-	public function actions()
-	{
-		$actions = parent::actions();
-		unset($actions['index']);
-		unset($actions['create']);
-		unset($actions['update']);
-		unset($actions['delete']);
-		unset($actions['view']);
-		return $actions;
-	}
+    public function actions()
+    {
+        $actions = parent::actions();
+        unset($actions['index']);
+        unset($actions['create']);
+        unset($actions['update']);
+        unset($actions['delete']);
+        unset($actions['view']);
+        return $actions;
+    }
 
-	public function actionCompletedHomeworks()
-	{
-		$models = $this->modelClass::find()
-					->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-					->where(['quiz_summary.student_id' => Yii::$app->user->id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
+    public function actionCompletedHomework()
+    {
+        $models = $this->modelClass::find()
+            ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
+            ->where(['quiz_summary.student_id' => Yii::$app->user->id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
 
-		if (!$models) {
-			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-		}
+        if (!$models) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
 
-		$provider = new ActiveDataProvider([
+        $provider = new ActiveDataProvider([
             'query' => $models,
             'pagination' => [
                 'pageSize' => 10,
@@ -68,22 +68,22 @@ class HomeworkController extends ActiveController
             ],
         ]);
 
-		return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
-	}
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
 
-	public function actionNewHomeworks()
-	{
-		$models = $this->modelClass::find()
-					->innerJoin('student_school', 'student_school.class_id = homeworks.class_id')
-					->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE])
-					->andWhere(['<', 'open_date', time()])
-					->andWhere(['>', 'close_date', time()]);
+    public function actionNewHomework()
+    {
+        $models = $this->modelClass::find()
+            ->innerJoin('student_school', 'student_school.class_id = homeworks.class_id')
+            ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
+            ->andWhere(['<', 'UNIX_TIMESTAMP(open_date)', time()])
+            ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()]);
 
-		if (!$models) {
-			return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-		}
+        if (!$models) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
 
-		$provider = new ActiveDataProvider([
+        $provider = new ActiveDataProvider([
             'query' => $models,
             'pagination' => [
                 'pageSize' => 10,
@@ -91,6 +91,6 @@ class HomeworkController extends ActiveController
             ],
         ]);
 
-		return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
-	}
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
 }

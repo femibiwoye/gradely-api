@@ -48,8 +48,34 @@ class ClassController extends ActiveController
         return $actions;
     }
 
+    public function actionVerifyClass($code)
+    {
+        $class = $this->modelClass::find()
+            ->alias('c')
+            ->select([
+                'c.*',
+                's.name school_name'
+            ])
+            ->innerJoin('schools s', 's.id = c.school_id')
+            ->where(['class_code' => $code])
+            ->asArray()->one();
+        if (!$class) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found!');
+        }
+
+        return (new ApiResponse)->success($class, ApiResponse::SUCCESSFUL, 'Class found');
+    }
+
     public function actionStudentClass()
     {
+        if (!Yii::$app->request->post('code')) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class code is required');
+        }
+
+        if (StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student already in class');
+        }
+
         $class = Classes::findOne(['class_code' => Yii::$app->request->post('code')]);
         if (!$class) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');

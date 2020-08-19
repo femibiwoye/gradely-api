@@ -3,6 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\Remarks;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolTeachers;
 use app\modules\v2\models\StudentDetails;
@@ -236,14 +237,43 @@ class ClassController extends ActiveController
         return (new ApiResponse)->success($user, null, 'You have successfully added students');
     }
 
-    public function actionGetStudent($id)
+    public function actionGetStudent($id, $remark = 0)
     {
         $detail = StudentDetails::findOne(['id' => $id]);
         if (!$detail->checkStudentInTeacherClass()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This student does not belong to your school');
         }
 
+        if ($remark == 1) {
+            $detail = $detail->remarks;
+        }
+
         return (new ApiResponse)->success($detail);
+    }
+
+    public function actionSendStudentRemark($id)
+    {
+        $remark = Yii::$app->request->post('remark');
+        $form = new \yii\base\DynamicModel(compact('remark'));
+        $form->addRule(['remark'], 'required');
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $detail = StudentDetails::findOne(['id' => $id]);
+        if (!$detail->checkStudentInTeacherClass()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This student does not belong to your school');
+        }
+
+        $model = new Remarks();
+        $model->type = 'student';
+        $model->creator_id = Yii::$app->user->id;
+        $model->receiver_id = $id;
+        $model->remark = $remark;
+        if ($model->save())
+            return (new ApiResponse)->success($model);
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not send remark');
     }
 
     public function actionRemoveClass($class_id)
@@ -259,9 +289,9 @@ class ClassController extends ActiveController
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Teacher removed!');
     }
 
-    public function actionTopics()
+    public function actionTopics($term = 0)
     {
-        $class_id = Yii::$app->request->get('class_id');
+        $class_id = Yii::$app->request->get('global_class_id');
         $subject_id = Yii::$app->request->get('subject_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
         $form->addRule(['class_id', 'subject_id'], 'required');
@@ -271,21 +301,32 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $model = SubjectTopics::find()
-            ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
-            ->orderBy(['term' => SORT_ASC])
-            ->all();
+        if ($term == 1) {
+            $terms = ['first', 'second', 'third'];
+            $model = [];
+            foreach ($terms as $term) {
+                $model[] = ['term' => $term, 'topics' => SubjectTopics::find()
+                    ->where(['subject_id' => $subject_id, 'class_id' => $class_id, 'term' => $term])
+                    ->orderBy(['week_number' => SORT_ASC])
+                    ->all()];
+            }
+        } else {
+            $model = SubjectTopics::find()
+                ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
+                ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
+                ->all();
+        }
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' record found');
     }
 
     public function actionSearchTopic()
     {
-        $class_id = Yii::$app->request->get('class_id');
+        $class_id = Yii::$app->request->get('global_class_id');
         $subject_id = Yii::$app->request->get('subject_id');
         $topic = Yii::$app->request->get('topic');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'topic'));
@@ -298,7 +339,8 @@ class ClassController extends ActiveController
         $model = SubjectTopics::find()
             ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
             ->andWhere(['like', 'topic', '%' . $topic . '%', false])
-            ->one();
+            ->limit(6)
+            ->all();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
