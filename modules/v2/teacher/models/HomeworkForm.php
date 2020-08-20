@@ -35,7 +35,7 @@ class HomeworkForm extends Model
     {
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'open_date', 'close_date', 'tag', 'view_by'], 'required', 'on' => 'create-homework'],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'description', 'practice_attachments'], 'required', 'on' => 'create-lesson'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'description'], 'required', 'on' => 'create-lesson'],
             [['title', 'tag'], 'required', 'on' => 'update-homework'],
             [['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
