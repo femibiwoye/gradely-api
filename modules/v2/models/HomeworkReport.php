@@ -209,8 +209,9 @@ class HomeworkReport extends Homeworks
 
     public function getQuizSummary()
     {
+
         return QuizSummary::find()->where(['student_id' => $this->student_id])
-            ->andWhere(['teacher_id' => Yii::$app->user->id])
+            ->orWhere(['teacher_id' => Yii::$app->user->id])
             ->andWhere(['subject_id' => $this->subject->id])
             ->andWhere(['homework_id' => $this->id])->one();
 
@@ -218,6 +219,7 @@ class HomeworkReport extends Homeworks
 
     public function getScore()
     {
+
         if (!$this->quizSummary) {
             return null;
         }
