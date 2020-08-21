@@ -123,8 +123,13 @@ class HomeworkController extends ActiveController
 
         $summary_details = QuizSummaryDetails::find()->alias('qsd')
             ->innerJoin('quiz_summary', 'quiz_summary.id = qsd.quiz_id')
+            ->innerJoin('homeworks', 'homeworks.id = quiz_summary.homework_id')
             ->innerJoin('questions', 'questions.id = qsd.question_id')
-            ->andWhere(['quiz_summary.homework_id' => $homework_id])
+            ->andWhere([
+                'quiz_summary.homework_id' => $homework_id,
+                'homeworks.publish_status' => 1,
+                'homeworks.type' => 'homework'
+            ])
             ->all();
 
         if(!$summary_details){
