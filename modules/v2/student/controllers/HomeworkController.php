@@ -102,10 +102,12 @@ class HomeworkController extends ActiveController
         $student_id = Yii::$app->user->id;
 
         $homework = HomeworkReport::find()
-                    //->innerJoin('quiz_summary summary', 'summary.homework_id = homeworks.id')
+                    ->innerJoin('quiz_summary summary', 'summary.homework_id = homeworks.id')
                     ->andWhere([
                         'homeworks.id' => $homework_id,
-                        'homeworks.student_id' => $student_id])
+                        'homeworks.student_id' => $student_id,
+                        'homeworks.publish_status' => 1,
+                    ])
                     ->one();
 
         if(!$homework){
