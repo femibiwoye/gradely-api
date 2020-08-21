@@ -41,6 +41,9 @@ return [
     'GET v2/report/class' => 'v2/library/class-report',
     'GET v2/report/homework' => 'v2/report/homework-summary',
 
+    //Coupon
+    'POST v2/payment/verify-coupon' => 'v2/payment/verify-coupon',
+
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin',
