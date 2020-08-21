@@ -127,8 +127,9 @@ class HomeworkController extends ActiveController
             ->innerJoin('questions', 'questions.id = qsd.question_id')
             ->andWhere([
                 'quiz_summary.homework_id' => $homework_id,
-                'homeworks.publish_status' => 1,
-                'homeworks.type' => 'homework'
+              //  'homeworks.publish_status' => 1,
+               // 'homeworks.type' => 'homework',
+
             ])
             ->all();
 
