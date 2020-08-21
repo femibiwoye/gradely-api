@@ -21,6 +21,7 @@ return [
     //student class
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class',
     'POST v2/student/class' => 'v2/student/class/student-class',
+    'GET v2/student/class' => 'v2/student/class/students-class',
 
     //student preference
     'GET v2/student/preference' => 'v2/student/preference/index',
