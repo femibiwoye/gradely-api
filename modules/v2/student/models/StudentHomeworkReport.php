@@ -1,13 +1,25 @@
 <?php
 
-namespace app\modules\v2\models;
+namespace app\modules\v2\student\models;
 
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\HomeworkQuestions;
+use app\modules\v2\models\Homeworks;
+use app\modules\v2\models\PracticeMaterial;
+use app\modules\v2\models\PracticeTopics;
+use app\modules\v2\models\Questions;
+use app\modules\v2\models\QuizSummary;
+use app\modules\v2\models\QuizSummaryDetails;
+use app\modules\v2\models\Subjects;
+use app\modules\v2\models\SubjectTopics;
+use app\modules\v2\models\User;
 use Yii;
 use app\modules\v2\components\SharedConstant;
+use yii\behaviors\SluggableBehavior;
 use yii\helpers\ArrayHelper;
+use yii\db\Expression;
 
-class HomeworkReport extends Homeworks
+class StudentHomeworkReport extends Homeworks
 {
     private $homework_annoucements = [];
     private $sum_of_correct_answers;
@@ -16,6 +28,7 @@ class HomeworkReport extends Homeworks
     private $struggling_students = SharedConstant::VALUE_ZERO;
     private $average_students = SharedConstant::VALUE_ZERO;
     private $excellent_students = SharedConstant::VALUE_ZERO;
+
 
 
     public function fields()
@@ -38,14 +51,49 @@ class HomeworkReport extends Homeworks
             'attachments',
             'average',
             'completion',
-            'questions' => 'homeworkQuestions',
-            'homework_performance' => 'homeworkPerformance'
+            'correctQuestions',
+            'failedQuestions',
+            'missedQuestions',
+            'countAttemptedQuestions',
+            'homeworkScore',
+//            'questions' => 'homeworkQuestions',
+//            'homework_performance' => 'homeworkPerformance'
         ];
     }
 
-    public static function find()
+
+    public function getCorrectQuestions()
     {
-        return parent::find()->where(['homeworks.status' => 1]);
+        return $this->getQuizSummaryDetails()->where(['=', 'selected', new Expression('`answer`')])->count();
+    }
+
+    public function getFailedQuestions()
+    {
+        return $this->getQuizSummaryDetails()->where(['<>', 'selected', new Expression('`answer`')])->count();
+    }
+
+    public function getCountAttemptedQuestions()
+    {
+        return HomeworkQuestions::find()->where(['homework_id' => 'id'])->count();
+    }
+
+    public function getHomeworkScore()
+    {
+        if ($this->countAttemptedQuestions == SharedConstant::VALUE_ZERO) {
+            return SharedConstant::VALUE_ZERO;
+        }
+
+        return ($this->correctQuestions / $this->countAttemptedQuestions) * 100;
+    }
+
+    public function getMissedQuestions()
+    {
+        return $this->countAttemptedQuestions - ($this->correctQuestions + $this->failedQuestions);
+    }
+
+    public function getQuizSummaryDetails()
+    {
+        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id'])->andWhere(['student_id'=>Yii::$app->user->id]);
     }
 
     public function getHomeworkSummary()
@@ -71,7 +119,7 @@ class HomeworkReport extends Homeworks
 
     public function getStudentExpected()
     {
-        return count($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all());
+        return count($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE]));
     }
 
     public function getStudentsSubmitted()
