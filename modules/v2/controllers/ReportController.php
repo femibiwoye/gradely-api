@@ -6,6 +6,7 @@ use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\HomeworkReport;
 use app\modules\v2\models\Questions;
+use app\modules\v2\models\ReportError;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\UserModel;
 use Yii;
@@ -99,5 +100,22 @@ class ReportController extends ActiveController
         }
 
         return (new ApiResponse)->success($data == 'summary' ? $model->getHomeworkSummary() : $model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionReportError($type = null)
+    {
+        $model = new ReportError(['scenario' => 'question-report']);
+        $model->attributes = Yii::$app->request->post();
+        $model->user_id = Yii::$app->user->identity->id;
+        $model->type = $type;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Data not validated');
+        }
+
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not inserted');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record inserted');
     }
 }

@@ -4,6 +4,20 @@ namespace app\modules\v2\models;
 
 use Yii;
 
+/**
+ * This is the model class for table "report_error".
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string|null $school
+ * @property string|null $class
+ * @property int|null $reference_id
+ * @property string|null $title
+ * @property string|null $description
+ * @property string|null $type
+ * @property int $status
+ * @property string $created_at
+ */
 class ReportError extends \yii\db\ActiveRecord
 {
     public static function tableName()
@@ -14,7 +28,8 @@ class ReportError extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'reference_id'], 'required'],
+            [['user_id'], 'required'],
+            [['reference_id', 'title', 'description'], 'required', 'on' => 'question-report'],
             [['user_id', 'reference_id', 'status'], 'integer'],
             [['description', 'type'], 'string'],
             ['type', 'default', 'value' => 'question'],

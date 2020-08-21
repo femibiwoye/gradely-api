@@ -2,6 +2,10 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\models\Classes;
+use app\modules\v2\models\Subjects;
+use app\modules\v2\models\SubjectTopics;
+use app\modules\v2\models\TeacherClass;
 use Yii;
 use app\modules\v2\models\{Homeworks, ApiResponse, HomeworkQuestions, Questions};
 use app\modules\v2\teacher\models\{HomeworkQuestionsForm};
@@ -74,8 +78,9 @@ class QuestionController extends ActiveController
         $form = new HomeworkQuestionsForm;
         $form->attributes = Yii::$app->request->post();
         $form->homework_id = $homework_id;
+
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validaton failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validation failed');
         }
 
         if (!$form->saveHomeworkQuestion()) {
@@ -85,20 +90,46 @@ class QuestionController extends ActiveController
         return (new ApiResponse)->success($form->HomeworkQuestionModels, ApiResponse::SUCCESSFUL, 'Record inserted');
     }
 
-    public function actionCreate()
+    public function actionCreate($type)
     {
-        $model = new Questions;
-        $model->attributes = Yii::$app->request->post();
-        $model->teacher_id = Yii::$app->user->identity->id;
+        $homework_id = Yii::$app->request->post('homework_id');
+        $class_id = Yii::$app->request->post('class_id');
+        $difficulty = Yii::$app->request->post('difficulty');
+        $subject_id = Yii::$app->request->post('subject_id');
+        $topic_id = Yii::$app->request->post('topic_id');
+        $answer = Yii::$app->request->post('answer');
+        $duration = Yii::$app->request->post('duration');
+        $teacher_id = Yii::$app->user->id;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'difficulty', 'subject_id', 'topic_id', 'answer', 'duration', 'teacher_id', 'homework_id'));
+        $model->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id', 'teacher_id' => 'teacher_id']]);
+        $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id']]);
+        $model->addRule(['subject_id'], 'exist', ['targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']]);
+        $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
+        $model->addRule(['difficulty'], 'in', ['range' => ['easy', 'medium', 'hard']]);
+        $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
+        $model->addRule(['duration', 'class_id'], 'integer');
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }
 
-        if (!$model->save(false)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+        $model = new Questions(['scenario' => 'create-' . $type]);
+        $model->attributes = Yii::$app->request->post();
+        $model->teacher_id = $teacher_id;
+
+        $model->type = $type;
+        $model->category = 'homework';
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
+        }
+        $topic = SubjectTopics::findOne(['id' => $topic_id]);
+        $model->exam_type_id = $topic->exam_type_id;
+        $model->homework_id = $homework_id;
+        $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question saved');
     }
 
     public function actionClassQuestions()
@@ -151,40 +182,62 @@ class QuestionController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
-        return (new ApiResponse)->success( $model, ApiResponse::SUCCESSFUL, 'Record found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 
-    public function actionDelete($id)
+    public function actionDelete()
     {
-        $model = Questions::findOne(['id' => $id]);
-        if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        $homework_id = Yii::$app->request->get('homework_id');
+        $question_id = Yii::$app->request->get('question_id');
+        $teacher = Yii::$app->user->id;
+        $form = new \yii\base\DynamicModel(compact('question_id', 'homework_id', 'teacher'));
+        $form->addRule(['question_id', 'homework_id'], 'required');
+        $form->addRule(['question_id'], 'exist', ['targetClass' => HomeworkQuestions::className(), 'targetAttribute' => ['teacher' => 'teacher_id',
+            'question_id' => 'question_id', 'homework_id' => 'homework_id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $model->status = SharedConstant::VALUE_ZERO;
-        if (!$model->update()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not deleted');
+        $model = HomeworkQuestions::findOne(['homework_id' => $homework_id, 'question_id' => $question_id]);
+        if (!$model->delete()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not deleted');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record deleted');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Question deleted');
     }
 
     public function actionUpdate($id)
     {
-        $model = Questions::findOne(['id' => $id]);
+        $difficulty = Yii::$app->request->post('difficulty');
+        $topic_id = Yii::$app->request->post('topic_id');
+        $answer = Yii::$app->request->post('answer');
+        $duration = Yii::$app->request->post('duration');
+        $question_id = Yii::$app->request->post('question_id');
+        $teacher_id = Yii::$app->user->id;
+        $model = new \yii\base\DynamicModel(compact('difficulty', 'topic_id', 'answer', 'duration', 'teacher_id', 'question_id'));
+        $model->addRule(['question_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['id' => 'question_id', 'teacher_id' => 'teacher_id']]);
+        $model->addRule(['difficulty'], 'in', ['range' => ['easy', 'medium', 'hard']]);
+        $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
+        $model->addRule(['duration'], 'integer');
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
+        }
+
+        $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not found or you have no edit privilege to this question');
         }
 
         $model->attributes = Yii::$app->request->post();
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }
 
-        if (!$model->save(false)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not updated');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question updated');
     }
 }

@@ -5,6 +5,37 @@ namespace app\modules\v2\models;
 use Yii;
 use app\modules\v2\components\SharedConstant;
 
+/**
+ * This is the model class for table "questions".
+ *
+ * @property int $id
+ * @property int|null $teacher_id
+ * @property int|null $homework_id
+ * @property int $subject_id
+ * @property string|null $class_id
+ * @property int|null $school_id
+ * @property string $question
+ * @property string|null $option_a
+ * @property string|null $option_b
+ * @property string|null $option_c
+ * @property string|null $option_d
+ * @property string|null $option_e
+ * @property string $answer Answer should either be A, B, C, D, or E FOr multiple options and 1=true/0=false for boolean true/false questions
+ * @property string $type
+ * @property int $topic_id
+ * @property int $exam_type_id
+ * @property string|null $image
+ * @property string $difficulty
+ * @property int $duration duration is in seconds
+ * @property string|null $explanation
+ * @property string|null $clue This give clue to the question
+ * @property string $category
+ * @property int|null $comprehension_id
+ * @property int $status
+ * @property string $created_at
+ *
+ * @property Comprehension $comprehension
+ */
 class Questions extends \yii\db\ActiveRecord
 {
     public static function tableName()
@@ -16,11 +47,12 @@ class Questions extends \yii\db\ActiveRecord
     {
         return [
             [['teacher_id', 'homework_id', 'subject_id', 'school_id', 'topic_id', 'exam_type_id', 'duration', 'comprehension_id', 'status'], 'integer'],
-            [['subject_id', 'question', 'answer', 'topic_id', 'exam_type_id', 'difficulty', 'duration'], 'required'],
+            [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration', 'option_a', 'option_b', 'option_c', 'option_d'], 'required', 'on' => 'create-multiple'],
+            [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration'], 'required', 'on' => 'create-bool'],
+            [['answer'], 'integer', 'on' => 'create-bool'],
             [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category'], 'string'],
             [['created_at'], 'safe'],
-            [['class_id'], 'string', 'max' => 15],
-            [['answer'], 'string', 'max' => 1],
+            //[['answer'], 'string', 'max' => 1],
             [['image'], 'string', 'max' => 200],
             [['comprehension_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comprehension::className(), 'targetAttribute' => ['comprehension_id' => 'id']],
         ];
@@ -71,6 +103,7 @@ class Questions extends \yii\db\ActiveRecord
             'option_d',
             'option_e',
             'answer',
+            'duration',
             'type',
             'correct_students' => 'correctQuizSummaryDetails',
             'wrong_students' => 'wrongQuizSummaryDetails'

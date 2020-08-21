@@ -2,6 +2,8 @@
 
 namespace app\modules\v2\teacher\models;
 
+use app\modules\v2\models\Homeworks;
+use app\modules\v2\models\QuizSummary;
 use Yii;
 use yii\base\Model;
 use app\modules\v2\models\{Questions, HomeworkQuestions};
@@ -26,9 +28,26 @@ class HomeworkQuestionsForm extends Model
 
     public function validateQuestion()
     {
+        if (!is_array($this->questions)) {
+            $this->addError('questions', 'Questions need to be array of IDs');
+            return false;
+        }
+
+        if (!Homeworks::find()->where(['id' => $this->homework_id, 'teacher_id' => Yii::$app->user->id])->exists()) {
+            $this->addError('questions', 'You do not have access to this homework');
+            return false;
+        }
+
+        if (QuizSummary::find()->where(['homework_id' => $this->homework_id, 'type' => 'homework', 'submit' => 1])->exists()) {
+            $this->addError('questions', 'You cannot add because an attempt has been made on this homework.');
+            return false;
+        }
+
+
         $question_records = Questions::find()->where(['id' => $this->questions, 'class_id' => $this->class_id, 'subject_id' => $this->subject_id])->count();
         if (count($this->questions) != $question_records) {
-            $this->addError('Questions Ids are not correct');
+            $this->addError('questions', 'One or more questions is invalid');
+            return false;
         }
 
         return true;
@@ -36,8 +55,11 @@ class HomeworkQuestionsForm extends Model
 
     public function saveHomeworkQuestion()
     {
+        if (!$this->deleteQuestion(1, $this->homework_id))
+            return false;
+
         foreach ($this->questions as $question) {
-            if (!$this->deleteQuestion($question) || !$this->saveQuestion($question)) {
+            if (!$this->saveQuestion($question)) {
                 return false;
             }
         }
@@ -45,14 +67,19 @@ class HomeworkQuestionsForm extends Model
         return true;
     }
 
-    public function deleteQuestion($question_id)
+    public function deleteQuestion($type = 0, $homework_id, $question_id = null)
     {
         $model = HomeworkQuestions::find()
-                    ->where(['question_id' => $question_id, 'teacher_id' => Yii::$app->user->identity->id])
-                    ->one();
-
-        if (!$model->delete()) {
-            return false;
+            ->where(['homework_id' => $homework_id, 'teacher_id' => Yii::$app->user->identity->id]);
+        if ($type == 1) {
+            if ($model->exists()) {
+                return HomeworkQuestions::deleteAll(['homework_id' => $homework_id, 'teacher_id' => Yii::$app->user->identity->id]);
+            }
+        } else {
+            $model = $model->andWhere(['question_id' => $question_id]);
+            if ($model->exists()) {
+                return $model->one()->delete();
+            }
         }
 
         return true;
@@ -62,7 +89,7 @@ class HomeworkQuestionsForm extends Model
     {
         $question = Questions::findOne(['id' => $question_id]);
         $model = new HomeworkQuestions;
-        $model->teacher_id = Yii::$app->user->identity->id;
+        $model->teacher_id = Yii::$app->user->id;
         $model->homework_id = $this->homework_id;
         $model->question_id = $question->id;
         $model->difficulty = $question->difficulty;

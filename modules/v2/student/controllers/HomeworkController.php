@@ -5,6 +5,7 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\models\{Homeworks, ApiResponse};
 
+use app\modules\v2\student\models\StudentHomeworkReport;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
@@ -52,7 +53,7 @@ class HomeworkController extends ActiveController
 
     public function actionCompletedHomework()
     {
-        $models = $this->modelClass::find()
+        $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
             ->where(['quiz_summary.student_id' => Yii::$app->user->id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
 
