@@ -6,7 +6,7 @@ use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\models\{ApiResponse, Coupon, PaymentPlan};
+use app\modules\v2\models\{ApiResponse, Coupon, PaymentPlan, Subscriptions};
 
 class PaymentController extends ActiveController
 {
@@ -88,5 +88,20 @@ class PaymentController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionCancelSubscription($subscription_id)
+    {
+        $model = Subscriptions::findOne(['id' => $subscription_id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->renew_status = SharedConstant::VALUE_ZERO;
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
     }
 }

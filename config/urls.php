@@ -44,6 +44,7 @@ return [
     //Payment
     'POST v2/payment/verify-coupon' => 'v2/payment/verify-coupon',
     'GET v2/payment/plan/<type:\w+>' => 'v2/payment/payment-plans',
+    'PUT v2/payment/cancel-subscription/<subscription_id:\d+>' => 'v2/payment/cancel-subscription',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
