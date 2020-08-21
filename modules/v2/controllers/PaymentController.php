@@ -6,7 +6,7 @@ use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\models\{ApiResponse, Coupon};
+use app\modules\v2\models\{ApiResponse, Coupon, PaymentPlan};
 
 class PaymentController extends ActiveController
 {
@@ -67,6 +67,22 @@ class PaymentController extends ActiveController
                         ->andWhere(['<', 'start_time', time()])
                         ->andWhere(['>', 'end_time', time()])
                         ->one();
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionPaymentPlans($type)
+    {
+        $form = new \yii\base\DynamicModel(compact('type'));
+        $form->addRule(['type'], 'in', ['range' => ['catchup', 'tutor']]);
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = PaymentPlan::find()->where(['type' => $type])->all();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
