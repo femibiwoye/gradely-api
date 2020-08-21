@@ -350,7 +350,7 @@ class UserModel extends User
             ->leftJoin('subject_topics st', 'st.id=qsd.topic_id')
             ->where(['qsd.homework_id' => Yii::$app->request->get('id')])
             ->groupBy(['qsd.topic_id'])
-            ->orderBy('score DESC')
+            ->orderBy('score ASC')
             ->asArray();
     }
 
