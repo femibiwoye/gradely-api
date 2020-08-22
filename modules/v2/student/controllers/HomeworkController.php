@@ -3,6 +3,10 @@
 namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\models\HomeworkReport;
+use app\modules\v2\models\Parents;
+use app\modules\v2\models\QuizSummary;
+use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\{Homeworks, ApiResponse};
 
 use app\modules\v2\student\models\StudentHomeworkReport;
@@ -93,5 +97,48 @@ class HomeworkController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionHomeworkScore($homework_id){
+
+        $student_id = Yii::$app->user->id;
+
+        $homework = HomeworkReport::find()
+                    ->innerJoin('quiz_summary summary', 'summary.homework_id = homeworks.id')
+                    ->andWhere([
+                        'homeworks.id' => $homework_id,
+                        'homeworks.student_id' => $student_id,
+                        'homeworks.publish_status' => 1,
+                    ])
+                    ->one();
+
+        if(!$homework){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not found!');
+        }
+
+        return (new ApiResponse)->success($homework, ApiResponse::SUCCESSFUL, 'Homework Score succcessfully retrieved');
+    }
+
+    public function actionHomeworkReviewQuestion($homework_id){
+
+        $summary_details = QuizSummaryDetails::find()->alias('qsd')
+            ->innerJoin('quiz_summary', 'quiz_summary.id = qsd.quiz_id')
+            ->innerJoin('homeworks', 'homeworks.id = quiz_summary.homework_id')
+            ->innerJoin('questions', 'questions.id = qsd.question_id')
+            ->andWhere([
+                'quiz_summary.homework_id' => $homework_id,
+              //  'homeworks.publish_status' => 1,
+               // 'homeworks.type' => 'homework',
+
+            ])
+            ->all();
+
+        if(!$summary_details){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found!');
+        }
+
+        return (new ApiResponse)->success($summary_details, ApiResponse::SUCCESSFUL, 'Questions succcessfully retrieved');
+
+
     }
 }

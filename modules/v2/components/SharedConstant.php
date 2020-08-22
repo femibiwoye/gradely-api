@@ -29,4 +29,6 @@ class SharedConstant {
 	const PRACTICE_TYPES = ['feed', 'practice'];
 	const QUIZ_SUMMARY_TYPE = ['homework'];
 	const QUESTION_DIFFICULTY = ['hard', 'medium', 'easy'];
+	const SUBSCRIPTION_DURATION = 'month';
+	const SUBSCRIPTION_PLAN = 'basic';
 }
