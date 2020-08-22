@@ -7,7 +7,6 @@ use Yii;
 use app\modules\v2\components\SharedConstant;
 use yii\behaviors\SluggableBehavior;
 use yii\helpers\ArrayHelper;
-use yii\db\Expression;
 
 /**
  * This is the model class for table "homeworks".
@@ -126,11 +125,6 @@ class Homeworks extends \yii\db\ActiveRecord
             'attachments',
             'average',
             'completion',
-            'correctQuestions',
-            'failedQuestions',
-            'missedQuestions',
-            'countAttemptedQuestions',
-            'homeworkScore',
 //            'questions' => 'homeworkQuestions',
 //            'homework_performance' => 'homeworkPerformance'
         ];
@@ -139,40 +133,6 @@ class Homeworks extends \yii\db\ActiveRecord
     public static function find()
     {
         return parent::find()->where(['homeworks.status' => 1]);
-    }
-
-    public function getCorrectQuestions()
-    {
-        return $this->getQuizSummaryDetails()->where(['=', 'selected', new Expression('`answer`')])->count();
-    }
-
-    public function getFailedQuestions()
-    {
-        return $this->getQuizSummaryDetails()->where(['!=', 'selected', new Expression('`answer`')])->count();
-    }
-
-    public function getCountAttemptedQuestions()
-    {
-        return HomeworkQuestions::find()->where(['homework_id' => 'id'])->count();
-    }
-
-    public function getHomeworkScore()
-    {
-        if ($this->countAttemptedQuestions == SharedConstant::VALUE_ZERO) {
-            return SharedConstant::VALUE_ZERO;
-        }
-
-        return ($this->correctQuestions / $this->countAttemptedQuestions) * 100;
-    }
-
-    public function getMissedQuestions()
-    {
-        return $this->countAttemptedQuestions - ($this->correctQuestions + $this->failedQuestions);
-    }
-
-    public function getQuizSummaryDetails()
-    {
-        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id']);
     }
 
     public function getHomeworkSummary()
