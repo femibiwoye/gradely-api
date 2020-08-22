@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -56,6 +57,12 @@ class TutorSession extends \yii\db\ActiveRecord
             [['title'], 'string', 'max' => 200],
             [['category'], 'string', 'max' => 50],
             [['meeting_room'], 'string', 'max' => 255],
+
+            [['requester_id', 'class', 'subject_id', 'repetition', 'category', 'availability', 'title'], 'required', 'on' => 'new-class'],
+            ['subject_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['subject_id']],
+            ['class', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['class' => 'class_id']],
+            ['repetition', 'in', 'range' => ['once', 'daily', 'workdays', 'weekly']],
+            ['availability', 'datetime', 'format' => 'php:Y-m-d H:i']
         ];
     }
 
@@ -84,6 +91,55 @@ class TutorSession extends \yii\db\ActiveRecord
             'status' => 'Status',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function scheduleClass($model)
+    {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+
+            if (!$model->save()) {
+                return false;
+            }
+
+
+            /**
+             * Send google calendar notification
+             *
+             * date_default_timezone_set("Africa/Lagos");
+             * $start = date(DATE_ATOM, strtotime($model->availability));
+             * $end = date(DATE_ATOM, strtotime("+45 minutes", strtotime($model->availability)));
+             * $invitees = [];
+             *
+             * $invitees[] = ['email' => Yii::$app->user->identity->email];
+             *
+             * //parents email
+             * $studentIds = ArrayHelper::getColumn($model->classes->studentSchool, 'student_id');
+             * $parentIDs = Parents::find()->where(['student_id' => $studentIds, 'status' => 1])
+             * ->groupBy(['parent_id'])
+             * ->asArray()
+             * ->all();
+             * $parents = User::find()->where(['id' => ArrayHelper::getColumn($parentIDs, 'parent_id'), 'type' => 'parent'])
+             * ->all();
+             *
+             * foreach ($parents as $parent) {
+             * $invitees[] = ['email' => $parent->email];
+             * }
+             *
+             * $google = new GoogleCalendar();
+             * $google->createEvent($model->title, $start, $end, $invitees);
+             * $this->SendLessonNotification($model, $parents, $studentIds);
+             */
+
+
+            $dbtransaction->commit();
+        } catch (\Exception $ex) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+
+        return $model;
+
     }
 
     public function getNewSessions()
@@ -115,5 +171,10 @@ class TutorSession extends \yii\db\ActiveRecord
         }
 
         return $this->new_sessions;
+    }
+
+    public function getClasses()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class']);
     }
 }

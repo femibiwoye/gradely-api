@@ -3,7 +3,13 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\Parents;
+use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\TeacherClass;
 use app\modules\v2\teacher\models\PostForm;
+use frontend\components\GoogleCalendar;
+use frontend\modules\teachers\models\User;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
@@ -147,32 +153,67 @@ class FeedController extends ActiveController
     public function actionIndex($class_id = null)
     {
         if (Yii::$app->user->identity->type == 'teacher') {
+            $teacher_id = Yii::$app->user->id;
             if (empty($class_id))
                 $class_id = isset(Utility::getTeacherClassesID(Yii::$app->user->id)[0]) ? Utility::getTeacherClassesID(Yii::$app->user->id)[0] : [];
 
+            $validate = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $validate
+                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+            if (!$validate->validate()) {
+                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
+
             $models = $this->modelClass::find()
-                ->where(['OR',
-                    ['user_id' => Yii::$app->user->id],
-                    ['class_id' => $class_id]
-                ]);
+                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
 
         } else if (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $school_id = $school->id;
+            $validate = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
+            $validate
+                ->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id']]);
+            if (!$validate->validate()) {
+                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
 
             if (empty($class_id))
                 $class_id = ArrayHelper::getColumn(Classes::find()
                     ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id')[0];
 
             $models = $this->modelClass::find()
-                ->where(['OR', ['user_id' => Yii::$app->user->id], ['class_id' => $class_id]]);
+                ->where(['AND', ['class_id' => $class_id], ['not', ['class_id' => null]]])
+                ->orWhere(['AND', ['user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'class_id', new \yii\db\Expression('null')]]);
+        } elseif (Yii::$app->user->identity->type == 'student') {
+            $user_id = Yii::$app->user->id;
+            $class = StudentSchool::findOne(['student_id' => $user_id]);
+            if ($class) {
+                $class_id = $class->class_id;
+            }
+
+            $models = $this->modelClass::find()
+                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class', 'student']]);
+        } elseif (Yii::$app->user->identity->type == 'parent') {
+            //The class_id is used as student_id
+            $user_id = Yii::$app->user->id;
+            $parents = ArrayHelper::getColumn(Parents::find()->where(['student_id' => $class_id, 'parent_id' => $user_id])->all(), 'student_id');
+
+            if (!in_array($class_id, $parents)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child does not exist');
+            }
+            $classes = ArrayHelper::getColumn(StudentSchool::find()->where(['student_id' => $parents, 'status' => 1])->all(), 'class_id');
+
+
+            $models = $this->modelClass::find()
+                ->where(['class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
         }
-        $models = $models->orderBy('id DESC');
 
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $models,
+            'query' => $models->orderBy('id DESC'),
 //            'id' => function ($model) {
 //                return $model->id;
 //            },
@@ -186,5 +227,26 @@ class FeedController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' Feeds found for ' . Yii::$app->user->identity->type, $provider);
+    }
+
+    public function actionNewLiveClass()
+    {
+
+        $model = new TutorSession(['scenario' => 'new-class']);
+        $model->attributes = Yii::$app->request->post();
+
+        $model->requester_id = Yii::$app->user->id;
+        $model->category = 'class';
+        $model->is_school = 1;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!$model->scheduleClass($model)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not created!');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+
     }
 }

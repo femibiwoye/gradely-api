@@ -96,4 +96,25 @@ class ClassController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student joined the class');
     }
 
+    public function actionStudentsClass(){
+
+        $student_id = Yii::$app->user->id;
+
+        $student_school = StudentSchool::find()
+                            ->innerJoin('classes c', 'c.global_class_id = student_school.class_id')
+                            ->innerJoin('schools sc', 'sc.id = c.school_id')
+                            ->where([
+                                'student_school.student_id' => $student_id,
+                                'student_school.status' => 1,
+                            ])
+                            ->one();
+
+            if(!$student_school){
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student has not been assigned a class!');
+            }
+
+            return (new ApiResponse)->success($student_school, ApiResponse::SUCCESSFUL, 'Student Class succcessfully retrieved');
+
+        }
+
 }

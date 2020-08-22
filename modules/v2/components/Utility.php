@@ -38,6 +38,14 @@ class Utility extends ActiveRecord
         return array_unique($schools);
     }
 
+    public static function allSchoolUserID($schoolID)
+    {
+        $userID = Yii::$app->user->id;
+        $schoolAdmin = SchoolAdmin::find()->where(['school_id' => $schoolID, 'status' => 1])->all();
+
+        return ArrayHelper::merge(ArrayHelper::getColumn($schoolAdmin, 'user_id'), [$userID]);
+
+    }
 
     public static function getSchoolRole(Schools $school)
     {
@@ -140,7 +148,7 @@ class Utility extends ActiveRecord
     {
 
         return [
-            'has_class' => TeacherClass::find()->where(['teacher_id' => $userID, 'status' => 1])->exists() ? 1:0
+            'has_class' => TeacherClass::find()->where(['teacher_id' => $userID, 'status' => 1])->exists() ? 1 : 0
         ];
     }
 

@@ -24,7 +24,7 @@ class PostForm extends Model
     {
         return [
             ['attachments', 'validateAttachment'],
-            [['description', 'type', 'class_id', 'view_by', 'attachments'], 'required', 'on' => 'new-post'],
+            [['description', 'type', 'class_id', 'view_by' /*, 'attachments'*/], 'required', 'on' => 'new-post'],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY, 'on' => 'new-post'],
 
 
@@ -47,7 +47,6 @@ class PostForm extends Model
             if ($this->attachments && !$this->addAttachments($model)) {
                 return false;
             }
-
 
 
             $dbtransaction->commit();
@@ -92,7 +91,7 @@ class PostForm extends Model
 
             $model->attributes = $attachment;
             if (!$model->validate()) {
-                $this->addErrors(['attachments'=>$model->errors]);
+                $this->addErrors(['attachments' => $model->errors]);
             }
         }
 
