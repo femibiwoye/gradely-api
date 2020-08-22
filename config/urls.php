@@ -31,6 +31,7 @@ return [
     'POST v2/announcement' => 'v2/feed/create',
     'GET v2/feed' => 'v2/feed/index',
     'GET v2/feed/<class_id:\d+>' => 'v2/feed/index',
+    'POST v2/live-class' => 'v2/feed/new-live-class',
 
     //Reports
     'GET v2/library/documents' => 'v2/library/index',
