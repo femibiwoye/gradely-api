@@ -241,6 +241,7 @@ class FeedController extends ActiveController
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
+        $model->class = $model->class_id;
 
         if (!$model->scheduleClass($model)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not created!');

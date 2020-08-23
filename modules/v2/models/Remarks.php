@@ -37,6 +37,14 @@ class Remarks extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+        $fields['creator'] = 'creatorProfile';
+
+        return $fields;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -50,5 +58,10 @@ class Remarks extends \yii\db\ActiveRecord
             'remark' => 'Remark',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function getCreatorProfile()
+    {
+        return $this->hasOne(User::className(),['id'=>'creator_id']);
     }
 }
