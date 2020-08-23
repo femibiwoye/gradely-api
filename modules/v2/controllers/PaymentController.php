@@ -6,7 +6,7 @@ use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\models\{ApiResponse, Coupon, PaymentPlan, Subscriptions};
+use app\modules\v2\models\{ApiResponse, Coupon, PaymentPlan, Subscriptions, PaymentSubscription};
 
 class PaymentController extends ActiveController
 {
@@ -103,5 +103,21 @@ class PaymentController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
+    }
+
+    public function actionSubscriptionPayment()
+    {
+        $form = new PaymentSubscription;
+        $form->attributes = Yii::$app->request->post();
+        $form->user_id = Yii::$app->user->identity->id;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$model = $form->addPaymentSubscription()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription payment failed');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Subscription payment done');
     }
 }

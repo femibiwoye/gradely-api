@@ -32,6 +32,7 @@ return [
     'POST v2/announcement' => 'v2/feed/create',
     'GET v2/feed' => 'v2/feed/index',
     'GET v2/feed/<class_id:\d+>' => 'v2/feed/index',
+    'POST v2/live-class' => 'v2/feed/new-live-class',
 
     //Reports
     'GET v2/library/documents' => 'v2/library/index',
@@ -46,6 +47,7 @@ return [
     'POST v2/payment/verify-coupon' => 'v2/payment/verify-coupon',
     'GET v2/payment/plan/<type:\w+>' => 'v2/payment/payment-plans',
     'PUT v2/payment/cancel-subscription/<subscription_id:\d+>' => 'v2/payment/cancel-subscription',
+    'POST v2/payment/subscription' => 'v2/payment/subscription-payment',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

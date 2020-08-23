@@ -64,7 +64,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'firstname',
             'lastname',
             'phone',
-            'image' => 'image',
+            'image' => 'imageUrl',
             'type',
             'email',
             'is_boarded',
@@ -97,9 +97,13 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             ->all();
     }
 
-    public function getImage()
+    public function getImageUrl()
     {
-        return Yii::getAlias('@webroot') . '/images/users/' . $this->image;
+
+
+        return $this->image == null || $this->image == '' ? null : strpos($this->image, 'http') !== false ? $this->image : Yii::$app->params['baseURl'].'/images/users/' . $this->image;
+
+        //return ;//Yii::getAlias('@webroot') . '/images/users/' . $this->image;
     }
 
     public function getUserPreference()
