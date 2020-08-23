@@ -7,6 +7,7 @@ use app\modules\v2\models\HomeworkReport;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\QuizSummaryDetails;
+use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\{Homeworks, ApiResponse};
 
 use app\modules\v2\student\models\StudentHomeworkReport;
@@ -127,8 +128,8 @@ class HomeworkController extends ActiveController
             ->innerJoin('questions', 'questions.id = qsd.question_id')
             ->andWhere([
                 'quiz_summary.homework_id' => $homework_id,
-              //  'homeworks.publish_status' => 1,
-               // 'homeworks.type' => 'homework',
+                'homeworks.publish_status' => 1,
+                'homeworks.type' => 'homework',
 
             ])
             ->all();
@@ -138,7 +139,21 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($summary_details, ApiResponse::SUCCESSFUL, 'Questions succcessfully retrieved');
+    }
 
+    public function actionHomeworkReviewRecommendation($homework_id){
+
+
+        $topics = SubjectTopics::find()->alias('topic')
+                  ->innerJoin('quiz_summary_details qsd', 'topic.id = qsd.topic_id')
+                  ->andWhere(['qsd.homework_id' => $homework_id])
+                  ->all();
+
+        if(!$topics){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No Recommendation found!');
+        }
+
+        return (new ApiResponse)->success($topics, ApiResponse::SUCCESSFUL, 'Homework recommendation retrieved');
 
     }
 }

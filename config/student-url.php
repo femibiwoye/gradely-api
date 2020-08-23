@@ -8,6 +8,7 @@ return [
     'PUT v2/student/update-email' => 'v2/student/profile/update-email',
     'PUT v2/student/update-password' => 'v2/student/profile/update-password',
     'PUT v2/student' => 'v2/student/profile/update',
+    'PUT v2/student/avatar' => 'v2/student/profile/update-avatar',
 
     //student general
     'GET v2/student/security-questions' => 'v2/student/general/security-questions',
@@ -23,6 +24,7 @@ return [
     'POST v2/student/class' => 'v2/student/class/student-class',
     'GET v2/student/class' => 'v2/student/class/students-class',
     'GET v2/student/homework/questions/<homework_id:\d+>' => 'v2/student/homework/homework-review-question',
+    //'GET v2/student/homework/recommendation/<homework_id:\d+>' => 'v2/student/homework/homework-review-recommendation',
 
     //student preference
     'GET v2/student/preference' => 'v2/student/preference/index',
