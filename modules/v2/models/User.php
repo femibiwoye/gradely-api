@@ -101,7 +101,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
 
 
-        return empty($this->image) ? null : strpos($this->image, 'http') !== false ? $this->image : Yii::$app->params['baseURl'].'/images/users/' . $this->image;
+        return empty($this->image) ? null : strpos($this->image, 'http') !== false && !empty($this->image) ? $this->image : Yii::$app->params['baseURl'].'/images/users/' . $this->image;
 
         //return ;//Yii::getAlias('@webroot') . '/images/users/' . $this->image;
     }
