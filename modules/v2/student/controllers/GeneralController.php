@@ -4,6 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\models\notifications\InappNotification;
 use Yii;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{SecurityQuestions, ApiResponse, SecurityQuestionAnswer};

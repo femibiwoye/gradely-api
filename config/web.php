@@ -65,7 +65,7 @@ $config = [
         ],
 
         'db' => $db['db'],
-        //'notification' => $db['main'],
+        'notification' => $db['main'],
 
         'urlManager' => [
             'enablePrettyUrl' => true,

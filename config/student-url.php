@@ -23,6 +23,7 @@ return [
     'POST v2/student/class' => 'v2/student/class/student-class',
     'GET v2/student/class' => 'v2/student/class/students-class',
     'GET v2/student/homework/questions/<homework_id:\d+>' => 'v2/student/homework/homework-review-question',
+    //'GET v2/student/homework/recommendation/<homework_id:\d+>' => 'v2/student/homework/homework-review-recommendation',
 
     //student preference
     'GET v2/student/preference' => 'v2/student/preference/index',
