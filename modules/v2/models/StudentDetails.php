@@ -75,7 +75,7 @@ class StudentDetails extends User
     {
         return Remarks::find()
             ->where(['receiver_id' => $this->id, 'type' => 'student'])
-            ->asArray()
+            //->asArray()
             ->all();
     }
 
