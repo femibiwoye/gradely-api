@@ -3,12 +3,14 @@
 namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\models\User;
+use app\modules\v2\teacher\models\UpdateTeacherForm;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{Parents, ApiResponse, InviteLog, StudentDetails};
 use app\modules\v2\components\{CustomHttpBearerAuth, SharedConstant};
 use app\modules\v2\student\models\{StudentUpdateEmailForm, StudentUpdatePasswordForm, UpdateStudentForm};
+use yii\web\UploadedFile;
 
 class ProfileController extends ActiveController
 {
@@ -184,6 +186,35 @@ class ProfileController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User account deleted successfully');
+
+    }
+
+    public function actionUpdateAvatar(){
+
+        $form = new UpdateStudentForm();
+        $form->image = Yii::$app->request->post();
+
+        $img = UploadedFile::getInstance($this->user, 'image');
+        $imageName = 'user_' . $this->user->id . '.' . $img->getExtension();
+
+        $user = User::findOne(Yii::$app->user->id);
+
+        if($img->saveAs(Yii::getAlias('@webroot') . '/images/users/' . $imageName)){
+
+            if($user->image){
+
+                unlink(\Yii::getAlias('@webroot') . '/images/users/' . $user->image);
+
+                $user->image =$imageName;
+                $user->save();
+            }
+
+            return (new ApiResponse)->error($user, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Avatar Updated!');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User not found');
+
+
 
     }
 }

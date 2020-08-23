@@ -132,8 +132,8 @@ class GeneralController extends Controller
         $in_app_model = InappNotification::find()->alias('inapp')
             ->select(['inapp.message'])
             ->innerJoin('notifications', 'notifications.id = inapp.notification_id')
-            ->innerJoin('notification_out_logging log', 'log.id = inappz.out_logging_id')
-            ->andWhere(['inapp.user_id' => $user_id, 'log.status' => 1])
+            ->innerJoin('notification_out_logging log', 'log.id = inapp.out_logging_id')
+            ->andWhere(['inapp.user_id' => $user_id, 'log.status' => 1, 'log.notification_type' => 'app'])
             ->all();
 
         if(!$in_app_model){
