@@ -38,6 +38,7 @@ class TutorSession extends \yii\db\ActiveRecord
      * {@inheritdoc}
      */
     private $new_sessions = [];
+    public $class_id;
 
     public static function tableName()
     {
@@ -58,9 +59,9 @@ class TutorSession extends \yii\db\ActiveRecord
             [['category'], 'string', 'max' => 50],
             [['meeting_room'], 'string', 'max' => 255],
 
-            [['requester_id', 'class', 'subject_id', 'repetition', 'category', 'availability', 'title'], 'required', 'on' => 'new-class'],
+            [['requester_id', 'class_id', 'subject_id', 'repetition', 'category', 'availability', 'title'], 'required', 'on' => 'new-class'],
             ['subject_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['subject_id']],
-            ['class', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['class' => 'class_id']],
+            ['class_id', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id']],
             ['repetition', 'in', 'range' => ['once', 'daily', 'workdays', 'weekly']],
             ['availability', 'datetime', 'format' => 'php:Y-m-d H:i']
         ];
