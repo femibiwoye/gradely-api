@@ -15,6 +15,8 @@ return [
     'GET v2/general/state' => 'v2/general/state',
     'GET v2/general/timezone' => 'v2/general/timezone',
     'GET v2/general/term' => 'v2/general/term',
+    'DELETE v2/general/app' => 'v2/general/clear-notification',
+    'GET v2/general/app' => 'v2/general/app-notification',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',

@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "user_profile".
@@ -86,5 +87,27 @@ class UserProfile extends \yii\db\ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    public function imageProcessing()
+    {
+        if (!isset($this->image)) {
+            return true;
+        }
+
+        $img = UploadedFile::getInstance($this->user, 'image');
+        $imageName = 'user_' . $this->user->id . '.' . $img->getExtension();
+
+        $user = User::findOne($this->user->id);
+
+        if($user->image){
+
+            unlink(\Yii::getAlias('@webroot') . '/images/users/' . $user->image);
+
+            $user->image = $this->image;
+            $user->save();
+        }
+        $img->saveAs(Yii::getAlias('@webroot') . '/images/users/' . $imageName);
+        return $this->image = $imageName;
     }
 }

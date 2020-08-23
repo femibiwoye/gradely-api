@@ -6,6 +6,8 @@ use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Country;
+use app\modules\v2\models\notifications\InappNotification;
+use app\modules\v2\models\notifications\NotificationOutLogging;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\States;
 use app\modules\v2\models\Timezone;
@@ -121,6 +123,52 @@ class GeneralController extends Controller
         $return = ['term'=>$term,'week'=>$week];
 
         return (new ApiResponse)->success($return);
+    }
+
+    public function actionAppNotification(){
+
+        $user_id = Yii::$app->user->id;
+
+        $in_app_model = InappNotification::find()->alias('inapp')
+            ->select(['inapp.message'])
+            ->innerJoin('notifications', 'notifications.id = inapp.notification_id')
+            ->innerJoin('notification_out_logging log', 'log.id = inapp.out_logging_id')
+            ->andWhere(['inapp.user_id' => $user_id, 'log.status' => 1, 'log.notification_type' => 'app'])
+            ->all();
+
+        if(!$in_app_model){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No unread notifications!');
+        }
+
+        return (new ApiResponse)->success($in_app_model, ApiResponse::SUCCESSFUL, 'Notifications Found!');
+
+    }
+
+    public function actionClearNotification(){
+
+        $user_id = Yii::$app->user->id;
+
+        $in_apps_model = InappNotification::find()->alias('inapp')
+            ->innerJoin('notifications', 'notifications.id = inapp.notification_id')
+            ->innerJoin('notification_out_logging log', 'log.id = inapp.out_logging_id')
+            ->andWhere(['inapp.user_id' => $user_id, 'log.status' => 1, 'log.notification_type' => 'app'])
+            ->all();
+
+
+        //var_dump($in_app_model);die;
+
+        if(!$in_apps_model){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No unread notifications!');
+        }
+
+        foreach ($in_apps_model as $in_app_model){
+
+            InappNotification::findOne($in_app_model->id)->delete();
+            NotificationOutLogging::findOne($in_app_model->out_logging_id)->delete();
+
+        }
+        return (new ApiResponse)->success('', ApiResponse::SUCCESSFUL, 'Notifications Cleared!');
+
     }
 }
 
