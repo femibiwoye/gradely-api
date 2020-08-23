@@ -9,4 +9,8 @@ return [
     'second_term_end' => $year . '-04-06',
     'third_term_start' => $year . '-04-07',
     'third_term_end' => $year . '-09-08',
+
+    'baseURl'=>'https://test.gradely.ng',
+    'userImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/users/',image))) as image",
+    'questionImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/questions/',image))) as image",
 ];
