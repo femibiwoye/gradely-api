@@ -5,6 +5,7 @@ namespace app\modules\v2\controllers;
 use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Avatar;
 use app\modules\v2\models\Country;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\notifications\InappNotification;
@@ -178,6 +179,12 @@ class GeneralController extends Controller
     {
         $classes = GlobalClass::find()->where(['status' => 1])->all();
         return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionAvatar()
+    {
+        $models = Avatar::find()->where(['status' => 1])->all();
+        return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL);
     }
 }
 

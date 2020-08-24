@@ -18,6 +18,7 @@ return [
     'DELETE v2/general/app' => 'v2/general/clear-notification',
     'GET v2/general/app' => 'v2/general/app-notification',
     'GET /v2/general/global-classes'=>'/v2/general/global-classes',
+    'GET /v2/general/avatar'=>'/v2/general/avatar',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',
