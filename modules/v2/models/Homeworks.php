@@ -332,11 +332,19 @@ class Homeworks extends \yii\db\ActiveRecord
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
             $condition = ['class_id' => $classes];
         }elseif (Yii::$app->user->identity->type == 'student'){
-            $condition = ['student_id' => Yii::$app->user->id];
+
+            $student_class = ArrayHelper::getColumn(StudentSchool::find()
+                ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+
+            $condition = ['class_id' => $student_class];
         }elseif (Yii::$app->user->identity->type == 'parent'){
 
             $parent = Parents::findOne(['user_id' => Yii::$app->user->id]);
-            $condition = ['student_id' => $parent->student_id];
+
+            $student_class = ArrayHelper::getColumn(StudentSchool::find()
+                ->where(['student_id' => $parent->student_id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+
+            $condition = ['class_id' => $student_class];
         }
 
 
