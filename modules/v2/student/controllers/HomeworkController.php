@@ -109,7 +109,7 @@ class HomeworkController extends ActiveController
                     ->andWhere([
                         'homeworks.id' => $homework_id,
                         'homeworks.student_id' => $student_id,
-                        'homeworks.publish_status' => 1,
+                        'homeworks.publish_status' => SharedConstant::VALUE_ONE,
                     ])
                     ->one();
 
@@ -128,7 +128,7 @@ class HomeworkController extends ActiveController
             ->innerJoin('questions', 'questions.id = qsd.question_id')
             ->andWhere([
                 'quiz_summary.homework_id' => $homework_id,
-                'homeworks.publish_status' => 1,
+                'homeworks.publish_status' => SharedConstant::VALUE_ONE,
                 'homeworks.type' => 'homework',
 
             ])

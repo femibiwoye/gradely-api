@@ -153,6 +153,12 @@ class TutorSession extends \yii\db\ActiveRecord
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
 
             $condition = ['class' => $classes, 'status' => 'pending'];
+        }elseif (Yii::$app->user->identity->type == 'student'){
+            $condition = ['student_id' => Yii::$app->user->id];
+        }elseif (Yii::$app->user->identity->type == 'parent'){
+
+            $parent = Parents::findOne(['user_id' => Yii::$app->user->id]);
+            $condition = ['student_id' => $parent->student_id];
         }
 
         $sessions = parent::find()

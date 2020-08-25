@@ -54,6 +54,61 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
+    public function actionCompletedHomework()
+    {
+
+        $parent_id = Yii::$app->user->id;
+
+        $parent = Parents::findOne(['user_id' => $parent_id]);
+
+        $models = StudentHomeworkReport::find()
+            ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
+            ->where(['quiz_summary.student_id' => $parent->student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
+
+        if (!$models) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $models,
+            'pagination' => [
+                'pageSize' => 10,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionNewHomework()
+    {
+
+        $parent_id = Yii::$app->user->id;
+
+        $parent = Parents::findOne(['user_id' => $parent_id]);
+
+        $models = $this->modelClass::find()
+            ->innerJoin('student_school', 'student_school.class_id = homeworks.class_id')
+            ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
+            ->andWhere(['<', 'UNIX_TIMESTAMP(open_date)', time()])
+            ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()])
+            ->andWhere(['homeworks.student_id' => $parent->student_id]);
+
+        if (!$models) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $models,
+            'pagination' => [
+                'pageSize' => 10,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
     public function actionHomeworkScore($homework_id){
 
     $parent_id = Yii::$app->user->id;
@@ -90,7 +145,7 @@ class HomeworkController extends ActiveController
                 'quiz_summary.homework_id' => $homework_id,
                 'homeworks.publish_status' => 1,
                 'homeworks.type' => 'homework',
-
+                'qsd.student_id' => $parent->student_id,
             ])
             ->all();
 

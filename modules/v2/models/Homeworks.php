@@ -331,7 +331,15 @@ class Homeworks extends \yii\db\ActiveRecord
             $classes = ArrayHelper::getColumn(Classes::find()
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
             $condition = ['class_id' => $classes];
+        }elseif (Yii::$app->user->identity->type == 'student'){
+            $condition = ['student_id' => Yii::$app->user->id];
+        }elseif (Yii::$app->user->identity->type == 'parent'){
+
+            $parent = Parents::findOne(['user_id' => Yii::$app->user->id]);
+            $condition = ['student_id' => $parent->student_id];
         }
+
+
         $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework']])
             ->andWhere(['>', 'open_date', date("Y-m-d")])
             ->orderBy(['open_date' => SORT_ASC])
