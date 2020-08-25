@@ -137,18 +137,15 @@ class PaymentController extends ActiveController
         }
 
 
-
         $model = Subscriptions::find()->where(['id' => $id])->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Payment not found!');
         }
 
-        return $model->ConfirmPayment($model);
+        $message = $model->ConfirmPayment($model);
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Payment found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, $message->message);
     }
-
-
 
 
 }

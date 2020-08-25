@@ -49,11 +49,11 @@ class PaymentSubscription extends Model
         $model->duration_count = $this->paymentPlan->months_duration;
         $model->plan = SharedConstant::SUBSCRIPTION_PLAN;
         $model->quantity = count($this->children);
-        $model->total = $this->coupon ? (($this->paymentPlan->price * count($this->children)) - $this->coupon->percentage) : $this->paymentPlan->price * count($this->children);
+        $model->payment_plan_id = $this->payment_plan_id;
+        $model->total = $this->coupon ? ($model->price - (($model->price * $this->coupon->percentage) / 100)) : $model->price;
         $model->payment = $this->subscription_status;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-
             if (!$model->save()) {
                 return false;
             }

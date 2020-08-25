@@ -20,9 +20,10 @@ use Yii;
  * @property string $payment Paid or unpaid
  * @property float|null $amount_paid Actual paid amount after all calculation
  * @property string|null $transaction_id Unique id for this payment
+ * @property string|null $payment_plan_id This is ID of the payment from payment_plan table
  * @property string|null $plan_code Incase you are using gateway automatic subscription
- * @property string|null $plan Basic & Premium is access to regular paid service. 
- payg is a one time payment for a service, e.g you paid for tutor want. 
+ * @property string|null $plan Basic & Premium is access to regular paid service.
+ payg is a one time payment for a service, e.g you paid for tutor want.
  subscription is continuous interval payment for a service, e.g every week, month, etc tutor service.
  * @property string $type Subscription is for regular monthly subscription while tutor is a PAYG service for tutor session.
  * @property string|null $meta You can put any additional data here
