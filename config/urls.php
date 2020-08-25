@@ -17,6 +17,8 @@ return [
     'GET v2/general/term' => 'v2/general/term',
     'DELETE v2/general/app' => 'v2/general/clear-notification',
     'GET v2/general/app' => 'v2/general/app-notification',
+    'GET /v2/general/global-classes'=>'/v2/general/global-classes',
+    'GET /v2/general/avatar'=>'/v2/general/avatar',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',
@@ -50,6 +52,7 @@ return [
     'GET v2/payment/plan/<type:\w+>' => 'v2/payment/payment-plans',
     'PUT v2/payment/cancel-subscription/<subscription_id:\d+>' => 'v2/payment/cancel-subscription',
     'POST v2/payment/subscription' => 'v2/payment/subscription-payment',
+    'GET v2/payment/status/<id:\d+>' => 'v2/payment/payment-status',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

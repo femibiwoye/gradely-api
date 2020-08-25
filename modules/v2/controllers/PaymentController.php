@@ -7,6 +7,7 @@ use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\{ApiResponse, Coupon, PaymentPlan, Subscriptions, PaymentSubscription};
+use app\paystack\Paystack;
 
 class PaymentController extends ActiveController
 {
@@ -62,11 +63,11 @@ class PaymentController extends ActiveController
         }
 
         $model = Coupon::find()
-                        ->select(['code', 'percentage'])
-                        ->where(['code' => $coupon, 'status' => SharedConstant::VALUE_ONE, 'type' => $type])
-                        ->andWhere(['<', 'start_time', time()])
-                        ->andWhere(['>', 'end_time', time()])
-                        ->one();
+            ->select(['code', 'percentage'])
+            ->where(['code' => $coupon, 'status' => SharedConstant::VALUE_ONE, 'type' => $type])
+            ->andWhere(['<', 'start_time', time()])
+            ->andWhere(['>', 'end_time', time()])
+            ->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
@@ -120,4 +121,31 @@ class PaymentController extends ActiveController
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Subscription payment done');
     }
+
+    public function actionPaymentStatus($id)
+    {
+        $form = new \yii\base\DynamicModel(compact('id'));
+        $form->addRule(['id'], 'required');
+        $form->addRule('id', 'exist', [
+            'targetClass' => Subscriptions::className(),
+            'targetAttribute' => 'id',
+            'message' => 'Payment Id is invalid',
+        ]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+
+        $model = Subscriptions::find()->where(['id' => $id])->one();
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Payment not found!');
+        }
+
+        $message = $model->ConfirmPayment($model);
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, $message->message);
+    }
+
+
 }

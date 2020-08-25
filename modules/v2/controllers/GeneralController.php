@@ -5,7 +5,9 @@ namespace app\modules\v2\controllers;
 use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Avatar;
 use app\modules\v2\models\Country;
+use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\notifications\InappNotification;
 use app\modules\v2\models\notifications\NotificationOutLogging;
 use app\modules\v2\models\Schools;
@@ -38,7 +40,7 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['country', 'state', 'timezone']
+            'except' => ['country', 'state', 'timezone', 'global-classes']
         ];
 
         return $behaviors;
@@ -118,14 +120,15 @@ class GeneralController extends Controller
     {
         //$term = SessionTermOnly::widget(['id' => 12]); // Current terms for users who does belongs to school. 12 is school_id
         $term = SessionTermOnly::widget(['nonSchool' => true]); // Current terms for users who does not belong to school
-        $week = SessionTermOnly::widget(['nonSchool' => true,'weekOnly' => true]); // Current terms for users who does not belong to school
+        $week = SessionTermOnly::widget(['nonSchool' => true, 'weekOnly' => true]); // Current terms for users who does not belong to school
 
-        $return = ['term'=>$term,'week'=>$week];
+        $return = ['term' => $term, 'week' => $week];
 
         return (new ApiResponse)->success($return);
     }
 
-    public function actionAppNotification(){
+    public function actionAppNotification()
+    {
 
         $user_id = Yii::$app->user->id;
 
@@ -136,7 +139,7 @@ class GeneralController extends Controller
             ->andWhere(['inapp.user_id' => $user_id, 'log.status' => 1, 'log.notification_type' => 'app'])
             ->all();
 
-        if(!$in_app_model){
+        if (!$in_app_model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No unread notifications!');
         }
 
@@ -144,7 +147,8 @@ class GeneralController extends Controller
 
     }
 
-    public function actionClearNotification(){
+    public function actionClearNotification()
+    {
 
         $user_id = Yii::$app->user->id;
 
@@ -157,11 +161,11 @@ class GeneralController extends Controller
 
         //var_dump($in_app_model);die;
 
-        if(!$in_apps_model){
+        if (!$in_apps_model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No unread notifications!');
         }
 
-        foreach ($in_apps_model as $in_app_model){
+        foreach ($in_apps_model as $in_app_model) {
 
             InappNotification::findOne($in_app_model->id)->delete();
             NotificationOutLogging::findOne($in_app_model->out_logging_id)->delete();
@@ -169,6 +173,18 @@ class GeneralController extends Controller
         }
         return (new ApiResponse)->success('', ApiResponse::SUCCESSFUL, 'Notifications Cleared!');
 
+    }
+
+    public function actionGlobalClasses()
+    {
+        $classes = GlobalClass::find()->where(['status' => 1])->all();
+        return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionAvatar()
+    {
+        $models = Avatar::find()->where(['status' => 1])->all();
+        return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL);
     }
 }
 

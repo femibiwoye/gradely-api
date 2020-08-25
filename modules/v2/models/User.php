@@ -99,11 +99,14 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
     public function getImageUrl()
     {
-
-
-        return $this->image == null || $this->image == '' ? null : strpos($this->image, 'http') !== false ? $this->image : Yii::$app->params['baseURl'].'/images/users/' . $this->image;
-
-        //return ;//Yii::getAlias('@webroot') . '/images/users/' . $this->image;
+        if (empty($this->image))
+            $image = null;
+        elseif (strpos($this->image, 'http') !== false)
+            $image = $this->image;
+        else {
+            $image = Yii::$app->params['baseURl'] . '/images/users/' . $this->image;
+        }
+        return $image;
     }
 
     public function getUserPreference()
