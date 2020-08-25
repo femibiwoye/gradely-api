@@ -51,6 +51,7 @@ return [
     'GET v2/payment/plan/<type:\w+>' => 'v2/payment/payment-plans',
     'PUT v2/payment/cancel-subscription/<subscription_id:\d+>' => 'v2/payment/cancel-subscription',
     'POST v2/payment/subscription' => 'v2/payment/subscription-payment',
+    'GET v2/payment/status/<id:\d+>' => 'v2/payment/payment-status',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

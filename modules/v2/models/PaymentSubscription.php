@@ -89,8 +89,6 @@ class PaymentSubscription extends Model
         $model->student_id = $student_id ? $student_id : $subscriber_id;
         $model->payment_status = $subscription->payment;
         if (!$model->save()) {
-            print_r('you are here');
-            die();
             return false;
         }
 

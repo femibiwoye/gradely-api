@@ -120,4 +120,26 @@ class PaymentController extends ActiveController
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Subscription payment done');
     }
+
+    public function actionPaymentStatus($id)
+    {
+        $form = new \yii\base\DynamicModel(compact('id'));
+        $form->addRule(['id'], 'required');
+        $form->addRule('id', 'exist', [
+            'targetClass' => Subscriptions::className(),
+            'targetAttribute' => 'id',
+            'message' => 'Payment Id is invalid',
+        ]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = Subscriptions::find()->select(['payment'])->where(['id' => $id])->one();
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Payment not found!');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Payment found');
+    }
 }
