@@ -7,7 +7,6 @@ use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\{ApiResponse, Coupon, PaymentPlan, Subscriptions, PaymentSubscription};
-use app\paystack\Paystack;
 
 class PaymentController extends ActiveController
 {

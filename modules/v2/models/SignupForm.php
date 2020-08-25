@@ -41,6 +41,7 @@ class SignupForm extends Model
 
             [['email', 'phone'], 'required', 'on' => 'teacher-signup'],
             [['email', 'phone'], 'required', 'on' => 'parent-signup'],
+            [['email', 'phone'], 'required', 'on' => 'tutor-signup'],
 
             [['school_name', 'email', 'phone', 'country'], 'required', 'on' => 'school-signup'],
 
