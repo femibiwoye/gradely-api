@@ -19,6 +19,9 @@ return [
     'GET v2/student/new-homework' => 'v2/student/homework/new-homework',
     'GET v2/student/homework/score/<homework_id:\d+>' => 'v2/student/homework/homework-score',
 
+    //Student Practice
+    'GET v2/student/practice/homework-instruction/<homework_id:\d+>' => 'v2/student/practice/homework-instruction',
+
     //student class
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class',
     'POST v2/student/class' => 'v2/student/class/student-class',

@@ -43,11 +43,9 @@ class QuizSummary extends \yii\db\ActiveRecord {
 		];
 	}
 
-	/*public function fields() {
-		return [
-			'score',
-		];
-	}*/
+//	public function fields() {
+//		return ['duration', 'total_questions'];
+//	}
 
 	public function getScore() {
 		return ($this->correct / $this->total_questions) * 100;

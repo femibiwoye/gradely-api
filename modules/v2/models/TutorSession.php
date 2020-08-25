@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -153,6 +154,18 @@ class TutorSession extends \yii\db\ActiveRecord
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
 
             $condition = ['class' => $classes, 'status' => 'pending'];
+        }elseif (Yii::$app->user->identity->type == 'student'){
+
+            $student_class = ArrayHelper::getColumn(StudentSchool::find()
+                ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+
+            $condition = ['class' => $student_class];
+        }elseif (Yii::$app->user->identity->type == 'parent'){
+
+            $student_class = ArrayHelper::getColumn(StudentSchool::find()
+                ->where(['student_id' => $_GET['child'], 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+
+            $condition = ['class' => $student_class];
         }
 
         $sessions = parent::find()
