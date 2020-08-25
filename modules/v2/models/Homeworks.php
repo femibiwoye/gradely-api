@@ -111,12 +111,14 @@ class Homeworks extends \yii\db\ActiveRecord
             'id',
             'title',
             'subject',
+            'teacher',
             'class_id',
             'school_id',
             'exam_type_id',
             'slug',
             'open_date',
             'close_date',
+            'questionCount',
             'score',
             'status' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
@@ -129,6 +131,11 @@ class Homeworks extends \yii\db\ActiveRecord
 //            'homework_performance' => 'homeworkPerformance'
         ];
     }
+
+//    public function extraFields()
+//    {
+//        return ['teacher', ];
+//    }
 
     public static function find()
     {
@@ -312,6 +319,24 @@ class Homeworks extends \yii\db\ActiveRecord
         return $this->quizSummary->score;
     }
 
+    public function getQuestionCount()
+    {
+        if (!$this->quizSummary) {
+            return null;
+        }
+
+        return $this->quizSummary->total_questions;
+    }
+
+    public function getDuration()
+    {
+        if (!$this->quizSummary) {
+            return null;
+        }
+
+        return $this->quizSummary->total_questions;
+    }
+
     public function getStatusMessage()
     {
         if (($this->score && $this->quizSummary->submit == SharedConstant::VALUE_ONE) && (strtotime($this->close_date) >= time() || strtotime($this->close_date) < time())) {
@@ -339,7 +364,7 @@ class Homeworks extends \yii\db\ActiveRecord
             $condition = ['class_id' => $student_class];
         }elseif (Yii::$app->user->identity->type == 'parent'){
 
-            $parent = Parents::findOne(['user_id' => Yii::$app->user->id]);
+            $parent = Parents::findOne(['parent_id' => Yii::$app->user->id]);
 
             $student_class = ArrayHelper::getColumn(StudentSchool::find()
                 ->where(['student_id' => $parent->student_id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
@@ -387,6 +412,11 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getPracticeMaterials()
     {
         return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id']);
+    }
+
+    public function getTeacher()
+    {
+        return $this->hasOne(User::className(), ['id' => 'teacher_id']);
     }
 
     public function getTopicsID()

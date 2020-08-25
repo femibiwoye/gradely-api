@@ -162,7 +162,7 @@ class TutorSession extends \yii\db\ActiveRecord
             $condition = ['class' => $student_class];
         }elseif (Yii::$app->user->identity->type == 'parent'){
 
-            $parent = Parents::findOne(['user_id' => Yii::$app->user->id]);
+            $parent = Parents::findOne(['parent_id' => Yii::$app->user->id]);
 
             $student_class = ArrayHelper::getColumn(StudentSchool::find()
                 ->where(['student_id' => $parent->student_id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
