@@ -119,6 +119,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'open_date',
             'close_date',
             'questionCount',
+            'duration',
             'score',
             'status' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
@@ -304,7 +305,7 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getQuizSummary()
     {
         return QuizSummary::find()->where(['student_id' => $this->student_id])
-            ->andWhere(['teacher_id' => Yii::$app->user->id])
+            ->orWhere(['teacher_id' => Yii::$app->user->id])
             ->andWhere(['subject_id' => $this->subject->id])
             ->andWhere(['homework_id' => $this->id])->one();
 
@@ -328,15 +329,6 @@ class Homeworks extends \yii\db\ActiveRecord
         return $this->quizSummary->total_questions;
     }
 
-    public function getDuration()
-    {
-        if (!$this->quizSummary) {
-            return null;
-        }
-
-        return $this->quizSummary->total_questions;
-    }
-
     public function getStatusMessage()
     {
         if (($this->score && $this->quizSummary->submit == SharedConstant::VALUE_ONE) && (strtotime($this->close_date) >= time() || strtotime($this->close_date) < time())) {
@@ -347,6 +339,7 @@ class Homeworks extends \yii\db\ActiveRecord
             return "Open";
         }
     }
+
 
     public function getNewHomeworks()
     {
@@ -364,10 +357,8 @@ class Homeworks extends \yii\db\ActiveRecord
             $condition = ['class_id' => $student_class];
         }elseif (Yii::$app->user->identity->type == 'parent'){
 
-            $parent = Parents::findOne(['parent_id' => Yii::$app->user->id]);
-
             $student_class = ArrayHelper::getColumn(StudentSchool::find()
-                ->where(['student_id' => $parent->student_id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+                ->where(['student_id' => $_GET['child'], 'status' => SharedConstant::VALUE_ONE])->all(), 'class_id');
 
             $condition = ['class_id' => $student_class];
         }
