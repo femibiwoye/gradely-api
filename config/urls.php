@@ -46,6 +46,9 @@ return [
     'GET v2/library/assessment' => 'v2/library/assessment',
     'GET v2/report/class' => 'v2/library/class-report',
     'GET v2/report/homework' => 'v2/report/homework-summary',
+    'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
+    'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
+
 
     //Payment
     'POST v2/payment/verify-coupon' => 'v2/payment/verify-coupon',

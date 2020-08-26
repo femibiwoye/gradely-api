@@ -5,9 +5,14 @@ namespace app\modules\v2\controllers;
 use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\HomeworkReport;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\Questions;
+use app\modules\v2\models\Remarks;
 use app\modules\v2\models\ReportError;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\TeacherClass;
+use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
 use app\modules\v2\models\{Homeworks, Classes, ApiResponse};
@@ -117,5 +122,76 @@ class ReportController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record inserted');
+    }
+
+    public function actionGetRemarks($type, $id)
+    {
+        $model = Remarks::find()
+            ->where(['receiver_id' => $id, 'type' => $type])
+            ->all();
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' remarks found');
+    }
+
+    public function actionCreateRemarks($type, $id)
+    {
+        $remark = Yii::$app->request->post('remark');
+        $form = new \yii\base\DynamicModel(compact('remark'));
+        $form->addRule(['remark'], 'required');
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$this->checkUserAccess($type, $id)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access!');
+        }
+
+
+        $model = new Remarks();
+        $model->type = $type;
+        $model->creator_id = Yii::$app->user->id;
+        $model->receiver_id = $id;
+        $model->remark = $remark;
+        if ($model->save())
+            return (new ApiResponse)->success($model);
+
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not send remark');
+    }
+
+    public function checkUserAccess($type, $id)
+    {
+        if ($type == 'student') {
+            if (Yii::$app->user->identity->type == 'teacher') {
+                $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => 1])->all();
+                foreach ($teacher_classes as $teacher_class) {
+                    if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $id])->exists()) {
+                        return true;
+                    }
+                }
+            } elseif (Yii::$app->user->identity->type == 'student') {
+                if (Yii::$app->user->id == $id)
+                    return true;
+            } elseif (Yii::$app->user->identity->type == 'parent') {
+                if (Parents::find()->where(['parent_id' => Yii::$app->user->id, 'student_id' => $id])->exists())
+                    return true;
+            }
+        } elseif ($type == 'homework') {
+            if (!$model = Homeworks::find()->where(['id' => $id])->one())
+                return false;
+            if (Yii::$app->user->identity->type == 'teacher') {
+                if ($model->teacher_id == Yii::$app->user->id)
+                    return true;
+            } elseif (Yii::$app->user->identity->type == 'student') {
+                if (StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'class_id' => $model->class_id])->exists())
+                    return true;
+            } elseif (Yii::$app->user->identity->type == 'parent') {
+                $studentsID = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
+                if (StudentSchool::find()->where(['student_id' => $studentsID, 'class_id' => $model->class_id])->exists())
+                    return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -75,13 +75,13 @@ class GeneralController extends ActiveController
         }
 
         if (!$model->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Security answer not saved');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Security answer saved');
     }
 
-    public function actionUpdateSecurityQuestion()
+    /*public function actionUpdateSecurityQuestion()
     {
 
         if (!$model = SecurityQuestionAnswer::findOne(['user_id' => Yii::$app->user->id]))
@@ -95,6 +95,6 @@ class GeneralController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Answer updated');
-    }
+    }*/
 
 }
