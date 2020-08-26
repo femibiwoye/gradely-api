@@ -31,7 +31,10 @@ class ClassReport extends Model {
 
 	public function getCurrentSubject()
 	{
-		return Subjects::findOne(['name' => Yii::$app->request->get('subject')]);
+	    if(Yii::$app->request->get('subject')) {
+            return Subjects::findOne(['name' => Yii::$app->request->get('subject')]);
+        }
+	    return $this->subjects[0]->slug;
 	}
 
 	public function getCurrentTerm()
@@ -42,9 +45,9 @@ class ClassReport extends Model {
 	public function getTopicList()
 	{
 		$record = SubjectTopics::find()
-				->innerJoin('classes', 'classes.global_class_id = subject_topics.class_id')
-				->where(['subject_topics.subject_id' => $this->currentSubject->id, 'classes.id' => Yii::$app->request->get('class_id')]);
-
+				->innerJoin('classes', 'classes.global_class_id = subject_topics.class_id');
+				//->where(['subject_topics.subject_id' => $this->currentSubject->id, 'classes.id' => Yii::$app->request->get('class_id')]);
+        return $record->all();
 		if (Yii::$app->request->get('term')) {
 			$record = $record->andWhere(['subject_topics.term' => Yii::$app->request->get('term')]);
 		}

@@ -156,19 +156,21 @@ class TutorSession extends \yii\db\ActiveRecord
             $condition = ['class' => $classes, 'status' => 'pending'];
         }elseif (Yii::$app->user->identity->type == 'student'){
 
-            $student_class = ArrayHelper::getColumn(StudentSchool::find()
-                ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+            if ($studentModel = StudentSchool::find()
+                ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one())
+                $student_class = ArrayHelper::getColumn($studentModel, 'class_id');
+            else
+                $student_class = null;
 
             $condition = ['class' => $student_class];
         }elseif (Yii::$app->user->identity->type == 'parent'){
 
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
 
-            $studentClass = StudentSchool::find();
-            if (isset($_GET['child']))
-                $studentClass = $studentClass->andWhere(['student_id' => $_GET['child']]);
-            else
-                $studentClass = $studentClass->andWhere(['student_id' => $studentIDs]);
+            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
+            if (isset($_GET['class_id']))
+                $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
+
 
             $studentClass = $studentClass->andWhere(['status' => SharedConstant::VALUE_ONE])->all();
             $student_class = ArrayHelper::getColumn($studentClass, 'class_id');
