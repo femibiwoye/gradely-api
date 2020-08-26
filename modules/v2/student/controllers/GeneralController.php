@@ -4,8 +4,12 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\components\SharedConstant;
+use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\notifications\InappNotification;
+use app\modules\v2\student\models\StudentHomeworkReport;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{SecurityQuestions, ApiResponse, SecurityQuestionAnswer};
 
@@ -71,13 +75,13 @@ class GeneralController extends ActiveController
         }
 
         if (!$model->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Security answer not saved');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Security answer saved');
     }
 
-    public function actionUpdateSecurityQuestion()
+    /*public function actionUpdateSecurityQuestion()
     {
 
         if (!$model = SecurityQuestionAnswer::findOne(['user_id' => Yii::$app->user->id]))
@@ -91,5 +95,6 @@ class GeneralController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Answer updated');
-    }
+    }*/
+
 }

@@ -18,13 +18,15 @@ return [
     'GET v2/student/completed-homework' => 'v2/student/homework/completed-homework',
     'GET v2/student/new-homework' => 'v2/student/homework/new-homework',
     'GET v2/student/homework/score/<homework_id:\d+>' => 'v2/student/homework/homework-score',
+    'GET v2/student/homework/report/<id:\d+>' => 'v2/student/homework/homework-report',
+
+    //Student Practice
+    'GET v2/student/practice/homework-instruction/<homework_id:\d+>' => 'v2/student/practice/homework-instruction',
 
     //student class
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class',
     'POST v2/student/class' => 'v2/student/class/student-class',
-    'GET v2/student/class' => 'v2/student/class/students-class',
-    'GET v2/student/homework/questions/<homework_id:\d+>' => 'v2/student/homework/homework-review-question',
-    //'GET v2/student/homework/recommendation/<homework_id:\d+>' => 'v2/student/homework/homework-review-recommendation',
+    'GET v2/student/class' => 'v2/student/class/student-class-details',
 
     //student preference
     'GET v2/student/preference' => 'v2/student/preference/index',

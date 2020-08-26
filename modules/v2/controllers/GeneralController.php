@@ -133,10 +133,10 @@ class GeneralController extends Controller
         $user_id = Yii::$app->user->id;
 
         $in_app_model = InappNotification::find()->alias('inapp')
-            ->select(['inapp.message'])
-            ->innerJoin('notifications', 'notifications.id = inapp.notification_id')
-            ->innerJoin('notification_out_logging log', 'log.id = inapp.out_logging_id')
-            ->andWhere(['inapp.user_id' => $user_id, 'log.status' => 1, 'log.notification_type' => 'app'])
+            //->select(['inapp.message'])
+            // ->innerJoin('notifications', 'notifications.id = inapp.notification_id')
+            //->innerJoin('notification_out_logging log', 'log.id = inapp.out_logging_id')
+            ->andWhere(['inapp.user_id' => $user_id])
             ->all();
 
         if (!$in_app_model) {
@@ -153,9 +153,9 @@ class GeneralController extends Controller
         $user_id = Yii::$app->user->id;
 
         $in_apps_model = InappNotification::find()->alias('inapp')
-            ->innerJoin('notifications', 'notifications.id = inapp.notification_id')
-            ->innerJoin('notification_out_logging log', 'log.id = inapp.out_logging_id')
-            ->andWhere(['inapp.user_id' => $user_id, 'log.status' => 1, 'log.notification_type' => 'app'])
+//            ->innerJoin('notifications', 'notifications.id = inapp.notification_id')
+//            ->innerJoin('notification_out_logging log', 'log.id = inapp.out_logging_id')
+            ->andWhere(['inapp.user_id' => $user_id])
             ->all();
 
 
@@ -165,13 +165,9 @@ class GeneralController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No unread notifications!');
         }
 
-        foreach ($in_apps_model as $in_app_model) {
+        InappNotification::deleteAll(['id' => ArrayHelper::getColumn($in_apps_model, 'id')]);
 
-            InappNotification::findOne($in_app_model->id)->delete();
-            NotificationOutLogging::findOne($in_app_model->out_logging_id)->delete();
-
-        }
-        return (new ApiResponse)->success('', ApiResponse::SUCCESSFUL, 'Notifications Cleared!');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Notifications Cleared!');
 
     }
 

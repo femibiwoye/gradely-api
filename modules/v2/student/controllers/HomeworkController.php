@@ -3,13 +3,14 @@
 namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
-use app\modules\v2\models\HomeworkReport;
-use app\modules\v2\models\Parents;
+
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\QuizSummaryDetails;
+use app\modules\v2\models\Remarks;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\{Homeworks, ApiResponse};
 
+use app\modules\v2\student\models\HomeworkReport;
 use app\modules\v2\student\models\StudentHomeworkReport;
 use Yii;
 use yii\rest\ActiveController;
@@ -100,27 +101,34 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
-    public function actionHomeworkScore($homework_id){
-
+    public function actionHomeworkScore($homework_id)
+    {
         $student_id = Yii::$app->user->id;
-
-        $homework = HomeworkReport::find()
-                    ->innerJoin('quiz_summary summary', 'summary.homework_id = homeworks.id')
-                    ->andWhere([
-                        'homeworks.id' => $homework_id,
-                        'homeworks.student_id' => $student_id,
-                        'homeworks.publish_status' => 1,
-                    ])
-                    ->one();
-
-        if(!$homework){
+        $homework = QuizSummary::find()->where(['student_id' => $student_id, 'homework_id' => $homework_id])->one();
+        if (!$homework) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not found!');
         }
+        if ($homework->submit != 1) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not scored');
+        }
 
-        return (new ApiResponse)->success($homework, ApiResponse::SUCCESSFUL, 'Homework Score succcessfully retrieved');
+        return (new ApiResponse)->success($homework, ApiResponse::SUCCESSFUL, 'Homework scored successfully');
     }
 
-    public function actionHomeworkReviewQuestion($homework_id){
+
+    public function actionHomeworkReport($id)
+    {
+        $model = HomeworkReport::findOne(['student_id' => Yii::$app->user->id, 'homework_id' => $id, 'submit' => 1]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework report not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student report found');
+    }
+
+    public function actionHomeworkReviewQuestion($homework_id)
+    {
+
 
         $summary_details = QuizSummaryDetails::find()->alias('qsd')
             ->innerJoin('quiz_summary', 'quiz_summary.id = qsd.quiz_id')
@@ -128,28 +136,27 @@ class HomeworkController extends ActiveController
             ->innerJoin('questions', 'questions.id = qsd.question_id')
             ->andWhere([
                 'quiz_summary.homework_id' => $homework_id,
-                'homeworks.publish_status' => 1,
+                'homeworks.publish_status' => SharedConstant::VALUE_ONE,
                 'homeworks.type' => 'homework',
 
             ])
             ->all();
 
-        if(!$summary_details){
+        if (!$summary_details) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found!');
         }
 
         return (new ApiResponse)->success($summary_details, ApiResponse::SUCCESSFUL, 'Questions succcessfully retrieved');
     }
 
-    public function actionHomeworkReviewRecommendation($homework_id){
-
-
+    public function actionHomeworkReviewRecommendation($homework_id)
+    {
         $topics = SubjectTopics::find()->alias('topic')
-                  ->innerJoin('quiz_summary_details qsd', 'topic.id = qsd.topic_id')
-                  ->andWhere(['qsd.homework_id' => $homework_id])
-                  ->all();
+            ->innerJoin('quiz_summary_details qsd', 'topic.id = qsd.topic_id')
+            ->andWhere(['qsd.homework_id' => $homework_id])
+            ->all();
 
-        if(!$topics){
+        if (!$topics) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No Recommendation found!');
         }
 

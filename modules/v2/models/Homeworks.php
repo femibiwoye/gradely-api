@@ -111,12 +111,16 @@ class Homeworks extends \yii\db\ActiveRecord
             'id',
             'title',
             'subject',
+            'teacher',
             'class_id',
             'school_id',
             'exam_type_id',
             'slug',
             'open_date',
             'close_date',
+            'questionCount',
+            'duration',
+            'questionsDuration',
             'score',
             'status' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
@@ -129,6 +133,11 @@ class Homeworks extends \yii\db\ActiveRecord
 //            'homework_performance' => 'homeworkPerformance'
         ];
     }
+
+//    public function extraFields()
+//    {
+//        return ['teacher', ];
+//    }
 
     public static function find()
     {
@@ -147,6 +156,11 @@ class Homeworks extends \yii\db\ActiveRecord
             'excellence_students' => $this->excellentStudents,
 
         ];
+    }
+
+    public function getQuestionsDuration()
+    {
+        return HomeworkQuestions::find()->where(['homework_id' => $this->id])->sum('duration');
     }
 
     public function getCompletedRate()
@@ -297,7 +311,7 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getQuizSummary()
     {
         return QuizSummary::find()->where(['student_id' => $this->student_id])
-            ->andWhere(['teacher_id' => Yii::$app->user->id])
+            ->orWhere(['teacher_id' => Yii::$app->user->id])
             ->andWhere(['subject_id' => $this->subject->id])
             ->andWhere(['homework_id' => $this->id])->one();
 
@@ -312,6 +326,15 @@ class Homeworks extends \yii\db\ActiveRecord
         return $this->quizSummary->score;
     }
 
+    public function getQuestionCount()
+    {
+        if (!$this->quizSummary) {
+            return null;
+        }
+
+        return $this->quizSummary->total_questions;
+    }
+
     public function getStatusMessage()
     {
         if (($this->score && $this->quizSummary->submit == SharedConstant::VALUE_ONE) && (strtotime($this->close_date) >= time() || strtotime($this->close_date) < time())) {
@@ -323,6 +346,7 @@ class Homeworks extends \yii\db\ActiveRecord
         }
     }
 
+
     public function getNewHomeworks()
     {
         if (Yii::$app->user->identity->type == 'teacher') {
@@ -331,15 +355,40 @@ class Homeworks extends \yii\db\ActiveRecord
             $classes = ArrayHelper::getColumn(Classes::find()
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
             $condition = ['class_id' => $classes];
+        } elseif (Yii::$app->user->identity->type == 'student') {
+
+            $student_class = ArrayHelper::getColumn(StudentSchool::find()
+                ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+
+            $condition = ['class_id' => $student_class];
+            $studentCheck = true;
+        } elseif (Yii::$app->user->identity->type == 'parent') {
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
+
+            $studentClass = StudentSchool::find();
+            if (isset($_GET['child']))
+                $studentClass = $studentClass->andWhere(['student_id' => $_GET['child']]);
+            else
+                $studentClass = $studentClass->andWhere(['student_id' => $studentIDs]);
+
+            $studentClass = $studentClass->andWhere(['status' => SharedConstant::VALUE_ONE])->all();
+            $student_class = ArrayHelper::getColumn($studentClass, 'class_id');
+
+            $condition = ['class_id' => $student_class];
+            $studentCheck = true;
         }
+
+
         $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework']])
-            ->andWhere(['>', 'open_date', date("Y-m-d")])
+            ->andWhere(['>', 'close_date', date("Y-m-d")])
             ->orderBy(['open_date' => SORT_ASC])
             ->all();
 
-
         foreach ($homeworks as $homework) {
-            if (strtotime($homework->open_date) <= time() + 604800 && strtotime($homework->open_date) >= time()) {
+            if (strtotime($homework->open_date) <= time() + 604800 && strtotime($homework->close_date) >= time()) {
+                if (isset($studentCheck) && QuizSummary::find()->where(['student_id' => $studentIDs, 'type' => 'homework', 'homework_id' => $homework->id])->exists()) {
+                    continue;
+                }
                 array_push($this->homework_annoucements, [
                     'id' => $homework->id,
                     'type' => $homework->type,
@@ -371,6 +420,11 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getPracticeMaterials()
     {
         return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id']);
+    }
+
+    public function getTeacher()
+    {
+        return $this->hasOne(User::className(), ['id' => 'teacher_id']);
     }
 
     public function getTopicsID()

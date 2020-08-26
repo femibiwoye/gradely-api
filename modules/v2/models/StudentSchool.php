@@ -56,8 +56,10 @@ class StudentSchool extends \yii\db\ActiveRecord
     public function fields()
     {
         $fields = parent::fields();
-        $fields['class'] = 'class';
-        $fields['school'] = 'school';
+        if ($this->isRelationPopulated('class'))
+            $fields['class'] = 'class';
+        if ($this->isRelationPopulated('school'))
+            $fields['school'] = 'school';
 
         return $fields;
     }
@@ -69,7 +71,7 @@ class StudentSchool extends \yii\db\ActiveRecord
 
     public function getSchool()
     {
-        return $this->hasOne(Schools::className(), ['id' => 'school_id']);
+        return $this->hasOne(Schools::className(), ['id' => 'school_id'])->select(['id','name','slug','abbr','logo']);
     }
 
     public function getClass()

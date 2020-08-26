@@ -4,6 +4,29 @@ namespace app\modules\v2\models;
 
 use Yii;
 
+/**
+ * This is the model class for table "quiz_summary".
+ *
+ * @property int $id
+ * @property int $homework_id
+ * @property int $subject_id
+ * @property int $student_id
+ * @property int|null $teacher_id
+ * @property int $class_id
+ * @property string $type it is either homework or catchup
+ * @property int $total_questions
+ * @property int|null $correct
+ * @property int|null $failed
+ * @property int|null $skipped
+ * @property string $term
+ * @property string $created_at
+ * @property string|null $submit_at
+ * @property int $submit
+ * @property int $topic_id
+ *
+ * @property User $student
+ * @property QuizSummaryDetails[] $quizSummaryDetails
+ */
 class QuizSummary extends \yii\db\ActiveRecord {
 	/**
 	 * {@inheritdoc}
@@ -43,11 +66,9 @@ class QuizSummary extends \yii\db\ActiveRecord {
 		];
 	}
 
-	/*public function fields() {
-		return [
-			'score',
-		];
-	}*/
+//	public function fields() {
+//		return ['duration', 'total_questions'];
+//	}
 
 	public function getScore() {
 		return ($this->correct / $this->total_questions) * 100;

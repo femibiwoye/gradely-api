@@ -51,7 +51,7 @@ class PaymentController extends ActiveController
         }
 
         $coupon = Yii::$app->request->post('coupon');
-        $type = Yii::$app->request->post('type');
+        $type = ['all', Yii::$app->request->post('type')];
 
         $form = new \yii\base\DynamicModel(compact('coupon', 'type'));
         $form->addRule(['coupon', 'type'], 'required');
@@ -62,11 +62,14 @@ class PaymentController extends ActiveController
         }
 
         $model = Coupon::find()
-                        ->select(['code', 'percentage'])
-                        ->where(['code' => $coupon, 'status' => SharedConstant::VALUE_ONE, 'type' => $type])
-                        ->andWhere(['<', 'start_time', time()])
-                        ->andWhere(['>', 'end_time', time()])
-                        ->one();
+            ->select(['code', 'percentage'])
+            ->where(['code' => $coupon, 'status' => SharedConstant::VALUE_ONE, 'coupon_payment_type' => $type]);
+
+        if ($model->one() && $model->one()->is_time_bound == 1) {
+            $model = $model->andWhere(['<', 'start_time', time()])
+                ->andWhere(['>', 'end_time', time()]);
+        }
+        $model = $model->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
@@ -92,32 +95,72 @@ class PaymentController extends ActiveController
 
     public function actionCancelSubscription($subscription_id)
     {
-        $model = Subscriptions::findOne(['id' => $subscription_id]);
+        $model = Subscriptions::findOne(['id' => $subscription_id, 'user_id' => Yii::$app->user->id]);
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription not found');
+        }
+
+        if ($model->renew_status == SharedConstant::VALUE_ZERO) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription already disabled');
         }
 
         $model->renew_status = SharedConstant::VALUE_ZERO;
         if (!$model->save(false)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription not updated');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Subscription updated');
     }
 
     public function actionSubscriptionPayment()
     {
-        $form = new PaymentSubscription;
+        $type = Yii::$app->user->identity->type;
+        $form = new PaymentSubscription(['scenario'=>"$type-subscription"]);
         $form->attributes = Yii::$app->request->post();
         $form->user_id = Yii::$app->user->identity->id;
+        if (Yii::$app->user->identity->type == SharedConstant::ACCOUNT_TYPE[3]) {
+            $form->children = [Yii::$app->user->id];
+        }
+
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
         if (!$model = $form->addPaymentSubscription()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription payment failed');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription initialization failed');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Subscription payment done');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Subscription initialization done');
     }
+
+    public function actionPaymentStatus($id)
+    {
+        $form = new \yii\base\DynamicModel(compact('id'));
+        $form->addRule(['id'], 'required');
+        $form->addRule('id', 'exist', [
+            'targetClass' => Subscriptions::className(),
+            'targetAttribute' => 'id',
+            'message' => 'Payment Id is invalid',
+        ]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+
+        $model = Subscriptions::find()->where(['id' => $id])->one();
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Payment not found!');
+        }
+
+        if (!$model->transaction_id) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Payment not made');
+        }
+
+        $message = $model->ConfirmPayment($model);
+
+        return (new ApiResponse)->success($message['model'], ApiResponse::SUCCESSFUL, $message['message']);
+    }
+
+
 }

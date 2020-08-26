@@ -1,6 +1,4 @@
 <?php
-require 'var.php';
-
 return ['db' => [
     'class' => 'yii\db\Connection',
     'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . DATABASE,

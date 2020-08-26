@@ -4,13 +4,32 @@ namespace app\modules\v2\models;
 
 use Yii;
 
+/**
+ * This is the model class for table "subscription_children".
+ *
+ * @property int $id
+ * @property int $subscription_id
+ * @property int $subscriber_id
+ * @property int $student_id
+ * @property string $payment_status
+ * @property string|null $expiry
+ * @property string $created_at
+ *
+ * @property Subscriptions $subscription
+ */
 class SubscriptionChildren extends \yii\db\ActiveRecord
 {
+    /**
+     * {@inheritdoc}
+     */
     public static function tableName()
     {
         return 'subscription_children';
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function rules()
     {
         return [
@@ -22,6 +41,9 @@ class SubscriptionChildren extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function attributeLabels()
     {
         return [
@@ -35,6 +57,11 @@ class SubscriptionChildren extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * Gets query for [[Subscription]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getSubscription()
     {
         return $this->hasOne(Subscriptions::className(), ['id' => 'subscription_id']);

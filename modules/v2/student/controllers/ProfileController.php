@@ -3,6 +3,7 @@
 namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\models\User;
+use app\modules\v2\models\UserModel;
 use app\modules\v2\teacher\models\UpdateTeacherForm;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -165,13 +166,14 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student report found');
     }
 
-    public function actionDelete() {
+    public function actionDelete()
+    {
 
         $student_id = Yii::$app->user->id;
 
         $model = User::find()
-                   ->andWhere(['id' => $student_id])
-                    ->andWhere(['type' => SharedConstant::TYPE_STUDENT])->one();
+            ->andWhere(['id' => $student_id])
+            ->andWhere(['type' => SharedConstant::TYPE_STUDENT])->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
         }
@@ -189,31 +191,28 @@ class ProfileController extends ActiveController
 
     }
 
-    public function actionUpdateAvatar(){
+    public function actionUpdateAvatar()
+    {
 
-        $form = new UpdateStudentForm();
-        $form->image = Yii::$app->request->post();
+        $avatar = Yii::$app->request->post('avatar');
 
-        $img = UploadedFile::getInstance($this->user, 'image');
-        $imageName = 'user_' . $this->user->id . '.' . $img->getExtension();
-
-        $user = User::findOne(Yii::$app->user->id);
-
-        if($img->saveAs(Yii::getAlias('@webroot') . '/images/users/' . $imageName)){
-
-            if($user->image){
-
-                unlink(\Yii::getAlias('@webroot') . '/images/users/' . $user->image);
-
-                $user->image =$imageName;
-                $user->save();
-            }
-
-            return (new ApiResponse)->error($user, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Avatar Updated!');
+        $validate = new \yii\base\DynamicModel(compact('avatar'));
+        $validate
+            ->addRule(['avatar'], 'required');
+        if (!$validate->validate()) {
+            return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User not found');
+        if (filter_var($avatar, FILTER_VALIDATE_URL) === FALSE) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not a valid avatar');
+        }
 
+        $user = UserModel::findOne(['id' => Yii::$app->user->id]);
+        $user->image = $avatar;
+        if (!$user->save())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not update avatar');
+
+        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Avatar Updated!');
 
 
     }

@@ -33,6 +33,7 @@ class UpdateStudentForm extends Model
     public function rules()
     {
         return [
+
             [['firstname', 'lastname'], 'required'],
             [['firstname', 'lastname'], 'filter', 'filter' => 'trim'],
             //[['dob', 'mob', 'yob'], 'integer'],
