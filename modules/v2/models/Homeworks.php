@@ -349,29 +349,40 @@ class Homeworks extends \yii\db\ActiveRecord
             $classes = ArrayHelper::getColumn(Classes::find()
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
             $condition = ['class_id' => $classes];
-        }elseif (Yii::$app->user->identity->type == 'student'){
+        } elseif (Yii::$app->user->identity->type == 'student') {
 
             $student_class = ArrayHelper::getColumn(StudentSchool::find()
                 ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
 
             $condition = ['class_id' => $student_class];
-        }elseif (Yii::$app->user->identity->type == 'parent'){
+            $studentCheck = true;
+        } elseif (Yii::$app->user->identity->type == 'parent') {
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
 
-            $student_class = ArrayHelper::getColumn(StudentSchool::find()
-                ->where(['student_id' => $_GET['child'], 'status' => SharedConstant::VALUE_ONE])->all(), 'class_id');
+            $studentClass = StudentSchool::find();
+            if (isset($_GET['child']))
+                $studentClass = $studentClass->andWhere(['student_id' => $_GET['child']]);
+            else
+                $studentClass = $studentClass->andWhere(['student_id' => $studentIDs]);
+
+            $studentClass = $studentClass->andWhere(['status' => SharedConstant::VALUE_ONE])->all();
+            $student_class = ArrayHelper::getColumn($studentClass, 'class_id');
 
             $condition = ['class_id' => $student_class];
+            $studentCheck = true;
         }
 
 
         $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework']])
-            ->andWhere(['>', 'open_date', date("Y-m-d")])
+            ->andWhere(['>', 'close_date', date("Y-m-d")])
             ->orderBy(['open_date' => SORT_ASC])
             ->all();
 
-
         foreach ($homeworks as $homework) {
-            if (strtotime($homework->open_date) <= time() + 604800 && strtotime($homework->open_date) >= time()) {
+            if (strtotime($homework->open_date) <= time() + 604800 && strtotime($homework->close_date) >= time()) {
+                if (isset($studentCheck) && QuizSummary::find()->where(['student_id' => $studentIDs, 'type' => 'homework', 'homework_id' => $homework->id])->exists()) {
+                    continue;
+                }
                 array_push($this->homework_annoucements, [
                     'id' => $homework->id,
                     'type' => $homework->type,

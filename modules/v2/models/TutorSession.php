@@ -162,8 +162,16 @@ class TutorSession extends \yii\db\ActiveRecord
             $condition = ['class' => $student_class];
         }elseif (Yii::$app->user->identity->type == 'parent'){
 
-            $student_class = ArrayHelper::getColumn(StudentSchool::find()
-                ->where(['student_id' => $_GET['child'], 'status' => SharedConstant::VALUE_ONE])->one(), 'class_id');
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
+
+            $studentClass = StudentSchool::find();
+            if (isset($_GET['child']))
+                $studentClass = $studentClass->andWhere(['student_id' => $_GET['child']]);
+            else
+                $studentClass = $studentClass->andWhere(['student_id' => $studentIDs]);
+
+            $studentClass = $studentClass->andWhere(['status' => SharedConstant::VALUE_ONE])->all();
+            $student_class = ArrayHelper::getColumn($studentClass, 'class_id');
 
             $condition = ['class' => $student_class];
         }
@@ -171,10 +179,12 @@ class TutorSession extends \yii\db\ActiveRecord
         $sessions = parent::find()
             ->where(['AND', $condition, ['is_school' => 1]])
             ->andWhere(['>', 'availability', date("Y-m-d")])
+            ->andWhere(['<>', 'status', 'completed'])
             ->orderBy(['availability' => SORT_ASC])
             ->all();
         foreach ($sessions as $session) {
-            if (strtotime($session->availability) <= time() + 604800 && strtotime($session->availability) >= time()) {
+            //strtotime($session->availability) <= time() + 604800 &&
+            if (strtotime($session->availability) >= time()) {
                 array_push($this->new_sessions, [
                     'id' => $session->id,
                     'type' => 'live_class',

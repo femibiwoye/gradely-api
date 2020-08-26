@@ -51,11 +51,11 @@ class PaymentController extends ActiveController
         }
 
         $coupon = Yii::$app->request->post('coupon');
-        $type = Yii::$app->request->post('type');
+        $type = ['all', Yii::$app->request->post('type')];
 
         $form = new \yii\base\DynamicModel(compact('coupon', 'type'));
         $form->addRule(['coupon', 'type'], 'required');
-        $form->addRule(['coupon'], 'exist', ['targetClass' => Coupon::className(), 'targetAttribute' => ['coupon' => 'code']]);
+        $form->addRule(['coupon'], 'exist', ['targetClass' => Coupon::className(), 'targetAttribute' => ['coupon' => 'code','type']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
@@ -92,17 +92,21 @@ class PaymentController extends ActiveController
 
     public function actionCancelSubscription($subscription_id)
     {
-        $model = Subscriptions::findOne(['id' => $subscription_id]);
+        $model = Subscriptions::findOne(['id' => $subscription_id, 'user_id' => Yii::$app->user->id]);
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription not found');
+        }
+
+        if ($model->renew_status == SharedConstant::VALUE_ZERO) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription already disabled');
         }
 
         $model->renew_status = SharedConstant::VALUE_ZERO;
         if (!$model->save(false)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription not updated');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Subscription updated');
     }
 
     public function actionSubscriptionPayment()
