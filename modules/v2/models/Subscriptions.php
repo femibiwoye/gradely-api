@@ -23,8 +23,8 @@ use Yii;
  * @property string|null $payment_plan_id This is ID of the payment from payment_plan table
  * @property string|null $plan_code Incase you are using gateway automatic subscription
  * @property string|null $plan Basic & Premium is access to regular paid service.
- payg is a one time payment for a service, e.g you paid for tutor want.
- subscription is continuous interval payment for a service, e.g every week, month, etc tutor service.
+ * payg is a one time payment for a service, e.g you paid for tutor want.
+ * subscription is continuous interval payment for a service, e.g every week, month, etc tutor service.
  * @property string $type Subscription is for regular monthly subscription while tutor is a PAYG service for tutor session.
  * @property string|null $meta You can put any additional data here
  * @property int|null $renew_status Automatically renew my subscription at the end of the current subscription cycle
@@ -104,34 +104,54 @@ class Subscriptions extends \yii\db\ActiveRecord
     public function ConfirmPayment(Subscriptions $model)
     {
 
-            $paystack = new Paystack(Yii::$app->params['payment_sk']);
+        if ($model->payment == 'paid') {
+            return ['message' => 'Already paid', 'model' => $model];
+        }
+        $paystack = new Paystack(Yii::$app->params['payment_sk']);
+        $responseObj = $paystack->transaction->verify(["reference" => $model->transaction_id]);
 
-            return $responseObj = $paystack->transaction->verify(["reference" => $model->transaction_id]);
+        if ($responseObj->data->status == 'success') {
+            if ($model->payment == 'unpaid') {
+                $model->payment = 'paid';
+                $model->paid_at = date('Y-m-d h:i:s');
+                $model->amount_paid = $responseObj->data->amount / 100;
 
-            if ($responseObj->data->status == 'success') {
-                if ($model->payment == 'unpaid') {
-                    $model->payment = 'paid';
-                    $model->paid_at = date('Y-m-d h:i:s');
-                    $model->amount_paid = $responseObj->data->amount / 100;
+                //This saves the card details provided by the payment merchant
+                $paymentDetails = new SubscriptionPaymentDetails();
+                $modelPaymentDetails = $paymentDetails->savePaymentDetails($responseObj->data->authorization, $responseObj->data->customer);
 
-                    //This saves the card details provided by the payment merchant
-                    $paymentDetails = new SubscriptionPaymentDetails();
-                    $modelPaymentDetails = $paymentDetails->savePaymentDetails($responseObj->data->authorization, $responseObj->data->customer);
-
-                    //This link the id of the payment details to subscription.
-                    $model->payment_details_id = $modelPaymentDetails->id;
-                    if ($model->save() && $model->plan != 'payg' && $model->plan != 'subscription') {
-                        $this->activateChildSubscription($model);
-                    }
-
-                    //Payment successful
-                    return ['message'=>'Payment successful','model'=>$model];
+                //This link the id of the payment details to subscription.
+                $model->payment_details_id = $modelPaymentDetails->id;
+                if ($model->save() && $model->plan != 'payg' && $model->plan != 'subscription') {
+                    $this->activateChildSubscription($model);
                 }
 
-                // Payment already made
-                return ['message'=>'Already paid','model'=>$model];
+                //Payment successful
+                return ['message' => 'Payment successful', 'model' => $model];
             }
-        return ['message'=>'Payment not successful','model'=>$model];
 
+            // Payment already made
+            return ['message' => 'Already paid', 'model' => $model];
+        }
+        return ['message' => 'Payment not successful', 'model' => $model];
+
+    }
+
+    public function activateChildSubscription($model)
+    {
+        $children = SubscriptionChildren::find()->where(['subscription_id' => $model->id, 'subscriber_id' => Yii::$app->user->id])->all();
+        $expiry = date('Y-m-d H:i:s', strtotime("+{$model->duration_count} {$model->duration}"));
+
+        foreach ($children as $item) {
+            $item->payment_status = 'paid';
+            $item->expiry = $expiry;
+            $item->save();
+
+            $child = UserModel::find()->where(['id' => $item->student_id, 'type' => 'student'])->one();
+            $model->scenario = 'update-subscription';
+            $child->subscription_expiry = $expiry;
+            $child->subscription_plan = $model->plan;
+            $child->save();
+        }
     }
 }

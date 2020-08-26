@@ -4,13 +4,31 @@ namespace app\modules\v2\models;
 
 use Yii;
 
+/**
+ * This is the model class for table "security_question_answer".
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int $question This question ID is dependent on security_questions table
+ * @property string $answer
+ * @property string $created_at
+ *
+ * @property User $user
+ * @property SecurityQuestions $question0
+ */
 class SecurityQuestionAnswer extends \yii\db\ActiveRecord
 {
+    /**
+     * {@inheritdoc}
+     */
     public static function tableName()
     {
         return 'security_question_answer';
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function rules()
     {
         return [
@@ -23,6 +41,9 @@ class SecurityQuestionAnswer extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function attributeLabels()
     {
         return [
@@ -34,11 +55,21 @@ class SecurityQuestionAnswer extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * Gets query for [[User]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
     }
 
+    /**
+     * Gets query for [[Question0]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getQuestion0()
     {
         return $this->hasOne(SecurityQuestions::className(), ['id' => 'question']);

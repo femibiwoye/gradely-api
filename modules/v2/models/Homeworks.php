@@ -120,6 +120,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'close_date',
             'questionCount',
             'duration',
+            'questionsDuration',
             'score',
             'status' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
@@ -155,6 +156,11 @@ class Homeworks extends \yii\db\ActiveRecord
             'excellence_students' => $this->excellentStudents,
 
         ];
+    }
+
+    public function getQuestionsDuration()
+    {
+        return HomeworkQuestions::find()->where(['homework_id' => $this->id])->sum('duration');
     }
 
     public function getCompletedRate()

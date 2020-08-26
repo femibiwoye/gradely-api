@@ -57,16 +57,11 @@ class PracticeController extends Controller
 
     public function actionHomeworkInstruction($homework_id){
 
-        $student_class = StudentSchool::findOne(['student_id' => \Yii::$app->user->id]);
+        $studentClass = StudentSchool::findOne(['student_id' => \Yii::$app->user->id]);
 
         $homework = Homeworks::find()
-                    ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-                    ->andWhere([
-                        'homeworks.id' => $homework_id,
-                        'homeworks.student_id' => \Yii::$app->user->id,
-                        //'homeworks.type' => 'homework',
-                        //'homeworks.class_id' => $student_class->class_id,
-                    ])->one();
+            ->where(['id'=>$homework_id,'class_id'=>$studentClass->class_id])
+            ->one();
 
         if(!$homework){
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No homework found!');
