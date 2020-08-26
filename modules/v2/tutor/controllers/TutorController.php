@@ -73,7 +73,7 @@ class TutorController extends ActiveController
         $session_id = Yii::$app->request->post('session_id');
         $rate = Yii::$app->request->post('rate');
         $sender_id = Yii::$app->request->post('sender_id');
-        $receiver_id = Yii::$app->request->post('receiver_id');
+        $receiver_id = Yii::$app->user->identity->id;
         $form = new \yii\base\DynamicModel(compact('session_id', 'sender_id', 'rate', 'receiver_id'));
         $form->addRule(['session_id', 'sender_id', 'receiver_id', 'rate'], 'required');
         $form->addRule(['session_id', 'rate', 'sender_id', 'receiver_id'], 'integer');
@@ -87,6 +87,44 @@ class TutorController extends ActiveController
 
         $model = new Review;
         $model->attributes = Yii::$app->request->post();
+        $model->sender_id = $sender_id;
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Review not made');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Review made');
+    }
+
+    public function actionTutorRateStudent()
+    {
+        $type = Yii::$app->user->identity->type;
+        if ($type == SharedConstant::TYPE_SCHOOL || $type == SharedConstant::TYPE_TEACHER || $type == SharedConstant::TYPE_STUDENT || $type == SharedConstant::TYPE_PARENT) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');
+        }
+
+        $session_id = Yii::$app->request->post('session_id');
+        $sender_id = Yii::$app->user->identity->id;
+        $receiver_id = Yii::$app->request->post('receiver_id');
+        $topic_taught = Yii::$app->request->post('topic_taught');
+        $recommended_topic = Yii::$app->request->post('recommended_topic');
+        $tutor_rate_student = Yii::$app->request->post('tutor_rate_student');
+        $tutor_comment = Yii::$app->request->post('tutor_comment');
+
+        $form = new \yii\base\DynamicModel(compact('session_id', 'sender_id', 'receiver_id', 'recommended_topic', 'tutor_rate_student', 'tutor_comment', 'topic_taught'));
+        $form->addRule(['session_id', 'sender_id', 'receiver_id'], 'required');
+        $form->addRule(['session_id', 'sender_id', 'receiver_id'], 'integer');
+        $form->addRule(['topic_taught', 'recommended_topic', 'tutor_comment', 'tutor_rate_student'], 'string');
+        $form->addRule('session_id', 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
+        $form->addRule(['sender_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['sender_id' => 'id']]);
+        $form->addRule(['receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['receiver_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = new Review;
+        $model->attributes = Yii::$app->request->post();
+        $model->sender_id = $sender_id;
         if (!$model->save()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Review not made');
         }

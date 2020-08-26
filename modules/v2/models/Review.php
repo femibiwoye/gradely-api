@@ -38,7 +38,7 @@ class Review extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['session_id', 'receiver_id', 'sender_id', 'rate'], 'required'],
+            [['session_id', 'receiver_id', 'sender_id'], 'required'],
             [['session_id', 'receiver_id', 'sender_id', 'rate', 'topic_taught'], 'integer'],
             [['review', 'tutor_comment'], 'string'],
             [['created_at'], 'safe'],
