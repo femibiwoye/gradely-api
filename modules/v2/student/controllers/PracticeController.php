@@ -10,6 +10,7 @@ use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\Questions;
 use app\modules\v2\models\QuizSummary;
+use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
@@ -75,53 +76,125 @@ class PracticeController extends Controller
 
         $homework_id = \Yii::$app->request->post('homework_id');
 
+        $studentClass = StudentSchool::findOne(['student_id' => \Yii::$app->user->id]);
+        $class_id = $studentClass->class_id;
+
+        $model = new \yii\base\DynamicModel(compact('class_id', 'homework_id'));
+        $model->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id', 'class_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not validated');
+        }
+
         $homework = Homeworks::find()
-                    ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-                    ->andWhere(['homeworks.id' => $homework_id, 'homeworks.student_id' => \Yii::$app->user->id]);
+            ->where(['homeworks.id' => $homework_id,'publish_status'=>1])->one();
 
-        if($homework->andWhere(['quiz_summary.submit' => SharedConstant::VALUE_ZERO])->exists()){
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student has not submitted homework');
+        if(!$quizSummary = QuizSummary::find()->where(['homework_id'=>$homework_id, 'student_id'=>\Yii::$app->user->user->id])->one())
+        {
+            $model = new QuizSummary();
+            $model->attributes = \Yii::$app->request->post();
+            $model->teacher_id = $homework->teacher_id;
+            $model->student_id = \Yii::$app->user->id;
+            $model->class_id = $studentClass->class_id;
+            $model->subject_id = $homework->subject_id;
+            $model->type = 'homework';
+
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not validated');
+            }
+
+    $homework_questions = HomeworkQuestions::find()->alias('hq')
+        ->innerJoin('homeworks', 'homeworks.id = hq.homework_id')
+        ->innerJoin('questions', 'questions.id = hq.question_id')
+        ->andWhere(['hq.homework_id' => $homework_id])
+        ->all();
+    $model->question_count = Count($homework_questions);
+
+    if(!$model->save()){
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No homework assigned for you');
+    }
+
+    return (new ApiResponse)->success($homework_questions, ApiResponse::SUCCESSFUL, 'Homework questions retrieved');
+
+    //return message that homework is started
+    }elseif($quizSummary->submit == 0){
+        return (new ApiResponse)->error($homework, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework Started');
+
+    }else{
+        //Quiz is either invalid or already submitted.
+    return (new ApiResponse)->error($homework, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework Submitted');
+    }}
+
+    public function actionProcessHomework(){
+
+        $questionIds = \Yii::$app->request->post('attempts');
+        $quiz_id = \Yii::$app->request->post('quiz_id');
+
+        $student_id = \Yii::$app->user->id;
+
+        $failedCount = 0;
+        $correctCount = 0;
+        $submit = 0;
+
+        $model = new \yii\base\DynamicModel(compact('questionIdd', 'quiz_id','student_id'));
+        $model->addRule(['questionsIds','quiz_id'],'required')
+            ->addRule(['quiz_id'], 'exist', ['targetClass' => QuizSummary::className(), 'targetAttribute' => ['quiz_id' => 'id', 'student_id']]);
+
+        if(!is_array($questionIds)){
+            //return error that questions is invalid
+            return (new ApiResponse)->error(null, ApiResponse::SUCCESSFUL, 'Question is Invalid');
+
         }
 
-        if($homework->andWhere(['quiz_summary.submit' => SharedConstant::VALUE_ONE])->exists()){
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student has submitted homework');
+        //use transaction before saving;
+        $dbtransaction = \Yii::$app->db->beginTransaction();
+        try {
+
+        foreach($questionIds as $question){
+            $qsd = new QuizSummary();
+            $qsd->question_id = $question->question;
+            $qsd->selected = $question->selected;
+            $questionModel = Questions::findOne(['id'=>$question->question]);
+            $qsd->answer = $questionModel->answer;
+            $qsd->topic_id = $questionModel->topic_id;
+            $qsd->student_id = \Yii::$app->user->id;
+            $qsd->homework_id = QuizSummary::findOne(['id'=>$quiz_id])->homework_id;
+
+            if($question->selected != $questionModel->answer)
+                $failedCount =+ 1;
+
+            if($question->selected == $questionModel->answer)
+                $correctCount =+ 1;
+
+            if(!$qsd->save())
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question is Invalid');
         }
 
-        $model = new \yii\base\DynamicModel(compact('class_id', 'type', 'subject_id', 'topic_id', 'question_count', 'duration', 'teacher_id', 'homework_id'));
-        $model->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id', 'student_id' => 'student_id']]);
-        $model->addRule(['class_id'], 'exist', ['targetClass' => \app\modules\v2\models\StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'student_id' => 'student_id']]);
-        $model->addRule(['subject_id'], 'exist', ['targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']]);
-        //$model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
-        $model->addRule(['type'], 'in', ['range' => ['homework']]);
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
+            $dbtransaction->commit();
+        } catch (\Exception $ex) {
+            $dbtransaction->rollBack();
+            return false;
         }
 
-        $model = new QuizSummary();
-        $model->attributes = \Yii::$app->request->post();
-        $model->teacher_id = $homework->teacher_id;
-        $model->student_id = $homework->student_id;
-        $model->class_id = $homework->student_id;
-        $model->subject_id = $homework->subject_id;
-        $model->type = 'homework';
 
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
-        }
+        $quiz_summary = QuizSummary::findOne(['quiz_id' => $quiz_id, 'student_id' => \Yii::$app->user->id]);
 
-        $homework_questions = HomeworkQuestions::find()->alias('hq')
-                              ->innerJoin('homeworks', 'homeworks.id = hq.homework_id')
-                              ->innerJoin('questions', 'questions.id = hq.question_id')
-                              ->andWhere(['hq.homework_id' => $homework_id])
-                              ->all();
-        $model->question_count = Count($homework_questions);
-
-        if(!$model->save()){
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No homework assigned for you');
-        }
-
-        return (new ApiResponse)->success($homework_questions, ApiResponse::SUCCESSFUL, 'Homework questions retrieved');
+        if(!$quiz_summary)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework Invalid');
 
 
+        $total_question = HomeworkQuestions::find()->where(['homework_id' => $quiz_summary->homework_id])->count();
+
+        if(!$total_question)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No question!');
+
+        $quiz_summary->failed = $failedCount;
+        $quiz_summary->correct = $correctCount;
+        $quiz_summary->total_questions = $total_question;
+        $quiz_summary->skipped = $total_question - ($correctCount + $failedCount);
+        $quiz_summary->submit = SharedConstant::VALUE_ONE;
+
+        if($quiz_summary->save())
+            return (new ApiResponse)->success($quiz_summary, ApiResponse::SUCCESSFUL, 'Homework Retrieved');
     }
 }
