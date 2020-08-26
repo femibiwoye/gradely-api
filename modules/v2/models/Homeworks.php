@@ -365,11 +365,9 @@ class Homeworks extends \yii\db\ActiveRecord
         } elseif (Yii::$app->user->identity->type == 'parent') {
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
 
-            $studentClass = StudentSchool::find();
-            if (isset($_GET['child']))
-                $studentClass = $studentClass->andWhere(['student_id' => $_GET['child']]);
-            else
-                $studentClass = $studentClass->andWhere(['student_id' => $studentIDs]);
+            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
+            if (isset($_GET['class_id']))
+                $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
 
             $studentClass = $studentClass->andWhere(['status' => SharedConstant::VALUE_ONE])->all();
             $student_class = ArrayHelper::getColumn($studentClass, 'class_id');
