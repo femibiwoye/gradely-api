@@ -40,7 +40,7 @@ return [
 
     //'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
     'PUT v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/update',
-    'GET v2/teacher/homework/draftdraft/<class_id:\d+>' => 'v2/teacher/homework/homework-draft',
+    'GET v2/teacher/homework/draft/<class_id:\d+>' => 'v2/teacher/homework/homework-draft',
 
     //Topics
     'GET v2/teacher/class-topics' => 'v2/teacher/class/topics',
