@@ -36,6 +36,9 @@ return [
     //student report
     'GET v2/student/report' => 'v2/student/profile/report',
 
+    //student catchup
+    'GET v2/student/recent-practice' => 'v2/student/catchup/recent-practice',
+
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST student-parent' => 'student-parent'
