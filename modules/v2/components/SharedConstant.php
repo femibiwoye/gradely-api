@@ -23,6 +23,7 @@ class SharedConstant {
 	const HOMEWORK_TYPES = ['homework', 'lesson'];
 	const HOMEWORK_TAG = ['homework', 'exam', 'quiz'];
 	const TEACHER_VIEW_BY = ['all', 'class', 'student'];
+	const SCHOOL_VIEW_BY = ['all', 'class', 'school','teacher','parent'];
 	const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 	const SCHOOL_FORMAT = ['year','ss'];
 	const SCHOOL_TYPE = ['all','primary','secondary'];

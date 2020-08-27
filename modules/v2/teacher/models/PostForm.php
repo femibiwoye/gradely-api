@@ -3,7 +3,9 @@
 namespace app\modules\v2\teacher\models;
 
 use app\modules\v2\models\Feed;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeMaterial;
+use app\modules\v2\models\StudentSchool;
 use Yii;
 use yii\base\Model;
 use app\modules\v2\components\SharedConstant;
@@ -24,8 +26,12 @@ class PostForm extends Model
     {
         return [
             ['attachments', 'validateAttachment'],
-            [['description', 'type', 'class_id', 'view_by' /*, 'attachments'*/], 'required', 'on' => 'new-post'],
-            ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY, 'on' => 'new-post'],
+            [['description', 'type', 'class_id', 'view_by' /*, 'attachments'*/], 'required', 'on' => 'teacher'],
+            [['description', 'type', 'class_id', 'view_by' /*, 'attachments'*/], 'required', 'on' => 'school'],
+            ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY, 'on' => 'teacher'],
+            ['view_by', 'in', 'range' => SharedConstant::SCHOOL_VIEW_BY, 'on' => 'school'],
+
+            [['description'], 'required', 'on' => 'student-parent'],
 
 
         ];
@@ -37,6 +43,25 @@ class PostForm extends Model
         $model = new Feed();
         $model->attributes = $this->attributes;
         $model->user_id = Yii::$app->user->id;
+        $userType = Yii::$app->user->identity->type;
+        if ($userType == 'student' || $userType == 'parent') {
+            $model->type = 'post';
+            $model->view_by = 'class';
+
+            if ($userType == 'parent') {
+                if (!isset($_GET['child']))
+                    return false;
+
+                $student = $_GET['child'];
+                if (!Parents::find()->where(['status' => 1, 'parent_id' => Yii::$app->user->id, 'student_id' => $student])->exists())
+                    return false;
+            } else
+                $student = Yii::$app->user->id;
+
+
+            $class = StudentSchool::findOne(['student_id' => $student, 'status' => 1]);
+            $model->class_id = $class->class_id;
+        }
 
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
