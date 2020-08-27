@@ -5,9 +5,9 @@ return [
     //student profile
     'GET v2/student/parents' => 'v2/student/profile/parents',
     'GET v2/student/parent-invitations' => 'v2/student/profile/pending-parent-invitations',
-    'PUT v2/student/update-email' => 'v2/student/profile/update-email',
-    'PUT v2/student/update-password' => 'v2/student/profile/update-password',
-    'PUT v2/student' => 'v2/student/profile/update',
+    'PUT v2/student/profile/update-email' => 'v2/student/profile/update-email',
+    'PUT v2/student/profile/update-password' => 'v2/student/profile/update-password',
+    'PUT v2/student/profile' => 'v2/student/profile/update',
     'PUT v2/student/avatar' => 'v2/student/profile/update-avatar',
 
     //student general
@@ -29,8 +29,8 @@ return [
     'GET v2/student/class' => 'v2/student/class/student-class-details',
 
     //student preference
-    'GET v2/student/preference' => 'v2/student/preference/index',
-    'PUT v2/student/preference' => 'v2/student/preference/update',
+    'GET v2/student/profile/preference' => 'v2/student/preference/index',
+    'PUT v2/student/profile/preference' => 'v2/student/preference/update',
 
     //student report
     'GET v2/student/report' => 'v2/student/profile/report',

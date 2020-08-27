@@ -17,7 +17,7 @@ class FeedComment extends \yii\db\ActiveRecord
 		return [
 			[['feed_id', 'user_id', 'comment'], 'required'],
 			[['feed_id', 'user_id', 'status'], 'integer'],
-			[['comment'], 'string'],
+			[['comment','type'], 'string'],
 			[['created_at', 'updated_at'], 'safe'],
 			[['feed_id'], 'exist', 'skipOnError' => true, 'targetClass' => Feed::className(), 'targetAttribute' => ['feed_id' => 'id']],
 			[['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],

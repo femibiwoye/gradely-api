@@ -84,7 +84,7 @@ class FeedController extends ActiveController
 
     public function actionFeedLike($post_id)
     {
-        $model = Feed::findOne(['id' => $post_id]);
+        $model = Feed::findOne(['id' => $post_id,'type'=>'feed']);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Post is not found!');
         }
@@ -110,7 +110,7 @@ class FeedController extends ActiveController
 
     public function actionCommentLike($comment_id)
     {
-        $model = FeedComment::findOne(['id' => $comment_id]);
+        $model = FeedComment::findOne(['id' => $comment_id,'type'=>'comment']);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment is not found!');
         }
