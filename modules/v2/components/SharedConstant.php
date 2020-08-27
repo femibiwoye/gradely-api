@@ -18,6 +18,7 @@ class SharedConstant {
 	const DEFAULT_COUNTRY = 'Nigeria';
 	const FEED_TYPE = 'feed';
 	const COMMENT_TYPE = 'comment';
+	const TYPE_VIDEO = 'video';
 	const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image'];
 	const HOMEWORK_TYPES = ['homework', 'lesson'];
 	const HOMEWORK_TAG = ['homework', 'exam', 'quiz'];
@@ -26,7 +27,7 @@ class SharedConstant {
 	const SCHOOL_FORMAT = ['year','ss'];
 	const SCHOOL_TYPE = ['all','primary','secondary'];
 	const SCHOOL_OWNER_ROLE = 'owner';
-	const PRACTICE_TYPES = ['feed', 'practice'];
+	const PRACTICE_TYPES = ['feed', 'practice', 'homework'];
 	const QUIZ_SUMMARY_TYPE = ['homework'];
 	const QUESTION_DIFFICULTY = ['hard', 'medium', 'easy'];
 	const SUBSCRIPTION_DURATION = 'month';

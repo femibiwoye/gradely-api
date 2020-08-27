@@ -230,12 +230,12 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getFeedCommentCount()
     {
-        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->count();
+        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type'=>'feed'])->count();
     }
 
     public function getMiniComment()
     {
-        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->limit(2)->orderBy('id DESC');
+        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type'=>'feed'])->limit(2)->orderBy('id DESC');
     }
 
     public function FeedDisliked()

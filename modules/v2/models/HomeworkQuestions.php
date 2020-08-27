@@ -59,6 +59,11 @@ class HomeworkQuestions extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        return ['questions'];
+    }
+
     /**
      * Gets query for [[Homework]].
      *
@@ -77,5 +82,15 @@ class HomeworkQuestions extends \yii\db\ActiveRecord
     public function getTeacher()
     {
         return $this->hasOne(User::className(), ['id' => 'teacher_id']);
+    }
+
+    /**
+     * Gets query for [[Questions]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getQuestions()
+    {
+        return $this->hasMany(Questions::className(), ['question_id' => 'id']);
     }
 }

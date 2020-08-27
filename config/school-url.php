@@ -9,6 +9,8 @@ return [
     'GET v2/school/teacher/pending' => 'v2/school/teacher/pending',
     'PUT v2/school/teacher/accept-teacher/<id:\d+>' => 'v2/school/teacher/accept-teacher',
     'PUT v2/school/teacher/decline-teacher/<id:\d+>' => 'v2/school/teacher/decline-teacher',
+    'POST v2/school/teacher/assign-subject' => 'v2/school/teacher/assign-subject',
+    'POST v2/school/teacher/assign-class-subject' => 'v2/school/teacher/assign-class-subject',
 
 
     //School Parents
