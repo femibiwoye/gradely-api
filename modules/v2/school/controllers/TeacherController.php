@@ -192,7 +192,8 @@ class TeacherController extends ActiveController
         $subjects = Yii::$app->request->post('subjects');
         $class_id = Yii::$app->request->post('class_id');
         $teacher_id = Yii::$app->request->post('teacher_id');
-        $school_id = Utility::getSchoolAccess()[0];
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id', 'subjects', 'teacher_id'));
         $model->addRule(['class_id', 'school_id', 'subjects', 'teacher_id'], 'required');
         $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id' => 'school_id']]);
@@ -232,7 +233,8 @@ class TeacherController extends ActiveController
         $subjects = Yii::$app->request->post('subjects');
         $class_id = Yii::$app->request->post('class_id');
         $teacher_id = Yii::$app->request->post('teacher_id');
-        $school_id = Utility::getSchoolAccess()[0];
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id', 'subjects', 'teacher_id'));
         $model->addRule(['class_id', 'school_id', 'subjects', 'teacher_id'], 'required');
         $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id' => 'school_id']]);
@@ -289,7 +291,52 @@ class TeacherController extends ActiveController
     //Remove teacher from class
     public function actionRemoveTeacher()
     {
+        $class_id = Yii::$app->request->post('class_id');
+        $teacher_id = Yii::$app->request->post('teacher_id');
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'school_id', 'teacher_id'));
+        $model->addRule(['class_id', 'school_id', 'teacher_id'], 'required');
+        $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id' => 'school_id']]);
+        $model->addRule(['teacher_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['teacher_id', 'school_id', 'class_id']]);
 
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = TeacherClass::findOne(['school_id' => $school_id, 'class_id' => $class_id, 'teacher_id' => $teacher_id]);
+
+        if ($model->delete()) {
+            TeacherClassSubjects::deleteAll(['teacher_id' => $model->teacher_id, 'class_id' => $model->class_id, 'school_id' => $model->school_id]);
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Successful');
+        }
+
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not remove teacher from class');
+    }
+
+    //Remove teacher from class
+    public function actionRemoveTeacherSchool()
+    {
+        $teacher_id = Yii::$app->request->post('teacher_id');
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id'));
+        $model->addRule(['school_id', 'teacher_id'], 'required');
+        $model->addRule(['teacher_id'], 'exist', ['targetClass' => SchoolTeachers::className(), 'targetAttribute' => ['teacher_id', 'school_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = SchoolTeachers::findOne(['school_id' => $school_id, 'teacher_id' => $teacher_id]);
+
+        if ($model->delete()) {
+            TeacherClass::deleteAll(['teacher_id' => $model->teacher_id, 'school_id' => $model->school_id]);
+            TeacherClassSubjects::deleteAll(['teacher_id' => $model->teacher_id, 'school_id' => $model->school_id]);
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Successful');
+        }
+
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not remove teacher from class');
     }
 }
 

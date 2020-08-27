@@ -11,6 +11,8 @@ return [
     'PUT v2/school/teacher/decline-teacher/<id:\d+>' => 'v2/school/teacher/decline-teacher',
     'POST v2/school/teacher/assign-subject' => 'v2/school/teacher/assign-subject',
     'POST v2/school/teacher/assign-class-subject' => 'v2/school/teacher/assign-class-subject',
+    'DELETE v2/school/teacher/class-remove' => 'v2/school/teacher/remove-teacher',
+    'DELETE v2/school/teacher/school-remove' => 'v2/school/teacher/remove-teacher-school',
 
 
     //School Parents
