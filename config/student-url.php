@@ -22,6 +22,7 @@ return [
 
     //Student Practice
     'GET v2/student/practice/homework-instruction/<homework_id:\d+>' => 'v2/student/practice/homework-instruction',
+    'GET v2/student/practice/start-homework' => 'v2/student/practice/start-homework',
 
     //student class
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class',
@@ -34,6 +35,9 @@ return [
 
     //student report
     'GET v2/student/report' => 'v2/student/profile/report',
+
+    //student catchup
+    'GET v2/student/recent-practice' => 'v2/student/catchup/recent-practice',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
