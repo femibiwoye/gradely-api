@@ -60,7 +60,7 @@ class CatchupController extends ActiveController
                     ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
                     ->where(['homeworks.student_id' => Yii::$app->user->identity->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
                     ->andWhere(['<>', 'quiz_summary.type', SharedConstant::PRACTICE_TYPES[2]])
-                    ->orderBy(['quiz_summary.id' => SORT_DESC])
+                    ->orderBy(['quiz_summary.id' => SORT_DESC]);
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
