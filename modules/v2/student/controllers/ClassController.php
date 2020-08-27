@@ -86,6 +86,7 @@ class ClassController extends ActiveController
         $model->school_id = $class->school_id;
         $model->class_id = $class->id;
         $model->invite_code = Yii::$app->request->post('code');
+        $model->status = 1;
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
         }
