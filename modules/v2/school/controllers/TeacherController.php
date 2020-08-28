@@ -3,8 +3,8 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\SchoolSubject;
-use app\modules\v2\models\StudentDetails;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\models\TeacherProfile;
