@@ -38,6 +38,12 @@ return [
 
     //student catchup
     'GET v2/student/recent-practice' => 'v2/student/catchup/recent-practice',
+    'GET v2/student/video-comments/<id:\d+>' => 'v2/student/catchup/video-comments',
+    'POST v2/student/video-comment' => 'v2/student/catchup/comment-video',
+    'GET v2/student/video/<id:\d+>' => 'v2/student/catchup/video', 
+    'GET v2/student/class-resources/<class_id:\d+>' => 'v2/student/catchup/class-resources',
+    'GET v2/student/video/watch-again/<id:\d+>' => 'v2/student/catchup/watch-video-again',
+    'GET v2/student/videos' => 'v2/student/catchup/videos-watched',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

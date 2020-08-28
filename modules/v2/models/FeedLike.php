@@ -35,11 +35,8 @@ class FeedLike extends \yii\db\ActiveRecord
 
     public function fields() {
         return [
-            'id',
-            'parent_id',
-            'user_id',
             'type',
-            'created_at'
+            'status',
         ];
     }
 
