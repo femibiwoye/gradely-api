@@ -113,4 +113,17 @@ class CatchupController extends ActiveController
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
     }
+
+    public function actionVideo($id)
+    {
+        $model = PracticeMaterial::find()
+                    ->where(['id' => $id, 'filetype' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->identity->id])
+                    ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
 }
