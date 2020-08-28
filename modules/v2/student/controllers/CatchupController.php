@@ -7,7 +7,7 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
-use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment};
+use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial};
 use app\modules\v2\components\SharedConstant;
 
 
@@ -89,5 +89,28 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionCommentVideo()
+    {
+        $practice_id = Yii::$app->request->post('practice_id');
+        $comment = Yii::$app->request->post('comment');
+        $form = new \yii\base\DynamicModel(compact('practice_id', 'comment'));
+        $form->addRule(['practice_id', 'comment'], 'required');
+        $form->addRule(['practice_id'], 'exist', ['targetClass' => PracticeMaterial::className(), 'targetAttribute' => ['practice_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        } 
+
+        $model = new FeedComment;
+        $model->attributes = Yii::$app->request->post();
+        $model->user_id = Yii::$app->user->identity->id;
+        $model->feed_id = $practice_id;
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 }
