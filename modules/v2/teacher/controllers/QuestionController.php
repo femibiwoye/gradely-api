@@ -129,6 +129,14 @@ class QuestionController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
         }
 
+        $assignQuestion = new HomeworkQuestions();
+        $assignQuestion->homework_id = $homework_id;
+        $assignQuestion->question_id = $model->id;
+        $assignQuestion->duration = $model->duration;
+        $assignQuestion->difficulty = $model->difficulty;
+        $assignQuestion->save();
+
+
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question saved');
     }
 
