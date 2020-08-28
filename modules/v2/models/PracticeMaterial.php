@@ -38,7 +38,8 @@ class PracticeMaterial extends \yii\db\ActiveRecord
 			'extension',
 			'raw',
 			'description',
-			'updated_at'
+			'updated_at',
+			'feed_likes_and_dislikes' => 'feedLike',
 		];
 	}
 
@@ -64,5 +65,10 @@ class PracticeMaterial extends \yii\db\ActiveRecord
 	public function getUser()
 	{
 		return $this->hasOne(User::className(), ['id' => 'user_id']);
+	}
+
+	public function getFeedLike()
+	{
+		return $this->hasMany(FeedLike::className(), ['parent_id' => 'id']);
 	}
 }

@@ -4,10 +4,11 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\models\FileLog;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
-use app\modules\v2\models\{Homeworks, ApiResponse};
+use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial};
 use app\modules\v2\components\SharedConstant;
 
 
@@ -74,7 +75,91 @@ class CatchupController extends ActiveController
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');;
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+
+    }
+
+    public function actionVideoComments($id)
+    {
+        $model = FeedComment::find()
+                        ->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->identity->id])
+                        ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionCommentVideo()
+    {
+        $practice_id = Yii::$app->request->post('practice_id');
+        $comment = Yii::$app->request->post('comment');
+        $form = new \yii\base\DynamicModel(compact('practice_id', 'comment'));
+        $form->addRule(['practice_id', 'comment'], 'required');
+        $form->addRule(['practice_id'], 'exist', ['targetClass' => PracticeMaterial::className(), 'targetAttribute' => ['practice_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        } 
+
+        $model = new FeedComment;
+        $model->attributes = Yii::$app->request->post();
+        $model->user_id = Yii::$app->user->identity->id;
+        $model->feed_id = $practice_id;
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
+    }
+
+    public function actionVideo($id)
+    {
+        $model = PracticeMaterial::find()
+                    ->where(['id' => $id, 'filetype' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->identity->id])
+                    ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionClassResources($class_id)
+    {
+        $model = PracticeMaterial::find()
+                    ->innerJoin('feed', 'feed.id = practice_material.practice_id')
+                    ->where(['feed.class_id' => $class_id, 'feed.user_id' => Yii::$app->user->identity->id])
+                    ->orderBy(['feed.update_at' => SORT_DESC]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 6,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+
+    }
+    
+    public function actionWatchVideoAgain($id){
+
+        $file_log_id = FileLog::findOne(['is_completed' => SharedConstant::VALUE_ONE, 'id' => $id]);
+
+        if(!$file_log_id){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($file_log_id, ApiResponse::SUCCESSFUL, 'Watch Video Again');
 
     }
 }
