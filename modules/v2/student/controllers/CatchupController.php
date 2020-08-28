@@ -157,9 +157,25 @@ class CatchupController extends ActiveController
 
         if(!$file_log_id){
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+    }
+
+    return (new ApiResponse)->success($file_log_id, ApiResponse::SUCCESSFUL, 'Watch Video Again');
+
+    }
+
+    public function actionVideosWatched(){
+
+        $file_log = FileLog::findAll([
+            'is_completed' => SharedConstant::VALUE_ONE,
+            'user_id' => Yii::$app->user->id,
+            'type' => SharedConstant::TYPE_VIDEO,
+        ]);
+
+        if(!$file_log){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
         }
 
-        return (new ApiResponse)->success($file_log_id, ApiResponse::SUCCESSFUL, 'Watch Video Again');
+        return (new ApiResponse)->success($file_log, ApiResponse::SUCCESSFUL, 'Videos Fount');
 
     }
 }
