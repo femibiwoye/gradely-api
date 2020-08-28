@@ -7,7 +7,7 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
-use app\modules\v2\models\{Homeworks, ApiResponse};
+use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment};
 use app\modules\v2\components\SharedConstant;
 
 
@@ -76,5 +76,18 @@ class CatchupController extends ActiveController
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');;
 
+    }
+
+    public function actionVideoComments($id)
+    {
+        $model = FeedComment::find()
+                        ->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->identity->id])
+                        ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 }
