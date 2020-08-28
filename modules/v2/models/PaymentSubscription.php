@@ -51,7 +51,7 @@ class PaymentSubscription extends Model
 
     public function addPaymentSubscription()
     {
-        $model = new Subscriptions;
+        $model = new Subscriptions();
         $model->user_id = Yii::$app->user->id;
         $model->duration = SharedConstant::SUBSCRIPTION_DURATION;
         $model->price = ($this->paymentPlan->price * count($this->children));
@@ -59,6 +59,7 @@ class PaymentSubscription extends Model
         $model->plan = SharedConstant::SUBSCRIPTION_PLAN;
         $model->quantity = count($this->children);
         $model->payment_plan_id = $this->payment_plan_id;
+        $model->transaction_id = GenerateString::widget(['length' => 20]).mt_rand(10,99);
         $model->payment = 'unpaid';
         $model->total = $this->coupon ? ($model->price - (($model->price * $this->coupon->percentage) / 100)) : $model->price;
         $dbtransaction = Yii::$app->db->beginTransaction();
