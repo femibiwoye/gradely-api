@@ -41,6 +41,7 @@ return [
     'GET v2/student/video-comments/<id:\d+>' => 'v2/student/catchup/video-comments',
     'POST v2/student/video-comment' => 'v2/student/catchup/comment-video',
     'GET v2/student/video/<id:\d+>' => 'v2/student/catchup/video', 
+    'GET v2/student/class-resources/<class_id:\d+>' => 'v2/student/catchup/class-resources',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

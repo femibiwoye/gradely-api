@@ -74,7 +74,7 @@ class CatchupController extends ActiveController
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');;
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
 
     }
 
@@ -125,5 +125,28 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionClassResources($class_id)
+    {
+        $model = PracticeMaterial::find()
+                    ->innerJoin('feed', 'feed.id = practice_material.practice_id')
+                    ->where(['feed.class_id' => $class_id, 'feed.user_id' => Yii::$app->user->identity->id])
+                    ->orderBy(['feed.update_at' => SORT_DESC]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 6,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+
     }
 }
