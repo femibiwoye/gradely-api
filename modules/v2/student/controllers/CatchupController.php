@@ -5,6 +5,8 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
 use app\modules\v2\models\FileLog;
+use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\VideoContent;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
@@ -153,7 +155,14 @@ class CatchupController extends ActiveController
     
     public function actionWatchVideoAgain($id){
 
-        $file_log_id = FileLog::findOne(['is_completed' => SharedConstant::VALUE_ONE, 'id' => $id]);
+        $file_log_id = FileLog::find()
+                       ->innerJoin('video_content', 'video_content.file_id = file_log.id')
+                       ->andWhere([
+                           'is_completed' => SharedConstant::VALUE_ONE,
+                           'id' => $id,
+                           'user_id' => Yii::$app->user->id
+                       ])
+                       ->one();
 
         if(!$file_log_id){
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -175,7 +184,54 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
         }
 
-        return (new ApiResponse)->success($file_log, ApiResponse::SUCCESSFUL, 'Videos Fount');
+        return (new ApiResponse)->success($file_log, ApiResponse::SUCCESSFUL, 'Videos Found');
+
+    }
+
+    public function actionUpdateVideoCompleted(){
+
+        $student_id = Yii::$app->user->id;
+
+        $student_class = StudentSchool::findOne(['student_id' => $student_id]);
+        $class_id = $student_class->class_id;
+
+        $video_id = Yii::$app->request->post('video_id');
+
+        $form = new \yii\base\DynamicModel(compact('video_id', 'class_id'));
+        $form->addRule(['video_id'], 'required');
+        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
+
+        if (!$form->validate())
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+
+        $file_log = FileLog::findOne([
+            'user_id' => Yii::$app->user->id,
+            'type' => SharedConstant::TYPE_VIDEO,
+            'class_id' => $class_id,
+            'file_id' => $video_id,
+        ]);
+
+        if(!$file_log)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+
+        if($file_log->total_duration == $file_log->current_duration){
+
+            $file_log->is_completed = SharedConstant::VALUE_ONE;
+        }
+
+        if(!$file_log->save()){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $file_log,
+            'pagination' => [
+                'pageSize' => 6,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider, ApiResponse::SUCCESSFUL, 'Videos Found');
 
     }
 }
