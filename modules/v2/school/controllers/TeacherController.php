@@ -3,8 +3,8 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\SchoolSubject;
-use app\modules\v2\models\StudentDetails;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\models\TeacherProfile;
@@ -204,8 +204,6 @@ class TeacherController extends ActiveController
         if (!is_array($subjects)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'subjects must be an array');
         }
-
-        return ['choice'=>$subjects,'list'=>SchoolSubject::find()->where(['school_id' => $school_id])->all()];
 
         if (count($subjects) > SchoolSubject::find()->where(['subject_id' => $subjects, 'school_id' => $school_id])->count()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more subject is not in your subject list.');

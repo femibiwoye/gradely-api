@@ -8,7 +8,7 @@ use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
 use Yii;
 use yii\base\Model;
-use app\modules\v2\models\{Classes};
+use app\modules\v2\models\Classes;
 use app\modules\v2\components\SharedConstant;
 
 /**
