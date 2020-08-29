@@ -104,6 +104,7 @@ class ClassController extends ActiveController
         $model->teacher_id = Yii::$app->user->id;
         $model->school_id = $class->school->id;
         $model->class_id = $class->id;
+        $model->status = 1;
         if (!$model->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not successfully added!');
         }

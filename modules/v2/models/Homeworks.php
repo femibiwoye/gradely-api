@@ -129,6 +129,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'attachments',
             'average',
             'completion',
+            'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
 //            'homework_performance' => 'homeworkPerformance'
         ];
@@ -301,6 +302,11 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getPublishStatus()
     {
         return $this->publish_status;
+    }
+
+    public function getHomeworkHasQuestion()
+    {
+        return HomeworkQuestions::find()->where(['homework_id' => $this->id])->exists() ? 1 : 0;
     }
 
     public function getSubject()

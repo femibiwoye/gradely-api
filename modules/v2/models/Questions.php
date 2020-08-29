@@ -104,6 +104,7 @@ class Questions extends \yii\db\ActiveRecord
             'option_e',
             'answer',
             'duration',
+            'difficulty',
             'type',
             'correct_students' => 'correctQuizSummaryDetails',
             'wrong_students' => 'wrongQuizSummaryDetails'
