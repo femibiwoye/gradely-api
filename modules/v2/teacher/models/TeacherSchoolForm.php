@@ -24,6 +24,7 @@ class TeacherSchoolForm extends Model {
 	public function addTeacherClass() {
 		$model = new TeacherClass;
 		$model->attributes = $this->attributes;
+		$model->status = 1;
 		if (!$model->save()) {
 			return false;
 		}

@@ -176,8 +176,8 @@ class QuestionController extends ActiveController
         $teacher = Yii::$app->user->id;
         $form = new \yii\base\DynamicModel(compact('question_id', 'teacher'));
         $form->addRule(['question_id'], 'required');
-        $form->addRule(['teacher'], 'exist', ['targetClass' => HomeworkQuestions::className(), 'targetAttribute' => ['teacher' => 'teacher_id',
-            'question_id' => 'question_id']]);
+        //$form->addRule(['teacher'], 'exist', ['targetClass' => HomeworkQuestions::className(), 'targetAttribute' => ['teacher' => 'teacher_id',
+          //  'question_id' => 'question_id']]);
         $form->addRule(['question_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['question_id' => 'id']]);
 
         if (!$form->validate()) {
