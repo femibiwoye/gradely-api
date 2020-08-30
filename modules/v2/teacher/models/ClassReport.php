@@ -128,9 +128,9 @@ class ClassReport extends Model
         foreach ($students as $student) {
             if ($student['score'] > 75) {
                 $excellence[] = $student;
-            } else if ($student['score'] >= 50 && $student['score'] < 75) {
+            } elseif ($student['score'] >= 50 && $student['score'] < 75) {
                 $average[] = $student;
-            } else {
+            } elseif ($student['score'] < 50) {
                 $struggling[] = $student;
             }
         }
