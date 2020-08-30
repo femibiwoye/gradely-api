@@ -3,6 +3,7 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
@@ -335,6 +336,28 @@ class TeacherController extends ActiveController
         }
 
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not remove teacher from class');
+    }
+
+    public function actionPendingInvitation()
+    {
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $invites = InviteLog::find()->where(['sender_type'=>'school','sender_id' => $school->id, 'status' => 0, 'receiver_type' => 'teacher']);
+
+
+        $teachers = new ActiveDataProvider([
+            'query' => $invites,
+            'sort' => [
+                'attributes' => ['id', 'receiver_name', 'email'],
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                    'receiver_name' => SORT_ASC,
+                ]
+            ],
+            'pagination' => ['pageSize' => 20]
+        ]);
+
+        return (new ApiResponse)->success($teachers->getModels(), null, null, $teachers);
     }
 }
 
