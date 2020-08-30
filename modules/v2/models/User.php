@@ -230,14 +230,14 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             return false;
         }
 
-        return $user->token_expires >= date('Y-m-d h:i:s', time());
+        return $user->token_expires >= date('Y-m-d H:i:s', time());
     }
 
     public function generatePasswordResetToken()
     {
         $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
         date_default_timezone_set("Africa/Lagos");
-        $this->token_expires = date('Y-m-d h:i:s', strtotime("+30 minute", time()));
+        $this->token_expires = date('Y-m-d H:i:s', strtotime("+30 minute", time()));
     }
 
     public static function findByPasswordResetToken($token)

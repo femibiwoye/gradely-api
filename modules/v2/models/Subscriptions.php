@@ -113,7 +113,7 @@ class Subscriptions extends \yii\db\ActiveRecord
         if ($responseObj->data->status == 'success') {
             if ($model->payment == 'unpaid') {
                 $model->payment = 'paid';
-                $model->paid_at = date('Y-m-d h:i:s');
+                $model->paid_at = date('Y-m-d H:i:s');
                 $model->amount_paid = $responseObj->data->amount / 100;
 
                 //This saves the card details provided by the payment merchant

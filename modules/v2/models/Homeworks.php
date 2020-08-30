@@ -129,7 +129,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'attachments',
             'average',
             'completion',
-            'has_question' => 'homeworkHasQuestion'
+            //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
 //            'homework_performance' => 'homeworkPerformance'
         ];

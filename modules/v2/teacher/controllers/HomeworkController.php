@@ -301,7 +301,7 @@ class HomeworkController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->homework_id = $homework_id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validaton failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validation failed');
         }
 
         if (!$form->saveHomeworkQuestion()) {
