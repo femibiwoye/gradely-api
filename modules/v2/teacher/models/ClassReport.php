@@ -104,7 +104,7 @@ class ClassReport extends Model
         $class = Yii::$app->request->get('class_id');
         $topic_id = $this->currentTopic->id;
 
-        return $students = UserModel::find()
+         $students = UserModel::find()
             ->select([
                 'user.id',
                 'user.firstname',
@@ -126,6 +126,7 @@ class ClassReport extends Model
         $excellence = [];
         $average = [];
         $struggling = [];
+
         foreach ($students as $student) {
             if ($student['score'] >= 75) {
                 $excellence[] = $student;
