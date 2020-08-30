@@ -6,8 +6,10 @@ use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\{Subjects, SubjectTopics};
 use app\modules\v2\models\TeacherClass;
+use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
 use yii\base\Model;
@@ -104,7 +106,7 @@ class ClassReport extends Model
         $class = Yii::$app->request->get('class_id');
         $topic_id = $this->currentTopic->id;
 
-         $students = UserModel::find()
+        $students = User::find()
             ->select([
                 'user.id',
                 'user.firstname',
@@ -132,12 +134,14 @@ class ClassReport extends Model
                 $excellence[] = $student;
             } elseif ($student['score'] >= 50 && $student['score'] < 75) {
                 $average[] = $student;
-            } elseif ($student['score'] < 50) {
+            } elseif ($student['score'] >= 0 && $student['score'] < 50) {
                 $struggling[] = $student;
             }
         }
 
-        return ['studentsCount' => count($students), 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling];
+        $studentsCount = StudentSchool::find()->where(['class_id' => $class, 'status' => 1])->count();
+
+        return ['studentsCount' => $studentsCount, 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling];
 
     }
 
