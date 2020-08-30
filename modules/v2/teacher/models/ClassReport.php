@@ -104,7 +104,7 @@ class ClassReport extends Model
         $class = Yii::$app->request->get('class_id');
         $topic_id = $this->currentTopic->id;
 
-        $students = UserModel::find()
+        return $students = UserModel::find()
             ->select([
                 'user.id',
                 'user.firstname',
