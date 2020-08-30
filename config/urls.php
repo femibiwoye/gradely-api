@@ -17,8 +17,8 @@ return [
     'GET v2/general/term' => 'v2/general/term',
     'DELETE v2/general/app' => 'v2/general/clear-notification',
     'GET v2/general/app' => 'v2/general/app-notification',
-    'GET /v2/general/global-classes'=>'/v2/general/global-classes',
-    'GET /v2/general/avatar'=>'/v2/general/avatar',
+    'GET /v2/general/global-classes' => '/v2/general/global-classes',
+    'GET /v2/general/avatar' => '/v2/general/avatar',
 
     //Current User
     'GET v2/general/user' => 'v2/general/user',
@@ -63,5 +63,7 @@ return [
         'POST school-teacher' => 'school-teacher',
         'POST teacher-school' => 'teacher-school',
         'GET verify' => 'verify',
+        'PUT resend/<id:\d+>' => 'resend',
+        'DELETE remove/<id:\d+>' => 'remove',
     ]],
 ];

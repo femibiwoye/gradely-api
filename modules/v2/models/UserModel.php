@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 
+use app\modules\v2\components\Utility;
 use Yii;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
@@ -130,7 +131,7 @@ class UserModel extends User
             $fields['teacherSubjects'] = 'teacherSubjectList';
 
         //if ($this->isRelationPopulated('assessmentTopicsPerformance'))
-            $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
+        $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
 
         return $fields;
     }
@@ -253,7 +254,10 @@ class UserModel extends User
      */
     public function getTeacherClasses()
     {
-        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
+        if (Yii::$app->user->identity->type == 'school')
+            return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->andWhere(['school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])->id]);
+        else
+            return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
     }
 
     /**
@@ -322,12 +326,15 @@ class UserModel extends User
 
     public function getTeacherFirstClass()
     {
-        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->via('teacherClasses');
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->where(['status' => 1])->via('teacherClasses');
     }
 
     public function getTeacherSubjects()
     {
-        return $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->groupBy('subject_id');
+        if (isset($_GET['class_id']) && !empty($_GET['class_id']))
+            return $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->where(['status' => 1, 'class_id' => $_GET['class_id']])->groupBy('subject_id');
+        else
+            return $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->where(['status' => 1])->groupBy('subject_id');
     }
 
     public function getTeacherSubjectList()

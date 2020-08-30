@@ -188,14 +188,15 @@ class ClassesController extends ActiveController
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $school_id = $school->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
-        $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id']]);
+        $status = 1;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'school_id','status'));
+        $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id','status']]);
 
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id])->all(), 'student_id');
+        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id,'status'=>1])->all(), 'student_id');
 
         $students = User::find()->where(['id' => $student_ids])
             ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
