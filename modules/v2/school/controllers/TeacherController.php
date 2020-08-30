@@ -10,7 +10,7 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\models\TeacherProfile;
 use Yii;
-use app\modules\v2\models\{User, ApiResponse, SchoolTeachers, Schools, UserModel, StudentSchool};
+use app\modules\v2\models\{User, ApiResponse, SchoolTeachers, Schools, UserModel, StudentSchool, Classes};
 use app\modules\v2\components\{SharedConstant, Utility};
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
@@ -79,7 +79,7 @@ class TeacherController extends ActiveController
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $school_id = $school->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
-            $model->addRule(['class_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id']]);
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id' => 'school_id']]);
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
             }
