@@ -52,12 +52,19 @@ class ClassReport extends Model
         if (Yii::$app->request->get('term')) {
             return Yii::$app->request->get('term');
         }
-        if (Yii::$app->user->identity->type == 'teacher')
-            $id = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'class_id' => Yii::$app->request->get('class_id')])->school_id;
-        elseif (Yii::$app->user->identity->type == 'school')
-            $id = Schools::findOne(['id' => Utility::getSchoolAccess()])->id;
+        if (Yii::$app->user->identity->type == 'teacher') {
+            $teacherClass = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'class_id' => Yii::$app->request->get('class_id')]);
+            if (isset($teacherClass->school_id))
+                $term = strtolower(SessionTermOnly::widget(['id' => $teacherClass->school_id]));
+            else
+                $term = strtolower(SessionTermOnly::widget(['nonSchool' => true]));
 
-        return strtolower(SessionTermOnly::widget(['id' => $id]));
+        } elseif (Yii::$app->user->identity->type == 'school') {
+            $id = Schools::findOne(['id' => Utility::getSchoolAccess()])->id;
+            $term = strtolower(SessionTermOnly::widget(['id' => $id]));
+        }
+
+        return $term;
     }
 
     public function getTopicList()
