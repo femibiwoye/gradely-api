@@ -157,15 +157,36 @@ class InvitesController extends ActiveController
 
         } elseif ($model->sender_type == 'school' && $model->receiver_type == 'teacher') {
 
-        }elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
+        } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
 
-        }elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
+        } elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
 
         }
 
 
         return (new ApiResponse)->success($model);
 
+    }
+
+
+    public function actionResend($id)
+    {
+        $senderID = Yii::$app->user->identity->type == 'school' ? Schools::findOne(['id' => Utility::getSchoolAccess()])->id : Yii::$app->user->id;
+        if ($model = InviteLog::findOne(['id' => $id, 'status' => 0, 'sender_id' => $senderID])) {
+
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Invitation has been resent');
+        } else
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not process your request');
+    }
+
+    public function actionRemove($id)
+    {
+        $senderID = Yii::$app->user->identity->type == 'school' ? Schools::findOne(['id' => Utility::getSchoolAccess()])->id : Yii::$app->user->id;
+        if ($model = InviteLog::findOne(['id' => $id, 'status' => 0, 'sender_id' => $senderID])) {
+            $model->delete();
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Invitation has been removed');
+        } else
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not process your request');
     }
 
 

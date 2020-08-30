@@ -5,6 +5,7 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\SchoolSubject;
+use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\models\TeacherProfile;
@@ -75,7 +76,8 @@ class TeacherController extends ActiveController
     public function actionIndex($class_id = null)
     {
         if ($class_id) {
-            $school_id = Utility::getSchoolAccess()[0];
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $school_id = $school->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
             $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id' => 'school_id']]);
             if (!$model->validate()) {
@@ -83,7 +85,7 @@ class TeacherController extends ActiveController
             }
 
             $model = UserModel::find()
-                ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id')
+                ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id AND teacher_class.status=1')
                 ->where(['user.type' => 'teacher', 'teacher_class.class_id' => $class_id])
                 ->with(['teacherClassesList', 'teacherSubjectList'])->groupBy(['id']);
         } else {
@@ -219,6 +221,7 @@ class TeacherController extends ActiveController
             $model->teacher_id = $teacher_id;
             $model->subject_id = $subject;
             $model->school_id = $school_id;
+            $model->status = 1;
             if ($model->save())
                 $count = $count + 1;
         }
@@ -258,6 +261,7 @@ class TeacherController extends ActiveController
                 $teacherClass->teacher_id = $teacher_id;
                 $teacherClass->class_id = $class_id;
                 $teacherClass->school_id = $school_id;
+                $teacherClass->status = 1;
                 if (!$teacherClass->save())
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not add teacher to class');
             }
@@ -271,6 +275,7 @@ class TeacherController extends ActiveController
                 $model->teacher_id = $teacher_id;
                 $model->subject_id = $subject;
                 $model->school_id = $school_id;
+                $model->status = 1;
                 if (!$model->save())
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not add one or more subjects');
 
@@ -342,22 +347,17 @@ class TeacherController extends ActiveController
     {
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        $invites = InviteLog::find()->where(['sender_type'=>'school','sender_id' => $school->id, 'status' => 0, 'receiver_type' => 'teacher']);
+        $invites = InviteLog::find()
+            ->where(['sender_type' => 'school', 'sender_id' => $school->id, 'invite_log.status' => 0, 'receiver_type' => 'teacher'])
+            ->asArray()
+            ->all();
+
+        foreach ($invites as $index => $invite) {
+            $invites[$index] = array_merge($invite, ['subjects' => Subjects::find()->where(['id' => json_decode($invite['receiver_subjects'])])->all()]);
+        }
 
 
-        $teachers = new ActiveDataProvider([
-            'query' => $invites,
-            'sort' => [
-                'attributes' => ['id', 'receiver_name', 'email'],
-                'defaultOrder' => [
-                    'id' => SORT_DESC,
-                    'receiver_name' => SORT_ASC,
-                ]
-            ],
-            'pagination' => ['pageSize' => 20]
-        ]);
-
-        return (new ApiResponse)->success($teachers->getModels(), null, null, $teachers);
+        return (new ApiResponse)->success($invites, null, null);
     }
 }
 
