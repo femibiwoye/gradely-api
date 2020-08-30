@@ -23,6 +23,7 @@ return [
     //Student Practice
     'GET v2/student/practice/homework-instruction/<homework_id:\d+>' => 'v2/student/practice/homework-instruction',
     'GET v2/student/practice/start-homework' => 'v2/student/practice/start-homework',
+    'GET v2/student/practice/process-homework' => 'v2/student/practice/process-homework',
 
     //student class
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class',

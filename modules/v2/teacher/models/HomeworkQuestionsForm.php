@@ -87,7 +87,7 @@ class HomeworkQuestionsForm extends Model
 
     public function saveQuestion($question_id)
     {
-        $question = Questions::findOne(['id' => $question_id]);
+        $question = Questions::find()->where(['id' => $question_id])->one();
         $model = new HomeworkQuestions;
         $model->teacher_id = Yii::$app->user->id;
         $model->homework_id = $this->homework_id;

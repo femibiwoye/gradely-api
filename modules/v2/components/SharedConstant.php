@@ -33,4 +33,5 @@ class SharedConstant {
 	const QUESTION_DIFFICULTY = ['hard', 'medium', 'easy'];
 	const SUBSCRIPTION_DURATION = 'month';
 	const SUBSCRIPTION_PLAN = 'basic';
+	const QUESTION_ACCEPTED_OPTIONS = ['A', 'B', 'C', 'D', 1, 0];
 }
