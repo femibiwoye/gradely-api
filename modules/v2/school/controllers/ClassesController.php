@@ -190,7 +190,7 @@ class ClassesController extends ActiveController
         $school_id = $school->id;
         $status = 1;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id','status'));
-        $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id','status']]);
+        $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id','status']]);
 
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
