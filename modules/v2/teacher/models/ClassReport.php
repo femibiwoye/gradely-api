@@ -122,6 +122,8 @@ class ClassReport extends Model
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = user.id AND qsd.topic_id = '$topic_id'")
             ->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.submit = 1")
             ->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
+            ->groupBy('user.id')
+            ->orderBy('score')
             ->asArray()
             ->all();
 
