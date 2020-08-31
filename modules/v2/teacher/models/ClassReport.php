@@ -97,14 +97,18 @@ class ClassReport extends Model
             return SubjectTopics::findOne(['id' => Yii::$app->request->get('topic_id'), 'subject_id' => $subject->id]);
         }
 
-        return $this->topicList[0];
+        return isset($this->topicList[0]) ? $this->topicList[0] : null;
 
     }
 
     public function getTopicPerformance()
     {
         $class = Yii::$app->request->get('class_id');
-        $topic_id = $this->currentTopic->id;
+        if(isset($this->currentTopic->id)) {
+            $topic_id = $this->currentTopic->id;
+        }else{
+            $topic_id = 0;
+        }
 
         $students = User::find()
             ->select([
