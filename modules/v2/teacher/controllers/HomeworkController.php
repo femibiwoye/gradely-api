@@ -261,6 +261,26 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework record restarted successfully.');
     }
 
+    public function actionPublishHomework($homework_id)
+    {
+        $model = Homeworks::findOne(['id' => $homework_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not found');
+        }
+
+        if ($model->publish_status == 1) {
+            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework already published');
+        }
+
+        if ($model->publish_status == 0) {
+            $model->publish_status = 1;
+            if ($model->save())
+                return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework successfully published');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Something went wrong.');
+    }
+
     public function actionSubject($class_id)
     {
         $subjects = TeacherClassSubjects::find()->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'status' => 1])->groupBy('subject_id')->all();
@@ -284,9 +304,9 @@ class HomeworkController extends ActiveController
         }
 
         $model = Questions::find()
-                    ->innerJoin('homework_questions', 'homework_questions.question_id = questions.id')
-                    ->where(['homework_questions.homework_id' => $homework_id])
-                    ->all();
+            ->innerJoin('homework_questions', 'homework_questions.question_id = questions.id')
+            ->where(['homework_questions.homework_id' => $homework_id])
+            ->all();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
