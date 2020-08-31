@@ -3,6 +3,7 @@
 namespace app\modules\v2\components;
 
 use app\modules\v2\models\GlobalClass;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\TeacherClass;
@@ -150,6 +151,16 @@ class Utility extends ActiveRecord
         return [
             'has_class' => TeacherClass::find()->where(['teacher_id' => $userID, 'status' => 1])->exists() ? 1 : 0
         ];
+    }
+
+    public static function getParentStudent($child_id){
+
+        if(Parents::findOne(['student_id' => $child_id, 'status' => 1])->exists() AND Yii::$app->user->identity->type == 'parent')
+            $student_id = $child_id;
+        elseif(Yii::$app->user->identity->type == 'student')
+            $student_id = $child_id;
+
+        return $student_id;
     }
 
 }
