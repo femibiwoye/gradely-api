@@ -255,7 +255,7 @@ class UserModel extends User
     public function getTeacherClasses()
     {
         if (Yii::$app->user->identity->type == 'school')
-            return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->andWhere(['school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])->id]);
+            return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->andWhere(['status'=>1,'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])->id]);
         else
             return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
     }
