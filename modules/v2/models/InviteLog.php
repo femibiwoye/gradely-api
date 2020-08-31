@@ -151,6 +151,7 @@ class InviteLog extends \yii\db\ActiveRecord
         $model->receiver_email = $this->receiver_email;
         $model->receiver_name = $this->receiver_name;
         $model->receiver_phone = $this->receiver_phone;
+        $model->receiver_class = $this->receiver_class;
         if (is_array($this->receiver_subjects))
             $model->receiver_subjects = json_encode($this->receiver_subjects);
         else
