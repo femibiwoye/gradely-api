@@ -107,7 +107,7 @@ class ClassReport extends Model
         if(isset($this->currentTopic->id)) {
             $topic_id = $this->currentTopic->id;
         }else{
-            $topic_id = 0;
+            $topic_id = null;
         }
 
         $students = User::find()
