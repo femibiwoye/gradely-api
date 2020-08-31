@@ -122,7 +122,8 @@ class Homeworks extends \yii\db\ActiveRecord
             'duration',
             'questionsDuration',
             'score',
-            'status' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
+            'status',
+            'activeStatus' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
             'publish_status' => 'publishStatus',
             'topics',
@@ -334,11 +335,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getQuestionCount()
     {
-        if (!$this->quizSummary) {
-            return null;
-        }
-
-        return $this->quizSummary->total_questions;
+        return HomeworkQuestions::find()->where(['homework_id' => $this->id])->count();
     }
 
     public function getStatusMessage()

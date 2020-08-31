@@ -234,4 +234,27 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($provider, ApiResponse::SUCCESSFUL, 'Videos Found');
 
     }
+
+    public function actionUpdateVideoLength($id)
+    {
+        $current_duration = Yii::$app->request->post('current_duration');
+        $model = FileLog::find()
+                       ->andWhere([
+                           'is_completed' => SharedConstant::VALUE_ONE,
+                           'id' => $id,
+                           'user_id' => Yii::$app->user->id
+                       ])
+                       ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->current_duration = $current_duration;
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video duration updated');
+    }
 }

@@ -37,6 +37,8 @@ return [
     'PUT v2/teacher/homework/extend/<homework_id:\d+>' => 'v2/teacher/homework/extend-date',
     'PUT v2/teacher/homework/<homework_id:\d+>/restart' => 'v2/teacher/homework/restart-homework',
     'POST v2/teacher/homework/<type:[a-z/]+>' => 'v2/teacher/homework/create',
+    'PUT v2/teacher/homework/publish/<homework_id:\d+>' => 'v2/teacher/homework/publish-homework',
+
 
     //'POST v2/teacher/homework/lesson' => 'v2/teacher/homework/create-lesson',
     'PUT v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/update',
