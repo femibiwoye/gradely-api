@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\student\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use app\modules\v2\teacher\models\UpdateTeacherForm;
@@ -156,9 +157,14 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
-    public function actionReport()
+    public function actionReport($child_id = null)
     {
-        $model = StudentDetails::findOne(['id' => Yii::$app->user->id]);
+        if (Yii::$app->user->identity->type == 'parent') {
+            $studentID = Utility::getParentChildID($child_id);
+        } else
+            $studentID = Yii::$app->user->id;
+
+        $model = StudentDetails::findOne(['id' => $studentID]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student report not found');
         }
