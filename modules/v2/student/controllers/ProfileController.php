@@ -95,7 +95,6 @@ class ProfileController extends ActiveController
         }
 
         return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL, 'Record found');
-
     }
 
     public function actionUpdateEmail()
@@ -157,13 +156,9 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
-    public function actionReport($child_id = null)
+    public function actionReport()
     {
-        if (Yii::$app->user->identity->type == 'parent') {
-            $studentID = Utility::getParentChildID($child_id);
-        } else
-            $studentID = Yii::$app->user->id;
-
+        $studentID = Utility::getParentChildID();
         $model = StudentDetails::findOne(['id' => $studentID]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student report not found');
@@ -194,7 +189,6 @@ class ProfileController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'User account deleted successfully');
-
     }
 
     public function actionUpdateAvatar()
