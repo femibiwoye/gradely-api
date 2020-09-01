@@ -21,16 +21,16 @@ class TeacherSchoolForm extends Model {
 		];
 	}
 
-	public function addTeacherClass() {
+	public function addTeacherClass($code = 1) {
 		$model = new TeacherClass;
 		$model->attributes = $this->attributes;
-		$model->status = 1;
+		$model->status = $code;
 		if (!$model->save()) {
 			return false;
 		}
 
 		//Check and add teacher to school_teacher is not exists
-		$model->addSchoolTeacher();
+		$model->addSchoolTeacher($code);
 		return $model;
 	}
 }

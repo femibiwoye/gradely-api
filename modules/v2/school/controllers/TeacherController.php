@@ -86,14 +86,14 @@ class TeacherController extends ActiveController
 
             $model = UserModel::find()
                 ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id AND teacher_class.status=1')
-                ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = '.$school_id.' AND school_teachers.status=1')
+                ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school_id . ' AND school_teachers.status=1')
                 ->where(['user.type' => 'teacher', 'teacher_class.class_id' => $class_id])
                 ->with(['teacherClassesList', 'teacherSubjectList'])->groupBy(['user.id']);
         } else {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 1])->all();
             $model = UserModel::find()->where(['type' => 'teacher', 'user.id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
-                ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = '.$school->id.' AND school_teachers.status=1')
+                ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school->id . ' AND school_teachers.status=1')
                 ->with(['teacherClassesList', 'teacherSubjectList'])
                 ->groupBy(['user.id']);
         }
@@ -143,12 +143,15 @@ class TeacherController extends ActiveController
 
         if ($id > 0 && $model = SchoolTeachers::findOne(['teacher_id' => $id, 'school_id' => $school->id, 'status' => 0])) {
             $model->status = 1;
-            if ($model->save())
+            if ($model->save()) {
+                TeacherClass::updateAll(['status' => 1], ['teacher_id' => $id, 'status' => 0, 'school_id' => $school->id]);
                 return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Teacher accepted!');
+            }
         }
 
         if ($id == 0) {
             if (SchoolTeachers::updateAll(['status' => 1], ['school_id' => $school->id, 'status' => 0])) {
+                TeacherClass::updateAll(['status' => 1], ['status' => 0, 'school_id' => $school->id]);
                 return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Pending teachers has been accepted!');
             }
         }
@@ -160,13 +163,16 @@ class TeacherController extends ActiveController
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        if ($id > 0 && $model = SchoolTeachers::findOne(['teacher_id' => $id, 'status' => 0])) {
+        if ($id > 0 && $model = SchoolTeachers::findOne(['teacher_id' => $id, 'school_id' => $school->id, 'status' => 0])) {
             $model->delete();
+            TeacherClass::deleteAll(['teacher_id' => $id, 'school_id' => $school->id]);
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Teacher declined & removed!');
         }
 
         if ($id == 0) {
-            if (SchoolTeachers::deleteAll(['school_id' => $school->id, 'status' => 0])) {
+            $ids = ArrayHelper::getColumn(SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 0])->all(),'teacher_id');
+            if (SchoolTeachers::deleteAll(['school_id' => $school->id,'teacher_id'=>$ids, 'status' => 0])) {
+                TeacherClass::deleteAll(['teacher_id' => $ids, 'school_id' => $school->id]);
                 return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Pending teachers declined and removed!');
             }
         }

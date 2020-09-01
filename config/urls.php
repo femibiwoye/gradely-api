@@ -7,6 +7,7 @@ return [
     'POST v2/logout' => 'v2/auth/logout',
     'POST v2/forgot-password' => 'v2/auth/forgot-password',
     'POST v2/reset-password' => 'v2/auth/reset-password',
+    'POST v2/validate' => 'v2/auth/validate-token',
 
     //Onboarding/General endpoints
     'PUT v2/general/update-boarding' => 'v2/general/update-boarding',
