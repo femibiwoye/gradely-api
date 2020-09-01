@@ -100,6 +100,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School not found!');
         }
 
+
         if (TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'school_id' => $class->school->id, 'class_id' => $class->id, 'status' => 1])->exists())
             return (new ApiResponse)->success(null, ApiResponse::ALREADY_TAKEN, 'Teacher already added to class!');
 
@@ -177,7 +178,7 @@ class ClassController extends ActiveController
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL, 'School record found');
     }
 
-    public function actionAddTeacherSchool($search = null)
+    public function actionAddTeacherSchool($status = 0)
     {
         $form = new TeacherSchoolForm;
         $form->attributes = Yii::$app->request->post();
@@ -186,10 +187,10 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        if (TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'school_id' => $form->school_id, 'class_id' => $form->class_id, 'status' => 1])->exists())
+        if (TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'school_id' => $form->school_id, 'class_id' => $form->class_id])->exists())
             return (new ApiResponse)->success(null, ApiResponse::ALREADY_TAKEN, 'Teacher already added to class!');
 
-        if (!$model = $form->addTeacherClass()) {
+        if (!$model = $form->addTeacherClass($status)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added!');
         }
 
