@@ -3,7 +3,7 @@
 return [
 
     //Reports
-    'GET v2/parent/student/report/<child_id:\d+>' => 'v2/student/profile/report',
+    'GET v2/parent/student/report' => 'v2/student/profile/report',
 
     //parent urls - trello Parent
     'GET v2/parent/children'=>'v2/parent/children/list',
