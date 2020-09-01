@@ -58,9 +58,9 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCompletedHomework()
+    public function actionCompletedHomework($child = null)
     {
-        $student_id = Utility::getParentStudent(Yii::$app->user->id);
+        $student_id = Utility::getParentChildID($child);
 
         $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
@@ -81,7 +81,7 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
-    public function actionNewHomework()
+    public function actionNewHomework($child = null)
     {
         $models = $this->modelClass::find()
             ->innerJoin('student_school', 'student_school.class_id = homeworks.class_id')
