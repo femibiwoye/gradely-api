@@ -4,6 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Remarks;
@@ -57,11 +58,13 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCompletedHomework()
+    public function actionCompletedHomework($child = null)
     {
+        $student_id = Utility::getParentChildID($child);
+
         $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-            ->where(['quiz_summary.student_id' => Yii::$app->user->id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
+            ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -78,7 +81,7 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
-    public function actionNewHomework()
+    public function actionNewHomework($child = null)
     {
         $models = $this->modelClass::find()
             ->innerJoin('student_school', 'student_school.class_id = homeworks.class_id')
@@ -118,7 +121,8 @@ class HomeworkController extends ActiveController
 
     public function actionHomeworkReport($id)
     {
-        $model = HomeworkReport::findOne(['student_id' => Yii::$app->user->id, 'homework_id' => $id, 'submit' => 1]);
+        $student_id = Utility::getParentChildID();
+        $model = HomeworkReport::findOne(['student_id' => $student_id, 'homework_id' => $id, 'submit' => 1]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework report not found');
         }
@@ -128,8 +132,6 @@ class HomeworkController extends ActiveController
 
     public function actionHomeworkReviewQuestion($homework_id)
     {
-
-
         $summary_details = QuizSummaryDetails::find()->alias('qsd')
             ->innerJoin('quiz_summary', 'quiz_summary.id = qsd.quiz_id')
             ->innerJoin('homeworks', 'homeworks.id = quiz_summary.homework_id')

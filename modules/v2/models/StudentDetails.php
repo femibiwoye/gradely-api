@@ -96,8 +96,8 @@ class StudentDetails extends User
                 "u.email",
                 "u.phone"
             ])
-            ->leftJoin('user u',"u.id = p.parent_id AND u.type = 'parent'")
-            ->where(['student_id'=>$this->id,'p.status'=>1])
+            ->leftJoin('user u', "u.id = p.parent_id AND u.type = 'parent'")
+            ->where(['student_id' => $this->id, 'p.status' => 1])
             ->asArray()
             ->all();
 
@@ -115,9 +115,9 @@ class StudentDetails extends User
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $condition = ['school_id' => Utility::getSchoolAccess()];
             $condition2 = " AND homeworks.school_id = " . $school->id;
-        } elseif (Yii::$app->user->identity->type == 'student') {
-            $condition = ['student_id' => Yii::$app->user->id];
-            $condition2 = " AND homeworks.student_id = " . Yii::$app->user->id;
+        } elseif (Yii::$app->user->identity->type == 'student' || Yii::$app->user->identity->type == 'parent') {
+            $condition = ['student_id' => $this->id];
+            $condition2 = " AND homeworks.student_id = " . $this->id;
         }
 
         $homeworkCount = Homeworks::find()
