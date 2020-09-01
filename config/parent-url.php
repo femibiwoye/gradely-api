@@ -15,7 +15,7 @@ return [
 
 
     //Homework Report
-    'GET v2/parent/homework/report/<id:\d+>' => 'v2/student/homework/homework-report',
+    'GET v2/parent/homework-report/<id:\d+>' => 'v2/student/homework/homework-report',
     'GET v2/parent/completed-homework' => 'v2/student/homework/completed-homework',
     'GET v2/parent/new-homework' => 'v2/student/homework/new-homework',
 
