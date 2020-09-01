@@ -156,10 +156,16 @@ class Utility extends ActiveRecord
 
     public static function getParentStudent($child_id)
     {
-        if (Parents::findOne(['student_id' => $child_id, 'status' => 1])->exists() AND Yii::$app->user->identity->type == 'parent')
-            $student_id = $child_id;
+        if (Yii::$app->user->identity->type == 'parent')
+        {
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => $child_id])->all(), 'student_id');
+            $student_id = $studentIDs;
+        }
         elseif (Yii::$app->user->identity->type == 'student')
+        {
             $student_id = $child_id;
+        }
+
 
         return $student_id;
     }

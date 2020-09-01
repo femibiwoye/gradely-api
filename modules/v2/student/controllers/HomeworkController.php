@@ -62,9 +62,6 @@ class HomeworkController extends ActiveController
     {
         $student_id = Utility::getParentStudent(Yii::$app->user->id);
 
-        if(!$student_id)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
-
         $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
             ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
