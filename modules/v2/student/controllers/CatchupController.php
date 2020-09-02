@@ -307,10 +307,39 @@ class CatchupController extends ActiveController
 
     public function actionIncompleteVideos()
     {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
         $model = FileLog::findAll([
             'user_id' => Yii::$app->user->identity->id,
             'is_completed' => SharedConstant::VALUE_ZERO
         ]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionClassMaterials()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = PracticeMaterial::find()
+                    ->where(['user_id' => Yii::$app->user->identity->id])
+                    ->andWhere([
+                        'filetype' => [
+                            SharedConstant::PRACTICE_MATERIAL_TYPES[0],
+                            SharedConstant::PRACTICE_MATERIAL_TYPES[1]
+                        ]
+                    ])
+                    ->orderBy(['created_at' => SORT_DESC])
+                    ->limit(12)
+                    ->all();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');

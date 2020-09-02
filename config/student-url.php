@@ -50,6 +50,7 @@ return [
     'GET v2/student/diagnostic-subjects' => 'v2/student/catchup/diagnostic',
     'GET v2/student/recent-practices' => 'v2/student/catchup/recent-practices',
     'GET v2/student/videos' => 'v2/student/catchup/incomplete-videos',
+    'GET v2/student/practice-materials' => 'v2/student/catchup/class-materials',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

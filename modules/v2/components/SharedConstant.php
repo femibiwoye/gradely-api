@@ -35,4 +35,5 @@ class SharedConstant {
 	const SUBSCRIPTION_DURATION = 'month';
 	const SUBSCRIPTION_PLAN = 'basic';
 	const QUESTION_ACCEPTED_OPTIONS = ['A', 'B', 'C', 'D', 1, 0];
+	const PRACTICE_MATERIAL_TYPES = ['video', 'document', 'link', 'image'];
 }
