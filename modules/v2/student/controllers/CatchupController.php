@@ -10,7 +10,7 @@ use app\modules\v2\models\VideoContent;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
-use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial, Catchup, SubjectTopics};
+use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial, Catchup, SubjectTopics, QuizSummary};
 use app\modules\v2\components\{SharedConstant, Utility};
 
 
@@ -281,6 +281,26 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionRecentPractices()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = QuizSummary::find()
+                    ->where(['student_id' => Yii::$app->user->identity->id, 'submit' => SharedConstant::VALUE_ONE])
+                    ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+                    ->orderBy(['submit_at' => SORT_DESC])
+                    ->limit(6)
+                    ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }

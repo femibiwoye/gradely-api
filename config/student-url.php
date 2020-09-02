@@ -48,6 +48,7 @@ return [
     'POST v2/student/video-complete' => 'v2/student/catchup/update-video-completed',
     'PUT v2/student/<id:\d+>' => 'v2/student/catchup/update-video-length',
     'GET v2/student/diagnostic-subjects' => 'v2/student/catchup/diagnostic',
+    'GET v2/student/recent-practices' => 'v2/student/catchup/recent-practices',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
