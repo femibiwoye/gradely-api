@@ -2,6 +2,14 @@
 
 namespace app\modules\v2\parent\controllers;
 
+use app\modules\v2\components\SharedConstant;
+use app\modules\v2\models\GlobalClass;
+use app\modules\v2\models\StudentSchool;
+use app\modules\v2\components\Utility;
+use app\modules\v2\controllers\AuthController;
+use app\modules\v2\models\SignupForm;
+use yii\base\DynamicModel;
+use app\modules\v2\models\VideoContent;
 use Yii;
 use app\modules\v2\components\CustomHttpBearerAuth;
 //models
@@ -85,6 +93,164 @@ class ChildrenController extends ActiveController
         }
 
         return (new ApiResponse)->success($students, ApiResponse::SUCCESSFUL);
+    }
+
+
+    public function actionUpdateChildClass($child_id){
+
+        $user = User::findOne($child_id);
+
+        $parent = Parents::findOne(['student_id' => $child_id, 'status' => SharedConstant::VALUE_ONE]);
+
+        $class_id = Yii::$app->request->post('class_id');
+        $password = Yii::$app->request->post('password');
+
+        $form = new DynamicModel(compact(['class_id', 'password']));
+        $form->addRule(['class_id', 'password'], 'required');
+        $form->addRule(['class_id'], 'exist', ['targetClass' => GlobalClass::className(), 'targetAttribute' => ['class_id' => 'id']]);
+
+        if(!$form->validate())
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+        if(!$parent)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
+
+        $class = GlobalClass::findOne(['class_id' => $class_id, 'status' => SharedConstant::VALUE_ONE]);
+
+        if(!$class)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
+
+        if($user->setPassword($password) != $user->password_hash)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password incorrect');
+
+
+        $user->class = $class_id;
+
+        if(!$user->save())
+            return (new ApiResponse)->error($user->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child class not updated');
+
+
+        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child class updated');
+    }
+
+    public function actionResetChildPassword($child_id){
+
+        $student_code = Yii::$app->request->post('student_code');
+        $password = Yii::$app->request->post('password');
+
+        $form = new DynamicModel(compact(['password', 'student_code']));
+        $form->addRule(['password', 'student_code'], 'required');
+
+        if(!$form->validate())
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+
+        $user = User::findOne($child_id);
+
+        $parent = Parents::findOne(['student_id' => $child_id, 'status' => SharedConstant::VALUE_ONE]);
+
+
+        if(!$parent)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
+
+
+        $user->password_hash = $user->setPassword($password);
+        $user->password_reset_token = $user->generatePasswordResetToken();
+
+        if(!$user->save())
+            return (new ApiResponse)->error($user->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child class not updated');
+
+
+        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child class updated');
+
+    }
+
+    public function actionUnlinkChild($child_id)
+    {
+
+        $parent = Parents::findOne(['student_id' => $child_id, 'status' => 1]);
+
+        if(!$parent)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
+
+        if(!$parent->delete())
+            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child cannot be deleted');
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Child successfully deleted');
+
+    }
+
+    public function actionSearchStudentCode($child_id)
+    {
+
+        $parent = Parents::findOne(['student_id' => $child_id, 'status' => 1]);
+
+        $user = User::findOne($child_id);
+
+
+        if(!$user)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
+
+        if(!$parent)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
+
+        if(!$user->code)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
+
+
+        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Student Code found');
+
+    }
+
+    public function actionConnectStudentCode($child_id)
+    {
+
+        $code = Yii::$app->request->post('code');
+        $password = Yii::$app->request->post('password');
+
+        $form = new DynamicModel(compact(['code', 'password']));
+        $form->addRule(['code', 'password'], 'required');
+
+        if(!$form->validate())
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+
+
+        $parent = Parents::find()->where([
+                    'student_id' => $child_id,
+                    'status' => SharedConstant::VALUE_ONE,
+                    'parent_id' => Yii::$app->user->id,
+                    ])
+                  ->andWhere(['not', 'code', null])
+                  ->one();
+
+        $user = User::findOne($child_id);
+
+        if(!$user)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
+
+        if(!$parent)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child already exists');
+
+        if(!$user->code)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
+
+        if($user->setPassword($password) != $user->password_hash)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password incorrect');
+
+
+        $parent = new Parents();
+        $parent->parent_id = Yii::$app->user->id;
+        $parent->code = $code;
+        $parent->student_id = $child_id;
+        $parent->status = SharedConstant::VALUE_ONE;
+        $parent->inviter = 'parent';
+
+        if(!$parent->save())
+            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
+
+
+        return (new ApiResponse)->success($parent, ApiResponse::SUCCESSFUL, 'Parent Child saved');
+
     }
 
 }

@@ -122,7 +122,7 @@ class HomeworkController extends ActiveController
     public function actionHomeworkReport($id)
     {
 
-        $student_id = Utility::getParentStudent(Yii::$app->user->id);
+        $student_id = Utility::getParentChildID(Yii::$app->user->id);
 
         $model = HomeworkReport::findOne(['student_id' => $student_id, 'homework_id' => $id, 'submit' => 1]);
         if (!$model) {
