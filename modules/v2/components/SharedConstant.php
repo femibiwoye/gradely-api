@@ -15,6 +15,7 @@ class SharedConstant {
 	const STATUS_DELETED = 0;
 	const VALUE_ONE = 1;
 	const VALUE_ZERO = 0;
+	const VALUE_NULL = '';
 	const DEFAULT_COUNTRY = 'Nigeria';
 	const FEED_TYPE = 'feed';
 	const COMMENT_TYPE = 'comment';
@@ -29,7 +30,7 @@ class SharedConstant {
 	const SCHOOL_TYPE = ['all','primary','secondary'];
 	const SCHOOL_OWNER_ROLE = 'owner';
 	const PRACTICE_TYPES = ['feed', 'practice', 'homework'];
-	const QUIZ_SUMMARY_TYPE = ['homework'];
+	const QUIZ_SUMMARY_TYPE = ['homework', 'diagnostic'];
 	const QUESTION_DIFFICULTY = ['hard', 'medium', 'easy'];
 	const SUBSCRIPTION_DURATION = 'month';
 	const SUBSCRIPTION_PLAN = 'basic';
