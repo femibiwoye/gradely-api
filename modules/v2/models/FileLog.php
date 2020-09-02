@@ -38,10 +38,10 @@ class FileLog extends \yii\db\ActiveRecord
     {
         return [
             [['user_id'], 'required'],
-            [['user_id', 'file_id', 'subject_id', 'topic_id', 'class_id', 'is_completed'], 'integer'],
+            [['user_id', 'file_id', 'subject_id', 'topic_id', 'class_id', 'is_completed', 'current_duration'], 'integer'],
             [['file_url', 'type'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
-            [['total_duration', 'current_duration'], 'string', 'max' => 45],
+            [['total_duration'], 'string', 'max' => 45],
         ];
     }
 
