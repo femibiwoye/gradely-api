@@ -106,6 +106,7 @@ class Questions extends \yii\db\ActiveRecord
             'duration',
             'difficulty',
             'type',
+            'owner'=>'questionOwner',
             'correct_students' => 'correctQuizSummaryDetails',
             'wrong_students' => 'wrongQuizSummaryDetails'
         ];
@@ -132,6 +133,11 @@ class Questions extends \yii\db\ActiveRecord
     public function getComprehension()
     {
         return $this->hasOne(Comprehension::className(), ['id' => 'comprehension_id']);
+    }
+
+    public function getQuestionOwner()
+    {
+        return $this->teacher_id == Yii::$app->user->id?1:0;
     }
 
     public static function find()
