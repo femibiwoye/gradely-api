@@ -206,7 +206,7 @@ class ChildrenController extends ActiveController
 
     }
 
-    public function actionConnectStudentCode($child_id)
+    public function actionConnectStudentCode()
     {
 
         $code = Yii::$app->request->post('code');
@@ -215,6 +215,8 @@ class ChildrenController extends ActiveController
 
         $form = new DynamicModel(compact(['code', 'password']));
         $form->addRule(['code', 'password'], 'required');
+        $form->addRule(['child_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['child_id' => 'id']]);
+
 
         if(!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
