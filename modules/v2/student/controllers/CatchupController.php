@@ -179,11 +179,14 @@ class CatchupController extends ActiveController
     public function actionVideosWatched()
     {
 
-        $file_log = FileLog::find()->where([
-            'is_completed' => SharedConstant::VALUE_ONE,
-            'user_id' => Yii::$app->user->id,
-            'type' => SharedConstant::TYPE_VIDEO,
-        ])->groupBy('file_id')->all();
+        $file_log = FileLog::find()
+                    ->where([
+                        'is_completed' => SharedConstant::VALUE_ONE,
+                        'user_id' => Yii::$app->user->id,
+                        'type' => SharedConstant::TYPE_VIDEO,
+                    ])
+                    ->groupBy('file_id')
+                    ->all();
 
         if (!$file_log) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
@@ -193,7 +196,7 @@ class CatchupController extends ActiveController
 
     }
 
-    public function actionUpdateVideoCompleted()
+    public function actionUpdateVideoCompleted($video_id)
     {
 
         $student_id = Yii::$app->user->id;
@@ -201,7 +204,6 @@ class CatchupController extends ActiveController
         $student_class = StudentSchool::findOne(['student_id' => $student_id]);
         $class_id = $student_class->class_id;
 
-        $video_id = Yii::$app->request->post('video_id');
         $duration = Yii::$app->request->post('duration');
 
         $form = new \yii\base\DynamicModel(compact('video_id', 'class_id','duration'));
@@ -214,7 +216,6 @@ class CatchupController extends ActiveController
         $file_log = FileLog::findOne([
             'user_id' => Yii::$app->user->id,
             'type' => SharedConstant::TYPE_VIDEO,
-           // 'class_id' => $class_id,
             'file_id' => $video_id,
         ]);
 
@@ -250,18 +251,30 @@ class CatchupController extends ActiveController
         $model = FileLog::find()
             ->andWhere([
                 'is_completed' => SharedConstant::VALUE_ZERO,
-                'id' => $id,
+                'file_id' => $video_id,
                 'user_id' => Yii::$app->user->id
             ])
             ->one();
 
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            $model = new FileLog;
+            $model->user_id = Yii::$app->user->id;
+            $model->file_id = $video_id;
+            $model->type = SharedConstant::TYPE_VIDEO;
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            }
+
+            if (!$model->save(false)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video record not saved!');
+            }
+
+            return (new ApiResponse)->success($model, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video record saved!');
         }
 
         $model->current_duration = $duration;
         if (!$model->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video duration updated');
