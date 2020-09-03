@@ -31,6 +31,8 @@ class QuizSummary extends \yii\db\ActiveRecord {
 	/**
 	 * {@inheritdoc}
 	 */
+	private $attempt_questions = [];
+
 	public static function tableName() {
 		return 'quiz_summary';
 	}
@@ -82,8 +84,25 @@ class QuizSummary extends \yii\db\ActiveRecord {
 //		return ['duration', 'total_questions'];
 	}
 
+	public function getAttempt()
+	{
+		foreach ($this->quizSummaryDetails as $quizSummaryDetail) {
+			$attemptArray = [
+				'question_id' => $quizSummaryDetail->question_id,
+				'selected' => $quizSummaryDetail->selected,
+			];
+
+			array_push($this->attempt_questions, $attemptArray);
+		}
+
+		return [
+			'quiz_id' => $this->id,
+			'attempts' => $this->attempt_questions,
+		];
+	}
+
 	public function getScore() {
-		return $this->total_questions>0? ($this->correct / $this->total_questions) * 100:0;
+		return $this->total_questions > 0 ? ($this->correct / $this->total_questions) * 100 : 0;
 	}
 
 	public function getStudent()
@@ -109,6 +128,11 @@ class QuizSummary extends \yii\db\ActiveRecord {
     public function getHomeworkQuestions()
     {
         return $this->hasMany(HomeworkQuestions::className(), ['homework_id' => 'homework_id']);
+    }
+
+    public function getQuizSummaryDetails()
+    {
+    	return $this->hasMany(QuizSummaryDetails::className(), ['quiz_id' => 'id']);
     }
 
 }
