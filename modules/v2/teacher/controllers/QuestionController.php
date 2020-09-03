@@ -187,7 +187,8 @@ class QuestionController extends ActiveController
         $model = Questions::find()
             ->select([
                 'questions.*',
-                'st.topic'
+                'st.topic',
+                "(case when questions.teacher_id = $teacher then 1 else 0 end) as owner"
             ])
             ->leftJoin('subject_topics st', 'st.id = questions.topic_id')
             ->where(['questions.id' => $question_id])
