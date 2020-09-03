@@ -106,6 +106,7 @@ class Questions extends \yii\db\ActiveRecord
             'duration',
             'difficulty',
             'type',
+            'teacher_id',
             'correct_students' => 'correctQuizSummaryDetails',
             'wrong_students' => 'wrongQuizSummaryDetails'
         ];
