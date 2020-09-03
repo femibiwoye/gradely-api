@@ -180,13 +180,17 @@ class ChildrenController extends ActiveController
 
     }
 
-    public function actionSearchStudentCode($child_id)
+    public function actionSearchStudentCode()
     {
 
-        $parent = Parents::findOne(['student_id' => $child_id, 'status' => 1]);
+        $code = Yii::$app->request->post('code');
 
-        $user = User::findOne($child_id);
+        $form = new DynamicModel(compact(['code']));
+        $form->addRule(['code'], 'required');
 
+        $user = User::findOne(['code' => $code]);
+
+        $parent = Parents::findOne(['student_id' => $user->id, 'status' => 1]);
 
         if(!$user)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
@@ -207,6 +211,7 @@ class ChildrenController extends ActiveController
 
         $code = Yii::$app->request->post('code');
         $password = Yii::$app->request->post('password');
+        $child_id = Yii::$app->request->post('child_id');
 
         $form = new DynamicModel(compact(['code', 'password']));
         $form->addRule(['code', 'password'], 'required');
