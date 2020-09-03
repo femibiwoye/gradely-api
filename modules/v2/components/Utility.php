@@ -6,7 +6,9 @@ use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\Schools;
-use app\modules\v2\models\TeacherClass;
+use app\modules\v2\models\{TeacherClass, Classes, StudentSchool};
+use app\modules\v2\components\SharedConstant;
+
 use Yii;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
@@ -154,7 +156,7 @@ class Utility extends ActiveRecord
     }
 
 
-    public static function getParentChildID($child_id)
+    public static function getParentChildID()
     {
         if (Yii::$app->user->identity->type == 'parent') {
             if (!isset($_GET['child_id']) || empty($_GET['child_id']))
@@ -168,4 +170,20 @@ class Utility extends ActiveRecord
         return null;
     }
 
+    public static function getStudentClass($global_id = SharedConstant::VALUE_ZERO)
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return null;
+        }
+
+        $data = StudentSchool::findOne(['student_id' => Yii::$app->user->identity->id]);
+
+        if (!isset($data)) {
+            return SharedConstant::VALUE_NULL;
+        } elseif ($global_id == SharedConstant::VALUE_ONE) {
+            return $data->class->global_class_id;
+        } else {
+            return $data->class_id;
+        }
+    }
 }

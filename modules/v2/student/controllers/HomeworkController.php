@@ -58,10 +58,9 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCompletedHomework($child = null)
+    public function actionCompletedHomework()
     {
-        $student_id = Utility::getParentChildID($child);
-
+        $student_id = Utility::getParentChildID();
         $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
             ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
@@ -81,10 +80,11 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
-    public function actionNewHomework($child = null)
+    public function actionNewHomework()
     {
+        $student_id = Utility::getParentChildID();
         $models = $this->modelClass::find()
-            ->innerJoin('student_school', 'student_school.class_id = homeworks.class_id')
+            ->innerJoin('student_school', "student_school.class_id = homeworks.class_id AND student_school.student_id=$student_id")
             ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
             ->andWhere(['<', 'UNIX_TIMESTAMP(open_date)', time()])
             ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()]);
@@ -106,7 +106,7 @@ class HomeworkController extends ActiveController
 
     public function actionHomeworkScore($homework_id)
     {
-        $student_id = Yii::$app->user->id;
+        $student_id = Utility::getParentChildID();
         $homework = QuizSummary::find()->where(['student_id' => $student_id, 'homework_id' => $homework_id])->one();
         if (!$homework) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not found!');
@@ -122,7 +122,10 @@ class HomeworkController extends ActiveController
     public function actionHomeworkReport($id)
     {
 
-        $student_id = Utility::getParentChildID(Yii::$app->user->id);
+        //$student_id = Utility::getParentChildID(Yii::$app->user->id);
+
+
+        $student_id = Utility::getParentChildID();
 
         $model = HomeworkReport::findOne(['student_id' => $student_id, 'homework_id' => $id, 'submit' => 1]);
         if (!$model) {
@@ -134,8 +137,6 @@ class HomeworkController extends ActiveController
 
     public function actionHomeworkReviewQuestion($homework_id)
     {
-
-
         $summary_details = QuizSummaryDetails::find()->alias('qsd')
             ->innerJoin('quiz_summary', 'quiz_summary.id = qsd.quiz_id')
             ->innerJoin('homeworks', 'homeworks.id = quiz_summary.homework_id')

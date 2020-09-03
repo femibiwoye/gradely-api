@@ -326,7 +326,7 @@ class UserModel extends User
 
     public function getTeacherFirstClass()
     {
-        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->where(['status' => 1])->via('teacherClasses');
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->via('teacherClasses');
     }
 
     public function getTeacherSubjects()

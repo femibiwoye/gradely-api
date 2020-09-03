@@ -66,12 +66,24 @@ class QuizSummary extends \yii\db\ActiveRecord {
 		];
 	}
 
-//	public function fields() {
+	public function fields() {
+		return [
+			'homework_id',
+			'subject_id',
+			'student_id',
+			'teacher_id',
+			'class_id',
+			'type',
+			'submit',
+			'created_at',
+			'submit_at',
+			'score',
+		];
 //		return ['duration', 'total_questions'];
-//	}
+	}
 
 	public function getScore() {
-		return ($this->correct / $this->total_questions) * 100;
+		return $this->total_questions>0? ($this->correct / $this->total_questions) * 100:0;
 	}
 
 	public function getStudent()

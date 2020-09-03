@@ -146,5 +146,14 @@ class AuthController extends Controller
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Password successfully changed');
     }
+
+    public function actionValidateToken()
+    {
+        if (!Yii::$app->request->post('token'))
+            return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED, 'Token is required');
+
+        $token = Yii::$app->request->post('token');
+        return User::find()->where(['token' => $token])->exists() ? true : false;
+    }
 }
 

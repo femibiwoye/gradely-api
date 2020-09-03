@@ -10,8 +10,8 @@ use app\modules\v2\models\VideoContent;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
-use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial};
-use app\modules\v2\components\SharedConstant;
+use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial, Catchup, SubjectTopics, QuizSummary};
+use app\modules\v2\components\{SharedConstant, Utility};
 
 
 /**
@@ -19,7 +19,7 @@ use app\modules\v2\components\SharedConstant;
  */
 class CatchupController extends ActiveController
 {
-    public $modelClass = 'app\modules\v2\models\QuizSummary';
+    public $modelClass = 'app\modules\v2\models\Catchup';
 
     /**
      * @return array
@@ -256,5 +256,95 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video duration updated');
+    }
+
+    public function actionDiagnostic()
+    {
+        $class_id = Utility::getStudentClass(SharedConstant::VALUE_ZERO);
+        if (!$class_id) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
+        }
+
+        $model = SubjectTopics::find()
+                    ->join('LEFT OUTER JOIN', 'quiz_summary', 'quiz_summary.subject_id = subject_topics.id')
+                    ->where([
+                        'quiz_summary.class_id' => $class_id,
+                        'subject_topics.school_id' => SharedConstant::VALUE_NULL,
+                        'subject_topics.status' => SharedConstant::VALUE_ONE,
+                        'subject_topics.type' => SharedConstant::QUIZ_SUMMARY_TYPE[1]
+                    ])
+                    ->limit(6)
+                    ->orderBy(['subject_topics.id' => SORT_ASC])
+                    ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionRecentPractices()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = QuizSummary::find()
+                    ->where(['student_id' => Yii::$app->user->identity->id, 'submit' => SharedConstant::VALUE_ONE])
+                    ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+                    ->orderBy(['submit_at' => SORT_DESC])
+                    ->limit(6)
+                    ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionIncompleteVideos()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = FileLog::findAll([
+            'user_id' => Yii::$app->user->identity->id,
+            'is_completed' => SharedConstant::VALUE_ZERO
+        ]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionClassMaterials()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = PracticeMaterial::find()
+                    ->where(['user_id' => Yii::$app->user->identity->id])
+                    ->andWhere([
+                        'filetype' => [
+                            SharedConstant::PRACTICE_MATERIAL_TYPES[0],
+                            SharedConstant::PRACTICE_MATERIAL_TYPES[1]
+                        ]
+                    ])
+                    ->orderBy(['created_at' => SORT_DESC])
+                    ->limit(12)
+                    ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 }
