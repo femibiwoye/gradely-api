@@ -17,6 +17,7 @@ use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
 use yii\filters\auth\HttpBearerAuth;
 use yii\rest\Controller;
+use Yii;
 
 class PracticeController extends Controller
 {
@@ -216,5 +217,19 @@ class PracticeController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
         }
 
+    }
+
+    public function actionProcessAttempt($quiz_id)
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = QuizSummary::findOne(['id' => $quiz_id, 'student_id' => Yii::$app->user->id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model->attempt, ApiResponse::SUCCESSFUL, 'Record found');
     }
 }

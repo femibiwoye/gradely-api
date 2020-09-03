@@ -2,11 +2,17 @@
 
 return [
 
+
     //Reports
     'GET v2/parent/student/report' => 'v2/student/profile/report',
 
     //parent urls - trello Parent
     'GET v2/parent/children'=>'v2/parent/children/list',
+    'PUT v2/parent/update-child-class/<child_id:\d+>' => 'v2/parent/children/update-child-class',
+    'PUT v2/parent/reset-child-password/<child_id:\d+>' => 'v2/parent/children/reset-child-password',
+    'DELETE v2/parent/child/<child_id:\d+>' => 'v2/parent/children/unlink-child',
+    'GET v2/parent/child-code' => 'v2/parent/children/search-student-code',
+    'POST v2/parent/connect-child' => 'v2/parent/children/connect-student-code',
 
     //Profile
     'PUT v2/parent/profile/update-email' => 'v2/student/profile/update-email',
