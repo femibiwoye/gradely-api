@@ -104,8 +104,9 @@ class ChildrenController extends ActiveController
 
         $class_id = Yii::$app->request->post('class_id');
         $password = Yii::$app->request->post('password');
+        $curriculum = Yii::$app->request->post('curriculum');
 
-        $form = new DynamicModel(compact(['class_id', 'password']));
+        $form = new DynamicModel(compact(['class_id', 'password', 'curriculum']));
         $form->addRule(['class_id', 'password'], 'required');
         $form->addRule(['class_id'], 'exist', ['targetClass' => GlobalClass::className(), 'targetAttribute' => ['class_id' => 'id']]);
 
@@ -133,7 +134,7 @@ class ChildrenController extends ActiveController
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child class updated');
     }
 
-    public function actionResetChildPassword($child_id){
+    public function actionResetChildPassword(){
 
         $student_code = Yii::$app->request->post('student_code');
         $password = Yii::$app->request->post('password');
@@ -145,9 +146,9 @@ class ChildrenController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
 
-        $user = User::findOne($child_id);
+        $user = User::findOne(['code' => $student_code]);
 
-        $parent = Parents::findOne(['student_id' => $child_id, 'status' => SharedConstant::VALUE_ONE]);
+        $parent = Parents::findOne(['student_id' => $user->id, 'status' => SharedConstant::VALUE_ONE]);
 
 
         if(!$parent)
@@ -210,11 +211,11 @@ class ChildrenController extends ActiveController
     {
 
         $code = Yii::$app->request->post('code');
-        $password = Yii::$app->request->post('password');
         $child_id = Yii::$app->request->post('child_id');
+        $relationship = Yii::$app->request->post('relationship');
 
-        $form = new DynamicModel(compact(['code', 'password']));
-        $form->addRule(['code', 'password'], 'required');
+        $form = new DynamicModel(compact(['code', 'child_id', 'relationship']));
+        $form->addRule(['code', 'relationship'], 'required');
         $form->addRule(['child_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['child_id' => 'id']]);
 
 
@@ -241,14 +242,12 @@ class ChildrenController extends ActiveController
         if(!$user->code)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
 
-        if($user->setPassword($password) != $user->password_hash)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password incorrect');
-
 
         $parent = new Parents();
         $parent->parent_id = Yii::$app->user->id;
         $parent->code = $code;
         $parent->student_id = $child_id;
+        $parent->role = $relationship;
         $parent->status = SharedConstant::VALUE_ONE;
         $parent->inviter = 'parent';
 
