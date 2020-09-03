@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use app\modules\v2\components\SharedConstant;
 
 /**
  * This is the model class for table "file_log".
@@ -41,7 +42,7 @@ class FileLog extends \yii\db\ActiveRecord
             [['user_id', 'file_id', 'subject_id', 'topic_id', 'class_id', 'is_completed', 'current_duration'], 'integer'],
             [['file_url', 'type'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
-            [['total_duration'], 'string', 'max' => 45],
+            [['total_duration'], 'integer'],
         ];
     }
 
@@ -65,5 +66,51 @@ class FileLog extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'user_id',
+            'file',
+            'file_url',
+            'type',
+            'subject',
+            'topic',
+            'class',
+            'total_duration',
+            'current_duration',
+            'is_completed',
+            'created_at',
+            'updated_at',
+        ];
+    }
+
+    public function getFile()
+    {
+        if ($this->type == SharedConstant::TYPE_VIDEO) {
+            $model = VideoContent::findOne(['id' => $this->file_id, 'content_type' => SharedConstant::TYPE_VIDEO]);
+            if (!$model) {
+                return PracticeMaterial::findOne(['id' => $this->file_id, 'filetype' => SharedConstant::TYPE_VIDEO]);
+            }
+        } else {
+            return PracticeMaterial::findOne(['id' => $this->file_id]);
+        }
+    }
+
+    public function getSubject()
+    {
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+    }
+
+    public function getTopic()
+    {
+        return $this->hasOne(SubjectTopics::className(), ['id' => 'topic_id']);
+    }
+
+    public function getClass()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class_id']);
     }
 }
