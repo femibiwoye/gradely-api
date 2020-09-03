@@ -52,7 +52,7 @@ class Subscriptions extends \yii\db\ActiveRecord
     {
         return [
             [['user_id', 'price', 'quantity', 'duration_count', 'total'], 'required'],
-            [['user_id', 'payment_details_id', 'reference_id', 'quantity', 'duration_count', 'renew_status', 'status'], 'integer'],
+            [['user_id', 'payment_details_id', 'reference_id', 'quantity', 'duration_count', 'renew_status', 'status', 'payment_plan_id'], 'integer'],
             [['price', 'total', 'amount_paid'], 'number'],
             [['duration', 'payment', 'plan', 'type', 'meta'], 'string'],
             [['created_at', 'paid_at'], 'safe'],
