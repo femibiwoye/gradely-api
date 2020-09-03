@@ -179,11 +179,11 @@ class CatchupController extends ActiveController
     public function actionVideosWatched()
     {
 
-        $file_log = FileLog::findAll([
+        $file_log = FileLog::find()->where([
             'is_completed' => SharedConstant::VALUE_ONE,
             'user_id' => Yii::$app->user->id,
             'type' => SharedConstant::TYPE_VIDEO,
-        ]);
+        ])->groupBy('file_id')->all();
 
         if (!$file_log) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
@@ -214,7 +214,7 @@ class CatchupController extends ActiveController
         $file_log = FileLog::findOne([
             'user_id' => Yii::$app->user->id,
             'type' => SharedConstant::TYPE_VIDEO,
-            'class_id' => $class_id,
+           // 'class_id' => $class_id,
             'file_id' => $video_id,
         ]);
 
@@ -230,19 +230,13 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
         }
 
-        $provider = new ActiveDataProvider([
-            'query' => $file_log,
-            'pagination' => [
-                'pageSize' => 6,
-                'validatePage' => false,
-            ],
-        ]);
 
-        return (new ApiResponse)->success($provider, ApiResponse::SUCCESSFUL, 'Videos Found');
+
+        return (new ApiResponse)->success($file_log, ApiResponse::SUCCESSFUL, 'Video Found');
 
     }
 
-    public function actionUpdateVideoLength($id)
+    public function actionUpdateVideoLength($video_id)
     {
         $duration = Yii::$app->request->post('duration');
 

@@ -11,8 +11,8 @@ return [
     'PUT v2/student/avatar' => 'v2/student/profile/update-avatar', //
 
     //student preference
-    'GET v2/student/profile/preference' => 'v2/student/preference/index',
-    'PUT v2/student/profile/preference' => 'v2/student/preference/update',
+    'GET v2/student/profile/preference' => 'v2/student/preference/index', //
+    'PUT v2/student/profile/preference' => 'v2/student/preference/update', //
 
 
     //student general
@@ -48,8 +48,8 @@ return [
     'GET v2/student/catchup/class-resources/<class_id:\d+>' => 'v2/student/catchup/class-resources', //
     'GET v2/student/catchup/video/watch-again/<id:\d+>' => 'v2/student/catchup/watch-video-again',
     'GET v2/student/catchup/videos' => 'v2/student/catchup/videos-watched',
-    'POST v2/student/catchup/video-complete' => 'v2/student/catchup/update-video-completed',
-    'PUT v2/student/catchup/video/<id:\d+>' => 'v2/student/catchup/update-video-length',//
+    'POST v2/student/catchup/video-complete/<video_id:\d+>' => 'v2/student/catchup/update-video-completed', //
+    'PUT v2/student/catchup/video/<video_id:\d+>' => 'v2/student/catchup/update-video-length',
     'GET v2/student/catchup/diagnostic-subjects' => 'v2/student/catchup/diagnostic',
     'GET v2/student/catchup/recent-practices' => 'v2/student/catchup/recent-practices',
     'GET v2/student/catchup/incomplete-video' => 'v2/student/catchup/incomplete-videos',
