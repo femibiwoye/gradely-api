@@ -11,8 +11,9 @@ return [
     'PUT v2/parent/update-child-class/<child_id:\d+>' => 'v2/parent/children/update-child-class',
     'PUT v2/parent/reset-child-password' => 'v2/parent/children/reset-child-password',
     'DELETE v2/parent/child/<child_id:\d+>' => 'v2/parent/children/unlink-child',
-    'GET v2/parent/child-code' => 'v2/parent/children/search-student-code',
+    'POST v2/parent/child-code' => 'v2/parent/children/search-student-code',
     'POST v2/parent/connect-child' => 'v2/parent/children/connect-student-code',
+    'POST v2/parent/signup-child' => 'v2/parent/children/signup-child',
 
     //Profile
     'PUT v2/parent/profile/update-email' => 'v2/student/profile/update-email',

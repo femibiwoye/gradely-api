@@ -152,7 +152,10 @@ class ChildrenController extends ActiveController
 
 
         if(!$parent)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Parent-Child not found');
+
+        if(!$user)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
 
 
         $user->password_hash = $user->setPassword($password);
@@ -191,13 +194,8 @@ class ChildrenController extends ActiveController
 
         $user = User::findOne(['code' => $code]);
 
-        $parent = Parents::findOne(['student_id' => $user->id, 'status' => 1]);
-
         if(!$user)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
-
-        if(!$parent)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
 
         if(!$user->code)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
@@ -211,32 +209,30 @@ class ChildrenController extends ActiveController
     {
 
         $code = Yii::$app->request->post('code');
-        $child_id = Yii::$app->request->post('child_id');
         $relationship = Yii::$app->request->post('relationship');
 
-        $form = new DynamicModel(compact(['code', 'child_id', 'relationship']));
+        $form = new DynamicModel(compact(['code', 'relationship']));
         $form->addRule(['code', 'relationship'], 'required');
-        $form->addRule(['child_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['child_id' => 'id']]);
 
 
         if(!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
 
 
+        $user = User::findOne(['code' => $code]);
+
         $parent = Parents::find()->where([
-                    'student_id' => $child_id,
+                    'student_id' => $user->id,
                     'status' => SharedConstant::VALUE_ONE,
                     'parent_id' => Yii::$app->user->id,
                     ])
-                  ->andWhere(['not', 'code', null])
+                  ->andWhere(['is not', 'code', null])
                   ->one();
-
-        $user = User::findOne($child_id);
 
         if(!$user)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
 
-        if(!$parent)
+        if($parent)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child already exists');
 
         if(!$user->code)
@@ -246,7 +242,7 @@ class ChildrenController extends ActiveController
         $parent = new Parents();
         $parent->parent_id = Yii::$app->user->id;
         $parent->code = $code;
-        $parent->student_id = $child_id;
+        $parent->student_id = $user->id;
         $parent->role = $relationship;
         $parent->status = SharedConstant::VALUE_ONE;
         $parent->inviter = 'parent';
@@ -256,6 +252,39 @@ class ChildrenController extends ActiveController
 
 
         return (new ApiResponse)->success($parent, ApiResponse::SUCCESSFUL, 'Parent Child saved');
+
+    }
+
+    public function actionSignupChild() {
+
+        $relationship = Yii::$app->request->post('relationship');
+
+        $form = new DynamicModel(compact(['relationship']));
+        $form->addRule(['relationship'], 'required');
+
+
+        if(!$form->validate())
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+
+        $model = new SignupForm();
+        $model->attributes = Yii::$app->request->post();
+
+        if(!$model->validate())
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+        $user = $model->signup('student');
+
+        $parent = new Parents;
+        $parent->parent_id = Yii::$app->user->id;
+        $parent->student_id = $user->id;
+        $parent->role = $relationship;
+        $parent->inviter = 'parent';
+        $parent->status = SharedConstant::VALUE_ONE;
+
+        if(!$parent->save())
+            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
+
+        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }
 
