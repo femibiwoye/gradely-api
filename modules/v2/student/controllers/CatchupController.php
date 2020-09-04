@@ -10,7 +10,7 @@ use app\modules\v2\models\VideoContent;
 use Yii;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
-use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial, Catchup, SubjectTopics, QuizSummary};
+use app\modules\v2\models\{Homeworks, ApiResponse, FeedComment, PracticeMaterial, Catchup, SubjectTopics, QuizSummary, QuizSummaryDetails, Subjects};
 use app\modules\v2\components\{SharedConstant, Utility};
 
 
@@ -20,6 +20,8 @@ use app\modules\v2\components\{SharedConstant, Utility};
 class CatchupController extends ActiveController
 {
     public $modelClass = 'app\modules\v2\models\Catchup';
+    private $subject_practice = array();
+    private $subject_topics = array();
 
     /**
      * @return array
@@ -368,5 +370,99 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+
+function sortArray($a, $b)
+{
+return $a['score']>$a['score'];
+}
+
+    public function actionPracticeTopics()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $models = QuizSummary::find()
+                    ->select('subject_id')
+                    ->where(['student_id' => 10])
+                    ->andWhere(['<>', 'type', 'recommendation'])
+                    ->groupBy('subject_id')
+                    ->asArray()
+                    ->all();
+
+        foreach ($models as $model) {
+            $topics = QuizSummaryDetails::find()
+                        ->select('quiz_summary_details.topic_id')
+                        ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type != 'recommendation'")
+                        ->where(['quiz_summary.subject_id' => $model['subject_id']])
+                        ->groupBy('quiz_summary_details.topic_id')
+                        ->all();
+$topicOrders = [];
+
+foreach($topics as $topic){
+    $model = QuizSummaryDetails::find()
+               // ->select(['count(*)'])
+                ->where(['topic_id'=>$topic->topic_id,'student_id'=>10]);
+                $total = $model->count();
+                $correct = $model->andWhere('selected = answer')->count();
+                $score = $total>0?($correct/$total)*100:0;
+                $topicOrders=['topic_id'=>$topic->topic_id,'score'=>$score];
+}
+sort($topicOrders,'sortArray');
+print_r($topicOrders);
+die;
+            print_r(count($model));
+            die();
+        }
+
+        print_r($models);
+        die();
+        $models = QuizSummaryDetails::find()
+                    ->select(['quiz_summary.subject_id'])
+                    ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
+                    ->where(['quiz_summary.student_id' => 10])
+                    ->groupBy(['quiz_summary.subject_id', 'quiz_summary_details.topic_id'])
+                    ->asArray()
+                    ->all();
+
+        print_r(count($models));
+        die();
+
+        foreach ($models as $model) {
+            $topics = SubjectTopics::findAll(['id' => $model['subject_id']]);
+            $i = SharedConstant::VALUE_ZERO;
+            foreach ($topics as $topic) {
+                if ($i > 4) {
+                    array_push($this->subject_topics, 
+                    ['topic' => $topic, 'type' => 'mix']
+                );
+                }
+
+                array_push($this->subject_topics, 
+                    ['topic' => $topic, 'type' => 'single']
+                );
+
+                $i = $i + SharedConstant::VALUE_ONE;
+            }
+
+            array_push($this->subject_practice, 
+                [
+                    Subjects::findOne(['id' => $model['subject_id']]),
+                    $this->subject_topics
+
+                ]
+            );
+        }
+
+        return $this->subject_practice;
+
+
+        
+
+        if (!$models) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Topics not found');
+        }
     }
 }
