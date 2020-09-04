@@ -21,10 +21,10 @@ class PaymentSubscription extends Model
     public function rules()
     {
         return [
-            [['payment_plan_id','renew_status'], 'required', 'on' => 'student-subscription'],
-            [['payment_plan_id', 'children','renew_status'], 'required', 'on' => 'parent-subscription'],
+            [['payment_plan_id', 'renew_status'], 'required', 'on' => 'student-subscription'],
+            [['payment_plan_id', 'children', 'renew_status'], 'required', 'on' => 'parent-subscription'],
             [['payment_plan_id'], 'integer'],
-            [['coupon'], 'exist', 'targetClass' => Coupon::className(), 'targetAttribute' => ['coupon' => 'coupon']],
+            [['coupon'], 'exist', 'targetClass' => Coupon::className(), 'targetAttribute' => ['coupon' => 'code']],
             ['children', 'each', 'rule' => ['integer']],
             ['payment_plan_id', 'exist', 'targetClass' => PaymentPlan::className(), 'targetAttribute' => ['payment_plan_id' => 'id']],
             ['children', 'validateUser'],
@@ -60,10 +60,13 @@ class PaymentSubscription extends Model
         $model->plan = SharedConstant::SUBSCRIPTION_PLAN;
         $model->quantity = count($this->children);
         $model->payment_plan_id = $this->payment_plan_id;
+        if (!empty($this->coupon))
+            $model->coupon = $this->coupon;
+
         $model->renew_status = $this->renew_status;
-        $model->transaction_id = GenerateString::widget(['length' => 20]).mt_rand(10,99);
+        $model->transaction_id = GenerateString::widget(['length' => 20]) . mt_rand(10, 99);
         $model->payment = 'unpaid';
-        $model->total = $this->coupon ? ($model->price - (($model->price * $this->coupon->percentage) / 100)) : $model->price;
+        $model->total = !empty($this->coupon) ? ($model->price - (($model->price * $this->couponDetails->percentage) / 100)) : $model->price;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
@@ -87,9 +90,9 @@ class PaymentSubscription extends Model
         return PaymentPlan::findOne(['id' => $this->payment_plan_id]);
     }
 
-    public function getCoupon()
+    public function getCouponDetails()
     {
-        return Coupon::findOne(['id' => $this->coupon]);
+        return Coupon::findOne(['code' => $this->coupon]);
     }
 
     public function addSubscriptionChildren($subscription, $subscriber_id, $students)
