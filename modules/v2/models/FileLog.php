@@ -73,6 +73,7 @@ class FileLog extends \yii\db\ActiveRecord
         return [
             'id',
             'user_id',
+            'file_id',
             'file',
             'file_url',
             'type',
@@ -97,6 +98,8 @@ class FileLog extends \yii\db\ActiveRecord
         } else {
             return PracticeMaterial::findOne(['id' => $this->file_id]);
         }
+
+        return $model;
     }
 
     public function getSubject()

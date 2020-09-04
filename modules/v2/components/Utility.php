@@ -176,9 +176,11 @@ class Utility extends ActiveRecord
             return null;
         }
 
-        $data = StudentSchool::findOne(['student_id' => Yii::$app->user->identity->id]);
+        $data = StudentSchool::findOne(['student_id' => Yii::$app->user->id]);
 
-        if (!isset($data)) {
+        if (empty($data)) {
+            if (!empty(Yii::$app->user->identity->class))
+                return Yii::$app->user->identity->class;
             return SharedConstant::VALUE_NULL;
         } elseif ($global_id == SharedConstant::VALUE_ONE) {
             return $data->class->global_class_id;
@@ -186,4 +188,16 @@ class Utility extends ActiveRecord
             return $data->class_id;
         }
     }
+     public static function getStudentClassCategory($class_id)
+    {
+        if ($class_id >= 7 && $class_id <=12)
+            $category = 'secondary';
+        elseif($class_id >= 1 && $class_id <=6 || $class_id >12)
+            $category = 'primary';
+else
+    $category = null;
+        return $category;
+    }
+
+
 }
