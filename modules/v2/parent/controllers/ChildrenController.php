@@ -8,6 +8,8 @@ use app\modules\v2\models\StudentSchool;
 use app\modules\v2\components\Utility;
 use app\modules\v2\controllers\AuthController;
 use app\modules\v2\models\SignupForm;
+use app\modules\v2\models\SubscriptionChildren;
+use app\modules\v2\models\SubscriptionPaymentDetails;
 use yii\base\DynamicModel;
 use app\modules\v2\models\VideoContent;
 use Yii;
@@ -96,19 +98,23 @@ class ChildrenController extends ActiveController
     }
 
 
-    public function actionUpdateChildClass($child_id){
+    public function actionUpdateChildClass(){
+
+
+        $class_id = Yii::$app->request->post('class_id');
+        $password = Yii::$app->request->post('password');
+        $curriculum = Yii::$app->request->post('curriculum');
+        $child_id = Yii::$app->request->post('child_id');
+
+        $form = new DynamicModel(compact(['class_id', 'password', 'curriculum']));
+        $form->addRule(['class_id', 'password'], 'required');
+        $form->addRule(['class_id'], 'exist', ['targetClass' => GlobalClass::className(), 'targetAttribute' => ['class_id' => 'id']]);
+        $form->addRule(['child_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['child_id' => 'id']]);
 
         $user = User::findOne($child_id);
 
         $parent = Parents::findOne(['student_id' => $child_id, 'status' => SharedConstant::VALUE_ONE]);
 
-        $class_id = Yii::$app->request->post('class_id');
-        $password = Yii::$app->request->post('password');
-        $curriculum = Yii::$app->request->post('curriculum');
-
-        $form = new DynamicModel(compact(['class_id', 'password', 'curriculum']));
-        $form->addRule(['class_id', 'password'], 'required');
-        $form->addRule(['class_id'], 'exist', ['targetClass' => GlobalClass::className(), 'targetAttribute' => ['class_id' => 'id']]);
 
         if(!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
@@ -121,8 +127,18 @@ class ChildrenController extends ActiveController
         if(!$class)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
 
+        $student_school = StudentSchool::findOne(['student_id' => $child_id]);
+
+        if($student_school)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class is assigned to school');
+
+
         if($user->setPassword($password) != $user->password_hash)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password incorrect');
+
+
+        if(($class_id - $user->class) > 1)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot change to this class');
 
 
         $user->class = $class_id;
@@ -288,4 +304,31 @@ class ChildrenController extends ActiveController
 
     }
 
+    public function actionCardDetails()
+    {
+
+        $parent_id = Yii::$app->user->id;
+
+        $subscription = SubscriptionPaymentDetails::find()
+            ->select('brand', 'last4', 'channel')
+            ->where([
+                'user_id' => $parent_id,
+                'reusable' => SharedConstant::VALUE_ONE,
+                'selected' => SharedConstant::VALUE_ONE
+            ])->one();
+
+        if (!$subscription)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No payment details available for this user');
+
+        return (new ApiResponse)->success($subscription, ApiResponse::SUCCESSFUL, 'Payment details retrieved');
+    }
+
+    public function actionChildrenSubscription(){
+
+        $parent_id = Yii::$app->user->id;
+
+        $parent_children = SubscriptionChildren::find()
+                            ->innerJoin('subscription', 'subscription.id = subscription_children.subscription_id')
+                            ->where(['subscriber_id' => Yii::$app->user->id, 'payment_status' => 'paid']);
+    }
 }

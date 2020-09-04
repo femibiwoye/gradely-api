@@ -126,6 +126,13 @@ class ReportController extends ActiveController
 
     public function actionGetRemarks($type, $id)
     {
+
+        if(Yii::$app->user->identity->type == 'parent'){
+
+            if(!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
+        }
+
         $model = Remarks::find()
             ->where(['receiver_id' => $id, 'type' => $type])
             ->all();
@@ -145,6 +152,12 @@ class ReportController extends ActiveController
 
         if (!$this->checkUserAccess($type, $id)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access!');
+        }
+
+        if(Yii::$app->user->identity->type == 'parent'){
+
+            if(!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
         }
 
 
