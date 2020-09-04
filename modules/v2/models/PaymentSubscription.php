@@ -16,12 +16,13 @@ class PaymentSubscription extends Model
     public $children;
     public $coupon;
     public $user_id;
+    public $renew_status;
 
     public function rules()
     {
         return [
-            [['payment_plan_id'], 'required', 'on' => 'student-subscription'],
-            [['payment_plan_id', 'children'], 'required', 'on' => 'parent-subscription'],
+            [['payment_plan_id','renew_status'], 'required', 'on' => 'student-subscription'],
+            [['payment_plan_id', 'children','renew_status'], 'required', 'on' => 'parent-subscription'],
             [['payment_plan_id'], 'integer'],
             [['coupon'], 'exist', 'targetClass' => Coupon::className(), 'targetAttribute' => ['coupon' => 'coupon']],
             ['children', 'each', 'rule' => ['integer']],
@@ -59,6 +60,7 @@ class PaymentSubscription extends Model
         $model->plan = SharedConstant::SUBSCRIPTION_PLAN;
         $model->quantity = count($this->children);
         $model->payment_plan_id = $this->payment_plan_id;
+        $model->renew_status = $this->renew_status;
         $model->transaction_id = GenerateString::widget(['length' => 20]).mt_rand(10,99);
         $model->payment = 'unpaid';
         $model->total = $this->coupon ? ($model->price - (($model->price * $this->coupon->percentage) / 100)) : $model->price;

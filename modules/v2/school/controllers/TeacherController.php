@@ -3,6 +3,7 @@
 namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\models\ClassSubjects;
 use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
@@ -170,8 +171,8 @@ class TeacherController extends ActiveController
         }
 
         if ($id == 0) {
-            $ids = ArrayHelper::getColumn(SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 0])->all(),'teacher_id');
-            if (SchoolTeachers::deleteAll(['school_id' => $school->id,'teacher_id'=>$ids, 'status' => 0])) {
+            $ids = ArrayHelper::getColumn(SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 0])->all(), 'teacher_id');
+            if (SchoolTeachers::deleteAll(['school_id' => $school->id, 'teacher_id' => $ids, 'status' => 0])) {
                 TeacherClass::deleteAll(['teacher_id' => $ids, 'school_id' => $school->id]);
                 return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Pending teachers declined and removed!');
             }
@@ -232,6 +233,8 @@ class TeacherController extends ActiveController
             $model->status = 1;
             if ($model->save())
                 $count = $count + 1;
+
+            $this->AddClassSubject($subject, $class_id, $school_id);
         }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, $count > 0 ? $count . ' new subject assigned to teacher' : 'No new subject assigned');
 
@@ -287,6 +290,7 @@ class TeacherController extends ActiveController
                 if (!$model->save())
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not add one or more subjects');
 
+                $this->AddClassSubject($subject, $class_id, $school_id);
             }
 
 
@@ -297,6 +301,33 @@ class TeacherController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Successful');
+
+    }
+
+    public function AddClassSubject($subject, $class, $school)
+    {
+        if (ClassSubjects::find()->where(['subject_id' => $subject, 'class_id' => $class, 'school_id' => $school])->exists())
+            return true;
+
+        $model = new ClassSubjects();
+        $model->class_id = $class;
+        $model->school_id = $school;
+        $model->subject_id = $subject;
+        $model->status = 1;
+        return $model->save();
+
+    }
+
+    public function actionPopulateClassSubjects()
+    {
+        foreach (Schools::find()->all() as $school) {
+            foreach (TeacherClassSubjects::find()->where(['school_id' => $school->id, 'status' => 1])->groupBy('class_id')->all() as $class) {
+                foreach (TeacherClassSubjects::find()->where(['school_id' => $school->id, 'class_id' => $class->class_id, 'status' => 1])->groupBy('subject_id')->all() as $subjects) {
+                    $this->AddClassSubject($subjects->subject_id, $class->class_id, $school->id);
+                }
+            }
+        }
+
 
     }
 
