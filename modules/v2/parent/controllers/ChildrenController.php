@@ -107,14 +107,11 @@ class ChildrenController extends ActiveController
         //$curriculum = Yii::$app->request->post('curriculum');
         $child_id = Yii::$app->request->post('child_id');
 
-        $form = new DynamicModel(compact(['class_id', 'password', 'curriculum']));
-        $form->addRule(['class_id', 'password'], 'required');
+        $form = new DynamicModel(compact(['class_id', 'password', 'curriculum','child_id']));
+        $form->addRule(['class_id', 'password','child_id'], 'required');
         $form->addRule(['class_id'], 'exist', ['targetClass' => GlobalClass::className(), 'targetAttribute' => ['class_id' => 'id']]);
         $form->addRule(['child_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['child_id' => 'id']]);
 
-        if (!Yii::$app->security->validatePassword($password, Yii::$app->user->identity->password_hash)) {
-            $form->addError('password', 'Current password is incorrect!');
-        }
 
         if (!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
@@ -122,6 +119,10 @@ class ChildrenController extends ActiveController
         $user = User::findOne($child_id);
 
         $parent = Parents::findOne(['student_id' => $child_id, 'status' => SharedConstant::VALUE_ONE]);
+        if (!Yii::$app->security->validatePassword($password, Yii::$app->user->identity->password_hash)) {
+            $form->addError('password', 'Current password is incorrect!');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
 
         if (!$parent)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
