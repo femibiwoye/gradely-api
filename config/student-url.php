@@ -46,14 +46,14 @@ return [
     'POST v2/student/catchup/video-comment' => 'v2/student/catchup/comment-video', //
     'GET v2/student/catchup/video/<id:\d+>' => 'v2/student/catchup/video', //
     'GET v2/student/catchup/class-resources/<class_id:\d+>' => 'v2/student/catchup/class-resources', //
-    'GET v2/student/catchup/video/watch-again/<id:\d+>' => 'v2/student/catchup/watch-video-again',
-    'GET v2/student/catchup/videos' => 'v2/student/catchup/videos-watched',
+    'GET v2/student/catchup/video/watch-again/<id:\d+>' => 'v2/student/catchup/watch-video-again', //Not sure what is is meant for
+    'GET v2/student/catchup/videos' => 'v2/student/catchup/videos-watched', //
     'POST v2/student/catchup/video-complete/<video_id:\d+>' => 'v2/student/catchup/update-video-completed', //
-    'PUT v2/student/catchup/video/<video_id:\d+>' => 'v2/student/catchup/update-video-length',
-    'GET v2/student/catchup/diagnostic-subjects' => 'v2/student/catchup/diagnostic',
-    'GET v2/student/catchup/recent-practices' => 'v2/student/catchup/recent-practices',
-    'GET v2/student/catchup/incomplete-video' => 'v2/student/catchup/incomplete-videos',
-    'GET v2/student/catchup/practice-materials' => 'v2/student/catchup/class-materials',
+    'PUT v2/student/catchup/video/<video_id:\d+>' => 'v2/student/catchup/update-video-length', //
+    'GET v2/student/catchup/diagnostic-subjects' => 'v2/student/catchup/diagnostic', //
+    'GET v2/student/catchup/recent-practices' => 'v2/student/catchup/recent-practices', //
+    'GET v2/student/catchup/incomplete-video' => 'v2/student/catchup/incomplete-videos', //
+    'GET v2/student/catchup/practice-materials' => 'v2/student/catchup/class-materials', //
     'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics',
 
     //student invites

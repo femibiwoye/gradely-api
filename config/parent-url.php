@@ -4,10 +4,10 @@ return [
 
 
     //Reports
-    'GET v2/parent/student/report' => 'v2/student/profile/report',
+    'GET v2/parent/student/report' => 'v2/student/profile/report', //
 
     //parent urls - trello Parent
-    'GET v2/parent/children'=>'v2/parent/children/list',
+    'GET v2/parent/children'=>'v2/parent/children/list', //
     'PUT v2/parent/update-child-class/<child_id:\d+>' => 'v2/parent/children/update-child-class',
     'PUT v2/parent/reset-child-password' => 'v2/parent/children/reset-child-password',
     'DELETE v2/parent/child/<child_id:\d+>' => 'v2/parent/children/unlink-child',

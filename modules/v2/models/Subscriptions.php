@@ -4,6 +4,7 @@ namespace app\modules\v2\models;
 
 use app\paystack\Paystack;
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "subscriptions".
@@ -105,7 +106,7 @@ class Subscriptions extends \yii\db\ActiveRecord
     {
 
         if ($model->payment == 'paid') {
-            return ['message' => 'Already paid', 'model' => $model];
+            return ['message' => 'Already paid', 'model' => $this->SubscriptionWithCard($model)];
         }
         $paystack = new Paystack(Yii::$app->params['payment_sk']);
         $responseObj = $paystack->transaction->verify(["reference" => $model->transaction_id]);
@@ -131,10 +132,18 @@ class Subscriptions extends \yii\db\ActiveRecord
             }
 
             // Payment already made
-            return ['message' => 'Already paid', 'model' => $model];
+            return ['message' => 'Already paid', 'model' => $this->SubscriptionWithCard($model)];
         }
-        return ['message' => 'Payment not successful', 'model' => $model];
+        return ['message' => 'Payment not successful', 'model' => $this->SubscriptionWithCard($model)];
 
+    }
+
+    public function SubscriptionWithCard(Subscriptions $model)
+    {
+        if ($cardDetail = SubscriptionPaymentDetails::findOne(['id' => $model->payment_details_id]))
+            $model = array_merge(ArrayHelper::toArray($model), ['last4' => $cardDetail->last4, 'card_type' => $cardDetail->card_type]);
+
+        return $model;
     }
 
     public function activateChildSubscription($model)
