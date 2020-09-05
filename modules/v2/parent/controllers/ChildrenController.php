@@ -107,8 +107,8 @@ class ChildrenController extends ActiveController
         //$curriculum = Yii::$app->request->post('curriculum');
         $child_id = Yii::$app->request->post('child_id');
 
-        $form = new DynamicModel(compact(['class_id', 'password', 'curriculum','child_id']));
-        $form->addRule(['class_id', 'password','child_id'], 'required');
+        $form = new DynamicModel(compact(['class_id', 'password', 'curriculum', 'child_id']));
+        $form->addRule(['class_id', 'password', 'child_id'], 'required');
         $form->addRule(['class_id'], 'exist', ['targetClass' => GlobalClass::className(), 'targetAttribute' => ['class_id' => 'id']]);
         $form->addRule(['child_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['child_id' => 'id']]);
 
@@ -135,11 +135,11 @@ class ChildrenController extends ActiveController
         $student_school = StudentSchool::findOne(['student_id' => $child_id]);
 
         if ($student_school)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class is assigned to school');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School manages child class');
 
 
         if (($class_id - $user->class) > 1)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You cannot change to this class');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child new class does not correlate with previous class.');
 
 
         $user->class = $class_id;
@@ -148,7 +148,7 @@ class ChildrenController extends ActiveController
             return (new ApiResponse)->error($user->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child class not updated');
 
 
-        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child class updated');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Child class updated');
     }
 
     public function actionResetChildPassword()
@@ -156,49 +156,46 @@ class ChildrenController extends ActiveController
 
         $student_code = Yii::$app->request->post('student_code');
         $password = Yii::$app->request->post('password');
+        $type = 'student';
 
-        $form = new DynamicModel(compact(['password', 'student_code']));
+        $form = new DynamicModel(compact(['password', 'student_code', 'type']));
         $form->addRule(['password', 'student_code'], 'required');
+        $form->addRule(['student_code'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_code' => 'code', 'type']]);
 
         if (!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
 
-        $user = User::findOne(['code' => $student_code]);
+        $user = User::findOne(['code' => $student_code, 'type' => $type]);
 
         $parent = Parents::findOne(['student_id' => $user->id, 'status' => SharedConstant::VALUE_ONE]);
 
 
         if (!$parent)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Parent-Child not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have relationship with this child.');
 
-        if (!$user)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found');
-
-
-        $user->password_hash = $user->setPassword($password);
-        $user->password_reset_token = $user->generatePasswordResetToken();
+        $user->password_hash = Yii::$app->security->generatePasswordHash($password);
 
         if (!$user->save())
-            return (new ApiResponse)->error($user->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child class not updated');
+            return (new ApiResponse)->error($user->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child password not updated');
 
 
-        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child class updated');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Password successfully updated');
 
     }
 
     public function actionUnlinkChild($child_id)
     {
 
-        $parent = Parents::findOne(['student_id' => $child_id, 'status' => 1]);
+        $parent = Parents::findOne(['parent_id' => Yii::$app->user->id, 'student_id' => $child_id, 'status' => 1]);
 
         if (!$parent)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
 
         if (!$parent->delete())
-            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child cannot be deleted');
+            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child cannot be unlinked');
 
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Child successfully deleted');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Child successfully unlinked');
 
     }
 
@@ -210,6 +207,9 @@ class ChildrenController extends ActiveController
         $form = new DynamicModel(compact(['code']));
         $form->addRule(['code'], 'required');
 
+        if (!$form->validate())
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
         $user = User::findOne(['code' => $code]);
 
         if (!$user)
@@ -219,7 +219,7 @@ class ChildrenController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
 
 
-        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Student Code found');
+        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Student found');
 
     }
 
@@ -269,7 +269,7 @@ class ChildrenController extends ActiveController
             return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
 
-        return (new ApiResponse)->success($parent, ApiResponse::SUCCESSFUL, 'Parent Child saved');
+        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Parent Child saved');
 
     }
 
@@ -291,18 +291,18 @@ class ChildrenController extends ActiveController
         if (!$model->validate())
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
-        $user = $model->signup('student');
+        if($user = $model->signup('student')) {
 
-        $parent = new Parents;
-        $parent->parent_id = Yii::$app->user->id;
-        $parent->student_id = $user->id;
-        $parent->role = $relationship;
-        $parent->inviter = 'parent';
-        $parent->status = SharedConstant::VALUE_ONE;
+            $parent = new Parents;
+            $parent->parent_id = Yii::$app->user->id;
+            $parent->student_id = $user->id;
+            $parent->role = $relationship;
+            $parent->inviter = 'parent';
+            $parent->status = SharedConstant::VALUE_ONE;
+            if (!$parent->save())
+                return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
 
-        if (!$parent->save())
-            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
-
+        }
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }
