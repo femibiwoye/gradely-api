@@ -76,7 +76,7 @@ class CatchupController extends ActiveController
 
         $models = Homeworks::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-            ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
+           // ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE]) //to be returned
             ->andWhere(['<>', 'quiz_summary.type', SharedConstant::PRACTICE_TYPES[2]])
             ->orderBy(['quiz_summary.id' => SORT_DESC]);
 
@@ -99,7 +99,9 @@ class CatchupController extends ActiveController
     public function actionVideoComments($id)
     {
         $model = FeedComment::find()
-            ->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id])
+            //->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id]) //to be returned
+                ->limit(10)
+            ->orderBy('id DESC')
             ->all();
 
         if (!$model) {
@@ -152,7 +154,7 @@ class CatchupController extends ActiveController
     {
         $model = PracticeMaterial::find()
             ->innerJoin('feed', 'feed.id = practice_material.practice_id')
-            ->where(['feed.class_id' => $class_id])
+           // ->where(['feed.class_id' => $class_id]) //to be returned
             ->orderBy(['feed.updated_at' => SORT_DESC]);
 
         if (!$model) {
@@ -162,7 +164,7 @@ class CatchupController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 6,
+                'pageSize' => 12,
                 'validatePage' => false,
             ],
         ]);
@@ -176,11 +178,12 @@ class CatchupController extends ActiveController
 
         $file_log_id = FileLog::find()
             ->innerJoin('video_content', 'video_content.id = file_log.file_id')
-            ->andWhere([
-                'is_completed' => SharedConstant::VALUE_ONE,
-                'id' => $id,
-                'user_id' => Yii::$app->user->id
-            ])
+//            ->andWhere([
+//                'is_completed' => SharedConstant::VALUE_ONE,
+//                'id' => $id,
+//                'user_id' => Yii::$app->user->id
+//            ]) //to be returned
+            ->limit(6)
             ->one();
 
         if (!$file_log_id) {
@@ -196,12 +199,12 @@ class CatchupController extends ActiveController
 
         $class_id = Utility::getStudentClass();
         $file_log = FileLog::find()
-            ->where([
-                'is_completed' => SharedConstant::VALUE_ONE,
-                'user_id' => Yii::$app->user->id,
-                'type' => SharedConstant::TYPE_VIDEO,
-                'class_id'=>$class_id
-            ])
+//            ->where([
+//                'is_completed' => SharedConstant::VALUE_ONE,
+//                'user_id' => Yii::$app->user->id,
+//                'type' => SharedConstant::TYPE_VIDEO,
+//                'class_id'=>$class_id
+//            ]) //to be returned
             ->groupBy('file_id')
             ->limit(6)
             ->orderBy('id DESC')
@@ -333,7 +336,7 @@ class CatchupController extends ActiveController
         }
 
         $models = QuizSummary::find()
-            ->where(['student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])
+            //->where(['student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE]) //to be returned
             ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->orderBy(['submit_at' => SORT_DESC])
             ->limit(6)
@@ -361,7 +364,7 @@ class CatchupController extends ActiveController
         }
 
         $model = FileLog::findAll([
-            'user_id' => Yii::$app->user->id,
+            //'user_id' => Yii::$app->user->id, //to be returned
             'is_completed' => SharedConstant::VALUE_ZERO
         ]);
 
@@ -380,9 +383,10 @@ class CatchupController extends ActiveController
 $class_id = Utility::getStudentClass();
 
         $model = PracticeMaterial::find()
-            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
-            //->where(['user_id' => Yii::$app->user->identity->id])
-                ->where(['class_id'=>Utility::getStudentClass()])
+            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id") //removed
+            //->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id") to be returned
+            //->where(['user_id' => Yii::$app->user->identity->id]) //remogit pullved
+               // ->where(['class_id'=>Utility::getStudentClass()]) //to be returned
             ->andWhere([
                 'filetype' => [
                     SharedConstant::PRACTICE_MATERIAL_TYPES[0],
