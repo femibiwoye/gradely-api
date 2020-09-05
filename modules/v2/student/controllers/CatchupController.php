@@ -33,7 +33,7 @@ class CatchupController extends ActiveController
 {
     public $modelClass = 'app\modules\v2\models\Catchup';
     private $subject_array = array();
-    private $single_topic_array = array();
+    private $single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
     private $mix_topic_array = array();
 
     /**
@@ -76,7 +76,7 @@ class CatchupController extends ActiveController
 
         $models = Homeworks::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-            ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
+           // ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE]) //to be returned
             ->andWhere(['<>', 'quiz_summary.type', SharedConstant::PRACTICE_TYPES[2]])
             ->orderBy(['quiz_summary.id' => SORT_DESC]);
 
@@ -99,7 +99,9 @@ class CatchupController extends ActiveController
     public function actionVideoComments($id)
     {
         $model = FeedComment::find()
-            ->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id])
+            //->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id]) //to be returned
+                ->limit(10)
+            ->orderBy('id DESC')
             ->all();
 
         if (!$model) {
@@ -152,7 +154,7 @@ class CatchupController extends ActiveController
     {
         $model = PracticeMaterial::find()
             ->innerJoin('feed', 'feed.id = practice_material.practice_id')
-            ->where(['feed.class_id' => $class_id])
+           // ->where(['feed.class_id' => $class_id]) //to be returned
             ->orderBy(['feed.updated_at' => SORT_DESC]);
 
         if (!$model) {
@@ -162,7 +164,7 @@ class CatchupController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 6,
+                'pageSize' => 12,
                 'validatePage' => false,
             ],
         ]);
@@ -176,11 +178,12 @@ class CatchupController extends ActiveController
 
         $file_log_id = FileLog::find()
             ->innerJoin('video_content', 'video_content.id = file_log.file_id')
-            ->andWhere([
-                'is_completed' => SharedConstant::VALUE_ONE,
-                'id' => $id,
-                'user_id' => Yii::$app->user->id
-            ])
+//            ->andWhere([
+//                'is_completed' => SharedConstant::VALUE_ONE,
+//                'id' => $id,
+//                'user_id' => Yii::$app->user->id
+//            ]) //to be returned
+            ->limit(6)
             ->one();
 
         if (!$file_log_id) {
@@ -196,12 +199,12 @@ class CatchupController extends ActiveController
 
         $class_id = Utility::getStudentClass();
         $file_log = FileLog::find()
-            ->where([
-                'is_completed' => SharedConstant::VALUE_ONE,
-                'user_id' => Yii::$app->user->id,
-                'type' => SharedConstant::TYPE_VIDEO,
-                'class_id'=>$class_id
-            ])
+//            ->where([
+//                'is_completed' => SharedConstant::VALUE_ONE,
+//                'user_id' => Yii::$app->user->id,
+//                'type' => SharedConstant::TYPE_VIDEO,
+//                'class_id'=>$class_id
+//            ]) //to be returned
             ->groupBy('file_id')
             ->limit(6)
             ->orderBy('id DESC')
@@ -333,7 +336,7 @@ class CatchupController extends ActiveController
         }
 
         $models = QuizSummary::find()
-            ->where(['student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])
+            //->where(['student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE]) //to be returned
             ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->orderBy(['submit_at' => SORT_DESC])
             ->limit(6)
@@ -361,7 +364,7 @@ class CatchupController extends ActiveController
         }
 
         $model = FileLog::findAll([
-            'user_id' => Yii::$app->user->id,
+            //'user_id' => Yii::$app->user->id, //to be returned
             'is_completed' => SharedConstant::VALUE_ZERO
         ]);
 
@@ -380,9 +383,10 @@ class CatchupController extends ActiveController
 $class_id = Utility::getStudentClass();
 
         $model = PracticeMaterial::find()
-            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
-            //->where(['user_id' => Yii::$app->user->identity->id])
-                ->where(['class_id'=>Utility::getStudentClass()])
+            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id") //removed
+            //->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id") to be returned
+            //->where(['user_id' => Yii::$app->user->identity->id]) //remogit pullved
+               // ->where(['class_id'=>Utility::getStudentClass()]) //to be returned
             ->andWhere([
                 'filetype' => [
                     SharedConstant::PRACTICE_MATERIAL_TYPES[0],
@@ -406,12 +410,12 @@ $class_id = Utility::getStudentClass();
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
-        $student_class = StudentSchool::findOne(['student_id' => 10/*Yii::$app->user->id*/]);
+        $student_class = StudentSchool::findOne(['student_id' => Yii::$app->user->id]);
         $class_id = $student_class->class->global_class_id;
 
         $models = QuizSummary::find()
             ->select('subject_id')
-            ->where(['student_id' => 10])
+            ->where(['student_id' => Yii::$app->user->id])
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id')
             ->asArray()
@@ -422,7 +426,7 @@ $class_id = Utility::getStudentClass();
                 ->select('quiz_summary_details.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type != 'recommendation'")
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
-                ->where(['quiz_summary.subject_id' => $model['subject_id'],'quiz_summary_details.student_id'=>Yii::$app->user->id])
+                ->where(['quiz_summary.subject_id' => $model['subject_id'],'quiz_summary_details.student_id' => Yii::$app->user->id])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
@@ -457,8 +461,10 @@ $class_id = Utility::getStudentClass();
                 $this->mix_topic_array
             );
 
-            $this->subject_array['subject'] = array(Subjects::findOne(['id' => $model['subject_id']]));
-            $this->subject_array['topic'] = $array;
+            $this->subject_array = array(
+                'subject' => Subjects::findOne(['id' => $model['subject_id']]),
+                'topics' => $array
+            );
         }
 
         if (!$models) {
@@ -471,25 +477,48 @@ $class_id = Utility::getStudentClass();
     private function singleTypeTopics($topics)
     {
         foreach ($topics as $topic) {
-            array_push($this->single_topic_array, $topic);
+            $this->single_topic_array = array(
+                'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                'topic' => $topic = array(
+                    'type' => SharedConstant::SINGLE_TYPE_ARRAY
+                ),
+            );
         }
-
-        $this->single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
-
     }
 
     private function mixTypeTopics($topics)
     {
         $mix_topics = array_chunk($topics, SharedConstant::VALUE_FOUR);
         if (count($mix_topics) > SharedConstant::VALUE_ONE) {
-            array_push($this->single_topic_array, $mix_topics[SharedConstant::VALUE_ZERO]);
-            array_shift($mix_topics);
-            array_push($this->mix_topic_array, array_chunk($mix_topics, SharedConstant::VALUE_THREE));
-        } else {
-            array_push($this->single_topic_array, $mix_topics);
-        }
+            foreach ($mix_topics[SharedConstant::VALUE_ZERO] as $single_array) {
+                $single_array['type'] = SharedConstant::SINGLE_TYPE_ARRAY;
+                array_push($this->single_topic_array, $single_array);
+            }
 
-        $this->mix_topic_array['type'] = SharedConstant::MIX_TYPE_ARRAY;
-        $this->single_topic_array['type'] = SharedConstant::SINGLE_TYPE_ARRAY;
+            array_shift($mix_topics);
+            foreach ($mix_topics as $mix_topic) {
+                if (count($mix_topic) == SharedConstant::VALUE_THREE || count($mix_topic) == SharedConstant::VALUE_TWO) {
+                    $this->mix_topic_array = array(
+                        $mix_topic = array(
+                            'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                        ),
+                        'type' => SharedConstant::MIX_TYPE_ARRAY,
+                    );
+                } else {
+                    $this->mix_topic_array = array(
+                        $mix_topic = array(
+                            'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                        ),
+                        'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                    );
+                }
+            }
+        } else {
+            $this->single_topic_array = array(
+                $mix_topics,
+                'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+
+            );
+        }
     }
 }
