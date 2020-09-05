@@ -29,8 +29,9 @@ use app\modules\v2\components\{SharedConstant, Utility};
 class CatchupController extends ActiveController
 {
     public $modelClass = 'app\modules\v2\models\Catchup';
-    private $subject_practice = array();
-    private $subject_topics = array();
+    private $subject_array = array();
+    private $single_topic_array = array();
+    private $mix_topic_array = array();
 
     /**
      * @return array
@@ -380,19 +381,13 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 
-
-    function sortArray($a, $b)
-    {
-        return $a['score'] > $a['score'];
-    }
-
     public function actionPracticeTopics()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
-        $student_class = StudentSchool::findOne(['student_id' => Yii::$app->user->id]);
+        $student_class = StudentSchool::findOne(['student_id' => 10/*Yii::$app->user->id*/]);
         $class_id = $student_class->class->global_class_id;
 
         $models = QuizSummary::find()
@@ -411,10 +406,9 @@ class CatchupController extends ActiveController
                 ->where(['quiz_summary.subject_id' => $model['subject_id'],'quiz_summary_details.student_id'=>Yii::$app->user->id])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
-            $topicOrders = [];
 
             foreach ($topics as $topic) {
-                $model = QuizSummaryDetails::find()
+                $models = QuizSummaryDetails::find()
                     ->alias('qsd')
                     ->select([
                         new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
@@ -430,60 +424,53 @@ class CatchupController extends ActiveController
                     ->groupBy('qsd.topic_id')
                     ->limit(10)
                     ->all();
-//                $total = $model->count();
-//                $correct = $model->andWhere('selected = answer')->count();
-//                $score = $total>0?($correct/$total)*100:0;
-                $topicOrders[] = $model;//['topic_id'=>$topic->topic_id,'score'=>$score];
-            }
-//sort($topicOrders,'sortArray');
 
+                    if (count($models) > SharedConstant::VALUE_FIVE) {
+                        $this->mixTypeTopics($models);
+                        
+                    } else {
+                        $this->singleTypeTopics($models);
+                    }
+            } 
 
-        }
-        return $topicOrders;
-        print_r($models);
-        die();
-        $models = QuizSummaryDetails::find()
-            ->select(['quiz_summary.subject_id'])
-            ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
-            ->where(['quiz_summary.student_id' => 10])
-            ->groupBy(['quiz_summary.subject_id', 'quiz_summary_details.topic_id'])
-            ->asArray()
-            ->all();
-
-        print_r(count($models));
-        die();
-
-        foreach ($models as $model) {
-            $topics = SubjectTopics::findAll(['id' => $model['subject_id']]);
-            $i = SharedConstant::VALUE_ZERO;
-            foreach ($topics as $topic) {
-                if ($i > 4) {
-                    array_push($this->subject_topics,
-                        ['topic' => $topic, 'type' => 'mix']
-                    );
-                }
-
-                array_push($this->subject_topics,
-                    ['topic' => $topic, 'type' => 'single']
-                );
-
-                $i = $i + SharedConstant::VALUE_ONE;
-            }
-
-            array_push($this->subject_practice,
-                [
-                    Subjects::findOne(['id' => $model['subject_id']]),
-                    $this->subject_topics
-
-                ]
+            $array = array(
+                $this->single_topic_array,
+                $this->mix_topic_array
             );
+
+            $this->subject_array['subject'] = array(Subjects::findOne(['id' => $model['subject_id']]));
+            $this->subject_array['topic'] = $array;
         }
-
-        return $this->subject_practice;
-
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Topics not found');
         }
+
+        return (new ApiResponse)->success($this->subject_array, ApiResponse::SUCCESSFUL, 'Practice Topics found');
+    }
+
+    private function singleTypeTopics($topics)
+    {
+        foreach ($topics as $topic) {
+            array_push($this->single_topic_array, $topic);
+        }
+
+        $this->single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
+
+    }
+
+    private function mixTypeTopics($topics)
+    {
+        $mix_topics = array_chunk($topics, SharedConstant::VALUE_FOUR);
+        if (count($mix_topics) > SharedConstant::VALUE_ONE) {
+            array_push($this->single_topic_array, $mix_topics[SharedConstant::VALUE_ZERO]);
+            array_shift($mix_topics);
+            array_push($this->mix_topic_array, array_chunk($mix_topics, SharedConstant::VALUE_THREE));
+        } else {
+            array_push($this->single_topic_array, $mix_topics);
+        }
+
+        $this->mix_topic_array['type'] = SharedConstant::MIX_TYPE_ARRAY;
+        $this->single_topic_array['type'] = SharedConstant::SINGLE_TYPE_ARRAY;
     }
 }
