@@ -33,7 +33,7 @@ class CatchupController extends ActiveController
 {
     public $modelClass = 'app\modules\v2\models\Catchup';
     private $subject_array = array();
-    private $single_topic_array = array();
+    private $single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
     private $mix_topic_array = array();
 
     /**
@@ -406,12 +406,12 @@ $class_id = Utility::getStudentClass();
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
-        $student_class = StudentSchool::findOne(['student_id' => 10/*Yii::$app->user->id*/]);
+        $student_class = StudentSchool::findOne(['student_id' => Yii::$app->user->id]);
         $class_id = $student_class->class->global_class_id;
 
         $models = QuizSummary::find()
             ->select('subject_id')
-            ->where(['student_id' => 10])
+            ->where(['student_id' => Yii::$app->user->id])
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id')
             ->asArray()
@@ -422,7 +422,7 @@ $class_id = Utility::getStudentClass();
                 ->select('quiz_summary_details.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type != 'recommendation'")
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
-                ->where(['quiz_summary.subject_id' => $model['subject_id'],'quiz_summary_details.student_id'=>Yii::$app->user->id])
+                ->where(['quiz_summary.subject_id' => $model['subject_id'],'quiz_summary_details.student_id' => Yii::$app->user->id])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
@@ -457,8 +457,10 @@ $class_id = Utility::getStudentClass();
                 $this->mix_topic_array
             );
 
-            $this->subject_array['subject'] = array(Subjects::findOne(['id' => $model['subject_id']]));
-            $this->subject_array['topic'] = $array;
+            $this->subject_array = array(
+                'subject' => Subjects::findOne(['id' => $model['subject_id']]),
+                'topics' => $array
+            );
         }
 
         if (!$models) {
@@ -471,25 +473,48 @@ $class_id = Utility::getStudentClass();
     private function singleTypeTopics($topics)
     {
         foreach ($topics as $topic) {
-            array_push($this->single_topic_array, $topic);
+            $this->single_topic_array = array(
+                'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                'topic' => $topic = array(
+                    'type' => SharedConstant::SINGLE_TYPE_ARRAY
+                ),
+            );
         }
-
-        $this->single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
-
     }
 
     private function mixTypeTopics($topics)
     {
         $mix_topics = array_chunk($topics, SharedConstant::VALUE_FOUR);
         if (count($mix_topics) > SharedConstant::VALUE_ONE) {
-            array_push($this->single_topic_array, $mix_topics[SharedConstant::VALUE_ZERO]);
-            array_shift($mix_topics);
-            array_push($this->mix_topic_array, array_chunk($mix_topics, SharedConstant::VALUE_THREE));
-        } else {
-            array_push($this->single_topic_array, $mix_topics);
-        }
+            foreach ($mix_topics[SharedConstant::VALUE_ZERO] as $single_array) {
+                $single_array['type'] = SharedConstant::SINGLE_TYPE_ARRAY;
+                array_push($this->single_topic_array, $single_array);
+            }
 
-        $this->mix_topic_array['type'] = SharedConstant::MIX_TYPE_ARRAY;
-        $this->single_topic_array['type'] = SharedConstant::SINGLE_TYPE_ARRAY;
+            array_shift($mix_topics);
+            foreach ($mix_topics as $mix_topic) {
+                if (count($mix_topic) == SharedConstant::VALUE_THREE || count($mix_topic) == SharedConstant::VALUE_TWO) {
+                    $this->mix_topic_array = array(
+                        $mix_topic = array(
+                            'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                        ),
+                        'type' => SharedConstant::MIX_TYPE_ARRAY,
+                    );
+                } else {
+                    $this->mix_topic_array = array(
+                        $mix_topic = array(
+                            'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                        ),
+                        'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+                    );
+                }
+            }
+        } else {
+            $this->single_topic_array = array(
+                $mix_topics,
+                'type' => SharedConstant::SINGLE_TYPE_ARRAY,
+
+            );
+        }
     }
 }
