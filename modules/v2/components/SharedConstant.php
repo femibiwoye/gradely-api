@@ -15,7 +15,12 @@ class SharedConstant {
 	const STATUS_DELETED = 0;
 	const VALUE_ONE = 1;
 	const VALUE_ZERO = 0;
+	const VALUE_FIVE = 5;
+	const VALUE_FOUR = 4;
+	const VALUE_THREE = 3;
 	const VALUE_NULL = '';
+	const SINGLE_TYPE_ARRAY = 'single';
+	const MIX_TYPE_ARRAY = 'mix';
 	const DEFAULT_COUNTRY = 'Nigeria';
 	const FEED_TYPE = 'feed';
 	const COMMENT_TYPE = 'comment';
