@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\models;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeMaterial;
@@ -49,18 +50,16 @@ class PostForm extends Model
             $model->view_by = 'class';
 
             if ($userType == 'parent') {
-                if (!isset($_GET['child']))
+                if (!isset($_GET['child_id']))
                     return false;
 
-                $student = $_GET['child'];
+                $student = $_GET['child_id'];
                 if (!Parents::find()->where(['status' => 1, 'parent_id' => Yii::$app->user->id, 'student_id' => $student])->exists())
                     return false;
             } else
                 $student = Yii::$app->user->id;
 
-
-            $class = StudentSchool::findOne(['student_id' => $student, 'status' => 1]);
-            $model->class_id = $class->class_id;
+            $model->class_id = Utility::getStudentClass();
         }
 
         $dbtransaction = Yii::$app->db->beginTransaction();

@@ -76,7 +76,7 @@ class CatchupController extends ActiveController
 
         $models = Homeworks::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-           // ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE]) //to be returned
+            // ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE]) //to be returned
             ->andWhere(['<>', 'quiz_summary.type', SharedConstant::PRACTICE_TYPES[2]])
             ->orderBy(['quiz_summary.id' => SORT_DESC]);
 
@@ -100,7 +100,7 @@ class CatchupController extends ActiveController
     {
         $model = FeedComment::find()
             //->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id]) //to be returned
-                ->limit(10)
+            ->limit(10)
             ->orderBy('id DESC')
             ->all();
 
@@ -154,7 +154,7 @@ class CatchupController extends ActiveController
     {
         $model = PracticeMaterial::find()
             ->innerJoin('feed', 'feed.id = practice_material.practice_id')
-           // ->where(['feed.class_id' => $class_id]) //to be returned
+            // ->where(['feed.class_id' => $class_id]) //to be returned
             ->orderBy(['feed.updated_at' => SORT_DESC]);
 
         if (!$model) {
@@ -259,7 +259,7 @@ class CatchupController extends ActiveController
     {
         $duration = Yii::$app->request->post('duration');
 
-        $form = new \yii\base\DynamicModel(compact('duration','video_id'));
+        $form = new \yii\base\DynamicModel(compact('duration', 'video_id'));
         $form->addRule(['duration'], 'required');
         $form->addRule(['duration'], 'integer');
         $form->addRule(['video_id'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
@@ -268,7 +268,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
 
 
-        $video = VideoAssign::findOne(['content_id'=>$video_id]);
+        $video = VideoAssign::findOne(['content_id' => $video_id]);
 
         $model = FileLog::find()
             ->andWhere([
@@ -314,9 +314,9 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
         }
 
-         $model = Subjects::find()
+        $model = Subjects::find()
             ->leftJoin('quiz_summary qs', 'qs.subject_id = subjects.id AND qs.submit = 1')
-            ->where(['status'=>1,'school_id'=>null, 'category'=>['all',Utility::getStudentClassCategory($class_id)]])
+            ->where(['status' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
             ->andWhere(['is', 'qs.subject_id', null])
             ->groupBy('id')
             ->all();
@@ -326,7 +326,7 @@ class CatchupController extends ActiveController
         }
 
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model). ' subjects found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' subjects found');
     }
 
     public function actionRecentPractices()
@@ -348,10 +348,10 @@ class CatchupController extends ActiveController
         }
 
         $final = [];
-        foreach($models as $model){
-            $topics = ArrayHelper::getColumn(PracticeTopics::find()->where(['practice_id'=>$model['homework_id']])->all(),'topic_id');
+        foreach ($models as $model) {
+            $topics = ArrayHelper::getColumn(PracticeTopics::find()->where(['practice_id' => $model['homework_id']])->all(), 'topic_id');
 
-            $final = array_merge($model,['topics'=>SubjectTopics::find()->where(['id'=>$topics])->asArray()->all()]);
+            $final = array_merge($model, ['topics' => SubjectTopics::find()->where(['id' => $topics])->asArray()->all()]);
         }
 
         return (new ApiResponse)->success($final, ApiResponse::SUCCESSFUL, 'Practice found');
@@ -380,13 +380,13 @@ class CatchupController extends ActiveController
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
-$class_id = Utility::getStudentClass();
+        $class_id = Utility::getStudentClass();
 
         $model = PracticeMaterial::find()
-            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id") //removed
+            ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id")//removed
             //->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id") to be returned
             //->where(['user_id' => Yii::$app->user->identity->id]) //remogit pullved
-               // ->where(['class_id'=>Utility::getStudentClass()]) //to be returned
+            // ->where(['class_id'=>Utility::getStudentClass()]) //to be returned
             ->andWhere([
                 'filetype' => [
                     SharedConstant::PRACTICE_MATERIAL_TYPES[0],
@@ -410,8 +410,8 @@ $class_id = Utility::getStudentClass();
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
-        $student_class = StudentSchool::findOne(['student_id' => Yii::$app->user->id]);
-        $class_id = $student_class->class->global_class_id;
+
+        $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
 
         $models = QuizSummary::find()
             ->select('subject_id')
@@ -421,57 +421,77 @@ $class_id = Utility::getStudentClass();
             ->asArray()
             ->all();
 
+        $finalResult = [];
         foreach ($models as $model) {
             $topics = QuizSummaryDetails::find()
                 ->select('quiz_summary_details.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type != 'recommendation'")
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
-                ->where(['quiz_summary.subject_id' => $model['subject_id'],'quiz_summary_details.student_id' => Yii::$app->user->id])
+                ->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => Yii::$app->user->id])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
-            foreach ($topics as $topic) {
-                $models = QuizSummaryDetails::find()
+            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status'])->where(['id' => $model['subject_id']])->asArray()->one();
+
+            foreach ($topics as $index => $topic) {
+                $topicModels = QuizSummaryDetails::find()
                     ->alias('qsd')
                     ->select([
                         new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
                         'COUNT(qsd.id) as total',
                         'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
                         'st.topic',
-                        'st.id'
+                        'st.id',
+                        'st.subject_id',
+                        'st.image'
                     ])
-                    ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.class_id = $class_id")
-                    ->where(['topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id])
-                    ->orderBy('score DESC')
+                    ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
+                    ->where(['topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
+                    //->where(['st.subject_id' => $model['subject_id']])
+                    ->orderBy('score')
                     ->asArray()
                     ->groupBy('qsd.topic_id')
                     ->limit(10)
                     ->all();
 
-                    if (count($models) > SharedConstant::VALUE_FIVE) {
-                        $this->mixTypeTopics($models);
-                        
-                    } else {
-                        $this->singleTypeTopics($models);
+                $topicOrders = [];
+                foreach ($topicModels as $key => $inner) {
+                    if ($key <= 3) {
+                        $topicOrders[] = ['type' => 'single', 'topic' => $inner];
                     }
-            } 
 
-            $array = array(
-                $this->single_topic_array,
-                $this->mix_topic_array
-            );
+                    if ($key > 3 && $key <= 6) {
+                        if (isset($topicModels[4])) {
+                            $temp = array_splice($topicModels, 4, 3);
+                            if (count($temp) == 1)
+                                $topicOrders[] = ['type' => 'single ' . $index . ' ' . $key, 'topic' => $inner];
+                            else
+                                $topicOrders[] = ['type' => 'mix ' . $index . ' ' . $key, 'topic' => $temp];
+                        }
+                    }
 
-            $this->subject_array = array(
-                'subject' => Subjects::findOne(['id' => $model['subject_id']]),
-                'topics' => $array
-            );
+                    if ($key > 6 && $key <= 9) {
+                        if (isset($topicModels[7])) {
+                            $temp = array_splice($topicModels, 8, 3);
+                            if (count($temp) == 1)
+                                $topicOrders[] = ['type' => 'single ' . $index . ' ' . $key, 'topic' => $inner];
+                            else
+                                $topicOrders[] = ['type' => 'mix ' . $index . ' ' . $key, 'topic' => $temp];
+                        }
+                    }
+                }
+
+            }
+
+            $finalResult[] = array_merge($subject, ['topics' => $topicOrders]);
         }
 
-        if (!$models) {
+
+        if (!$finalResult) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Topics not found');
         }
 
-        return (new ApiResponse)->success($this->subject_array, ApiResponse::SUCCESSFUL, 'Practice Topics found');
+        return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, 'Practice Topics found');
     }
 
     private function singleTypeTopics($topics)

@@ -54,7 +54,7 @@ return [
     'GET v2/student/catchup/recent-practices' => 'v2/student/catchup/recent-practices', //
     'GET v2/student/catchup/incomplete-video' => 'v2/student/catchup/incomplete-videos', //
     'GET v2/student/catchup/practice-materials' => 'v2/student/catchup/class-materials', //
-    'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics',
+    'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics', //
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
