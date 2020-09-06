@@ -137,24 +137,32 @@ class FeedController extends ActiveController
     public function actionCreate()
     {
         $userType = Yii::$app->user->identity->type;
-        if($userType == 'student' || $userType == 'parent')
+        if ($userType == 'student' || $userType == 'parent')
             $scenario = 'student-parent';
-        elseif($userType == 'teacher')
+        elseif ($userType == 'teacher')
             $scenario = 'teacher';
         else
             $scenario = 'school';
 
         $model = new PostForm(['scenario' => $scenario]);
+        if (Yii::$app->request->post('type'))
+            $model->type = Yii::$app->request->post('type');
+        if (Yii::$app->request->post('class_id'))
+            $model->class_id = Yii::$app->request->post('class_id');
+        if (Yii::$app->request->post('view_by'))
+            $model->view_by = Yii::$app->request->post('view_by');
         $model->attributes = Yii::$app->request->post();
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
+        $header = $model->type == 'post' ? 'Discussion' : 'Announcement';
+
         if (!$response = $model->newPost()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Announcement not made');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $header . ' not made');
         }
 
-        return (new ApiResponse)->success(ArrayHelper::toArray($response), ApiResponse::SUCCESSFUL, 'Announcement made successfully');
+        return (new ApiResponse)->success(ArrayHelper::toArray($response), ApiResponse::SUCCESSFUL, $header . ' made successfully');
     }
 
 
