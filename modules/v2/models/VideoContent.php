@@ -13,6 +13,7 @@ use Yii;
  * @property int $topic_id
  * @property int|null $content_id
  * @property string $title
+ * @property string $new_title
  * @property string $slug
  * @property string|null $image
  * @property int|null $content_length
@@ -40,7 +41,7 @@ class VideoContent extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['category', 'subject_id', 'topic_id', 'title', 'slug'], 'required'],
+            [['category', 'subject_id', 'topic_id', 'title', 'new_title', 'slug'], 'required'],
             [['subject_id', 'topic_id', 'content_id', 'content_length', 'created_by', 'updated_by'], 'integer'],
             [['image'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
@@ -81,5 +82,10 @@ class VideoContent extends \yii\db\ActiveRecord
     public function getVideoAssigns()
     {
         return $this->hasMany(VideoAssign::className(), ['content_id' => 'id']);
+    }
+
+    public function getVideoAssigned()
+    {
+        return $this->hasOne(VideoAssign::className(), ['content_id' => 'id']);
     }
 }
