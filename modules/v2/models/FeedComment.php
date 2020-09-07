@@ -46,6 +46,7 @@ class FeedComment extends \yii\db\ActiveRecord
             'likesCount' => 'feedLikeCount',
             'myLike',
             'user',
+            'created_at'
 		];
 	}
 
