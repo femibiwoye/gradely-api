@@ -119,20 +119,21 @@ class CatchupController extends ActiveController
         $type = 'video';
         $form = new \yii\base\DynamicModel(compact('video_id', 'comment', 'type'));
         $form->addRule(['video_id', 'comment'], 'required');
-        $form->addRule(['video_id'], 'exist', ['targetClass' => PracticeMaterial::className(), 'targetAttribute' => ['video_id' => 'id', 'type' => 'filetype']]);
+        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $material = PracticeMaterial::findOne(['id' => $video_id]);
+        //$material = PracticeMaterial::findOne(['id' => $video_id]);
 
         $model = new FeedComment;
         $model->attributes = Yii::$app->request->post();
         $model->user_id = Yii::$app->user->id;
-        $model->feed_id = $material->practice_id;
-        if (!$model->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+        $model->feed_id = $video_id;
+        $model->type = $type;
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error($model->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
