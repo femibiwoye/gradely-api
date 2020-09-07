@@ -27,7 +27,7 @@ return [
 
     //Student Practice
     'GET v2/student/practice/homework-instruction/<homework_id:\d+>' => 'v2/student/practice/homework-instruction', //
-    'GET v2/student/practice/start-homework' => 'v2/student/practice/start-homework', //
+    'POST v2/student/practice/start-homework' => 'v2/student/practice/start-homework', //
     'GET v2/student/practice/process-homework' => 'v2/student/practice/process-homework', //
     'GET v2/student/process-attempt/<quiz_id:\d+>' => 'v2/student/practice/process-attempt', //
 
