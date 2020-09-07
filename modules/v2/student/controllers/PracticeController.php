@@ -16,6 +16,7 @@ use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
 use yii\filters\auth\HttpBearerAuth;
+use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
 use Yii;
 
@@ -121,11 +122,11 @@ class PracticeController extends Controller
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No homework assigned for you');
             }
 
-            return (new ApiResponse)->success($homework->homeworkQuestions, ApiResponse::SUCCESSFUL, 'Homework questions retrieved');
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($homework),['questions'=>$homework->homeworkQuestions]), ApiResponse::SUCCESSFUL, 'Homework questions retrieved');
 
             //return message that homework is started
         } elseif ($quizSummary->submit == 0) {
-            return (new ApiResponse)->success($homework->homeworkQuestions, ApiResponse::SUCCESSFUL, 'Homework Started');
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($homework),['questions'=>$homework->homeworkQuestions]), ApiResponse::SUCCESSFUL, 'Homework Started');
         } else {
             //Quiz is either invalid or already submitted.
             return (new ApiResponse)->success($homework, ApiResponse::SUCCESSFUL, 'Homework Submitted');

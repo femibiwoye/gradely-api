@@ -306,33 +306,4 @@ class ChildrenController extends ActiveController
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }
-
-    public function actionCardDetails()
-    {
-
-        $parent_id = Yii::$app->user->id;
-
-        $subscription = SubscriptionPaymentDetails::find()
-            ->select('brand', 'last4', 'channel')
-            ->where([
-                'user_id' => $parent_id,
-                'reusable' => SharedConstant::VALUE_ONE,
-                'selected' => SharedConstant::VALUE_ONE
-            ])->one();
-
-        if (!$subscription)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No payment details available for this user');
-
-        return (new ApiResponse)->success($subscription, ApiResponse::SUCCESSFUL, 'Payment details retrieved');
-    }
-
-    public function actionChildrenSubscription()
-    {
-
-        $parent_id = Yii::$app->user->id;
-
-        $parent_children = SubscriptionChildren::find()
-            ->innerJoin('subscription', 'subscription.id = subscription_children.subscription_id')
-            ->where(['subscriber_id' => Yii::$app->user->id, 'payment_status' => 'paid']);
-    }
 }

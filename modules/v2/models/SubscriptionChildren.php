@@ -66,4 +66,14 @@ class SubscriptionChildren extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Subscriptions::className(), ['id' => 'subscription_id']);
     }
+
+    /**
+     * Gets query for [[Student]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStudent()
+    {
+        return $this->hasOne(User::className(), ['id' => 'student_id']);
+    }
 }
