@@ -80,6 +80,11 @@ class SubjectTopics extends \yii\db\ActiveRecord
         ];
     }
 
+    public function getSubject()
+    {
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+    }
+
     public function getPerformance()
     {
         return [

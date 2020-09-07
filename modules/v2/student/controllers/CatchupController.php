@@ -219,6 +219,43 @@ class CatchupController extends ActiveController
 
     }
 
+    public function actionWatchVideo($video_id)
+    {
+
+        $form = new \yii\base\DynamicModel(compact('video_id'));
+        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
+        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $video = VideoContent::findOne(['id' => $video_id]);
+
+        $videos = ['https://www.youtube.com/embed/LRhOuyXemwI',
+            'https://www.youtube.com/embed/UZByHx5fHzA',
+            'https://www.youtube.com/embed/YXWFUJj7Ac',
+            'http://www.html5rocks.com/en/tutorials/video/basics/devstories.mp4'];
+
+        $video = array_merge(
+            ArrayHelper::toArray($video),
+            [
+                'url'=>$videos[mt_rand(0,3)],
+                'assign' => $video->videoAssigned,
+                'topic' => $video->videoAssigned->topic,
+                'subject' => $video->videoAssigned->topic->subject
+            ]);
+
+
+
+        if (!$video) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
+        }
+
+        return (new ApiResponse)->success($video, ApiResponse::SUCCESSFUL, 'Video Found');
+
+    }
+
     public function actionUpdateVideoCompleted($video_id)
     {
         $class_id = Utility::getStudentClass();;
@@ -285,8 +322,8 @@ class CatchupController extends ActiveController
             $model->user_id = Yii::$app->user->id;
             $model->file_id = $video_id;
             $model->type = SharedConstant::TYPE_VIDEO;
-            $model->subject_id = $video->topic_id;
-            $model->topic_id = $video->topic->subject_id;
+            $model->subject_id = $video->topic->subject_id;
+            $model->topic_id = $video->topic_id;
             $model->class_id = Utility::getStudentClass();
             $model->total_duration = $video->content->content_length;
             if (!$model->validate()) {
@@ -465,9 +502,9 @@ class CatchupController extends ActiveController
                         if (isset($topicModels[4])) {
                             $temp = array_splice($topicModels, 4, 3);
                             if (count($temp) == 1)
-                                $topicOrders[] = ['type' => 'single ' . $index . ' ' . $key, 'topic' => $inner];
+                                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
                             else
-                                $topicOrders[] = ['type' => 'mix ' . $index . ' ' . $key, 'topic' => $temp];
+                                $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
                         }
                     }
 
@@ -475,9 +512,9 @@ class CatchupController extends ActiveController
                         if (isset($topicModels[7])) {
                             $temp = array_splice($topicModels, 8, 3);
                             if (count($temp) == 1)
-                                $topicOrders[] = ['type' => 'single ' . $index . ' ' . $key, 'topic' => $inner];
+                                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
                             else
-                                $topicOrders[] = ['type' => 'mix ' . $index . ' ' . $key, 'topic' => $temp];
+                                $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
                         }
                     }
                 }
@@ -493,54 +530,6 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, 'Practice Topics found');
-    }
-
-    private function singleTypeTopics($topics)
-    {
-        foreach ($topics as $topic) {
-            $this->single_topic_array = array(
-                'type' => SharedConstant::SINGLE_TYPE_ARRAY,
-                'topic' => $topic = array(
-                    'type' => SharedConstant::SINGLE_TYPE_ARRAY
-                ),
-            );
-        }
-    }
-
-    private function mixTypeTopics($topics)
-    {
-        $mix_topics = array_chunk($topics, SharedConstant::VALUE_FOUR);
-        if (count($mix_topics) > SharedConstant::VALUE_ONE) {
-            foreach ($mix_topics[SharedConstant::VALUE_ZERO] as $single_array) {
-                $single_array['type'] = SharedConstant::SINGLE_TYPE_ARRAY;
-                array_push($this->single_topic_array, $single_array);
-            }
-
-            array_shift($mix_topics);
-            foreach ($mix_topics as $mix_topic) {
-                if (count($mix_topic) == SharedConstant::VALUE_THREE || count($mix_topic) == SharedConstant::VALUE_TWO) {
-                    $this->mix_topic_array = array(
-                        $mix_topic = array(
-                            'type' => SharedConstant::SINGLE_TYPE_ARRAY,
-                        ),
-                        'type' => SharedConstant::MIX_TYPE_ARRAY,
-                    );
-                } else {
-                    $this->mix_topic_array = array(
-                        $mix_topic = array(
-                            'type' => SharedConstant::SINGLE_TYPE_ARRAY,
-                        ),
-                        'type' => SharedConstant::SINGLE_TYPE_ARRAY,
-                    );
-                }
-            }
-        } else {
-            $this->single_topic_array = array(
-                $mix_topics,
-                'type' => SharedConstant::SINGLE_TYPE_ARRAY,
-
-            );
-        }
     }
 
     public function actionInitializePractice()
