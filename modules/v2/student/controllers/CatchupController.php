@@ -23,7 +23,7 @@ use app\modules\v2\models\{Homeworks,
     QuizSummary,
     QuizSummaryDetails,
     Subjects};
-use app\modules\v2\student\models\StartPracticeForm;
+use app\modules\v2\student\models\{StartPracticeForm, StartQuizSummaryForm};
 use app\modules\v2\components\{SharedConstant, Utility};
 
 
@@ -543,7 +543,7 @@ class CatchupController extends ActiveController
         }
     }
 
-    public function actionStartPractice()
+    public function actionInitializePractice()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
@@ -560,5 +560,21 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');
+    }
+
+    public function actionStartPractice()
+    {
+        $model = new StartQuizSummaryForm;
+        $model->practice_id = Yii::$app->request->post('practice_id');
+        $model->student_id = Yii::$app->user->id;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$practice_model = $model->startPractice()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice not started!');
+        }
+
+        return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
     }
 }
