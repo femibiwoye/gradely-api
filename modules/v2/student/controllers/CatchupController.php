@@ -23,6 +23,7 @@ use app\modules\v2\models\{Homeworks,
     QuizSummary,
     QuizSummaryDetails,
     Subjects};
+use app\modules\v2\student\models\StartPracticeForm;
 use app\modules\v2\components\{SharedConstant, Utility};
 
 
@@ -540,5 +541,24 @@ class CatchupController extends ActiveController
 
             );
         }
+    }
+
+    public function actionStartPractice()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = new StartPracticeForm;
+        $model->attributes = Yii::$app->request->post();
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$homework_model = $model->initializePractice()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
+        }
+
+        return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');
     }
 }

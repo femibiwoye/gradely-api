@@ -55,6 +55,7 @@ return [
     'GET v2/student/catchup/incomplete-video' => 'v2/student/catchup/incomplete-videos', //
     'GET v2/student/catchup/practice-materials' => 'v2/student/catchup/class-materials', //
     'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics', //
+    'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
