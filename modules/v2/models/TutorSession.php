@@ -104,6 +104,10 @@ class TutorSession extends \yii\db\ActiveRecord
                 return false;
             }
 
+            if (!$feed = $this->addFeed($model->id)) {
+                return false;
+            }
+
 
             /**
              * Send google calendar notification
@@ -197,6 +201,21 @@ class TutorSession extends \yii\db\ActiveRecord
         }
 
         return $this->new_sessions;
+    }
+
+    public function addFeed($homework_id)
+    {
+        $model = new Feed;
+        $model->type = 'live_class';
+        $model->class_id = $this->class_id;
+        $model->view_by = 'all';
+        $model->user_id = Yii::$app->user->id;
+        $model->reference_id = $homework_id;
+        if (!$model->save(false)) {
+            return false;
+        }
+
+        return $model;
     }
 
     public function getClasses()
