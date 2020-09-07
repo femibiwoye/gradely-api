@@ -200,9 +200,6 @@ class PaymentController extends ActiveController
 
         $cardDetails = $this->actionCardDetails();
 
-        if(!$cardDetails)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Card details does not exist!');
-
 
         foreach ($parentChildren as $parentChild){
 
