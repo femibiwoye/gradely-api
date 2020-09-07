@@ -43,7 +43,7 @@ class ClassReport extends Model
 
     public function getCurrentSubject()
     {
-        if (Yii::$app->request->get('subject')) {
+        if (Yii::$app->request->get('subject') && !empty(Yii::$app->request->get('subject'))) {
             return Subjects::findOne(['slug' => Yii::$app->request->get('subject')]);
         }
         return $this->subjects[0];

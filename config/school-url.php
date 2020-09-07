@@ -87,4 +87,7 @@ return [
     ]],
 
 
+    //For population
+    'GET v2/school/teacher/populate-class-subjects' => 'v2/school/teacher/populate-class-subjects', //
+
 ];
