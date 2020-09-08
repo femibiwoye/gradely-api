@@ -79,10 +79,11 @@ class VideoContent extends \yii\db\ActiveRecord
         $fields = parent::fields();
 
         //if ($this->isRelationPopulated('views')) {
-            $fields['creator'] = 'creator';
-            $fields['like'] = 'like';
-            $fields['dislike'] = 'dislike';
-            $fields['views'] = 'views';
+        $fields['creator'] = 'creator';
+        $fields['like'] = 'like';
+        $fields['dislike'] = 'dislike';
+        $fields['views'] = 'views';
+        $fields['my_status'] = 'myStatus';
         //}
 
 
@@ -123,4 +124,14 @@ class VideoContent extends \yii\db\ActiveRecord
     {
         return null;
     }
+
+    public function getMyStatus()
+    {
+        $model = FeedLike::find()->where(['parent_id' => $this->id, 'type' => 'video', 'user_id' => Yii::$app->user->id])->one();
+
+        if ($model)
+            return $model->status;
+        return null;
+    }
+
 }
