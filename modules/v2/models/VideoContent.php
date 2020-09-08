@@ -74,6 +74,21 @@ class VideoContent extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        //if ($this->isRelationPopulated('views')) {
+            $fields['creator'] = 'creator';
+            $fields['like'] = 'like';
+            $fields['dislike'] = 'dislike';
+            $fields['views'] = 'views';
+        //}
+
+
+        return $fields;
+    }
+
     /**
      * Gets query for [[VideoAssigns]].
      *
@@ -89,8 +104,23 @@ class VideoContent extends \yii\db\ActiveRecord
         return $this->hasOne(VideoAssign::className(), ['content_id' => 'id']);
     }
 
-    public function getCountComment()
+    public function getViews()
     {
-        return $this->hasMany(FeedComment::className(),['feed_id'=>'id'])->andWhere(['type'=>'video'])->count();
+        return $this->hasMany(FileLog::className(), ['file_id' => 'id'])->andWhere(['type' => 'video'])->count();
+    }
+
+    public function getLike()
+    {
+        return $this->hasMany(FeedLike::className(), ['parent_id' => 'id'])->andWhere(['type' => 'video', 'status' => 1])->count();
+    }
+
+    public function getDislike()
+    {
+        return $this->hasMany(FeedLike::className(), ['parent_id' => 'id'])->andWhere(['type' => 'video', 'status' => 0])->count();
+    }
+
+    public function getCreator()
+    {
+        return null;
     }
 }
