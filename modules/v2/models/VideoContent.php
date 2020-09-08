@@ -88,4 +88,9 @@ class VideoContent extends \yii\db\ActiveRecord
     {
         return $this->hasOne(VideoAssign::className(), ['content_id' => 'id']);
     }
+
+    public function getCountComment()
+    {
+        return $this->hasMany(FeedComment::className(),['feed_id'=>'id'])->andWhere(['type'=>'video'])->count();
+    }
 }

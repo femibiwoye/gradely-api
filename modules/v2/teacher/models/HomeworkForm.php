@@ -151,7 +151,7 @@ class HomeworkForm extends Model
                 return false;
             }
 
-            if (!$feed = $this->addFeed($model->id)) {
+            if (!$feed = $this->addFeed($model)) {
                 return false;
             }
 
@@ -210,14 +210,14 @@ class HomeworkForm extends Model
         return true;
     }
 
-    public function addFeed($homework_id)
+    public function addFeed($homework)
     {
         $model = new Feed;
-        $model->type = 'homework';
+        $model->type = $homework->type;
         $model->class_id = $this->class_id;
         $model->view_by = $this->view_by;
         $model->user_id = $this->teacher_id;
-        $model->reference_id = $homework_id;
+        $model->reference_id = $homework->id;
         if (!$model->save(false)) {
             return false;
         }
