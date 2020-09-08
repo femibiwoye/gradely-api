@@ -182,5 +182,12 @@ class GeneralController extends Controller
         $models = Avatar::find()->where(['status' => 1])->all();
         return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL);
     }
+
+    public function actionStudentSubscription()
+    {
+        $user = Yii::$app->user->identity;
+        $model = ['status'=>Utility::getSubscriptionStatus(),'plan'=>$user->subscription_plan,'expiry'=>$user->subscription_expiry];
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+    }
 }
 
