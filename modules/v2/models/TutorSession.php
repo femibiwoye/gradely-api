@@ -98,7 +98,7 @@ class TutorSession extends \yii\db\ActiveRecord
     public function scheduleClass($model)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
-        //try {
+        try {
 
             if (!$model->save()) {
                 return false;
@@ -139,10 +139,10 @@ class TutorSession extends \yii\db\ActiveRecord
 
 
             $dbtransaction->commit();
-//        } catch (\Exception $ex) {
-//            $dbtransaction->rollBack();
-//            return false;
-//        }
+        } catch (\Exception $ex) {
+            $dbtransaction->rollBack();
+            return false;
+        }
 
         return $model;
 

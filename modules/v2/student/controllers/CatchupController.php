@@ -4,6 +4,8 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\models\Feed;
+use app\modules\v2\models\FeedLike;
 use app\modules\v2\models\FileLog;
 use app\modules\v2\models\PracticeTopics;
 use app\modules\v2\models\StudentSchool;
@@ -139,6 +141,48 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 
+    public function actionVideoLikes($video_id)
+    {
+
+        $status = Yii::$app->request->post('status');
+
+        $form = new \yii\base\DynamicModel(compact('video_id', 'status'));
+        $form->addRule(['video_id', 'status'], 'required');
+        $form->addRule(['status'], 'in', ['range' => [1, 0]]);
+        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = VideoContent::findOne(['id' => $video_id, 'content_type' => 'video']);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video is not found!');
+        }
+
+        $likeStatus = FeedLike::find()->where(['parent_id' => $video_id, 'user_id' => Yii::$app->user->id, 'type' => 'video']);
+        if ($likeStatus->exists()) {
+            $likeStatus = $likeStatus->one();
+            if ($likeStatus->status != $status) {
+                $likeStatus->status = $status;
+                if (!$likeStatus->save())
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Unsuccessful!');
+            }
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL);
+        }
+
+        $model = new FeedLike;
+        $model->parent_id = $video_id;
+        $model->user_id = Yii::$app->user->id;
+        $model->type = 'video';
+        $model->status = $status;
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successful');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+    }
+
     public function actionVideo($id)
     {
         $model = PracticeMaterial::find()
@@ -231,7 +275,9 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $video = VideoContent::findOne(['id' => $video_id]);
+        $video = VideoContent::find()->where(['id' => $video_id])
+            //->with(['views'])
+            ->one();
 
         $videos = ['https://www.youtube.com/embed/LRhOuyXemwI',
             'https://www.youtube.com/embed/UZByHx5fHzA',
@@ -241,12 +287,11 @@ class CatchupController extends ActiveController
         $video = array_merge(
             ArrayHelper::toArray($video),
             [
-                'url'=>$videos[mt_rand(0,3)],
+                'url' => $videos[mt_rand(0, 3)],
                 'assign' => $video->videoAssigned,
                 'topic' => $video->videoAssigned->topic,
                 'subject' => $video->videoAssigned->topic->subject
             ]);
-
 
 
         if (!$video) {
