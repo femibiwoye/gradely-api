@@ -276,7 +276,7 @@ class CatchupController extends ActiveController
         }
 
         $video = VideoContent::find()->where(['id' => $video_id])
-            ->with(['views'])
+            //->with(['views'])
             ->one();
 
         $videos = ['https://www.youtube.com/embed/LRhOuyXemwI',
