@@ -519,6 +519,7 @@ class CatchupController extends ActiveController
 
             $subject = Subjects::find()->select(['id', 'slug', 'name', 'status'])->where(['id' => $model['subject_id']])->asArray()->one();
 
+            $topicOrders = [];
             foreach ($topics as $index => $topic) {
                 $topicModels = QuizSummaryDetails::find()
                     ->alias('qsd')
