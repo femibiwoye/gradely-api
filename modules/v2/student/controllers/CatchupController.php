@@ -27,7 +27,7 @@ use app\modules\v2\models\{Homeworks,
     Subjects
 };
 use app\modules\v2\student\models\{StartPracticeForm, StartQuizSummaryForm};
-use app\modules\v2\components\{SharedConstant, Utility};
+use app\modules\v2\components\{SharedConstant, Utility, SessionTermOnly, SessionWeek};
 
 
 /**
@@ -601,6 +601,10 @@ class CatchupController extends ActiveController
 
     public function actionStartPractice()
     {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
         $model = new StartQuizSummaryForm;
         $model->practice_id = Yii::$app->request->post('practice_id');
         $model->student_id = Yii::$app->user->id;
@@ -617,6 +621,10 @@ class CatchupController extends ActiveController
 
     public function actionHomeworkRecommendation()
     {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
         //$topics retrieves low scoring topic_ids
         $topics = QuizSummaryDetails::find()
                     ->alias('qsd')
@@ -654,5 +662,68 @@ class CatchupController extends ActiveController
 
         return (new ApiResponse)->success($topics, ApiResponse::SUCCESSFUL, 'Homework recommendations found');
 
+    }
+
+    public function actionWeeklyRecommendation()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $school_id = StudentSchool::find()
+                        ->select(['school_id', 'class_id'])
+                        ->where(['student_id' => 10])
+                        ->asArray()
+                        ->one();
+
+        if (!$school_id) {
+            $term = SessionTermOnly::widget(['nonSchool' => true]);
+        }
+
+        $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
+        $week = SessionWeek::widget();
+
+        $subjects = ArrayHelper::getColumn(QuizSummary::find()
+                    ->select('subject_id')
+                    ->where(['student_id' => Yii::$app->user->id, 'term' => $term])
+                    ->groupBy('subject_id')
+                    ->asArray()
+                    ->all(),
+                    'subject_id'
+                );
+
+        $weekly_recommended_topics = SubjectTopics::find()
+                                                    ->select([
+                                                        'subject_topics.id',
+                                                        'subject_topics.topic',
+                                                        'subject_topics.week_number',
+                                                        'subject_topics.term',
+                                                        'subjects.name',
+                                                        'subjects.id',
+                                                        new Expression("'practice' AS type"),
+                                                    ])
+                                                    ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
+                                                    ->where([
+                                                        'subject_topics.id' => $subjects,
+                                                        'subject_topics.class_id' => $school_id['class_id']
+                                                    ])
+                                                    ->limit(SharedConstant::VALUE_THREE)
+                                                    ->all();
+
+        if (!$weekly_recommended_topics) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
+        }
+
+        $weekly_recommended_videos = VideoContent::find()
+                        ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+                        ->where(['video_assign.topic_id' => ArrayHelper::getColumn(
+                            $weekly_recommended_topics , 'subject_topics.id')])
+                        ->limit(SharedConstant::VALUE_TWO)
+                        ->all();
+
+        return (new ApiResponse)->success([
+            'topics' => $weekly_recommended_topics,
+            'videos' => $weekly_recommended_videos
+        ], ApiResponse::SUCCESSFUL, 'Weekly recommendations found');        
     }
 }
