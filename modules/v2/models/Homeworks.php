@@ -70,11 +70,12 @@ class Homeworks extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required','on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id'], 'integer'],
             [['description', 'access_status', 'type'], 'string'],
             [['open_date', 'close_date', 'created_at'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
+            [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required','on' => 'student-practice'],
         ];
     }
 

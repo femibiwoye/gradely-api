@@ -2,10 +2,14 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SubscriptionChildren;
 use app\modules\v2\models\SubscriptionPaymentDetails;
+use app\modules\v2\models\User;
+use app\modules\v2\models\UserModel;
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
@@ -118,7 +122,7 @@ class PaymentController extends ActiveController
     public function actionSubscriptionPayment()
     {
         $type = Yii::$app->user->identity->type;
-        $form = new PaymentSubscription(['scenario'=>"$type-subscription"]);
+        $form = new PaymentSubscription(['scenario' => "$type-subscription"]);
         $form->attributes = Yii::$app->request->post();
         $form->user_id = Yii::$app->user->identity->id;
         if (Yii::$app->user->identity->type == SharedConstant::ACCOUNT_TYPE[3]) {
@@ -167,52 +171,79 @@ class PaymentController extends ActiveController
 
     public function actionCardDetails()
     {
-
         $parent_id = Yii::$app->user->id;
 
         $subscription = SubscriptionPaymentDetails::find()
-            ->select('brand', 'last4', 'channel')
+            ->select(['brand', 'last4', 'channel'])
             ->where([
                 'user_id' => $parent_id,
                 'reusable' => SharedConstant::VALUE_ONE,
                 'selected' => SharedConstant::VALUE_ONE
-            ])->one();
+            ])
+            ->asArray()->one();
 
-        if (!$subscription)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No payment details available for this user');
-
-        return (new ApiResponse)->success($subscription, ApiResponse::SUCCESSFUL, 'Payment details retrieved');
+        return $subscription;
     }
 
-    public function actionChildrenSubscription(){
+    public function actionChildrenSubscription()
+    {
 
         $finalObject = [];
 
-        if(Yii::$app->user->identity->type != 'parent')
+        if (Yii::$app->user->identity->type != 'parent')
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
 
+        $parentChildren = Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->all();
 
-        $parentChildren = Parents::findAll(['parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]);
-
-        if(!$parentChildren)
+        if (!$parentChildren)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have children');
 
 
         $cardDetails = $this->actionCardDetails();
+        $children = UserModel::find()
+            ->select([
+                'user.id',
+                'firstname',
+                'lastname',
+                'image',
+                'code',
+                'class',
+                'subscription_expiry',
+                'subscription_plan',
+                //'sc.*'
+            ])
+            ->where(['id' => ArrayHelper::getColumn($parentChildren, 'student_id')])
+            //->innerJoin('subscription_children sc','sc.student_id = user.id')
+            ->asArray()
+            //->orderBy(['firstname'=>'ASC','sc.id'=>'DESC'])
+            ->all();
 
+        foreach ($children as $key => $child) {
+            //return $childSub = SubscriptionChildren::findOne(['student_id'=>$child['id']]);
+            $children[$key] = array_merge(
+                $children[$key],
+                ['catchup' => ['status' => Utility::getSubscriptionStatus(User::findOne($child['id'])),
+                    ['amount' => 1500]]],
+                ['tutor' => null]
+            );
+        }
 
-        foreach ($parentChildren as $parentChild){
+        return array_merge(['card' => $cardDetails], ['children' => $children]);
+
+/*
+        foreach ($parentChildren as $parentChild) {
+
+            [];
 
             $parent_child_subscription = SubscriptionChildren::find()
                 ->innerJoin('user', 'user.id = subscription_children.student_id')
                 ->where([
-                    'subscriber_id' => Yii::$app->user->id,
+                    //'subscriber_id' => Yii::$app->user->id,
                     'payment_status' => 'paid',
                     'student_id' => $parentChild->student_id])
-                ->andWhere(['>', 'subscription_children.expiry', date('d-m-y h:i:s')])
-                ;
+                ->andWhere(['>', 'subscription_children.expiry', date('d-m-y H:i:s')]);
 
-            if(!$parent_child_subscription->exists())
+            if (!$parent_child_subscription->exists())
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No Subscription for child');
 
         }
@@ -220,7 +251,7 @@ class PaymentController extends ActiveController
         $finalObject['card'] = $cardDetails;
         $finalObject['child'] = $parent_child_subscription;
 
-        return (new ApiResponse)->success($finalObject, ApiResponse::SUCCESSFUL, 'Subscription retrieved');
+        return (new ApiResponse)->success($finalObject, ApiResponse::SUCCESSFUL, 'Subscription retrieved');*/
     }
 
 
