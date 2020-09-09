@@ -141,7 +141,7 @@ class HomeworkForm extends Model
 
     public function createHomework($type)
     {
-        $model = new Homeworks();
+        $model = new Homeworks(['scenario' => 'assessment']);
         $model->attributes = $this->attributes;
         $model->type = $type;
         //$model->exam_type_id = SubjectTopics::find()->where(['id' => $this->topics_id])->one()->exam_type_id;

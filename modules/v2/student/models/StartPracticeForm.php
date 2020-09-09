@@ -1,4 +1,5 @@
 <?php
+
 namespace app\modules\v2\student\models;
 
 use Yii;
@@ -6,10 +7,10 @@ use yii\base\Model;
 use yii\helpers\ArrayHelper;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\{
-    Homeworks, 
-    SubjectTopics, 
-    Questions, 
-    QuizSummaryDetails, 
+    Homeworks,
+    SubjectTopics,
+    Questions,
+    QuizSummaryDetails,
     PracticeTopics,
     HomeworkQuestions
 };
@@ -17,12 +18,14 @@ use app\modules\v2\models\{
 /**
  * Password reset request form
  */
-class StartPracticeForm extends Model {
+class StartPracticeForm extends Model
+{
     public $topic_ids;
     public $type;
     private $questions_duration = SharedConstant::VALUE_ZERO;
 
-    public function rules() {
+    public function rules()
+    {
         return [
             [['topic_ids', 'type'], 'required'],
             ['topic_ids', 'each', 'rule' => ['integer']],
@@ -36,8 +39,11 @@ class StartPracticeForm extends Model {
         if (count($this->topic_ids) > SharedConstant::VALUE_ONE && $this->type == SharedConstant::MIX_TYPE_ARRAY) {
             return true;
         }
+        if (count($this->topic_ids) == SharedConstant::VALUE_ONE && $this->type == SharedConstant::SINGLE_TYPE_ARRAY) {
+            return true;
+        }
 
-        return $this->addError('Type needs to be corrected');
+        return $this->addError('type', 'Type needs to be corrected');
     }
 
     public function initializePractice()
@@ -63,23 +69,22 @@ class StartPracticeForm extends Model {
             return false;
         }
 
-        return [
-            'homework' => $homework,
+        return array_merge(ArrayHelper::toArray($homework), [
             'duration' => $this->questions_duration,
             'practice_type' => $this->type,
-        ];
+        ]);
     }
 
     public function createHomework()
     {
-        $homework = new Homeworks;
+        $homework = new Homeworks(['scenario' => 'student-practice']);
         $homework->student_id = Yii::$app->user->id;
         $homework->subject_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->subject_id;
         $homework->title = $this->homeworkType;
         $homework->type = SharedConstant::HOMEWORK_TYPES[2];
         $homework->class_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->class_id;
         $homework->exam_type_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->exam_type_id;
-        if (!$homework->save(false)) {
+        if (!$homework->save()) {
             return false;
         }
 
@@ -103,22 +108,24 @@ class StartPracticeForm extends Model {
     public function createHomeworkQuestions($homework)
     {
         //attempted_topics = Questions already attempted by the student.
-            $attempted_topics = ArrayHelper::getColumn(QuizSummaryDetails::find()
-                                    ->select(['question_id'])
-                                    ->where(['student_id' => Yii::$app->user->id])
-                                    ->asArray()
-                                    ->all(),
-                                'question_id');
+        $attempted_topics = ArrayHelper::getColumn(QuizSummaryDetails::find()
+            ->select(['question_id'])
+            ->where(['student_id' => Yii::$app->user->id])
+            ->groupBy('question_id')
+            ->asArray()
+            ->all(),
+            'question_id');
 
         if ($this->type == SharedConstant::SINGLE_TYPE_ARRAY) {
             $questions = Questions::find()
-                            ->where([
-                                'questions.subject_id' => $homework->subject_id,
-                                'questions.topic_id' => $this->topic_ids[SharedConstant::VALUE_ZERO]
-                            ])
-                            ->andWhere(['NOT IN', 'id', $attempted_topics])
-                            ->limit(SharedConstant::VALUE_FIVE)
-                            ->all();
+                ->where([
+                    'questions.subject_id' => $homework->subject_id,
+                    'questions.topic_id' => $this->topic_ids[SharedConstant::VALUE_ZERO]
+                ])
+                ->andWhere(['NOT IN', 'id', $attempted_topics])
+                ->limit(SharedConstant::VALUE_FIVE)
+                ->orderBy('rand()')
+                ->all();
 
             return $this->addQuestions($homework, $questions);
 
@@ -126,13 +133,14 @@ class StartPracticeForm extends Model {
 
         foreach ($this->topic_ids as $topic) {
             $questions = Questions::find()
-                            ->where([
-                                'questions.subject_id' => $homework->subject_id,
-                                'questions.topic_id' => $topic
-                            ])
-                            ->andWhere(['NOT IN', 'id', $attempted_topics])
-                            ->limit(SharedConstant::VALUE_THREE)
-                            ->all();
+                ->where([
+                    'questions.subject_id' => $homework->subject_id,
+                    'questions.topic_id' => $topic
+                ])
+                ->andWhere(['NOT IN', 'id', $attempted_topics])
+                ->orderBy('rand()')
+                ->limit(SharedConstant::VALUE_THREE)
+                ->all();
 
             $this->addQuestions($homework, $questions);
         }
@@ -142,6 +150,9 @@ class StartPracticeForm extends Model {
 
     private function addQuestions($homework, $questions)
     {
+        if (count($questions) < 1)
+            return false;
+
         foreach ($questions as $question) {
             $model = new HomeworkQuestions;
             $model->teacher_id = Yii::$app->user->id;
