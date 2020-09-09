@@ -24,7 +24,8 @@ use app\modules\v2\models\{Homeworks,
     SubjectTopics,
     QuizSummary,
     QuizSummaryDetails,
-    Subjects};
+    Subjects
+};
 use app\modules\v2\student\models\{StartPracticeForm, StartQuizSummaryForm};
 use app\modules\v2\components\{SharedConstant, Utility};
 
@@ -38,6 +39,7 @@ class CatchupController extends ActiveController
     private $subject_array = array();
     private $single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
     private $mix_topic_array = array();
+    private $homeworks_topics;
 
     /**
      * @return array
@@ -612,5 +614,46 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
+    }
+
+    public function actionHomeworkRecommendation()
+    {
+        //$topics retrieves low scoring topic_ids
+        $topics = QuizSummaryDetails::find()
+                    ->alias('qsd')
+                    ->select([
+                        new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                        'qsd.topic_id',
+                    ])
+                    ->where(['qsd.student_id' => Yii::$app->user->id])
+                    ->orderBy(['score' => SORT_ASC])
+                    ->asArray()
+                    ->limit(SharedConstant::VALUE_TWO)
+                    ->groupBy('qsd.topic_id')
+                    ->all();
+
+        //$topic_onjects retrieves topic objects
+        $topic_objects = SubjectTopics::find()
+                        ->where(['id' => ArrayHelper::getColumn($topics , 'topic_id')])
+                        ->all();
+
+        //retrieves assign videos to the topic
+        $video = VideoContent::find()
+                        ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+                        ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics , 'topic_id')])
+                        ->limit(SharedConstant::VALUE_ONE)
+                        ->all();
+
+        if (!$topic_objects) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework recommendations not found');
+        }
+
+        $topics = [
+            'topics' => $topic_objects,
+            'video' => $video
+        ];
+
+        return (new ApiResponse)->success($topics, ApiResponse::SUCCESSFUL, 'Homework recommendations found');
+
     }
 }
