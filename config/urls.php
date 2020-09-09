@@ -20,6 +20,8 @@ return [
     'GET v2/general/app' => 'v2/general/app-notification',
     'GET /v2/general/global-classes' => '/v2/general/global-classes', //
     'GET /v2/general/avatar' => '/v2/general/avatar', //
+    'GET /v2/general/student-subscription' => '/v2/general/student-subscription', //
+
 
     //Current User
     'GET v2/general/user' => 'v2/general/user', //
