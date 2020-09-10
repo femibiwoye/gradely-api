@@ -228,6 +228,7 @@ class PaymentController extends ActiveController
                     ['status' => Utility::getSubscriptionStatus(User::findOne($child['id'])),
                         //'amount' => 1500,
                         'last_payment_status' => isset($childSub->payment_status) ? $childSub->payment_status : null,
+                        'subscription_id' => isset($childSub->subscription) ? $childSub->subscription->id : null,
                         'price' => isset($childSub->subscription) ? $childSub->subscription->price : null,
                         'duration' => isset($childSub->subscription) ? $childSub->subscription->duration : null,
                         'duration_count' => isset($childSub->subscription) ? $childSub->subscription->duration_count : null,
@@ -264,6 +265,38 @@ class PaymentController extends ActiveController
                 $finalObject['child'] = $parent_child_subscription;
 
                 return (new ApiResponse)->success($finalObject, ApiResponse::SUCCESSFUL, 'Subscription retrieved');*/
+    }
+
+    public function actionChildSubscription()
+    {
+
+        if (Yii::$app->user->identity->type != 'student')
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
+
+
+        $cardDetails = $this->actionCardDetails();
+
+        $childSub = SubscriptionChildren::find()->where(['student_id' => Yii::$app->user->id, 'payment_status' => 'paid'])->orderBy('id DESC')->one();
+
+
+        $child =
+            ['catchup' =>
+                ['status' => Utility::getSubscriptionStatus(User::findOne(Yii::$app->user->id)),
+                    //'amount' => 1500,
+                    'last_payment_status' => isset($childSub->payment_status) ? $childSub->payment_status : null,
+                    'price' => isset($childSub->subscription) ? $childSub->subscription->price : null,
+                    'duration' => isset($childSub->subscription) ? $childSub->subscription->duration : null,
+                    'duration_count' => isset($childSub->subscription) ? $childSub->subscription->duration_count : null,
+                    'plan' => isset($childSub->subscription) ? $childSub->subscription->plan : null,
+
+
+                ],
+                'tutor' => null
+            ];
+
+
+        return ['card' => $cardDetails, 'child' => $child];
+
     }
 
 
