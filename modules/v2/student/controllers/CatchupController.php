@@ -685,7 +685,7 @@ class CatchupController extends ActiveController
 
     }
 
-    public function actionWeeklyRecommendation()
+     public function actionWeeklyRecommendation()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
@@ -699,14 +699,16 @@ class CatchupController extends ActiveController
 
         if (!$school_id) {
             $term = SessionTermOnly::widget(['nonSchool' => true]);
+            $week = SessionTermOnly::widget(['nonSchool' => true,'weekOnly' => true]);
         } else {
             $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
+            $week = SessionTermOnly::widget(['id' => $school_id['school_id'],'weekOnly' => true]);
         }
         //$week = SessionWeek::widget();
 
         $subjects = ArrayHelper::getColumn(QuizSummary::find()
             ->select('subject_id')
-            ->where(['student_id' => Yii::$app->user->id, 'term' => $term])
+            ->where(['student_id' => Yii::$app->user->id])
             ->groupBy('subject_id')
             ->asArray()
             ->all(),
