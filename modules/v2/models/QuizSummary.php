@@ -70,6 +70,7 @@ class QuizSummary extends \yii\db\ActiveRecord {
 
 	public function fields() {
 		return [
+		    'id',
 			'homework_id',
 			'subject_id',
 			'student_id',
