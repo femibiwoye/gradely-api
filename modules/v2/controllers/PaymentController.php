@@ -219,13 +219,21 @@ class PaymentController extends ActiveController
             ->all();
 
         foreach ($children as $key => $child) {
-            $childSub = SubscriptionChildren::findOne(['student_id' => $child['id']]);
+            $childSub = SubscriptionChildren::find()->where(['student_id' => $child['id'], 'payment_status' => 'paid'])->orderBy('id DESC')->one();
+
 
             $children[$key] = array_merge(
                 $children[$key],
                 ['catchup' =>
                     ['status' => Utility::getSubscriptionStatus(User::findOne($child['id'])),
-                        'amount' => 1500
+                        //'amount' => 1500,
+                        'last_payment_status' => isset($childSub->payment_status) ? $childSub->payment_status : null,
+                        'price' => isset($childSub->subscription) ? $childSub->subscription->price : null,
+                        'duration' => isset($childSub->subscription) ? $childSub->subscription->duration : null,
+                        'duration_count' => isset($childSub->subscription) ? $childSub->subscription->duration_count : null,
+                        'plan' => isset($childSub->subscription) ? $childSub->subscription->plan : null,
+
+
                     ]
                 ],
                 ['tutor' => null]
