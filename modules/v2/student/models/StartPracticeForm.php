@@ -22,6 +22,8 @@ class StartPracticeForm extends Model
 {
     public $topic_ids;
     public $type;
+    public $reference_id;
+    public $reference_type;
     private $questions_duration = SharedConstant::VALUE_ZERO;
 
     public function rules()
@@ -81,6 +83,12 @@ class StartPracticeForm extends Model
         $homework->student_id = Yii::$app->user->id;
         $homework->subject_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->subject_id;
         $homework->title = $this->homeworkType;
+
+        if(!empty($this->reference_type) &&  $this->reference_type == 'recommendation'){
+            $homework->reference_type = 'recommendation';
+            $homework->reference_id = $this->reference_id;
+        }
+
         $homework->type = SharedConstant::HOMEWORK_TYPES[2];
         $homework->class_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->class_id;
         $homework->exam_type_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->exam_type_id;

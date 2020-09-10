@@ -219,39 +219,43 @@ class PaymentController extends ActiveController
             ->all();
 
         foreach ($children as $key => $child) {
-            //return $childSub = SubscriptionChildren::findOne(['student_id'=>$child['id']]);
+            $childSub = SubscriptionChildren::findOne(['student_id' => $child['id']]);
+
             $children[$key] = array_merge(
                 $children[$key],
-                ['catchup' => ['status' => Utility::getSubscriptionStatus(User::findOne($child['id'])),
-                    ['amount' => 1500]]],
+                ['catchup' =>
+                    ['status' => Utility::getSubscriptionStatus(User::findOne($child['id'])),
+                        'amount' => 1500
+                    ]
+                ],
                 ['tutor' => null]
             );
         }
 
         return array_merge(['card' => $cardDetails], ['children' => $children]);
 
-/*
-        foreach ($parentChildren as $parentChild) {
+        /*
+                foreach ($parentChildren as $parentChild) {
 
-            [];
+                    [];
 
-            $parent_child_subscription = SubscriptionChildren::find()
-                ->innerJoin('user', 'user.id = subscription_children.student_id')
-                ->where([
-                    //'subscriber_id' => Yii::$app->user->id,
-                    'payment_status' => 'paid',
-                    'student_id' => $parentChild->student_id])
-                ->andWhere(['>', 'subscription_children.expiry', date('d-m-y H:i:s')]);
+                    $parent_child_subscription = SubscriptionChildren::find()
+                        ->innerJoin('user', 'user.id = subscription_children.student_id')
+                        ->where([
+                            //'subscriber_id' => Yii::$app->user->id,
+                            'payment_status' => 'paid',
+                            'student_id' => $parentChild->student_id])
+                        ->andWhere(['>', 'subscription_children.expiry', date('d-m-y H:i:s')]);
 
-            if (!$parent_child_subscription->exists())
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No Subscription for child');
+                    if (!$parent_child_subscription->exists())
+                        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No Subscription for child');
 
-        }
+                }
 
-        $finalObject['card'] = $cardDetails;
-        $finalObject['child'] = $parent_child_subscription;
+                $finalObject['card'] = $cardDetails;
+                $finalObject['child'] = $parent_child_subscription;
 
-        return (new ApiResponse)->success($finalObject, ApiResponse::SUCCESSFUL, 'Subscription retrieved');*/
+                return (new ApiResponse)->success($finalObject, ApiResponse::SUCCESSFUL, 'Subscription retrieved');*/
     }
 
 
