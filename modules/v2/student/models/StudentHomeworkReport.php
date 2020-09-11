@@ -83,7 +83,7 @@ class StudentHomeworkReport extends Homeworks
             return SharedConstant::VALUE_ZERO;
         }
 
-        return ($this->correctQuestions / $this->countAttemptedQuestions) * 100;
+        return rount(($this->correctQuestions / $this->countAttemptedQuestions) * 100);
     }
 
     public function getMissedQuestions()
@@ -257,9 +257,9 @@ class StudentHomeworkReport extends Homeworks
 
     public function getQuizSummary()
     {
-        return QuizSummary::find()->where(['student_id' => $this->student_id])
-            ->andWhere(['teacher_id' => Yii::$app->user->id])
-            ->andWhere(['subject_id' => $this->subject->id])
+        return QuizSummary::find()
+            ->andWhere(['student_id' => Yii::$app->user->id])
+            ->andWhere(['subject_id' => $this->subject_id])
             ->andWhere(['homework_id' => $this->id])->one();
 
     }
