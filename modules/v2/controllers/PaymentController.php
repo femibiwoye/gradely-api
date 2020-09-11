@@ -188,8 +188,6 @@ class PaymentController extends ActiveController
     public function actionChildrenSubscription()
     {
 
-        $finalObject = [];
-
         if (Yii::$app->user->identity->type != 'parent')
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
 
@@ -243,28 +241,6 @@ class PaymentController extends ActiveController
 
         return array_merge(['card' => $cardDetails], ['children' => $children]);
 
-        /*
-                foreach ($parentChildren as $parentChild) {
-
-                    [];
-
-                    $parent_child_subscription = SubscriptionChildren::find()
-                        ->innerJoin('user', 'user.id = subscription_children.student_id')
-                        ->where([
-                            //'subscriber_id' => Yii::$app->user->id,
-                            'payment_status' => 'paid',
-                            'student_id' => $parentChild->student_id])
-                        ->andWhere(['>', 'subscription_children.expiry', date('d-m-y H:i:s')]);
-
-                    if (!$parent_child_subscription->exists())
-                        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No Subscription for child');
-
-                }
-
-                $finalObject['card'] = $cardDetails;
-                $finalObject['child'] = $parent_child_subscription;
-
-                return (new ApiResponse)->success($finalObject, ApiResponse::SUCCESSFUL, 'Subscription retrieved');*/
     }
 
     public function actionChildSubscription()
@@ -293,7 +269,6 @@ class PaymentController extends ActiveController
                 ],
                 'tutor' => null
             ];
-
 
         return ['card' => $cardDetails, 'child' => $child];
 

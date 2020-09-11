@@ -115,6 +115,7 @@ class AuthController extends Controller
      */
     public function actionForgotPassword()
     {
+
         $form = new PasswordResetRequestForm();
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
@@ -136,6 +137,7 @@ class AuthController extends Controller
     {
         $form = new ResetPasswordForm;
         $form->attributes = Yii::$app->request->post();
+
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }

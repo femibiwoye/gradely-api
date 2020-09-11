@@ -47,6 +47,9 @@ class SignupForm extends Model
 
             [['class', 'country'], 'required', 'on' => 'student-signup'],
             [['email'], 'safe', 'on' => 'student-signup'],
+
+            [['class'], 'required', 'on' => 'parent-student-signup'],
+            //[['email', 'country'], 'safe', 'on' => 'parent-student-signup'],
         ];
     }
 

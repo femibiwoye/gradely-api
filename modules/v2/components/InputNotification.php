@@ -20,8 +20,8 @@ class InputNotification extends Model
     public function NewNotification($actionName, $fields)
     {
 
-
         $action = Actions::findOne(['name' => $actionName]);
+
         parent::init();
         $notification = new Notifications();
         $notification->action_id = $action->id;

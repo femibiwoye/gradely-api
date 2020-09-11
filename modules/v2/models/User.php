@@ -67,6 +67,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'image' => 'imageUrl',
             'type',
             'email',
+            'class',
             'is_boarded',
             'token',
             'profile' => 'userProfile',

@@ -285,7 +285,7 @@ class ChildrenController extends ActiveController
         if (!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
 
-        $model = new SignupForm();
+        $model = new SignupForm(['scenario' => 'parent-student-signup']);
         $model->attributes = Yii::$app->request->post();
 
         if (!$model->validate())
@@ -303,7 +303,7 @@ class ChildrenController extends ActiveController
                 return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
 
         }
-        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Child successfully added');
+        return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user),['password'=>$model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }
 }

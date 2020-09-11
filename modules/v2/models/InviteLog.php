@@ -147,6 +147,7 @@ class InviteLog extends \yii\db\ActiveRecord
 
     public function schoolInviteTeacher()
     {
+
         $model = new InviteLog();
         $model->receiver_email = $this->receiver_email;
         $model->receiver_name = $this->receiver_name;

@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\models\User;
 use yii\base\Model;
 use Yii;
@@ -45,9 +46,14 @@ class ResetPasswordForm extends Model {
 		$user = $this->_user;
 		$user->setPassword($this->password);
 		$user->removePasswordResetToken();
+
 		if (!$user->save()) {
 			return false;
 		}
+
+        $notification = new InputNotification();
+        if (!$notification->NewNotification('password_changed', [['user_id', $user->id]]))
+            return false;
 
 		//TODO:: will send an email here
 		
