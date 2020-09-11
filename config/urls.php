@@ -72,4 +72,12 @@ return [
         'PUT resend/<id:\d+>' => 'resend', //
         'DELETE remove/<id:\d+>' => 'remove', //
     ]],
+
+
+    //Invites
+    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/commands'], 'extraPatterns' => [
+        'GET update-school-calendar' => 'update-school-calendar', //
+    ]],
+
+
 ];
