@@ -14,6 +14,7 @@ use app\modules\v2\models\{Homeworks, ApiResponse};
 use app\modules\v2\student\models\HomeworkReport;
 use app\modules\v2\student\models\StudentHomeworkReport;
 use Yii;
+use yii\data\ArrayDataProvider;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
 use app\modules\v2\components\SharedConstant;
@@ -63,21 +64,38 @@ class HomeworkController extends ActiveController
         $student_id = Utility::getParentChildID();
         $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-            ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE]);
+            ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE])->all();
+
+        $missedModels = StudentHomeworkReport::find()
+            ->innerJoin('student_school', "student_school.class_id = homeworks.class_id AND student_school.student_id=$student_id")
+            ->leftJoin('quiz_summary qs', "qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1")
+            ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
+            ->andWhere(['<', 'UNIX_TIMESTAMP(close_date)', time()])
+            ->andWhere(['IS', 'qs.homework_id', null])->all();
+
+//return $models;
+
+        $models = array_merge($models,$missedModels);
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
-        $provider = new ActiveDataProvider([
-            'query' => $models,
+        $provider = new ArrayDataProvider([
+            'allModels' => $models,
             'pagination' => [
                 'pageSize' => 10,
                 'validatePage' => false,
             ],
+            'sort'=> [
+
+                'attributes' => [
+                    'id'
+                ],
+                'defaultOrder' => ['id' => SORT_ASC]]
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found',$provider);
     }
 
     public function actionNewHomework()
@@ -85,9 +103,11 @@ class HomeworkController extends ActiveController
         $student_id = Utility::getParentChildID();
         $models = $this->modelClass::find()
             ->innerJoin('student_school', "student_school.class_id = homeworks.class_id AND student_school.student_id=$student_id")
+            ->leftJoin('quiz_summary qs', "qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1")
             ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
             ->andWhere(['<', 'UNIX_TIMESTAMP(open_date)', time()])
-            ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()]);
+            ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()])
+            ->andWhere(['IS', 'qs.homework_id', null]);
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');

@@ -124,6 +124,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'questionsDuration',
             'score',
             'status',
+            'tag',
             'activeStatus' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
             'publish_status' => 'publishStatus',

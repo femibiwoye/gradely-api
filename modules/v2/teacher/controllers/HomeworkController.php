@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
@@ -174,6 +175,11 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
+//var_dump($this->id);die;
+//        $notification = new InputNotification();
+//        if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->id]]))
+//            return false;
+//echo 'notify';die;
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [

@@ -119,6 +119,7 @@ class GeneralController extends Controller
     public function actionTerm()
     {
         //$term = SessionTermOnly::widget(['id' => 12]); // Current terms for users who does belongs to school. 12 is school_id
+        //$week = SessionTermOnly::widget(['id' => 12, 'weekOnly' => true]); // Current terms for users who does belongs to school. 12 is school_id
         $term = SessionTermOnly::widget(['nonSchool' => true]); // Current terms for users who does not belong to school
         $week = SessionTermOnly::widget(['nonSchool' => true, 'weekOnly' => true]); // Current terms for users who does not belong to school
 

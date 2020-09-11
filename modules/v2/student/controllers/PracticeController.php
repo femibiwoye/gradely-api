@@ -155,7 +155,6 @@ class PracticeController extends Controller
         if (!is_array($attempts)) {
             //return error that questions is invalid
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question must be array');
-
         }
 
         //use transaction before saving;
