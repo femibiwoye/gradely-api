@@ -27,103 +27,109 @@ use Yii;
  * @property User $student
  * @property QuizSummaryDetails[] $quizSummaryDetails
  */
-class QuizSummary extends \yii\db\ActiveRecord {
-	/**
-	 * {@inheritdoc}
-	 */
-	private $attempt_questions = [];
+class QuizSummary extends \yii\db\ActiveRecord
+{
+    /**
+     * {@inheritdoc}
+     */
+    private $attempt_questions = [];
 
-	public static function tableName() {
-		return 'quiz_summary';
-	}
-
-	public function rules() {
-		return [
-			[['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'term'], 'required'],
-			[['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'correct', 'failed', 'skipped', 'submit', 'topic_id'], 'integer'],
-			[['type', 'term'], 'string'],
-			[['created_at'], 'safe'],
-			[['submit_at'], 'string', 'max' => 50],
-		];
-	}
-
-	public function attributeLabels() {
-		return [
-			'id' => 'ID',
-			'homework_id' => 'Homework ID',
-			'subject_id' => 'Subject ID',
-			'student_id' => 'Student ID',
-			'teacher_id' => 'Teacher ID',
-			'class_id' => 'Class ID',
-			'type' => 'Type',
-			'total_questions' => 'Total Questions',
-			'correct' => 'Correct',
-			'failed' => 'Failed',
-			'skipped' => 'Skipped',
-			'term' => 'Term',
-			'created_at' => 'Created At',
-			'submit_at' => 'Submit At',
-			'submit' => 'Submit',
-			'topic_id' => 'Topic ID',
-		];
-	}
-
-	public function fields() {
-		return [
-		    'id',
-			'homework_id',
-			'subject_id',
-			'student_id',
-			'teacher_id',
-			'class_id',
-			'type',
-			'submit',
-			'created_at',
-			'submit_at',
-			'score',
-		];
-//		return ['duration', 'total_questions'];
-	}
-
-	public function getAttempt()
-	{
-		foreach ($this->quizSummaryDetails as $quizSummaryDetail) {
-			$attemptArray = [
-				'question_id' => $quizSummaryDetail->question_id,
-				'selected' => $quizSummaryDetail->selected,
-			];
-
-			array_push($this->attempt_questions, $attemptArray);
-		}
-
-		return [
-			'quiz_id' => $this->id,
-			'attempts' => $this->attempt_questions,
-		];
-	}
-
-	public function getScore() {
-		return $this->total_questions > 0 ? round(($this->correct / $this->total_questions) * 100) : 0;
-	}
-
-	public function getStudent()
+    public static function tableName()
     {
-        return $this->hasOne(UserModel::className(),['id'=>'student_id'])->select(['id','firstname','lastname','code','email','phone','image','type']);
+        return 'quiz_summary';
+    }
+
+    public function rules()
+    {
+        return [
+            [['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'term'], 'required'],
+            [['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'correct', 'failed', 'skipped', 'submit', 'topic_id'], 'integer'],
+            [['type', 'term'], 'string'],
+            [['created_at'], 'safe'],
+            [['submit_at'], 'string', 'max' => 50],
+        ];
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'homework_id' => 'Homework ID',
+            'subject_id' => 'Subject ID',
+            'student_id' => 'Student ID',
+            'teacher_id' => 'Teacher ID',
+            'class_id' => 'Class ID',
+            'type' => 'Type',
+            'total_questions' => 'Total Questions',
+            'correct' => 'Correct',
+            'failed' => 'Failed',
+            'skipped' => 'Skipped',
+            'term' => 'Term',
+            'created_at' => 'Created At',
+            'submit_at' => 'Submit At',
+            'submit' => 'Submit',
+            'topic_id' => 'Topic ID',
+        ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'homework_id',
+            'subject_id',
+            'student_id',
+            'teacher_id',
+            'class_id',
+            'type',
+            'submit',
+            'created_at',
+            'submit_at',
+            'score',
+        ];
+//		return ['duration', 'total_questions'];
+    }
+
+    public function getAttempt()
+    {
+        foreach ($this->quizSummaryDetails as $quizSummaryDetail) {
+            $attemptArray = [
+                'question_id' => $quizSummaryDetail->question_id,
+                'selected' => $quizSummaryDetail->selected,
+            ];
+
+            array_push($this->attempt_questions, $attemptArray);
+        }
+
+        return [
+            'quiz_id' => $this->id,
+            'attempts' => $this->attempt_questions,
+        ];
+    }
+
+    public function getScore()
+    {
+        return $this->total_questions > 0 ? round(($this->correct / count($this->homeworkQuestions)) * 100) : 0;
+    }
+
+    public function getStudent()
+    {
+        return $this->hasOne(UserModel::className(), ['id' => 'student_id'])->select(['id', 'firstname', 'lastname', 'code', 'email', 'phone', 'image', 'type']);
     }
 
     public function getTeacherHomework()
     {
-        return $this->hasOne(Homeworks::className(),['id'=>'homework_id'])->andWhere(['homeworks.teacher_id'=>Yii::$app->user->id]);
+        return $this->hasOne(Homeworks::className(), ['id' => 'homework_id'])->andWhere(['homeworks.teacher_id' => Yii::$app->user->id]);
     }
 
     public function getChildHomework()
     {
-        return $this->hasOne(Homeworks::className(),['id'=>'homework_id']);
+        return $this->hasOne(Homeworks::className(), ['id' => 'homework_id']);
     }
 
     public function getSubject()
     {
-        return $this->hasOne(Subjects::className(),['id'=>'subject_id']);
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
     }
 
     public function getHomeworkQuestions()
@@ -133,7 +139,7 @@ class QuizSummary extends \yii\db\ActiveRecord {
 
     public function getQuizSummaryDetails()
     {
-    	return $this->hasMany(QuizSummaryDetails::className(), ['quiz_id' => 'id']);
+        return $this->hasMany(QuizSummaryDetails::className(), ['quiz_id' => 'id']);
     }
 
 }
