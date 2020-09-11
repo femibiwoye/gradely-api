@@ -259,7 +259,6 @@ class StudentHomeworkReport extends Homeworks
     {
         return QuizSummary::find()
             ->andWhere(['student_id' => Yii::$app->user->id])
-            ->andWhere(['subject_id' => $this->subject_id])
             ->andWhere(['homework_id' => $this->id])->one();
 
     }
