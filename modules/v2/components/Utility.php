@@ -188,15 +188,47 @@ class Utility extends ActiveRecord
             return $data->class_id;
         }
     }
-     public static function getStudentClassCategory($class_id)
+
+    public static function getStudentClassCategory($class_id)
     {
-        if ($class_id >= 7 && $class_id <=12)
+        if ($class_id >= 7 && $class_id <= 12)
             $category = 'secondary';
-        elseif($class_id >= 1 && $class_id <=6 || $class_id >12)
+        elseif ($class_id >= 1 && $class_id <= 6 || $class_id > 12)
             $category = 'primary';
-else
-    $category = null;
+        else
+            $category = null;
         return $category;
+    }
+
+    public static function getSubscriptionStatus($student = null, $value = null)
+    {
+        if (empty($student)) {
+            $student = Yii::$app->user->identity;
+        }
+        if ($value == 'plan') {
+            return $value = $student->subscription_plan;
+        } else {
+            $expiry = $student->subscription_expiry;
+            return $value = $expiry != null && strtotime($expiry) > time();
+        }
+    }
+
+    public static function getStudentTermWeek()
+    {
+        $school_id = StudentSchool::find()
+            ->select(['school_id', 'class_id'])
+            ->where(['student_id' => Yii::$app->user->id])
+            ->asArray()
+            ->one();
+
+        if (!$school_id) {
+            $term = SessionTermOnly::widget(['nonSchool' => true]);
+            $week = SessionTermOnly::widget(['nonSchool' => true, 'weekOnly' => true]);
+        } else {
+            $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
+            $week = SessionTermOnly::widget(['id' => $school_id['school_id'], 'weekOnly' => true]);
+        }
+        return ['term' => strtolower($term), 'week' => strtolower($week)];
     }
 
 

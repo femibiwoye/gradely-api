@@ -24,9 +24,10 @@ use app\modules\v2\models\{Homeworks,
     SubjectTopics,
     QuizSummary,
     QuizSummaryDetails,
-    Subjects};
+    Subjects
+};
 use app\modules\v2\student\models\{StartPracticeForm, StartQuizSummaryForm};
-use app\modules\v2\components\{SharedConstant, Utility};
+use app\modules\v2\components\{SharedConstant, Utility, SessionTermOnly, SessionWeek};
 
 
 /**
@@ -38,6 +39,7 @@ class CatchupController extends ActiveController
     private $subject_array = array();
     private $single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
     private $mix_topic_array = array();
+    private $homeworks_topics;
 
     /**
      * @return array
@@ -517,6 +519,7 @@ class CatchupController extends ActiveController
 
             $subject = Subjects::find()->select(['id', 'slug', 'name', 'status'])->where(['id' => $model['subject_id']])->asArray()->one();
 
+            $topicOrders = [];
             foreach ($topics as $index => $topic) {
                 $topicModels = QuizSummaryDetails::find()
                     ->alias('qsd')
@@ -590,6 +593,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
+
         if (!$homework_model = $model->initializePractice()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
         }
@@ -599,6 +603,10 @@ class CatchupController extends ActiveController
 
     public function actionStartPractice()
     {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
         $model = new StartQuizSummaryForm;
         $model->practice_id = Yii::$app->request->post('practice_id');
         $model->student_id = Yii::$app->user->id;
@@ -611,5 +619,134 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
+    }
+
+    public function actionHomeworkRecommendation($quiz_id)
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $quizSummary = QuizSummary::find()->where([
+            'id' => $quiz_id, 'submit' => 1,
+            //'student_id' => Yii::$app->user->id
+        ])->one();
+        if (!$quizSummary)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
+
+
+        //$topics retrieves low scoring topic_ids
+        $topics = QuizSummaryDetails::find()
+            ->alias('qsd')
+            ->select([
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                'qsd.topic_id',
+            ])
+            ->where([
+                //'qsd.student_id' => Yii::$app->user->id,
+                'homework_id' => $quizSummary->homework_id
+            ])
+            ->orderBy(['score' => SORT_ASC])
+            ->asArray()
+            ->limit(SharedConstant::VALUE_TWO)
+            ->groupBy('qsd.topic_id')
+            ->all();
+
+        //$topic_objects retrieves topic objects
+        $topic_objects = SubjectTopics::find()
+            ->select([
+                'subject_topics.*',
+                new Expression("'practice' as type")
+            ])
+            ->where(['id' => ArrayHelper::getColumn($topics, 'topic_id')])
+            ->asArray()
+            ->all();
+
+        //retrieves assign videos to the topic
+        $video = VideoContent::find()
+            ->select([
+                'video_content.*',
+                new Expression("'video' as type")
+            ])
+            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
+            ->limit(SharedConstant::VALUE_ONE)
+            ->asArray()
+            ->all();
+
+        if (!$topic_objects) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework recommendations not found');
+        }
+
+
+        $topics = array_merge($topic_objects, $video);
+
+        return (new ApiResponse)->success($topics, ApiResponse::SUCCESSFUL, 'Homework recommendations found');
+
+    }
+
+     public function actionWeeklyRecommendation()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $school_id = StudentSchool::find()
+            ->select(['school_id', 'class_id'])
+            ->where(['student_id' => 10])
+            ->asArray()
+            ->one();
+
+        if (!$school_id) {
+            $term = SessionTermOnly::widget(['nonSchool' => true]);
+            $week = SessionTermOnly::widget(['nonSchool' => true,'weekOnly' => true]);
+        } else {
+            $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
+            $week = SessionTermOnly::widget(['id' => $school_id['school_id'],'weekOnly' => true]);
+        }
+        //$week = SessionWeek::widget();
+
+        $subjects = ArrayHelper::getColumn(QuizSummary::find()
+            ->select('subject_id')
+            ->where(['student_id' => Yii::$app->user->id])
+            ->groupBy('subject_id')
+            ->asArray()
+            ->all(),
+            'subject_id'
+        );
+
+        $weekly_recommended_topics = SubjectTopics::find()
+            ->select([
+                'subject_topics.id',
+                'subject_topics.topic',
+                'subject_topics.week_number',
+                'subject_topics.term',
+                'subjects.name',
+                'subjects.id',
+                new Expression("'practice' AS type"),
+            ])
+            ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
+            ->where([
+                'subject_topics.id' => $subjects,
+                'subject_topics.class_id' => $school_id['class_id']
+            ])
+            ->limit(SharedConstant::VALUE_THREE)
+            ->all();
+
+        if (!$weekly_recommended_topics) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
+        }
+
+        $weekly_recommended_videos = VideoContent::find()
+            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->where(['video_assign.topic_id' => ArrayHelper::getColumn(
+                $weekly_recommended_topics, 'subject_topics.id')])
+            ->limit(SharedConstant::VALUE_TWO)
+            ->all();
+
+        return (new ApiResponse)->success([
+            'topics' => $weekly_recommended_topics,
+            'videos' => $weekly_recommended_videos
+        ], ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
     }
 }

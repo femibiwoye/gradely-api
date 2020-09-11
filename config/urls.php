@@ -20,6 +20,8 @@ return [
     'GET v2/general/app' => 'v2/general/app-notification',
     'GET /v2/general/global-classes' => '/v2/general/global-classes', //
     'GET /v2/general/avatar' => '/v2/general/avatar', //
+    'GET /v2/general/student-subscription' => '/v2/general/student-subscription', //
+
 
     //Current User
     'GET v2/general/user' => 'v2/general/user', //
@@ -57,6 +59,9 @@ return [
     'PUT v2/payment/cancel-subscription/<subscription_id:\d+>' => 'v2/payment/cancel-subscription', //
     'POST v2/payment/subscription' => 'v2/payment/subscription-payment', //
     'GET v2/payment/status/<id:\d+>' => 'v2/payment/payment-status', //
+    'GET v2/parent/child-subscription' => 'v2/payment/children-subscription',// for parent
+    'GET v2/parent/my-subscription' => 'v2/payment/child-subscription',// For student
+
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

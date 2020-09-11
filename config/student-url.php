@@ -28,7 +28,7 @@ return [
     //Student Practice
     'GET v2/student/practice/homework-instruction/<homework_id:\d+>' => 'v2/student/practice/homework-instruction', //
     'POST v2/student/practice/start-homework' => 'v2/student/practice/start-homework', //
-    'GET v2/student/practice/process-homework' => 'v2/student/practice/process-homework', //
+    'POST v2/student/practice/process-homework' => 'v2/student/practice/process-homework', //
     'GET v2/student/process-attempt/<quiz_id:\d+>' => 'v2/student/practice/process-attempt', //
 
     //student class
@@ -56,9 +56,11 @@ return [
     'GET v2/student/catchup/practice-materials' => 'v2/student/catchup/class-materials', //
     'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics', //
     'GET v2/student/catchup/watch-video/<video_id:\d+>' => 'v2/student/catchup/watch-video', //
-    'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice',
-    'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice',
-    'POST v2/student/catchup/video-likes/<video_id:\d+>' => 'v2/student/catchup/video-likes',
+    'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice', //
+    'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
+    'POST v2/student/catchup/video-likes/<video_id:\d+>' => 'v2/student/catchup/video-likes', //
+    'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/catchup/homework-recommendation', //
+    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/catchup/weekly-recommendation',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

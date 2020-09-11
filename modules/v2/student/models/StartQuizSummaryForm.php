@@ -1,6 +1,9 @@
 <?php
+
 namespace app\modules\v2\student\models;
 
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\Questions;
 use Yii;
 use yii\base\Model;
 use app\modules\v2\components\SharedConstant;
@@ -10,16 +13,19 @@ use app\modules\v2\models\{
     HomeworkQuestions,
     PracticeTopics
 };
+use yii\helpers\ArrayHelper;
 
 /**
  * Password reset request form
  */
-class StartQuizSummaryForm extends Model {
+class StartQuizSummaryForm extends Model
+{
     public $student_id;
     public $practice_id;
     private $total_questions;
 
-    public function rules() {
+    public function rules()
+    {
         return [
             [['student_id', 'practice_id'], 'required'],
             [['student_id', 'practice_id'], 'integer'],
@@ -29,24 +35,36 @@ class StartQuizSummaryForm extends Model {
 
     public function startPractice()
     {
-        foreach ($this->topicIds as $topicId) {
-            $model = new QuizSummary;
-            $model->homework_id = $this->practice_id;
-            $model->subject_id = $this->homework->subject_id;
-            $model->student_id = $this->homework->student_id;
-            $model->teacher_id = $this->homework->teacher_id;
-            $model->class_id = $this->homework->class_id;
-            $model->type = $this->homework->type;
-            $model->total_questions = $this->totalQuestions;
-            $model->topic_id = $topicId;
-            if (!$model->save(false)) {
-                return false;
-            }
+
+        $model = QuizSummary::find()->where(['homework_id' => $this->practice_id, 'student_id' => Yii::$app->user->id]);
+        if ($model->exists()) {
+            $model = $model->one();
+            $questionsID = ArrayHelper::getColumn($model->homeworkQuestions, 'question_id');
+            return array_merge(ArrayHelper::toArray($model->childHomework), ['questions' => Questions::find()->where(['id' => $questionsID])->all()]);
         }
 
-        return [
-            'questions' => $this->total_questions,
-        ];
+        //foreach ($this->topicIds as $topicId) {
+        $model = new QuizSummary;
+        $model->homework_id = $this->practice_id;
+        $model->subject_id = $this->homework->subject_id;
+        $model->student_id = Yii::$app->user->id;
+        $model->teacher_id = $model->student_id;
+        $model->class_id = $this->homework->class_id;
+        $model->type = $this->homework->type;
+        $model->total_questions = $this->totalQuestions;
+        $termWeek = Utility::getStudentTermWeek();
+        $model->term = $termWeek['term'];
+        //$model->topic_id = $topicId;
+        if (!$model->save()) {
+            return false;
+        }
+        // }
+
+        $questionsID = ArrayHelper::getColumn($model->homeworkQuestions, 'question_id');
+        return array_merge(ArrayHelper::toArray($model->childHomework), ['questions' => Questions::find()->where(['id' => $questionsID])->all()]);
+
+//        $questionsID = ArrayHelper::getColumn($model->one()->homeworkQuestions, 'question_id');
+//        return Questions::find()->where(['id' => $questionsID])->all();;
 
     }
 
@@ -62,8 +80,6 @@ class StartQuizSummaryForm extends Model {
 
     public function getTotalQuestions()
     {
-        $this->total_questions = HomeworkQuestions::findAll(['homework_id' => $this->practice_id]);
-
-        return count($this->total_questions);
+        return HomeworkQuestions::find()->where(['homework_id' => $this->practice_id])->count();
     }
 }
