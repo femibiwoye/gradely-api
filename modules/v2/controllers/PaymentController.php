@@ -204,15 +204,16 @@ class PaymentController extends ActiveController
         foreach ($parentChildren as $parentChild){
 
             $parent_child_subscription = SubscriptionChildren::find()
+                ->select(['user.firstname', 'user.lastname'])
                 ->innerJoin('user', 'user.id = subscription_children.student_id')
                 ->where([
                     'subscriber_id' => Yii::$app->user->id,
                     'payment_status' => 'paid',
                     'student_id' => $parentChild->student_id])
                 ->andWhere(['>', 'subscription_children.expiry', date('d-m-y h:i:s')])
-                ;
+                ->one();
 
-            if(!$parent_child_subscription->exists())
+            if(!$parent_child_subscription)
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No Subscription for child');
 
         }

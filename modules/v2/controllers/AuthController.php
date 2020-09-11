@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Schools;
@@ -115,6 +116,7 @@ class AuthController extends Controller
      */
     public function actionForgotPassword()
     {
+
         $form = new PasswordResetRequestForm();
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
@@ -136,6 +138,7 @@ class AuthController extends Controller
     {
         $form = new ResetPasswordForm;
         $form->attributes = Yii::$app->request->post();
+
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
