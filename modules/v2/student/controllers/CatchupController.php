@@ -24,7 +24,10 @@ use app\modules\v2\models\{Homeworks,
     SubjectTopics,
     QuizSummary,
     QuizSummaryDetails,
-    Subjects
+    Subjects,
+    Recommendations,
+    RecommendationTopics,
+    User
 };
 use app\modules\v2\student\models\{StartPracticeForm, StartQuizSummaryForm};
 use app\modules\v2\components\{SharedConstant, Utility, SessionTermOnly, SessionWeek};
@@ -40,6 +43,8 @@ class CatchupController extends ActiveController
     private $single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
     private $mix_topic_array = array();
     private $homeworks_topics;
+    private $topics;
+    private $weekly_recommended_topics = array();
 
     /**
      * @return array
@@ -685,68 +690,168 @@ class CatchupController extends ActiveController
 
     }
 
-     public function actionWeeklyRecommendation()
+    public function actionGenerateWeeklyRecommendation()
     {
+
+        if (date('l') != SharedConstant::CURRENT_DAY) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'The weekly Recommendation cannot be generated on a ' . date('l'));
+        }
+
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
+        //student_recommendations depicts the students that has received the weekly recommendation
+        $student_recommendations = ArrayHelper::getColumn(
+            Recommendations::find()->where(['category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO], 'DATE(created_at)' => date('Y-m-d')])->all(),
+            'student_id'
+        );
+
+        //student_ids depicts the list of students
+        $student_ids = ArrayHelper::getColumn(
+            User::find()->where(['type' => SharedConstant::TYPE_STUDENT])->andWhere(['<>', 'status', 0])->andWhere(['NOT IN', 'id', $student_recommendations])->all(),
+            'id'
+        );
+
+//        //students variable represents all the students that have not recieved the weekly recommendations
+//        $students = array_diff($student_ids, $student_recommendations);
+
+        if (empty($student_ids)) {
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Weekly recommendations are already generated');
+        }
+
+
+        foreach ($student_ids as $student) {
+            $this->weeklyRecommendation($student);
+        }
+
+        return (new ApiResponse)->success($this->topics, ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
+    }
+
+    public function weeklyRecommendation($student)
+    {
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id'])
-            ->where(['student_id' => 10])
+            ->where(['student_id' => $student])
             ->asArray()
             ->one();
 
         if (!$school_id) {
             $term = SessionTermOnly::widget(['nonSchool' => true]);
-            $week = SessionTermOnly::widget(['nonSchool' => true,'weekOnly' => true]);
+            $week = SessionTermOnly::widget(['nonSchool' => true, 'weekOnly' => true]);
         } else {
             $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
-            $week = SessionTermOnly::widget(['id' => $school_id['school_id'],'weekOnly' => true]);
+            $week = SessionTermOnly::widget(['id' => $school_id['school_id'], 'weekOnly' => true]);
         }
-        //$week = SessionWeek::widget();
 
         $subjects = ArrayHelper::getColumn(QuizSummary::find()
             ->select('subject_id')
-            ->where(['student_id' => Yii::$app->user->id])
+            ->where(['student_id' => $student])
             ->groupBy('subject_id')
             ->asArray()
             ->all(),
             'subject_id'
         );
 
-        $weekly_recommended_topics = SubjectTopics::find()
-            ->select([
-                'subject_topics.id',
-                'subject_topics.topic',
-                'subject_topics.week_number',
-                'subject_topics.term',
-                'subjects.name',
-                'subjects.id',
-                new Expression("'practice' AS type"),
-            ])
-            ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
-            ->where([
-                'subject_topics.id' => $subjects,
-                'subject_topics.class_id' => $school_id['class_id']
-            ])
-            ->limit(SharedConstant::VALUE_THREE)
-            ->all();
+        foreach ($subjects as $subject) {
+            $model = SubjectTopics::find()
+                ->select([
+                    'subject_topics.id',
+                    'subject_topics.topic',
+                    'subject_topics.week_number',
+                    'subject_topics.term',
+                    'subjects.name as subject_name',
+                    'subjects.id as subject_id',
+                    new Expression("'practice' AS type"),
+                ])
+                ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
+                ->where([
+                    'subject_topics.id' => $subject,
+                    'subject_topics.term' => $term
+                ])
+                ->andWhere(['<=', 'subject_topics.week_number', $week])
+                ->asArray()
+                ->limit(SharedConstant::VALUE_ONE)
+                ->all();
 
-        if (!$weekly_recommended_topics) {
+            $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
+        }
+
+
+        if (!$this->weekly_recommended_topics) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
         }
 
         $weekly_recommended_videos = VideoContent::find()
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            ->where(['video_assign.topic_id' => ArrayHelper::getColumn(
-                $weekly_recommended_topics, 'subject_topics.id')])
+            ->where([
+                'video_assign.topic_id' => ArrayHelper::getColumn(
+                    $this->weekly_recommended_topics, 'id')
+            ])
             ->limit(SharedConstant::VALUE_TWO)
             ->all();
 
-        return (new ApiResponse)->success([
-            'topics' => $weekly_recommended_topics,
-            'videos' => $weekly_recommended_videos
-        ], ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
+        $this->topics = array_merge($this->weekly_recommended_topics, $weekly_recommended_videos);
+        $this->createRecommendations($this->topics, $student);
+    }
+
+    private function createRecommendations($recommendations, $student)
+    {
+        if (!empty($recommendations)) {
+            $dbtransaction = Yii::$app->db->beginTransaction();
+            try {
+                $model = new Recommendations;
+                $model->student_id = $student;
+                $model->category = SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO];
+                if (!$model->save()) {
+                    return false;
+                }
+
+                if (!$this->createRecommendedTopics($recommendations, $model)) {
+                    return false;
+                }
+
+                $dbtransaction->commit();
+            } catch (Exception $e) {
+                $dbtransaction->rollBack();
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private function createRecommendedTopics($objects, $recommendation)
+    {
+        foreach ($objects as $object) {
+            $model = new RecommendationTopics;
+            $model->recommendation_id = $recommendation->id;
+            $model->subject_id = $object['subject_id'];
+            $model->student_id = $recommendation->student_id;
+            $model->object_id = $object['id'];
+            $model->object_type = $object['type'] ? $object['type'] : 'video';
+            if (!$model->save()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function actionWeeklyRecommendations()
+    {
+        $recommendations = Recommendations::find()
+            ->where([
+                'student_id' => Yii::$app->user->id,
+                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO],
+            ])
+            ->andWhere(['=', new Expression('DAYOFWEEK(created_at)'), SharedConstant::VALUE_ONE])
+            ->all();
+
+        if (!$recommendations) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
+        }
+
+        return (new ApiResponse)->success($recommendations, ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
     }
 }
