@@ -77,6 +77,7 @@ return [
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/commands'], 'extraPatterns' => [
         'GET update-school-calendar' => 'update-school-calendar', //
+        'GET update-video-token' => 'update-video-token', //
     ]],
 
 

@@ -60,7 +60,8 @@ return [
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
     'POST v2/student/catchup/video-likes/<video_id:\d+>' => 'v2/student/catchup/video-likes', //
     'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/catchup/homework-recommendation', //
-    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/catchup/weekly-recommendation',
+    'GET v2/student/catchup/generate-weekly-recommendation' => 'v2/student/catchup/generate-weekly-recommendation',
+    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/catchup/weekly-recommendations',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

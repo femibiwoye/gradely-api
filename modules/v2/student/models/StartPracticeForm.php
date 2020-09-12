@@ -12,7 +12,8 @@ use app\modules\v2\models\{
     Questions,
     QuizSummaryDetails,
     PracticeTopics,
-    HomeworkQuestions
+    HomeworkQuestions,
+    Recommendations
 };
 
 /**
@@ -29,9 +30,10 @@ class StartPracticeForm extends Model
     public function rules()
     {
         return [
-            [['topic_ids', 'type'], 'required'],
+            [['topic_ids', 'type', 'reference_type', 'reference_id'], 'required'],
             ['topic_ids', 'each', 'rule' => ['integer']],
             ['type', 'in', 'range' => [SharedConstant::MIX_TYPE_ARRAY, SharedConstant::SINGLE_TYPE_ARRAY]],
+            ['reference_type', 'in', 'range' => SharedConstant::REFERENCE_TYPE],
             ['type', 'validateType'],
         ];
     }
