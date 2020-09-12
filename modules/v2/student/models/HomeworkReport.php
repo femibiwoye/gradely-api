@@ -44,7 +44,7 @@ class HomeworkReport extends QuizSummary
             return SharedConstant::VALUE_ZERO;
         }
 
-        return rount(($this->correct / $this->countAttemptedQuestions) * 100);
+        return $this->countAttemptedQuestions > 0 ? round(($this->correct / $this->countAttemptedQuestions) * 100) : 0;
     }
 
     public function getQuestions()
@@ -68,9 +68,9 @@ class HomeworkReport extends QuizSummary
                 'qsd.answer',
                 'qsd.selected',
             ])
-            ->where(['hq.homework_id'=>$this->homework_id])
-            ->innerJoin('questions q','q.id = hq.question_id')
-            ->leftJoin('quiz_summary_details qsd','qsd.question_id = q.id')
+            ->where(['hq.homework_id' => $this->homework_id])
+            ->innerJoin('questions q', 'q.id = hq.question_id')
+            ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id')
             ->asArray()
             ->all();
     }
@@ -79,9 +79,6 @@ class HomeworkReport extends QuizSummary
     {
         return null;
     }
-
-
-
 
 
 }
