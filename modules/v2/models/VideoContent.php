@@ -16,6 +16,7 @@ use Yii;
  * @property string $new_title
  * @property string $slug
  * @property string|null $image
+ * @property string|null $token
  * @property int|null $content_length
  * @property string $content_type
  * @property int|null $created_by
@@ -41,11 +42,11 @@ class VideoContent extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['category', 'subject_id', 'topic_id', 'title', 'new_title', 'slug'], 'required'],
+            [['category', 'subject_id', 'topic_id', 'title', 'new_title', 'slug','token'], 'required'],
             [['subject_id', 'topic_id', 'content_id', 'content_length', 'created_by', 'updated_by'], 'integer'],
             [['image'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
-            [['category'], 'string', 'max' => 100],
+            [['category','token'], 'string', 'max' => 100],
             [['title', 'slug'], 'string', 'max' => 255],
             [['content_type'], 'string', 'max' => 20],
         ];
