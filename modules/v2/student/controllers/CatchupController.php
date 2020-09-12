@@ -271,18 +271,18 @@ class CatchupController extends ActiveController
 
     }
 
-    public function actionWatchVideo($video_id)
+    public function actionWatchVideo($video_token)
     {
 
-        $form = new \yii\base\DynamicModel(compact('video_id'));
-        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
-        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
+        $form = new \yii\base\DynamicModel(compact('video_token'));
+        //$form->addRule(['video_token'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
+        $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $video = VideoContent::find()->where(['id' => $video_id])
+        $video = VideoContent::find()->where(['token' => $video_token])
             //->with(['views'])
             ->one();
 
