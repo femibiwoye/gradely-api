@@ -45,6 +45,7 @@ class CatchupController extends ActiveController
     private $homeworks_topics;
     private $topics;
     private $weekly_recommended_topics = array();
+    private $subjects;
 
     /**
      * @return array
@@ -703,18 +704,21 @@ class CatchupController extends ActiveController
 
         //student_recommendations depicts the students that has received the weekly recommendation
         $student_recommendations = ArrayHelper::getColumn(
-            Recommendations::find()->where(['category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO], 'DATE(created_at)' => date('Y-m-d')])->all(),
+            Recommendations::find()
+            ->where([
+                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO],
+                'DATE(created_at)' => date('Y-m-d')
+            ])
+            ->andWhere('WEEK(CURDATE()) = WEEK(created_at)') //checking on-going week
+            ->all(),
             'student_id'
         );
 
         //student_ids depicts the list of students
         $student_ids = ArrayHelper::getColumn(
-            User::find()->where(['type' => SharedConstant::TYPE_STUDENT])->andWhere(['<>', 'status', 0])->andWhere(['NOT IN', 'id', $student_recommendations])->all(),
+            User::find()->where(['type' => SharedConstant::TYPE_STUDENT])->andWhere(['<>', 'status', SharedConstant::VALUE_ZERO])->andWhere(['NOT IN', 'id', $student_recommendations])->all(),
             'id'
         );
-
-//        //students variable represents all the students that have not recieved the weekly recommendations
-//        $students = array_diff($student_ids, $student_recommendations);
 
         if (empty($student_ids)) {
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Weekly recommendations are already generated');
@@ -744,7 +748,7 @@ class CatchupController extends ActiveController
             $week = SessionTermOnly::widget(['id' => $school_id['school_id'], 'weekOnly' => true]);
         }
 
-        $subjects = ArrayHelper::getColumn(QuizSummary::find()
+        $this->subjects = ArrayHelper::getColumn(QuizSummary::find()
             ->select('subject_id')
             ->where(['student_id' => $student])
             ->groupBy('subject_id')
@@ -753,7 +757,9 @@ class CatchupController extends ActiveController
             'subject_id'
         );
 
-        foreach ($subjects as $subject) {
+        $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
+
+        foreach ($this->subjects as $subject) {
             $model = SubjectTopics::find()
                 ->select([
                     'subject_topics.id',
@@ -767,7 +773,8 @@ class CatchupController extends ActiveController
                 ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
                 ->where([
                     'subject_topics.id' => $subject,
-                    'subject_topics.term' => $term
+                    'subject_topics.term' => $term,
+                    'subject_topics.class_id' => $school_id['class_id'],
                 ])
                 ->andWhere(['<=', 'subject_topics.week_number', $week])
                 ->asArray()
@@ -776,7 +783,6 @@ class CatchupController extends ActiveController
 
             $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
         }
-
 
         if (!$this->weekly_recommended_topics) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
@@ -793,6 +799,23 @@ class CatchupController extends ActiveController
 
         $this->topics = array_merge($this->weekly_recommended_topics, $weekly_recommended_videos);
         $this->createRecommendations($this->topics, $student);
+    }
+
+    private function previousWeekRecommendedSubjects()
+    {
+        $previous_week_recommendations = ArrayHelper::getColumn(RecommendationTopics::find()
+            ->select('subject_id')
+            ->where('WEEK(CURDATE()) = WEEK(created_at) + 1')
+            ->groupBy('subject_id')
+            ->asArray()
+            ->all(),
+            'subject_id'
+        );
+
+        print_r($previous_week_recommendations);
+        die;
+
+        $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
     }
 
     private function createRecommendations($recommendations, $student)
