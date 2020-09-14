@@ -113,8 +113,10 @@ class RecommendationTopics extends \yii\db\ActiveRecord
     {
         if (!empty($this->homework)) {
             $model = $this->getHomework()
+                        ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
                         ->andWhere([
-                            'reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO], 'subject_id' => 'subject_id']);
+                            'homeworks.reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO], 'homeworks.subject_id' => 'subject_id'])
+                        ->andWhere(['quiz_summary.submit =' . SharedConstant::VALUE_ONE]);
 
             if ($model) {
                 return SharedConstant::VALUE_ONE;
