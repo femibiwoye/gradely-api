@@ -729,6 +729,10 @@ class CatchupController extends ActiveController
             $this->weeklyRecommendation($student);
         }
 
+        if (empty($this->topics)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
+        }
+
         return (new ApiResponse)->success($this->topics, ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
     }
 
@@ -757,8 +761,9 @@ class CatchupController extends ActiveController
             'subject_id'
         );
 
-        $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
+        array_push($this->subjects, SharedConstant::VALUE_THREE);
 
+        $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
         foreach ($this->subjects as $subject) {
             $model = SubjectTopics::find()
                 ->select([
@@ -774,9 +779,11 @@ class CatchupController extends ActiveController
                 ->where([
                     'subject_topics.id' => $subject,
                     'subject_topics.term' => $term,
-                    'subject_topics.class_id' => $school_id['class_id'],
+                    'subject_topics.class_id' => $school_id['class_id']
                 ])
-                ->andWhere(['<=', 'subject_topics.week_number', $week])
+                ->orWhere(['=', 'subject_topics.week_number', $week])
+                ->orWhere(['<', 'subject_topics.week_number', $week])
+                ->orWhere(['>', 'subject_topics.week_number', $week])
                 ->asArray()
                 ->limit(SharedConstant::VALUE_ONE)
                 ->all();
@@ -805,7 +812,7 @@ class CatchupController extends ActiveController
     {
         $previous_week_recommendations = ArrayHelper::getColumn(RecommendationTopics::find()
             ->select('subject_id')
-            ->where('WEEK(CURDATE()) = WEEK(created_at) + 1')
+            ->where('WEEK(CURDATE()) = WEEK(created_at) - 1')
             ->groupBy('subject_id')
             ->asArray()
             ->all(),
@@ -813,6 +820,13 @@ class CatchupController extends ActiveController
         );
 
         $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
+        if (count($this->subjects) == SharedConstant::VALUE_ONE) {
+            $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_TWO); //select random keys from the previous week recommendations
+            $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]], $previous_week_recommendations[$keys[SharedConstant::VALUE_ONE]]);
+        } elseif (empty($this->subjects)) {
+            $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_THREE); //select random keys from the previous week recommendations
+            $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]], $previous_week_recommendations[$keys[SharedConstant::VALUE_ONE]], $previous_week_recommendations[$keys[SharedConstant::VALUE_TWO]]);
+        }
     }
 
     private function createRecommendations($recommendations, $student)
