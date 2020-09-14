@@ -106,6 +106,8 @@ class Questions extends \yii\db\ActiveRecord
             'duration',
             'difficulty',
             'type',
+            'topic_id',
+            'topic'=>'questionTopic',
             'owner'=>'questionOwner',
             'correct_students' => 'correctQuizSummaryDetails',
             'wrong_students' => 'wrongQuizSummaryDetails'
@@ -138,6 +140,12 @@ class Questions extends \yii\db\ActiveRecord
     public function getQuestionOwner()
     {
         return $this->teacher_id == Yii::$app->user->id?1:0;
+    }
+
+    public function getQuestionTopic()
+    {
+        $topic = SubjectTopics::findOne(['id'=>$this->id]);
+        return !empty($topic)?$topic->topic:null;
     }
 
     public static function find()
