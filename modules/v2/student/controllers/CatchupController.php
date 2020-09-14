@@ -693,15 +693,9 @@ class CatchupController extends ActiveController
 
     public function actionGenerateWeeklyRecommendation()
     {
-
         if (date('l') != SharedConstant::CURRENT_DAY) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'The weekly Recommendation cannot be generated on a ' . date('l'));
         }
-
-        // This will be done in the background. So, no auth is needed.
-//        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
-//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
-//        }
 
         //student_recommendations depicts the students that has received the weekly recommendation
         $student_recommendations = ArrayHelper::getColumn(
@@ -792,6 +786,9 @@ class CatchupController extends ActiveController
                 ->all();
 
             $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
+            if (sizeof($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
+                break;
+            }
         }
 
         if (!$this->weekly_recommended_topics) {
