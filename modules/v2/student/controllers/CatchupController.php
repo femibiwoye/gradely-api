@@ -705,12 +705,12 @@ class CatchupController extends ActiveController
         //student_recommendations depicts the students that has received the weekly recommendation
         $student_recommendations = ArrayHelper::getColumn(
             Recommendations::find()
-            ->where([
-                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO],
-                'DATE(created_at)' => date('Y-m-d')
-            ])
-            ->andWhere('WEEK(CURDATE()) = WEEK(created_at)') //checking on-going week
-            ->all(),
+                ->where([
+                    'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO],
+                    'DATE(created_at)' => date('Y-m-d')
+                ])
+                ->andWhere('WEEK(CURDATE()) = WEEK(created_at)')//checking on-going week
+                ->all(),
             'student_id'
         );
 
@@ -811,9 +811,6 @@ class CatchupController extends ActiveController
             ->all(),
             'subject_id'
         );
-
-        print_r($previous_week_recommendations);
-        die;
 
         $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
     }
