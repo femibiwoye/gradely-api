@@ -635,7 +635,7 @@ class CatchupController extends ActiveController
 
         $quizSummary = QuizSummary::find()->where([
             'id' => $quiz_id, 'submit' => 1,
-            //'student_id' => Yii::$app->user->id
+            'student_id' => Yii::$app->user->id
         ])->one();
         if (!$quizSummary)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
@@ -649,7 +649,7 @@ class CatchupController extends ActiveController
                 'qsd.topic_id',
             ])
             ->where([
-                //'qsd.student_id' => Yii::$app->user->id,
+                'qsd.student_id' => Yii::$app->user->id,
                 'homework_id' => $quizSummary->homework_id
             ])
             ->orderBy(['score' => SORT_ASC])
@@ -698,9 +698,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'The weekly Recommendation cannot be generated on a ' . date('l'));
         }
 
-        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
-        }
+        // This will be done in the background. So, no auth is needed.
+//        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+//        }
 
         //student_recommendations depicts the students that has received the weekly recommendation
         $student_recommendations = ArrayHelper::getColumn(
@@ -720,6 +721,7 @@ class CatchupController extends ActiveController
             'id'
         );
 
+
         if (empty($student_ids)) {
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Weekly recommendations are already generated');
         }
@@ -727,6 +729,10 @@ class CatchupController extends ActiveController
 
         foreach ($student_ids as $student) {
             $this->weeklyRecommendation($student);
+        }
+
+        if (empty($this->topics)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
         }
 
         return (new ApiResponse)->success($this->topics, ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
@@ -757,9 +763,11 @@ class CatchupController extends ActiveController
             'subject_id'
         );
 
-        $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
+        //array_push($this->subjects, SharedConstant::VALUE_THREE);
 
+        $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
         foreach ($this->subjects as $subject) {
+
             $model = SubjectTopics::find()
                 ->select([
                     'subject_topics.id',
@@ -772,11 +780,13 @@ class CatchupController extends ActiveController
                 ])
                 ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
                 ->where([
-                    'subject_topics.id' => $subject,
+                    'subject_topics.subject_id' => $subject,
                     'subject_topics.term' => $term,
-                    'subject_topics.class_id' => $school_id['class_id'],
+                    'subject_topics.class_id' => $school_id['class_id']
                 ])
-                ->andWhere(['<=', 'subject_topics.week_number', $week])
+                ->orWhere(['=', 'subject_topics.week_number', $week])
+                ->orWhere(['<', 'subject_topics.week_number', $week])
+                ->orWhere(['>', 'subject_topics.week_number', $week])
                 ->asArray()
                 ->limit(SharedConstant::VALUE_ONE)
                 ->all();
@@ -798,6 +808,7 @@ class CatchupController extends ActiveController
             ->all();
 
         $this->topics = array_merge($this->weekly_recommended_topics, $weekly_recommended_videos);
+
         $this->createRecommendations($this->topics, $student);
     }
 
@@ -805,14 +816,23 @@ class CatchupController extends ActiveController
     {
         $previous_week_recommendations = ArrayHelper::getColumn(RecommendationTopics::find()
             ->select('subject_id')
-            ->where('WEEK(CURDATE()) = WEEK(created_at) + 1')
+            ->where('WEEK(CURDATE()) = WEEK(created_at) - 1')
             ->groupBy('subject_id')
             ->asArray()
             ->all(),
             'subject_id'
         );
 
-        $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
+        if (!empty($previous_week_recommendations)) {
+            $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
+            if (count($this->subjects) == SharedConstant::VALUE_ONE) {
+                $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_TWO); //select random keys from the previous week recommendations
+                $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]], $previous_week_recommendations[$keys[SharedConstant::VALUE_ONE]]);
+            } elseif (empty($this->subjects)) {
+                $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_THREE); //select random keys from the previous week recommendations
+                $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]], $previous_week_recommendations[$keys[SharedConstant::VALUE_ONE]], $previous_week_recommendations[$keys[SharedConstant::VALUE_TWO]]);
+            }
+        }
     }
 
     private function createRecommendations($recommendations, $student)
