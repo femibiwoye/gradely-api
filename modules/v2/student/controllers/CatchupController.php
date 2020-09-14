@@ -819,9 +819,6 @@ class CatchupController extends ActiveController
             'subject_id'
         );
 
-        print_r($previous_week_recommendations);
-        die;
-
         $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
         if (count($this->subjects) == SharedConstant::VALUE_ONE) {
             $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_TWO); //select random keys from the previous week recommendations

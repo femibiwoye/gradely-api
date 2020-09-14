@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use app\modules\v2\components\SharedConstant;
 
 /**
  * This is the model class for table "recommendation_topics".
@@ -61,6 +62,18 @@ class RecommendationTopics extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        return [
+            'id',
+            'recommendation_id',
+            'subject_id',
+            'student_id',
+            'object_id',
+            'taken_status' => 'status',
+        ];
+    }
+
     /**
      * Gets query for [[Recommendation]].
      *
@@ -89,5 +102,25 @@ class RecommendationTopics extends \yii\db\ActiveRecord
     public function getStudent()
     {
         return $this->hasOne(User::className(), ['id' => 'student_id']);
+    }
+
+    public function getHomework()
+    {
+        return $this->hasOne(Homeworks::className(), ['reference_id' => 'recommendation_id']);
+    }
+
+    public function getStatus()
+    {
+        if (!empty($this->homework)) {
+            $model = $this->getHomework()
+                        ->andWhere([
+                            'reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO], 'subject_id' => 'subject_id']);
+
+            if ($model) {
+                return SharedConstant::VALUE_ONE;
+            }
+        }
+
+        return SharedConstant::VALUE_ZERO;
     }
 }
