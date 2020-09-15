@@ -19,6 +19,7 @@ class SharedConstant {
 	const VALUE_FIVE = 5;
 	const VALUE_FOUR = 4;
 	const VALUE_THREE = 3;
+	const VALUE_SIX = 6;
 	const VALUE_NULL = '';
 	const SINGLE_TYPE_ARRAY = 'single';
 	const MIX_TYPE_ARRAY = 'mix';

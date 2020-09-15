@@ -43,7 +43,7 @@ class CatchupController extends ActiveController
     private $single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
     private $mix_topic_array = array();
     private $homeworks_topics;
-    private $topics;
+    private $topics = array();
     private $weekly_recommended_topics = array();
     private $daily_recommended_topics = array();
     private $subjects;
@@ -758,7 +758,16 @@ class CatchupController extends ActiveController
             'subject_id'
         );
 
-        $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
+        $previous_week_recommendations = ArrayHelper::getColumn(RecommendationTopics::find()
+            ->select('subject_id')
+            ->where('WEEK(CURDATE()) = WEEK(created_at) - 1')
+            ->groupBy('subject_id')
+            ->asArray()
+            ->all(),
+            'subject_id'
+        );
+
+        $this->previousWeekRecommendedSubjects($previous_week_recommendations); //filters out the previous week subjects.
         foreach ($this->subjects as $subject) {
             $model = SubjectTopics::find()
                 ->select([
@@ -803,22 +812,16 @@ class CatchupController extends ActiveController
             ->limit(SharedConstant::VALUE_TWO)
             ->all();
 
-        $this->topics = array_merge($this->weekly_recommended_topics, $weekly_recommended_videos);
+        if (count($this->weekly_recommended_topics) < SharedConstant::VALUE_THREE) {
+            $this->randomWeeklyRecommendationTopics($this->weekly_recommended_topics, $this->subjects, $previous_week_recommendations, 'weekly');
+        }
 
+        $this->topics = array_merge($this->weekly_recommended_topics, $weekly_recommended_videos);
         $this->createRecommendations($this->topics, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO]);
     }
 
-    private function previousWeekRecommendedSubjects()
+    private function previousWeekRecommendedSubjects($previous_week_recommendations)
     {
-        $previous_week_recommendations = ArrayHelper::getColumn(RecommendationTopics::find()
-            ->select('subject_id')
-            ->where('WEEK(CURDATE()) = WEEK(created_at) - 1')
-            ->groupBy('subject_id')
-            ->asArray()
-            ->all(),
-            'subject_id'
-        );
-
         if (!empty($previous_week_recommendations)) {
             $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
             if (count($this->subjects) == SharedConstant::VALUE_ONE) {
@@ -827,6 +830,9 @@ class CatchupController extends ActiveController
             } elseif (empty($this->subjects)) {
                 $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_THREE); //select random keys from the previous week recommendations
                 $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]], $previous_week_recommendations[$keys[SharedConstant::VALUE_ONE]], $previous_week_recommendations[$keys[SharedConstant::VALUE_TWO]]);
+            } elseif (count($this->subjects) == SharedConstant::VALUE_TWO) {
+                $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_ONE); //select random keys from the previous week recommendations
+                $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]]);
             }
         }
     }
@@ -937,7 +943,10 @@ class CatchupController extends ActiveController
 
         //weekly_recommended_topics is to store the topics that are already exist in weekly_recommendation
         $weekly_recommended_topics = ArrayHelper::getColumn(
-            RecommendationTopics::find()->all(),
+            RecommendationTopics::find()
+            ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id')
+            ->where('WEEKDAY(recommendations.created_at) = ' . SharedConstant::VALUE_SIX)
+            ->all(),
             'object_id'
         );
 
@@ -972,7 +981,7 @@ class CatchupController extends ActiveController
         }
 
         if (!$this->daily_recommended_topics) {
-            $this->startRecommendationsAgain();
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendations not found');
         }
 
         $daily_recommended_videos = VideoContent::find()
@@ -985,7 +994,7 @@ class CatchupController extends ActiveController
             ->all();
 
         if (count($this->daily_recommended_topics) < SharedConstant::VALUE_THREE) {
-            $this->randomDailyRecommendationTopics($this->daily_recommended_topics, $subjects, $weekly_recommended_topics);
+            $this->randomDailyRecommendationTopics($this->daily_recommended_topics, $subjects, $weekly_recommended_topics, 'daily');
         }
 
         $this->topics = array_merge($this->daily_recommended_topics, $daily_recommended_videos);
@@ -997,30 +1006,55 @@ class CatchupController extends ActiveController
         $recommended_subjects = ArrayHelper::getColumn($recommended_topics, 'subject_id');
         if (count($recommended_topics) == SharedConstant::VALUE_TWO) {
             foreach ($subjects as $subject) {
-                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects);
+                $this->selectTopic($subject['id'], $weekly_recommended_topics, $recommended_subjects, 'daily');
                 if (count($this->daily_recommended_topics ) == SharedConstant::VALUE_THREE) {
                     break;
                 }
             }
         } elseif (count($this->daily_recommended_topics) == SharedConstant::VALUE_ONE) {
             foreach ($subjects as $subject) {
-                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects);
+                $this->selectTopic($subject['id'], $weekly_recommended_topics, $recommended_subjects, 'daily');
                 if (count($this->daily_recommended_topics) == SharedConstant::VALUE_THREE) {
                     break;
                 }
             }
         } else {
-            $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects);
             foreach ($subjects as $subject) {
-                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects);
-                if (count($this->recommended_topics == SharedConstant::VALUE_THREE)) {
+                $this->selectTopic($subject['id'], $weekly_recommended_topics, $recommended_subjects, 'daily');
+                if (count($this->daily_recommended_topics == SharedConstant::VALUE_THREE)) {
                     break;
                 }
             }
         }
     }
 
-    private function selectTopic($subject, $weekly_recommended_topics, $recommended_subjects)
+    private function randomWeeklyRecommendationTopics($recommended_topics, $subjects, $weekly_recommended_topics) {
+        $recommended_subjects = ArrayHelper::getColumn($recommended_topics, 'subject_id');
+        if (count($recommended_topics) == SharedConstant::VALUE_TWO) {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly');
+                if (count($this->weekly_recommended_topics ) == SharedConstant::VALUE_THREE) {
+                    break;
+                }
+            }
+        } elseif (count($this->daily_recommended_topics) == SharedConstant::VALUE_ONE) {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly');
+                if (count($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
+                    break;
+                }
+            }
+        } else {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly');
+                if (count($this->weekly_recommended_topics == SharedConstant::VALUE_THREE)) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private function selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, $type)
     {
         $model = SubjectTopics::find()
                     ->select([
@@ -1034,7 +1068,7 @@ class CatchupController extends ActiveController
                     ])
                     ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
                     ->where([
-                        'subject_topics.subject_id' => $subject['id'],
+                        'subject_topics.subject_id' => $subject,
                         //'subject_topics.class_id' => $school_id['class_id']
                     ])
                     ->andWhere(['NOT IN', 'subject_topics.id', $weekly_recommended_topics])
@@ -1043,7 +1077,11 @@ class CatchupController extends ActiveController
                     ->limit(SharedConstant::VALUE_ONE)
                     ->all();
 
-        $this->daily_recommended_topics = array_merge($this->daily_recommended_topics, $model);
+        if ($type == 'weekly') {
+            $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
+        } else {
+            $this->daily_recommended_topics = array_merge($this->daily_recommended_topics, $model);
+        }
     }
 
     public function actionCheckRecommendation()
