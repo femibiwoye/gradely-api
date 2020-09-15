@@ -757,11 +757,8 @@ class CatchupController extends ActiveController
             'subject_id'
         );
 
-        //array_push($this->subjects, SharedConstant::VALUE_THREE);
-
         $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
         foreach ($this->subjects as $subject) {
-
             $model = SubjectTopics::find()
                 ->select([
                     'subject_topics.id',
@@ -785,10 +782,11 @@ class CatchupController extends ActiveController
                 ->limit(SharedConstant::VALUE_ONE)
                 ->all();
 
-            $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
             if (sizeof($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
                 break;
             }
+
+            $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
         }
 
         if (!$this->weekly_recommended_topics) {
