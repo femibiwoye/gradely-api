@@ -42,14 +42,14 @@ return [
 
     //student catchup
     'GET v2/student/catchup/recent-practice' => 'v2/student/catchup/recent-practice', //
-    'GET v2/student/catchup/video-comments/<id:\d+>' => 'v2/student/catchup/video-comments', //
+    'GET v2/student/catchup/video-comments/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-comments', //
     'POST v2/student/catchup/video-comment' => 'v2/student/catchup/comment-video', //
     'GET v2/student/catchup/video/<id:\d+>' => 'v2/student/catchup/video', //
     'GET v2/student/catchup/class-resources/<class_id:\d+>' => 'v2/student/catchup/class-resources', //
     'GET v2/student/catchup/video/watch-again/<id:\d+>' => 'v2/student/catchup/watch-video-again', //Not sure what is is meant for
     'GET v2/student/catchup/videos' => 'v2/student/catchup/videos-watched', //
-    'POST v2/student/catchup/video-complete/<video_id:\d+>' => 'v2/student/catchup/update-video-completed', //
-    'PUT v2/student/catchup/video/<video_id:\d+>' => 'v2/student/catchup/update-video-length', //
+    'POST v2/student/catchup/video-complete/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/update-video-completed', //
+    'PUT v2/student/catchup/video/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/update-video-length', //
     'GET v2/student/catchup/diagnostic-subjects' => 'v2/student/catchup/diagnostic', //
     'GET v2/student/catchup/recent-practices' => 'v2/student/catchup/recent-practices', //
     'GET v2/student/catchup/incomplete-video' => 'v2/student/catchup/incomplete-videos', //
@@ -58,7 +58,7 @@ return [
     'GET v2/student/catchup/watch-video/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/watch-video', //
     'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice', //
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
-    'POST v2/student/catchup/video-likes/<video_id:\d+>' => 'v2/student/catchup/video-likes', //
+    'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
     'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/catchup/homework-recommendation', //
     'GET v2/student/catchup/generate-weekly-recommendation' => 'v2/student/catchup/generate-weekly-recommendation',
     'GET v2/student/catchup/weekly-recommendation' => 'v2/student/catchup/weekly-recommendations',

@@ -3,8 +3,10 @@
 namespace app\modules\v2\student\models;
 
 use app\modules\v2\models\HomeworkQuestions;
+use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\models\SubjectTopics;
 
 class HomeworkReport extends QuizSummary
 {
@@ -24,9 +26,9 @@ class HomeworkReport extends QuizSummary
             'skipped',
             'submit',
             'topic_id',
-
             'actualAttemptCount' => 'countAttemptedQuestions',
             'actualScore' => 'homeworkScore',
+            'homework_title' => 'homeworkTitle',
             'questions',
             'recommendations'
         ];
@@ -36,6 +38,12 @@ class HomeworkReport extends QuizSummary
     public function getCountAttemptedQuestions()
     {
         return HomeworkQuestions::find()->where(['homework_id' => $this->homework_id])->count();
+    }
+
+    public function getHomeworkTitle()
+    {
+        $homework = Homeworks::find()->where(['id' => $this->homework_id])->one();
+        return isset($homework->title) ? $homework->title : null;
     }
 
     public function getHomeworkScore()
@@ -58,6 +66,7 @@ class HomeworkReport extends QuizSummary
                 'q.option_b',
                 'q.option_c',
                 'q.option_d',
+                'q.answer',
                 'q.image',
                 'q.type',
                 'q.difficulty',
@@ -65,7 +74,6 @@ class HomeworkReport extends QuizSummary
                 'q.explanation',
                 '(case when qsd.selected = qsd.answer then 1 else 0 end) as correctStatus',
                 'qsd.selected',
-                'qsd.answer',
                 'qsd.selected',
             ])
             ->where(['hq.homework_id' => $this->homework_id])

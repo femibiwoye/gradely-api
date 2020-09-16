@@ -4,6 +4,7 @@ namespace app\modules\v2\parent\controllers;
 
 use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\components\Utility;
@@ -219,8 +220,15 @@ class ChildrenController extends ActiveController
         if (!$user->code)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
 
+        if ($studentSchool = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1])) {
+            $class = Classes::findOne(['id' => $studentSchool->class_id]);
+            $school = ['class_name' => $class->class_name, 'school' => $class->school->name];
+        } else {
+            $school = ['class_name' => null, 'school' => null];
+        }
 
-        return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Student found');
+
+        return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), $school), ApiResponse::SUCCESSFUL, 'Student found');
 
     }
 
@@ -295,7 +303,7 @@ class ChildrenController extends ActiveController
         if (!$model->validate())
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
-        if($user = $model->signup('student')) {
+        if ($user = $model->signup('student')) {
 
             $parent = new Parents;
             $parent->parent_id = Yii::$app->user->id;
@@ -311,7 +319,7 @@ class ChildrenController extends ActiveController
             if (!$notification->NewNotification('parent_adds_student', [['parent_id', $parent->id]]))
                 return false;
         }
-        return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user),['password'=>$model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
+        return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }
 }

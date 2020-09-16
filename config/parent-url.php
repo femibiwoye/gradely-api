@@ -16,9 +16,9 @@ return [
     'POST v2/parent/signup-child' => 'v2/parent/children/signup-child',
 
     //Profile
+    'PUT v2/parent/profile' => 'v2/student/profile/update', //
     'PUT v2/parent/profile/update-email' => 'v2/student/profile/update-email', //
     'PUT v2/parent/profile/update-password' => 'v2/student/profile/update-password', //
-    'PUT v2/parent/profile' => 'v2/student/profile/update', //
 
 
     //Homework Report

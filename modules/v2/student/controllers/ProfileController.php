@@ -136,7 +136,7 @@ class ProfileController extends ActiveController
 
     public function actionUpdate()
     {
-        $model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id, 'type' => 'student'])->one();
+        $model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id])->one();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not found!');
