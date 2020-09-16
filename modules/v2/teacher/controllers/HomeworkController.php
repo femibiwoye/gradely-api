@@ -175,11 +175,6 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
-//var_dump($this->id);die;
-//        $notification = new InputNotification();
-//        if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->id]]))
-//            return false;
-//echo 'notify';die;
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [

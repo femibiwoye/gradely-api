@@ -4,6 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\FeedLike;
 use app\modules\v2\models\FileLog;
@@ -43,8 +44,9 @@ class CatchupController extends ActiveController
     private $single_topic_array = array('type' => SharedConstant::SINGLE_TYPE_ARRAY);
     private $mix_topic_array = array();
     private $homeworks_topics;
-    private $topics;
+    private $topics = array();
     private $weekly_recommended_topics = array();
+    private $daily_recommended_topics = array();
     private $subjects;
 
     /**
@@ -87,7 +89,7 @@ class CatchupController extends ActiveController
 
         $models = Homeworks::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-            // ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE]) //to be returned
+            ->where(['homeworks.student_id' => Yii::$app->user->id, 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
             ->andWhere(['<>', 'quiz_summary.type', SharedConstant::PRACTICE_TYPES[2]])
             ->orderBy(['quiz_summary.id' => SORT_DESC]);
 
@@ -107,16 +109,20 @@ class CatchupController extends ActiveController
 
     }
 
-    public function actionVideoComments($id)
+    public function actionVideoComments($video_token)
     {
+        $video = VideoContent::findOne(['token' => $video_token]);
+        if (!$video)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
+
         $model = FeedComment::find()
-            //->where(['feed_id' => $id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id]) //to be returned
+            //->where(['feed_id' => $video->id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id])
             ->limit(10)
             ->orderBy('id DESC')
             ->all();
 
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comments not found');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
@@ -124,23 +130,23 @@ class CatchupController extends ActiveController
 
     public function actionCommentVideo()
     {
-        $video_id = Yii::$app->request->post('video_id');
+        $video_token = Yii::$app->request->post('video_token');
         $comment = Yii::$app->request->post('comment');
         $type = 'video';
-        $form = new \yii\base\DynamicModel(compact('video_id', 'comment', 'type'));
-        $form->addRule(['video_id', 'comment'], 'required');
-        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
+        $form = new \yii\base\DynamicModel(compact('video_token', 'comment', 'type'));
+        $form->addRule(['video_token', 'comment'], 'required');
+        $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        //$material = PracticeMaterial::findOne(['id' => $video_id]);
+        $video = VideoContent::findOne(['token' => $video_token]);
 
         $model = new FeedComment;
         $model->attributes = Yii::$app->request->post();
         $model->user_id = Yii::$app->user->id;
-        $model->feed_id = $video_id;
+        $model->feed_id = $video->id;
         $model->type = $type;
         if (!$model->save(false)) {
             return (new ApiResponse)->error($model->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
@@ -149,26 +155,26 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 
-    public function actionVideoLikes($video_id)
+    public function actionVideoLikes($video_token)
     {
 
         $status = Yii::$app->request->post('status');
 
-        $form = new \yii\base\DynamicModel(compact('video_id', 'status'));
-        $form->addRule(['video_id', 'status'], 'required');
+        $form = new \yii\base\DynamicModel(compact('video_token', 'status'));
+        $form->addRule(['video_token', 'status'], 'required');
         $form->addRule(['status'], 'in', ['range' => [1, 0]]);
-        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
+        $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $model = VideoContent::findOne(['id' => $video_id, 'content_type' => 'video']);
+        $model = VideoContent::findOne(['token' => $video_token, 'content_type' => 'video']);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video is not found!');
         }
 
-        $likeStatus = FeedLike::find()->where(['parent_id' => $video_id, 'user_id' => Yii::$app->user->id, 'type' => 'video']);
+        $likeStatus = FeedLike::find()->where(['parent_id' => $model->id, 'user_id' => Yii::$app->user->id, 'type' => 'video']);
         if ($likeStatus->exists()) {
             $likeStatus = $likeStatus->one();
             if ($likeStatus->status != $status) {
@@ -180,7 +186,7 @@ class CatchupController extends ActiveController
         }
 
         $model = new FeedLike;
-        $model->parent_id = $video_id;
+        $model->parent_id = $model->id;
         $model->user_id = Yii::$app->user->id;
         $model->type = 'video';
         $model->status = $status;
@@ -208,7 +214,7 @@ class CatchupController extends ActiveController
     {
         $model = PracticeMaterial::find()
             ->innerJoin('feed', 'feed.id = practice_material.practice_id')
-            // ->where(['feed.class_id' => $class_id]) //to be returned
+            ->where(['feed.class_id' => $class_id])
             ->orderBy(['feed.updated_at' => SORT_DESC]);
 
         if (!$model) {
@@ -232,11 +238,11 @@ class CatchupController extends ActiveController
 
         $file_log_id = FileLog::find()
             ->innerJoin('video_content', 'video_content.id = file_log.file_id')
-//            ->andWhere([
-//                'is_completed' => SharedConstant::VALUE_ONE,
-//                'id' => $id,
-//                'user_id' => Yii::$app->user->id
-//            ]) //to be returned
+            ->andWhere([
+                'is_completed' => SharedConstant::VALUE_ONE,
+                'id' => $id,
+                'user_id' => Yii::$app->user->id
+            ])
             ->limit(6)
             ->one();
 
@@ -253,12 +259,12 @@ class CatchupController extends ActiveController
 
         $class_id = Utility::getStudentClass();
         $file_log = FileLog::find()
-//            ->where([
-//                'is_completed' => SharedConstant::VALUE_ONE,
-//                'user_id' => Yii::$app->user->id,
-//                'type' => SharedConstant::TYPE_VIDEO,
-//                'class_id'=>$class_id
-//            ]) //to be returned
+            ->where([
+                'is_completed' => SharedConstant::VALUE_ONE,
+                'user_id' => Yii::$app->user->id,
+                'type' => SharedConstant::TYPE_VIDEO,
+                'class_id' => $class_id
+            ])
             ->groupBy('file_id')
             ->limit(6)
             ->orderBy('id DESC')
@@ -310,24 +316,27 @@ class CatchupController extends ActiveController
 
     }
 
-    public function actionUpdateVideoCompleted($video_id)
+    public function actionUpdateVideoCompleted($video_token)
     {
         $class_id = Utility::getStudentClass();;
 
         $duration = Yii::$app->request->post('duration');
 
-        $form = new \yii\base\DynamicModel(compact('video_id', 'class_id', 'duration'));
-        $form->addRule(['video_id', 'duration'], 'required');
-        $form->addRule(['video_id'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_id' => 'id']]);
+        $form = new \yii\base\DynamicModel(compact('video_token', 'class_id', 'duration'));
+        $form->addRule(['video_token', 'duration'], 'required');
+        $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+
+
+        $video = VideoContent::findOne(['token' => $video_token]);
 
         $file_log = FileLog::findOne([
             'is_completed' => SharedConstant::VALUE_ZERO,
             'user_id' => Yii::$app->user->id,
             'type' => SharedConstant::TYPE_VIDEO,
-            'file_id' => $video_id,
+            'file_id' => $video->id,
         ]);
 
         if (!$file_log)
@@ -347,10 +356,14 @@ class CatchupController extends ActiveController
 
     }
 
-    public function actionUpdateVideoLength($video_id)
+    public function actionUpdateVideoLength($video_token)
     {
-        $duration = Yii::$app->request->post('duration');
+        $video = VideoContent::findOne(['token' => $video_token]);
+        if (!$video)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
 
+        $video_id = $video->id;
+        $duration = Yii::$app->request->post('duration');
         $form = new \yii\base\DynamicModel(compact('duration', 'video_id'));
         $form->addRule(['duration'], 'required');
         $form->addRule(['duration'], 'integer');
@@ -428,7 +441,7 @@ class CatchupController extends ActiveController
         }
 
         $models = QuizSummary::find()
-            //->where(['student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE]) //to be returned
+            ->where(['student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])
             ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->orderBy(['submit_at' => SORT_DESC])
             ->limit(6)
@@ -456,7 +469,7 @@ class CatchupController extends ActiveController
         }
 
         $model = FileLog::findAll([
-            //'user_id' => Yii::$app->user->id, //to be returned
+            'user_id' => Yii::$app->user->id,
             'is_completed' => SharedConstant::VALUE_ZERO
         ]);
 
@@ -476,9 +489,9 @@ class CatchupController extends ActiveController
 
         $model = PracticeMaterial::find()
             ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id")//removed
-            //->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id") to be returned
-            //->where(['user_id' => Yii::$app->user->identity->id]) //remogit pullved
-            // ->where(['class_id'=>Utility::getStudentClass()]) //to be returned
+            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
+            ->where(['user_id' => Yii::$app->user->identity->id]) //remogit pullved
+             ->where(['class_id'=>Utility::getStudentClass()])
             ->andWhere([
                 'filetype' => [
                     SharedConstant::PRACTICE_MATERIAL_TYPES[0],
@@ -635,7 +648,7 @@ class CatchupController extends ActiveController
 
         $quizSummary = QuizSummary::find()->where([
             'id' => $quiz_id, 'submit' => 1,
-            //'student_id' => Yii::$app->user->id
+            'student_id' => Yii::$app->user->id
         ])->one();
         if (!$quizSummary)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
@@ -649,7 +662,7 @@ class CatchupController extends ActiveController
                 'qsd.topic_id',
             ])
             ->where([
-                //'qsd.student_id' => Yii::$app->user->id,
+                'qsd.student_id' => Yii::$app->user->id,
                 'homework_id' => $quizSummary->homework_id
             ])
             ->orderBy(['score' => SORT_ASC])
@@ -693,24 +706,19 @@ class CatchupController extends ActiveController
 
     public function actionGenerateWeeklyRecommendation()
     {
-
         if (date('l') != SharedConstant::CURRENT_DAY) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'The weekly Recommendation cannot be generated on a ' . date('l'));
-        }
-
-        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
         //student_recommendations depicts the students that has received the weekly recommendation
         $student_recommendations = ArrayHelper::getColumn(
             Recommendations::find()
-            ->where([
-                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO],
-                'DATE(created_at)' => date('Y-m-d')
-            ])
-            ->andWhere('WEEK(CURDATE()) = WEEK(created_at)') //checking on-going week
-            ->all(),
+                ->where([
+                    'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO],
+                    'DATE(created_at)' => date('Y-m-d')
+                ])
+                ->andWhere('WEEK(CURDATE()) = WEEK(created_at)')//checking on-going week
+                ->all(),
             'student_id'
         );
 
@@ -720,13 +728,25 @@ class CatchupController extends ActiveController
             'id'
         );
 
+
         if (empty($student_ids)) {
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Weekly recommendations are already generated');
         }
 
 
         foreach ($student_ids as $student) {
-            $this->weeklyRecommendation($student);
+            try {
+                $this->weeklyRecommendation($student);
+                $this->weekly_recommended_topics = [];
+                $this->subjects = [];
+                $this->topics = [];
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        if (empty($this->topics)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Weekly recommendations not found');
         }
 
         return (new ApiResponse)->success($this->topics, ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
@@ -743,9 +763,11 @@ class CatchupController extends ActiveController
         if (!$school_id) {
             $term = SessionTermOnly::widget(['nonSchool' => true]);
             $week = SessionTermOnly::widget(['nonSchool' => true, 'weekOnly' => true]);
+            $classID = User::findOne(['id' => $student])->class;
         } else {
             $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
             $week = SessionTermOnly::widget(['id' => $school_id['school_id'], 'weekOnly' => true]);
+            $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
 
         $this->subjects = ArrayHelper::getColumn(QuizSummary::find()
@@ -757,8 +779,16 @@ class CatchupController extends ActiveController
             'subject_id'
         );
 
-        $this->previousWeekRecommendedSubjects(); //filters out the previous week subjects.
+        $previous_week_recommendations = ArrayHelper::getColumn(RecommendationTopics::find()
+            ->select('subject_id')
+            ->where('WEEK(CURDATE()) = WEEK(created_at) - 1')
+            ->groupBy('subject_id')
+            ->asArray()
+            ->all(),
+            'subject_id'
+        );
 
+        $this->previousWeekRecommendedSubjects($previous_week_recommendations); //filters out the previous week subjects.
         foreach ($this->subjects as $subject) {
             $model = SubjectTopics::find()
                 ->select([
@@ -772,14 +802,20 @@ class CatchupController extends ActiveController
                 ])
                 ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
                 ->where([
-                    'subject_topics.id' => $subject,
+                    'subject_topics.subject_id' => $subject,
                     'subject_topics.term' => $term,
-                    'subject_topics.class_id' => $school_id['class_id'],
+                    'subject_topics.class_id' => $classID
                 ])
-                ->andWhere(['<=', 'subject_topics.week_number', $week])
+                ->orWhere(['<=', 'subject_topics.week_number', $week])
+//                ->orWhere(['<', 'subject_topics.week_number', $week])
+//                ->orWhere(['>', 'subject_topics.week_number', $week])
                 ->asArray()
                 ->limit(SharedConstant::VALUE_ONE)
                 ->all();
+
+            if (sizeof($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
+                break;
+            }
 
             $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
         }
@@ -797,35 +833,39 @@ class CatchupController extends ActiveController
             ->limit(SharedConstant::VALUE_TWO)
             ->all();
 
+        if (count($this->weekly_recommended_topics) < SharedConstant::VALUE_THREE) {
+            $this->randomWeeklyRecommendationTopics($this->weekly_recommended_topics, $this->subjects, $previous_week_recommendations, 'weekly', $term, $week, $classID);
+        }
+
         $this->topics = array_merge($this->weekly_recommended_topics, $weekly_recommended_videos);
-        $this->createRecommendations($this->topics, $student);
+        $this->createRecommendations($this->topics, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO]);
     }
 
-    private function previousWeekRecommendedSubjects()
+    private function previousWeekRecommendedSubjects($previous_week_recommendations)
     {
-        $previous_week_recommendations = ArrayHelper::getColumn(RecommendationTopics::find()
-            ->select('subject_id')
-            ->where('WEEK(CURDATE()) = WEEK(created_at) + 1')
-            ->groupBy('subject_id')
-            ->asArray()
-            ->all(),
-            'subject_id'
-        );
-
-        print_r($previous_week_recommendations);
-        die;
-
-        $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
+        if (!empty($previous_week_recommendations)) {
+            $this->subjects = array_diff($this->subjects, $previous_week_recommendations);
+            if (count($this->subjects) == SharedConstant::VALUE_ONE) {
+                $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_TWO); //select random keys from the previous week recommendations
+                $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]], $previous_week_recommendations[$keys[SharedConstant::VALUE_ONE]]);
+            } elseif (empty($this->subjects)) {
+                $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_THREE); //select random keys from the previous week recommendations
+                $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]], $previous_week_recommendations[$keys[SharedConstant::VALUE_ONE]], $previous_week_recommendations[$keys[SharedConstant::VALUE_TWO]]);
+            } elseif (count($this->subjects) == SharedConstant::VALUE_TWO) {
+                $keys = array_rand($previous_week_recommendations, SharedConstant::VALUE_ONE); //select random keys from the previous week recommendations
+                $this->subjects = array_merge($this->subjects, $previous_week_recommendations[$keys[SharedConstant::VALUE_ZERO]]);
+            }
+        }
     }
 
-    private function createRecommendations($recommendations, $student)
+    private function createRecommendations($recommendations, $student, $recommendation_type)
     {
         if (!empty($recommendations)) {
             $dbtransaction = Yii::$app->db->beginTransaction();
             try {
                 $model = new Recommendations;
                 $model->student_id = $student;
-                $model->category = SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ZERO];
+                $model->category = $recommendation_type;
                 if (!$model->save()) {
                     return false;
                 }
@@ -852,8 +892,8 @@ class CatchupController extends ActiveController
             $model->subject_id = $object['subject_id'];
             $model->student_id = $recommendation->student_id;
             $model->object_id = $object['id'];
-            $model->object_type = $object['type'] ? $object['type'] : 'video';
-            if (!$model->save()) {
+            $model->object_type = isset($object['type']) ? $object['type'] : 'video';
+            if (!$model->save(false)) {
                 return false;
             }
         }
@@ -876,5 +916,248 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($recommendations, ApiResponse::SUCCESSFUL, 'Weekly recommendations found');
+    }
+
+    public function actionGenerateDailyRecommendations()
+    {
+        //student_recommendations depicts the students that has received the daily recommendation
+        $student_recommendations = ArrayHelper::getColumn(
+            Recommendations::find()
+                ->where([
+                    'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
+                    'DATE(created_at)' => date('Y-m-d')
+                ])
+                ->andWhere('DAY(CURDATE()) = DAY(created_at)')//checking on-going day
+                ->all(),
+            'student_id'
+        );
+
+        //student_ids depicts the list of students
+        $student_ids = ArrayHelper::getColumn(
+            User::find()->where(['type' => SharedConstant::TYPE_STUDENT])->andWhere(['<>', 'status', SharedConstant::VALUE_ZERO])->andWhere(['NOT IN', 'id', $student_recommendations])->all(),
+            'id'
+        );
+
+
+        if (empty($student_ids)) {
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Daily recommendations are already generated');
+        }
+
+
+        foreach ($student_ids as $student) {
+            try {
+                $this->dailyRecommendation($student);
+                $this->daily_recommended_topics = [];
+                $this->subjects = [];
+                $this->topics = [];
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        if (empty($this->topics)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Daily recommendations not found');
+        }
+
+        return (new ApiResponse)->success($this->topics, ApiResponse::SUCCESSFUL, 'Daily recommendations found');
+    }
+
+    private function dailyRecommendation($student)
+    {
+        $school_id = StudentSchool::find()
+            ->select(['school_id', 'class_id'])
+            ->where(['student_id' => $student])
+            ->asArray()
+            ->one();
+
+        if (!$school_id) {
+            $classID = User::findOne(['id' => $student])->class;
+        } else {
+            $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
+        }
+
+        //weekly_recommended_topics is to store the topics that are already exist in weekly_recommendation
+        $weekly_recommended_topics = ArrayHelper::getColumn(
+            RecommendationTopics::find()
+                ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id')
+                ->where('WEEKDAY(recommendations.created_at) = ' . SharedConstant::VALUE_SIX)
+                ->andWhere(['student_id' => $student])
+                ->all(),
+            'object_id'
+        );
+
+        $subjects = ArrayHelper::getColumn(QuizSummary::find()
+            ->select('subject_id')
+            ->where(['student_id' => $student])
+            ->groupBy('subject_id')
+            ->asArray()
+            ->all(),
+            'subject_id'
+        );
+
+        foreach ($subjects as $subject) {
+            $model = SubjectTopics::find()
+                ->select([
+                    'subject_topics.id',
+                    'subject_topics.topic',
+                    'subject_topics.week_number',
+                    'subject_topics.term',
+                    'subjects.name as subject_name',
+                    'subjects.id as subject_id',
+                    new Expression("'practice' AS type"),
+                ])
+                ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
+                ->where([
+                    'subject_topics.subject_id' => $subject,
+                    'subject_topics.class_id' => $classID
+                ])
+                ->andWhere(['NOT IN', 'subject_topics.id', $weekly_recommended_topics])
+                ->asArray()
+                ->limit(SharedConstant::VALUE_ONE)
+                ->all();
+
+            if (sizeof($this->daily_recommended_topics) == SharedConstant::VALUE_THREE) {
+                break;
+            }
+
+            $this->daily_recommended_topics = array_merge($this->daily_recommended_topics, $model);
+        }
+
+        if (!$this->daily_recommended_topics) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendations not found');
+        }
+
+        $daily_recommended_videos = VideoContent::find()
+            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->where([
+                'video_assign.topic_id' => ArrayHelper::getColumn(
+                    $this->daily_recommended_topics, 'id')
+            ])
+            ->limit(SharedConstant::VALUE_TWO)
+            ->all();
+
+        if (count($this->daily_recommended_topics) < SharedConstant::VALUE_THREE) {
+            $this->randomDailyRecommendationTopics($this->daily_recommended_topics, $subjects, $weekly_recommended_topics, 'daily');
+        }
+
+        $this->topics = array_merge($this->daily_recommended_topics, $daily_recommended_videos);
+        $this->createRecommendations($this->topics, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE]);
+    }
+
+    private function randomDailyRecommendationTopics($recommended_topics, $subjects, $weekly_recommended_topics)
+    {
+        $recommended_subjects = ArrayHelper::getColumn($recommended_topics, 'subject_id');
+        if (count($recommended_topics) == SharedConstant::VALUE_TWO) {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject['id'], $weekly_recommended_topics, $recommended_subjects, 'daily');
+                if (count($this->daily_recommended_topics) == SharedConstant::VALUE_THREE) {
+                    break;
+                }
+            }
+        } elseif (count($this->daily_recommended_topics) == SharedConstant::VALUE_ONE) {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject['id'], $weekly_recommended_topics, $recommended_subjects, 'daily');
+                if (count($this->daily_recommended_topics) == SharedConstant::VALUE_THREE) {
+                    break;
+                }
+            }
+        } else {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject['id'], $weekly_recommended_topics, $recommended_subjects, 'daily');
+                if (count($this->daily_recommended_topics == SharedConstant::VALUE_THREE)) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private function randomWeeklyRecommendationTopics($recommended_topics, $subjects, $weekly_recommended_topics, $term, $week, $classID)
+    {
+        $recommended_subjects = ArrayHelper::getColumn($recommended_topics, 'subject_id');
+        if (count($recommended_topics) == SharedConstant::VALUE_TWO) {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly', $term, $week, $classID);
+                if (count($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
+                    break;
+                }
+            }
+        } elseif (count($this->daily_recommended_topics) == SharedConstant::VALUE_ONE) {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly', $term, $week, $classID);
+                if (count($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
+                    break;
+                }
+            }
+        } else {
+            foreach ($subjects as $subject) {
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly', $term, $week, $classID);
+                if (count($this->weekly_recommended_topics == SharedConstant::VALUE_THREE)) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private function selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, $type, $term = null, $week = null, $classID = null)
+    {
+        $model = SubjectTopics::find()
+            ->select([
+                'subject_topics.id',
+                'subject_topics.topic',
+                'subject_topics.week_number',
+                'subject_topics.term',
+                'subjects.name as subject_name',
+                'subjects.id as subject_id',
+                new Expression("'practice' AS type"),
+            ])
+            ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
+            ->where([
+                'subject_topics.subject_id' => $subject,
+                //'subject_topics.class_id' => $school_id['class_id']
+            ])
+            ->andWhere(['NOT IN', 'subject_topics.id', $weekly_recommended_topics])
+            ->andWhere(['NOT IN', 'subject_topics.id', $recommended_subjects])
+            ->asArray();
+
+        if ($type == 'weekly') {
+            $model = $model->where([
+                //'subject_topics.subject_id' => $subjects,
+                'subject_topics.term' => $term,
+                'subject_topics.class_id' => $classID
+            ])
+                ->orWhere(['>', 'subject_topics.week_number', $week]);
+        }
+
+        $model = $model->limit(SharedConstant::VALUE_ONE)
+            ->all();
+
+        if ($type == 'weekly') {
+            $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
+        } else {
+            $this->daily_recommended_topics = array_merge($this->daily_recommended_topics, $model);
+        }
+    }
+
+    public function actionCheckRecommendation()
+    {
+        $submitted_recommendations = ArrayHelper::getColumn(
+            Homeworks::find()->select('reference_id')->where(['reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO]]),
+            'reference_id'
+        );
+
+        $model = Recommendations::find()
+            ->where([
+                'student_id' => Yii::$app->user->id,
+                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
+            ])
+            ->andWhere(['NOT IN', 'id', $submitted_recommendations])
+            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            ->all();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Daily recommendation not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Daily recommendation found');
     }
 }

@@ -124,26 +124,7 @@ class Feed extends \yii\db\ActiveRecord
 
     }
 
-    public function saveVideoFeed()
-    {
-        $dbtransaction = Yii::$app->db->beginTransaction();
-        try {
-            if (!$model = $this->save(false)) {
-                return false;
-            }
 
-            if (!$this->attachmentSave($this->id)) {
-                return false;
-            }
-
-            $dbtransaction->commit();
-        } catch (Exception $ex) {
-            $dbtransaction->rollBack();
-            return false;
-        }
-
-        return $this;
-    }
 
     public function attachmentSave($feed_id)
     {

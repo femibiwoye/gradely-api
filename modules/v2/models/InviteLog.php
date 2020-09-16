@@ -126,6 +126,10 @@ class InviteLog extends \yii\db\ActiveRecord
             return false;
         }
 
+        $notification = new InputNotification();
+        if (!$notification->NewNotification('student_invite_parent', [['student_id', $this->sender_id]]))
+            return false;
+
         return $model;
     }
 

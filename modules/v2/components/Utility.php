@@ -2,13 +2,14 @@
 
 namespace app\modules\v2\components;
 
+use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\{TeacherClass, Classes, StudentSchool};
-use app\modules\v2\components\SharedConstant;
 
+use app\modules\v2\models\User;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
@@ -170,8 +171,24 @@ class Utility extends ActiveRecord
         return null;
     }
 
-    public static function getStudentClass($global_id = SharedConstant::VALUE_ZERO)
+    public static function getStudentClass($global_id = SharedConstant::VALUE_ZERO, $studentID = null)
     {
+        if (!empty($studentID)) {
+            $user = User::findOne(['id' => $studentID, 'type' => 'student']);
+            $data = StudentSchool::findOne(['student_id' => $studentID]);
+
+            if (empty($data)) {
+                if (!empty($user))
+                    return $user->class;
+                return SharedConstant::VALUE_NULL;
+            } elseif ($global_id == SharedConstant::VALUE_ONE) {
+                return $data->class->global_class_id;
+            } else {
+                return $data->class_id;
+            }
+        }
+
+
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return null;
         }

@@ -2,15 +2,14 @@
 
 //$year = date('Y');
 $year = "2021";
-$ftBegin = "2020-09-09";
-$ftEnd = "2021-01-05";
+$ftBegin = "2020-08-09";
 
 return [
     'first_term_start' => $ftBegin,
-    'first_term_end' => $ftEnd,
-    'second_term_start' => $year . '-01-06',
-    'second_term_end' => $year . '-04-06',
-    'third_term_start' => $year . '-04-07',
+    'first_term_end' => $year . "-01-04",
+    'second_term_start' => $year . '-01-05',
+    'second_term_end' => $year . '-04-18',
+    'third_term_start' => $year . '-04-19',
     'third_term_end' => $year . '-09-08',
 
     //Payment gateway

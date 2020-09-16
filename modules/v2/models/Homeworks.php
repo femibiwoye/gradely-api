@@ -103,6 +103,8 @@ class Homeworks extends \yii\db\ActiveRecord
             'duration' => 'Duration',
             'status' => 'Status',
             'created_at' => 'Created At',
+            'reference_type' => 'reference_type',
+            'reference_id' => 'reference_id',
         ];
     }
 
