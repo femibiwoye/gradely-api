@@ -270,7 +270,7 @@ class ChildrenController extends ActiveController
             return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('parent_add_student', [['parent_id', Yii::$app->user->id]]))
+        if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
             return false;
 
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Parent Child saved');
