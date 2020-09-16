@@ -42,12 +42,12 @@ return [
     'POST v2/live-class' => 'v2/feed/new-live-class', //
 
     //Reports
-    'GET v2/library/documents' => 'v2/library/index',
-    'POST v2/library/video' => 'v2/library/feed-video',
-    'GET v2/library/discussion' => 'v2/library/discussion',
-    'GET v2/library/video' => 'v2/library/video',
-    'GET v2/library/assessment' => 'v2/library/assessment',
-    'GET v2/report/class' => 'v2/library/class-report',
+    'GET v2/library/documents' => 'v2/library/index', //
+    'POST v2/library/video' => 'v2/library/upload-video', //
+    'GET v2/library/discussion' => 'v2/library/discussion', //
+    'GET v2/library/video' => 'v2/library/video', //
+    'GET v2/library/assessment' => 'v2/library/assessment', //
+    'GET v2/report/class' => 'v2/library/class-report', //
     'GET v2/report/homework' => 'v2/report/homework-summary',
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',

@@ -4,6 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\FeedLike;
 use app\modules\v2\models\FileLog;
@@ -723,7 +724,14 @@ class CatchupController extends ActiveController
 
 
         foreach ($student_ids as $student) {
-            $this->weeklyRecommendation($student);
+            try {
+                $this->weeklyRecommendation($student);
+                $this->weekly_recommended_topics = [];
+                $this->subjects = [];
+                $this->topics = [];
+            } catch (\Exception $e) {
+                continue;
+            }
         }
 
         if (empty($this->topics)) {
@@ -744,9 +752,11 @@ class CatchupController extends ActiveController
         if (!$school_id) {
             $term = SessionTermOnly::widget(['nonSchool' => true]);
             $week = SessionTermOnly::widget(['nonSchool' => true, 'weekOnly' => true]);
+            $classID = User::findOne(['id' => $student])->class;
         } else {
             $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
             $week = SessionTermOnly::widget(['id' => $school_id['school_id'], 'weekOnly' => true]);
+            $classID = Classes::findOne(['id'=>$school_id['class_id']])->global_class_id;
         }
 
         $this->subjects = ArrayHelper::getColumn(QuizSummary::find()
@@ -783,11 +793,11 @@ class CatchupController extends ActiveController
                 ->where([
                     'subject_topics.subject_id' => $subject,
                     'subject_topics.term' => $term,
-                    'subject_topics.class_id' => $school_id['class_id']
+                    'subject_topics.class_id' => $classID
                 ])
-                ->orWhere(['=', 'subject_topics.week_number', $week])
-                ->orWhere(['<', 'subject_topics.week_number', $week])
-                ->orWhere(['>', 'subject_topics.week_number', $week])
+                ->orWhere(['<=', 'subject_topics.week_number', $week])
+//                ->orWhere(['<', 'subject_topics.week_number', $week])
+//                ->orWhere(['>', 'subject_topics.week_number', $week])
                 ->asArray()
                 ->limit(SharedConstant::VALUE_ONE)
                 ->all();
@@ -813,7 +823,7 @@ class CatchupController extends ActiveController
             ->all();
 
         if (count($this->weekly_recommended_topics) < SharedConstant::VALUE_THREE) {
-            $this->randomWeeklyRecommendationTopics($this->weekly_recommended_topics, $this->subjects, $previous_week_recommendations, 'weekly');
+            $this->randomWeeklyRecommendationTopics($this->weekly_recommended_topics, $this->subjects, $previous_week_recommendations, 'weekly', $term, $week, $classID);
         }
 
         $this->topics = array_merge($this->weekly_recommended_topics, $weekly_recommended_videos);
@@ -853,7 +863,7 @@ class CatchupController extends ActiveController
                     return false;
                 }
 
-                $dbtransaction->commit();
+                 $dbtransaction->commit();
             } catch (Exception $e) {
                 $dbtransaction->rollBack();
                 return false;
@@ -922,8 +932,16 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Daily recommendations are already generated');
         }
 
+
         foreach ($student_ids as $student) {
-            $this->dailyRecommendation($student);
+            try {
+                $this->dailyRecommendation($student);
+                $this->daily_recommended_topics = [];
+                $this->subjects = [];
+                $this->topics = [];
+            } catch (\Exception $e) {
+                continue;
+            }
         }
 
         if (empty($this->topics)) {
@@ -941,16 +959,30 @@ class CatchupController extends ActiveController
             ->asArray()
             ->one();
 
+        if (!$school_id) {
+            $classID = User::findOne(['id' => $student])->class;
+        } else {
+            $classID = Classes::findOne(['id'=>$school_id['class_id']])->global_class_id;
+        }
+
         //weekly_recommended_topics is to store the topics that are already exist in weekly_recommendation
         $weekly_recommended_topics = ArrayHelper::getColumn(
             RecommendationTopics::find()
-            ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id')
-            ->where('WEEKDAY(recommendations.created_at) = ' . SharedConstant::VALUE_SIX)
-            ->all(),
+                ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id')
+                ->where('WEEKDAY(recommendations.created_at) = ' . SharedConstant::VALUE_SIX)
+                ->andWhere(['student_id'=>$student])
+                ->all(),
             'object_id'
         );
 
-        $subjects = Subjects::find()->asArray()->all();
+        $subjects = ArrayHelper::getColumn(QuizSummary::find()
+            ->select('subject_id')
+            ->where(['student_id' => $student])
+            ->groupBy('subject_id')
+            ->asArray()
+            ->all(),
+            'subject_id'
+        );
 
         foreach ($subjects as $subject) {
             $model = SubjectTopics::find()
@@ -965,8 +997,8 @@ class CatchupController extends ActiveController
                 ])
                 ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
                 ->where([
-                    'subject_topics.subject_id' => $subject['id'],
-                    'subject_topics.class_id' => $school_id['class_id']
+                    'subject_topics.subject_id' => $subject,
+                    'subject_topics.class_id' => $classID
                 ])
                 ->andWhere(['NOT IN', 'subject_topics.id', $weekly_recommended_topics])
                 ->asArray()
@@ -1007,7 +1039,7 @@ class CatchupController extends ActiveController
         if (count($recommended_topics) == SharedConstant::VALUE_TWO) {
             foreach ($subjects as $subject) {
                 $this->selectTopic($subject['id'], $weekly_recommended_topics, $recommended_subjects, 'daily');
-                if (count($this->daily_recommended_topics ) == SharedConstant::VALUE_THREE) {
+                if (count($this->daily_recommended_topics) == SharedConstant::VALUE_THREE) {
                     break;
                 }
             }
@@ -1028,25 +1060,26 @@ class CatchupController extends ActiveController
         }
     }
 
-    private function randomWeeklyRecommendationTopics($recommended_topics, $subjects, $weekly_recommended_topics) {
+    private function randomWeeklyRecommendationTopics($recommended_topics, $subjects, $weekly_recommended_topics, $term, $week, $classID)
+    {
         $recommended_subjects = ArrayHelper::getColumn($recommended_topics, 'subject_id');
         if (count($recommended_topics) == SharedConstant::VALUE_TWO) {
             foreach ($subjects as $subject) {
-                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly');
-                if (count($this->weekly_recommended_topics ) == SharedConstant::VALUE_THREE) {
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly', $term, $week, $classID);
+                if (count($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
                     break;
                 }
             }
         } elseif (count($this->daily_recommended_topics) == SharedConstant::VALUE_ONE) {
             foreach ($subjects as $subject) {
-                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly');
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly', $term, $week, $classID);
                 if (count($this->weekly_recommended_topics) == SharedConstant::VALUE_THREE) {
                     break;
                 }
             }
         } else {
             foreach ($subjects as $subject) {
-                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly');
+                $this->selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, 'weekly', $term, $week, $classID);
                 if (count($this->weekly_recommended_topics == SharedConstant::VALUE_THREE)) {
                     break;
                 }
@@ -1054,28 +1087,38 @@ class CatchupController extends ActiveController
         }
     }
 
-    private function selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, $type)
+    private function selectTopic($subject, $weekly_recommended_topics, $recommended_subjects, $type, $term = null, $week = null, $classID = null)
     {
         $model = SubjectTopics::find()
-                    ->select([
-                        'subject_topics.id',
-                        'subject_topics.topic',
-                        'subject_topics.week_number',
-                        'subject_topics.term',
-                        'subjects.name as subject_name',
-                        'subjects.id as subject_id',
-                        new Expression("'practice' AS type"),
-                    ])
-                    ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
-                    ->where([
-                        'subject_topics.subject_id' => $subject,
-                        //'subject_topics.class_id' => $school_id['class_id']
-                    ])
-                    ->andWhere(['NOT IN', 'subject_topics.id', $weekly_recommended_topics])
-                    ->andWhere(['NOT IN', 'subject_topics.id', $recommended_subjects])
-                    ->asArray()
-                    ->limit(SharedConstant::VALUE_ONE)
-                    ->all();
+            ->select([
+                'subject_topics.id',
+                'subject_topics.topic',
+                'subject_topics.week_number',
+                'subject_topics.term',
+                'subjects.name as subject_name',
+                'subjects.id as subject_id',
+                new Expression("'practice' AS type"),
+            ])
+            ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
+            ->where([
+                'subject_topics.subject_id' => $subject,
+                //'subject_topics.class_id' => $school_id['class_id']
+            ])
+            ->andWhere(['NOT IN', 'subject_topics.id', $weekly_recommended_topics])
+            ->andWhere(['NOT IN', 'subject_topics.id', $recommended_subjects])
+            ->asArray();
+
+        if ($type == 'weekly') {
+            $model = $model->where([
+                //'subject_topics.subject_id' => $subjects,
+                'subject_topics.term' => $term,
+                'subject_topics.class_id' => $classID
+            ])
+                ->orWhere(['>', 'subject_topics.week_number', $week]);
+        }
+
+        $model = $model->limit(SharedConstant::VALUE_ONE)
+            ->all();
 
         if ($type == 'weekly') {
             $this->weekly_recommended_topics = array_merge($this->weekly_recommended_topics, $model);
@@ -1092,13 +1135,13 @@ class CatchupController extends ActiveController
         );
 
         $model = Recommendations::find()
-                    ->where([
-                        'student_id' => Yii::$app->user->id,
-                        'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
-                    ])
-                    ->andWhere(['NOT IN', 'id', $submitted_recommendations])
-                    ->andWhere('DAY(CURDATE()) = DAY(created_at)')
-                    ->all();
+            ->where([
+                'student_id' => Yii::$app->user->id,
+                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
+            ])
+            ->andWhere(['NOT IN', 'id', $submitted_recommendations])
+            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            ->all();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Daily recommendation not found');

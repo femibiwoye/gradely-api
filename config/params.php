@@ -2,7 +2,7 @@
 
 //$year = date('Y');
 $year = "2021";
-$ftBegin = "2020-09-09";
+$ftBegin = "2020-08-09";
 
 return [
     'first_term_start' => $ftBegin,
