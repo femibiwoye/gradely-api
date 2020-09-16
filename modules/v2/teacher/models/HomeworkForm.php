@@ -3,7 +3,10 @@
 namespace app\modules\v2\teacher\models;
 
 use app\modules\v2\components\InputNotification;
+use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeTopics;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\SubjectTopics;
 use Yii;
 use yii\base\Model;
@@ -161,6 +164,40 @@ class HomeworkForm extends Model
 
             if ($this->attachments && !$this->addFeedAttachment($feed->id)) {
                 return false;
+            }
+
+            if($model->type != 'homework')
+                return false;
+
+            if($model->publish_status == SharedConstant::VALUE_ZERO){
+
+                $notification = new InputNotification();
+                if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->one()->id]]))
+                    return false;
+            }
+
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('teacher_create_homework', [['homework_id', $model->id]]))
+                return false;
+
+            //Get all the students in that class
+            $classStudents = StudentSchool::findAll(['class_id' => $model->class_id]);
+
+            foreach ($classStudents as $classStudent){
+
+                if($classStudent){
+                    $notification = new InputNotification();
+                    if (!$notification->NewNotification('teacher_create_homework_student', [['homework_id', $model->id]]))
+                        return false;
+                }
+
+                $parent = Parents::findOne(['student_id' => $classStudent->student_id]);
+
+                if($parent){
+                    $notification = new InputNotification();
+                    if (!$notification->NewNotification('teacher_create_homework_parent', [['homework_id', $model->id]]))
+                        return false;
+                }
             }
 
             $dbtransaction->commit();
