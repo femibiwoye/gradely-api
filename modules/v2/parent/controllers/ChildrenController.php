@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\parent\controllers;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\StudentSchool;
@@ -268,6 +269,9 @@ class ChildrenController extends ActiveController
         if (!$parent->save())
             return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
+        $notification = new InputNotification();
+        if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
+            return false;
 
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Parent Child saved');
 
@@ -302,6 +306,10 @@ class ChildrenController extends ActiveController
             if (!$parent->save())
                 return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
 
+
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('parent_adds_student', [['parent_id', $parent->id]]))
+                return false;
         }
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user),['password'=>$model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
 
