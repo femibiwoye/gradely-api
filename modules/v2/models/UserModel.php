@@ -7,6 +7,7 @@ use app\modules\v2\components\Utility;
 use Yii;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
+use app\modules\v2\components\SharedConstant;
 
 /**
  * This is the model class for table "user".
@@ -132,6 +133,7 @@ class UserModel extends User
 
         //if ($this->isRelationPopulated('assessmentTopicsPerformance'))
         $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
+        $fields['recommendation'] = 'recommendation';
 
         return $fields;
     }
@@ -361,4 +363,96 @@ class UserModel extends User
             ->asArray();
     }
 
+    public function getRecommendation()
+    {
+        return [
+            'remedial' => $this->remedial,
+            'videos' => $this->getVideos($this->remedial),
+            'practice' => $this->practice,
+        ];
+    }
+
+    public function getRemedial()
+    {
+        $least_topics = $this->getAssessmentTopicsPerformance()->all();
+        if ($least_topics) {
+            $most_least_topic = $least_topics[SharedConstant::VALUE_ZERO];
+            foreach ($least_topics as $least_topic) {
+                if ($least_topic['score'] < $least_topic['score']) {
+                    $most_least_topic = $least_topic;
+                }
+            }
+
+            return $most_least_topic;
+        }
+
+        return SharedConstant::VALUE_NULL;
+    }
+
+    public function getVideos($topic = null)
+    {
+        if (empty($topic)) {
+            return SharedConstant::VALUE_NULL;
+        }
+
+        $videos = ArrayHelper::getColumn(VideoAssign::find()->select('content_id')->all(), 'content_id');
+
+        return VideoContent::find()->where(['id' => $videos])->limit(SharedConstant::VALUE_FIVE)->all();
+    }
+
+    public function getPractice()
+    {
+        $quizSummary = QuizSummary::find()->where([
+            'homework_id' => Yii::$app->request->get('id'), 'submit' => 1
+        ])->one();
+
+        if (!$quizSummary)
+            return null;
+
+
+        //$topics retrieves low scoring topic_ids
+        $topics = QuizSummaryDetails::find()
+            ->alias('qsd')
+            ->select([
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                'qsd.topic_id',
+            ])
+            ->where([
+                'homework_id' => $quizSummary->homework_id
+            ])
+            ->orderBy(['score' => SORT_ASC])
+            ->asArray()
+            ->limit(SharedConstant::VALUE_FIVE)
+            ->groupBy('qsd.topic_id')
+            ->all();
+
+        //$topic_objects retrieves topic objects
+        $topic_objects = SubjectTopics::find()
+            ->select([
+                'subject_topics.*',
+                new Expression("'practice' as type")
+            ])
+            ->where(['id' => ArrayHelper::getColumn($topics, 'topic_id')])
+            ->asArray()
+            ->all();
+
+        //retrieves assign videos to the topic
+        $video = VideoContent::find()
+            ->select([
+                'video_content.*',
+                new Expression("'video' as type")
+            ])
+            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
+            ->limit(SharedConstant::VALUE_ONE)
+            ->asArray()
+            ->all();
+
+        if (!$topic_objects) {
+            return null;
+        }
+
+
+        return $topics = array_merge($topic_objects, $video);
+    }
 }
