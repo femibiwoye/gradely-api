@@ -20,6 +20,7 @@ use Yii;
  * @property string $extension e.g png, jpg, mp4, pdf, etc
  * @property string $type The file could either belong to practice assessment or feed.
  * @property string|null $raw This contains the object received from the cloud client. It is json encoded in database.
+ * @property string $tag
  * @property string $created_at
  * @property string|null $updated_at
  *
@@ -40,10 +41,10 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         return [
             [['user_id', 'title', 'filename', 'filetype', 'extension', 'raw'], 'required'],
             [['practice_id', 'user_id', 'downloadable'], 'integer'],
-            [['filetype', 'description', 'raw'], 'string'],
-            [['created_at', 'updated_at'], 'safe'],
+            [['filetype', 'description', 'raw','tag'], 'string'],
+            [['created_at', 'updated_at','tag'], 'safe'],
             [['title'], 'string', 'max' => 100],
-            [['filesize', 'download_count', 'extension'], 'string', 'max' => 45],
+            [['filesize', 'download_count', 'extension','tag'], 'string', 'max' => 45],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
     }
@@ -59,6 +60,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'filetype',
             'extension',
             'raw',
+            'tag',
             'description',
             'updated_at',
             'feed_likes_and_dislikes' => 'feedLike',
