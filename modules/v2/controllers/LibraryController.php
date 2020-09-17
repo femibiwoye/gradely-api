@@ -216,11 +216,11 @@ class LibraryController extends ActiveController
         }
 
         $model = $this->modelClass::find()
-            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4]]);
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed']);
 
         if ($class_id) {
-            $model = $model->innerJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
-                ->andWhere(['homeworks.class_id' => $class_id]);
+            $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
+                ->andWhere(['feed.class_id' => $class_id]);
         }
 
         if ($format) {

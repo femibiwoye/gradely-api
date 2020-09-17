@@ -59,11 +59,14 @@ return [
     'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice', //
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
-    'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/catchup/homework-recommendation', //
-    'GET v2/student/catchup/generate-weekly-recommendation' => 'v2/student/catchup/generate-weekly-recommendation',
-    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/catchup/weekly-recommendations',
-    'GET v2/student/catchup/generate-daily-recommendation' => 'v2/student/catchup/generate-daily-recommendations',
-    'GET v2/student/catchup/daily-recommendation' => 'v2/student/catchup/check-recommendation',
+
+
+    //Recommendations
+    'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/recommendation/homework-recommendation',
+    'GET v2/student/catchup/generate-weekly-recommendation' => 'v2/student/recommendation/generate-weekly-recommendation',
+    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/recommendation/weekly-recommendations',
+    'GET v2/student/catchup/generate-daily-recommendation' => 'v2/student/recommendation/generate-daily-recommendations',
+    'GET v2/student/catchup/daily-recommendation' => 'v2/student/recommendation/daily-recommendation',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
