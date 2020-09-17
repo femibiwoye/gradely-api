@@ -116,9 +116,11 @@ class LibraryController extends ActiveController
     {
 
         $class_id = Yii::$app->request->post('class_id');
+        $tag = Yii::$app->request->post('tag');
         $teacher_id = Yii::$app->user->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
-        $model->addRule(['class_id'], 'integer')
+        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
+        $model->addRule(['tag', 'class_id'], 'required')
+            ->addRule(['class_id'], 'integer')
             ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
