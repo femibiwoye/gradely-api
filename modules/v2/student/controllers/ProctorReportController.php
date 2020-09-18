@@ -4,7 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use Yii;
 use yii\rest\ActiveController;
-use app\modules\v2\models\{ApiResponse, ProctorReport, ProctorReportDetails, Homeworks};
+use app\modules\v2\models\{ApiResponse, ProctorReport, ProctorReportDetails, Homeworks, ProctorFeedback};
 use app\modules\v2\components\{SharedConstant, CustomHttpBearerAuth};
 
 class ProctorReportController extends ActiveController
@@ -99,5 +99,21 @@ class ProctorReportController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Proctor Report Detail insertion passed');
+    }
+
+    public function actionProctorFeedback()
+    {
+        $model = new ProctorFeedback;
+        $model->attributes = Yii::$app->request->post();
+        $model->user_id = Yii::$app->user->id;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feedback not inserted');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Feedback inserted');
     }
 }

@@ -47,4 +47,5 @@ class SharedConstant
     const RECOMMENDATION_TYPE = ['weekly', 'daily'];
     const CURRENT_DAY = 'Tuesday';
     const REFERENCE_TYPE = ['homework', 'catchup', 'recommendation', 'practice'];
+    const PROCTOR_FEEDBACK_TYPE = ['reject_submittion', 'admin_report', 'report_error'];
 }
