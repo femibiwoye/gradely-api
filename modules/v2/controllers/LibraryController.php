@@ -54,7 +54,7 @@ class LibraryController extends ActiveController
         $format = Yii::$app->request->get('format');
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
-
+        $search = Yii::$app->request->get('search');
         if (Yii::$app->user->identity->type == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
@@ -72,6 +72,11 @@ class LibraryController extends ActiveController
 
         if ($class_id) {
             $model = $model->andWhere(['homeworks.class_id' => $class_id]);
+        }
+
+        if ($search) {
+            $model = $model->
+            andWhere(['OR', ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
 
         if ($format) {
@@ -135,7 +140,7 @@ class LibraryController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Upload not validated!');
         }
 
-        if (!$model->saveVideoFeed($class_id)) {
+        if (!$model->saveFileFeed($class_id)) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not uploaded');
         }
 
@@ -143,11 +148,43 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video uploaded');
     }
 
+    public function actionUploadDocument()
+    {
+
+        $class_id = Yii::$app->request->post('class_id');
+        $tag = Yii::$app->request->post('tag');
+        $teacher_id = Yii::$app->user->id;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
+        $model->addRule(['tag', 'class_id'], 'required')
+            ->addRule(['class_id'], 'integer')
+            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = new PracticeMaterial();
+        $model->attributes = Yii::$app->request->post();
+        $model->user_id = $teacher_id;
+        $model->filetype = 'document';
+        $model->type = 'feed';
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Upload not validated!');
+        }
+
+        if (!$model->saveFileFeed($class_id)) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Document not uploaded');
+        }
+
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Document uploaded');
+    }
+
     public function actionDiscussion()
     {
         $class_id = Yii::$app->request->get('class_id');
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
+        $search = Yii::$app->request->get('search');
         $teacher_id = Yii::$app->user->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
         $model
@@ -163,7 +200,11 @@ class LibraryController extends ActiveController
 
         if ($class_id) {
             $model = $model->andWhere(['class_id' => $class_id]);
+        }
 
+        if ($search) {
+            $model = $model->
+            andWhere(['like', 'description', '%' . $search . '%', false]);
         }
 
         if ($date) {
@@ -206,6 +247,7 @@ class LibraryController extends ActiveController
         $format = Yii::$app->request->get('format');
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
+        $search = Yii::$app->request->get('search');
         $teacher_id = Yii::$app->user->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
         $model
@@ -223,6 +265,11 @@ class LibraryController extends ActiveController
         if ($class_id) {
             $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
                 ->andWhere(['feed.class_id' => $class_id]);
+        }
+
+        if ($search) {
+            $model = $model->
+            andWhere(['OR', ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
 
         if ($format) {
@@ -269,6 +316,7 @@ class LibraryController extends ActiveController
         //$format = Yii::$app->request->get('format');
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
+        $search = Yii::$app->request->get('search');
         $teacher_id = Yii::$app->user->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
         $model
@@ -284,7 +332,11 @@ class LibraryController extends ActiveController
 
         if ($class_id) {
             $model = $model->andWhere(['class_id' => $class_id]);
+        }
 
+        if ($search) {
+            $model = $model->
+            andWhere(['like', 'title', '%' . $search . '%', false]);
         }
 
         if ($date) {

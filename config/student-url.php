@@ -68,6 +68,9 @@ return [
     'GET v2/student/catchup/generate-daily-recommendation' => 'v2/student/recommendation/generate-daily-recommendations',
     'GET v2/student/catchup/daily-recommendation' => 'v2/student/recommendation/daily-recommendation',
 
+    //student proctor report
+    'POST v2/student/proctor-report' => 'v2/student/proctor-report/create',
+
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST student-parent' => 'student-parent'
