@@ -39,7 +39,8 @@ class HomeworkReport extends Homeworks
             'average',
             'completion',
             'questions' => 'homeworkQuestions',
-            'homework_performance' => 'homeworkPerformance'
+            'homework_performance' => 'homeworkPerformance',
+            'proctor',
         ];
     }
 
@@ -301,6 +302,19 @@ class HomeworkReport extends Homeworks
     public function getAttachments()
     {
         return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id'])->andWhere(['type' => 'practice']);
+    }
+
+    public function getProctor()
+    {
+        $model = ProctorReport::find()
+                    ->where(['assessment_id' => $this->id])
+                    ->one();
+
+        if (!$model) {
+            return SharedConstant::VALUE_NULL;
+        }
+
+        return $model;
     }
 
 }

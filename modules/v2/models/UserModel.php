@@ -134,6 +134,7 @@ class UserModel extends User
         //if ($this->isRelationPopulated('assessmentTopicsPerformance'))
         $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
         $fields['recommendation'] = 'recommendation';
+        $fields['proctor'] = 'proctor';
 
         return $fields;
     }
@@ -462,5 +463,18 @@ class UserModel extends User
 
 
         return $topics = array_merge($topic_objects, $video);
+    }
+
+    public function getProctor()
+    {
+        $model = ProctorReport::find()
+                    ->where(['student_id' => $this->id])
+                    ->one();
+
+        if (!$model) {
+            return SharedConstant::VALUE_NULL;
+        }
+
+        return $model;
     }
 }

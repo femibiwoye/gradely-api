@@ -58,6 +58,19 @@ class ProctorReport extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        return [
+            'id',
+            'assessment_id',
+            'student_id',
+            'integrity',
+            'assessment_type',
+            'created_at',
+            'proctorReportDetails',
+        ];
+    }
+
     /**
      * Gets query for [[Assessment]].
      *
