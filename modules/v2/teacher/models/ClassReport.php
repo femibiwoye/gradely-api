@@ -7,7 +7,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
-use app\modules\v2\models\{Subjects, SubjectTopics};
+use app\modules\v2\models\{Subjects, SubjectTopics, QuizSummaryDetails, VideoContent};
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
@@ -46,7 +46,8 @@ class ClassReport extends Model
         if (Yii::$app->request->get('subject') && !empty(Yii::$app->request->get('subject'))) {
             return Subjects::findOne(['slug' => Yii::$app->request->get('subject')]);
         }
-        return $this->subjects[0];
+
+        return $this->subjects ? $this->subjects[0] : 'Subjects not found!';
     }
 
     public function getCurrentTerm()
@@ -136,6 +137,9 @@ class ClassReport extends Model
         $struggling = [];
 
         foreach ($students as $student) {
+            array_push($student, $this->getRecommendations($student['id']));
+            $student['recommendations'] = $student[SharedConstant::VALUE_ZERO];
+            unset($student[SharedConstant::VALUE_ZERO]);
             if ($student['score'] >= 75) {
                 $excellence[] = $student;
             } elseif ($student['score'] >= 50 && $student['score'] < 75) {
@@ -145,7 +149,7 @@ class ClassReport extends Model
             }
         }
 
-        $studentsCount = StudentSchool::find()->where(['class_id' => $class, 'status' => 1])->count();
+        $studentsCount = StudentSchool::find()->where(['class_id' => $class, 'status' => SharedConstant::VALUE_ONE])->count();
 
         return ['studentsCount' => $studentsCount, 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling];
 
@@ -153,10 +157,6 @@ class ClassReport extends Model
 
     public function getTopicPerformanceBk()
     {
-        if (Yii::$app->request->get('topic_id')) {
-
-        }
-
         $record = SubjectTopics::find()
             ->innerJoin('classes', 'classes.global_class_id = subject_topics.class_id')
             ->where(['classes.id' => Yii::$app->request->get('class_id')])
@@ -164,5 +164,90 @@ class ClassReport extends Model
 
         return $record->score;
 
+    }
+
+    private function getRecommendations($student_id)
+    {
+        return [
+            'remedial' => $this->getLowestTopicAttempted($student_id),
+            'resources' => $this->getResources($this->getLowestTopicAttempted($student_id)['topic_id']),
+        ];
+
+    }
+
+    private function getLowestTopicAttempted($student_id)
+    {
+        $topics_attempted = array();
+        $topics = QuizSummaryDetails::find()
+            ->alias('s')
+            ->select(['s.topic_id'])
+            ->where(['s.student_id' => $student_id])
+            ->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
+            ->groupBy('topic_id')
+            ->asArray()
+            ->all();
+
+        foreach ($topics as $topic) {
+            $attempted_topic = QuizSummaryDetails::find()
+                ->alias('qsd')
+                ->select([
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                'qsd.topic_id',
+                ])
+                ->where(['topic_id' => $topic, 'student_id' => $student_id])
+                ->asArray()
+                ->all();
+
+            $topics_attempted = array_merge($topics_attempted, $attempted_topic);
+        }
+
+        return $this->getLowestAttemptedTopic($topics_attempted);
+    }
+
+    private function getLowestAttemptedTopic($attempted_topics)
+    {
+        $least_attempted_topic = array();
+        foreach ($attempted_topics as $attempted_topic) {
+            if (empty($least_attempted_topic)) {
+                $least_attempted_topic = $attempted_topic;
+            }
+
+            if ($least_attempted_topic['score'] >= $attempted_topic['score']) {
+                $least_attempted_topic = $attempted_topic;
+            }
+        }
+
+        return $least_attempted_topic;
+    }
+
+    private function getResources($topic_id)
+    {
+        $topic_objects = SubjectTopics::find()
+            ->select([
+                'subject_topics.*',
+                new Expression("'practice' as type")
+            ])
+            ->where(['id' => $topic_id])
+            ->asArray()
+            ->one();
+
+        //retrieves assign videos to the topic
+        $video = VideoContent::find()
+            ->select([
+                'video_content.*',
+                new Expression("'video' as type")
+            ])
+            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->where(['video_assign.topic_id' => 'topic_id'])
+            ->limit(SharedConstant::VALUE_THREE)
+            ->asArray()
+            ->all();
+
+        if (!$topic_objects) {
+            return SharedConstant::VALUE_NULL;
+        }
+
+
+        return array_merge($topic_objects, $video);
     }
 }
