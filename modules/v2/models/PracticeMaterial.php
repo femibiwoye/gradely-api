@@ -62,6 +62,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'raw',
             'tag',
             'description',
+            'type',
             'updated_at',
             'feed_likes_and_dislikes' => 'feedLike',
         ];

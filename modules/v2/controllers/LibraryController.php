@@ -66,12 +66,13 @@ class LibraryController extends ActiveController
         }
 
 
-        $model = $this->modelClass::find()
-            ->innerJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
+        $model = PracticeMaterial::find()
+            ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
+            ->leftJoin('feed', 'feed.user_id = practice_material.user_id')
             ->andWhere(['practice_material.filetype' => 'document']);
 
         if ($class_id) {
-            $model = $model->andWhere(['homeworks.class_id' => $class_id]);
+            $model = $model->andWhere(['OR', ['homeworks.class_id' => $class_id], ['feed.class_id' => $class_id]]);
         }
 
         if ($search) {
