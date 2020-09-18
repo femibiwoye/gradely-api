@@ -70,6 +70,7 @@ return [
 
     //student proctor report
     'POST v2/student/proctor-report' => 'v2/student/proctor-report/create',
+    'POST v2/student/proctor-feedback' => 'v2/student/proctor-report/proctor-feedback',
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
