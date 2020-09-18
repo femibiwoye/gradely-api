@@ -62,7 +62,6 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'raw',
             'tag',
             'description',
-            'created_at',
             'updated_at',
             'feed_likes_and_dislikes' => 'feedLike',
         ];
@@ -87,7 +86,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         ];
     }
 
-    public function saveVideoFeed($classID)
+    public function saveFileFeed($classID)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
@@ -95,7 +94,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             $model = new Feed();
             $model->view_by = 'class';
             $model->type = 'post';
-            $model->tag = 'video';
+            $model->tag = $this->filetype;
             $model->user_id = $this->user_id;
             $model->reference_id = $this->id;
             $model->description = $this->title;

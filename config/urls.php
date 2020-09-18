@@ -44,6 +44,7 @@ return [
     //Reports
     'GET v2/library/documents' => 'v2/library/index', //
     'POST v2/library/video' => 'v2/library/upload-video', //
+    'POST v2/library/document' => 'v2/library/upload-document', //
     'GET v2/library/discussion' => 'v2/library/discussion', //
     'GET v2/library/video' => 'v2/library/video', //
     'GET v2/library/assessment' => 'v2/library/assessment', //
