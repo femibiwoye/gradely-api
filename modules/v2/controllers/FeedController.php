@@ -168,15 +168,16 @@ class FeedController extends ActiveController
 
     public function actionIndex($class_id = null)
     {
+        $type = Yii::$app->request->get('type');
         if (Yii::$app->user->identity->type == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $status = 1;
             if (empty($class_id))
                 $class_id = isset(Utility::getTeacherClassesID(Yii::$app->user->id)[0]) ? Utility::getTeacherClassesID(Yii::$app->user->id)[0] : [];
 
-            $validate = new \yii\base\DynamicModel(compact('class_id', 'teacher_id','status'));
+            $validate = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'status'));
             $validate
-                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id','status']]);
+                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id', 'status']]);
             if (!$validate->validate()) {
                 return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
             }
@@ -224,6 +225,9 @@ class FeedController extends ActiveController
             $models = $this->modelClass::find()
                 ->where(['class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
         }
+
+        if ($type)
+            $models = $models->andWhere(['type' => $type]);
 
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
