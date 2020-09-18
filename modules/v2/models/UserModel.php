@@ -134,6 +134,7 @@ class UserModel extends User
         //if ($this->isRelationPopulated('assessmentTopicsPerformance'))
         $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
         $fields['recommendation'] = 'recommendation';
+        $fields['proctor'] = 'proctor';
 
         return $fields;
     }
@@ -368,7 +369,7 @@ class UserModel extends User
         return [
             'remedial' => $this->remedial,
             'videos' => $this->getVideos($this->remedial),
-            'practice' => $this->practice,
+            'practice' => $this->getPractice($this->remedial),
         ];
     }
 
@@ -383,6 +384,10 @@ class UserModel extends User
                 }
             }
 
+            if ($most_least_topic['score'] >= 75) {
+                return null;
+            }
+
             return $most_least_topic;
         }
 
@@ -391,6 +396,10 @@ class UserModel extends User
 
     public function getVideos($topic = null)
     {
+        if ($topic['score'] >= 75) {
+            return null;
+        }
+
         if (empty($topic)) {
             return SharedConstant::VALUE_NULL;
         }
@@ -400,7 +409,7 @@ class UserModel extends User
         return VideoContent::find()->where(['id' => $videos])->limit(SharedConstant::VALUE_FIVE)->all();
     }
 
-    public function getPractice()
+    public function getPractice($least_topic = null)
     {
         $quizSummary = QuizSummary::find()->where([
             'homework_id' => Yii::$app->request->get('id'), 'submit' => 1
@@ -454,5 +463,18 @@ class UserModel extends User
 
 
         return $topics = array_merge($topic_objects, $video);
+    }
+
+    public function getProctor()
+    {
+        $model = ProctorReport::find()
+                    ->where(['student_id' => $this->id])
+                    ->one();
+
+        if (!$model) {
+            return SharedConstant::VALUE_NULL;
+        }
+
+        return $model;
     }
 }
