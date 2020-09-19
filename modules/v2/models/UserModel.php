@@ -258,7 +258,7 @@ class UserModel extends User
     public function getTeacherClasses()
     {
         if (Yii::$app->user->identity->type == 'school')
-            return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->andWhere(['status'=>1,'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])->id]);
+            return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->andWhere(['status' => 1, 'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])->id]);
         else
             return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
     }
@@ -379,7 +379,7 @@ class UserModel extends User
         if ($least_topics) {
             $most_least_topic = $least_topics[SharedConstant::VALUE_ZERO];
             foreach ($least_topics as $least_topic) {
-                if ($least_topic['score'] < $least_topic['score']) {
+                if ($least_topic['score'] < $most_least_topic['score']) {
                     $most_least_topic = $least_topic;
                 }
             }
@@ -401,10 +401,13 @@ class UserModel extends User
         }
 
         if (empty($topic)) {
-            return SharedConstant::VALUE_NULL;
+            return null;
         }
 
-        $videos = ArrayHelper::getColumn(VideoAssign::find()->select('content_id')->all(), 'content_id');
+        $videos = ArrayHelper::getColumn(VideoAssign::find()
+            ->where(['topic_id'=>$topic['topic_id']])
+            ->limit(5)
+            ->select('content_id')->all(), 'content_id');
 
         return VideoContent::find()->where(['id' => $videos])->limit(SharedConstant::VALUE_FIVE)->all();
     }
@@ -453,7 +456,7 @@ class UserModel extends User
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
-            ->limit(SharedConstant::VALUE_ONE)
+            ->limit(SharedConstant::VALUE_TWO)
             ->asArray()
             ->all();
 
@@ -468,11 +471,11 @@ class UserModel extends User
     public function getProctor()
     {
         $model = ProctorReport::find()
-                    ->where(['student_id' => $this->id])
-                    ->one();
+            ->where(['student_id' => $this->id])
+            ->one();
 
         if (!$model) {
-            return SharedConstant::VALUE_NULL;
+            return null;
         }
 
         return $model;

@@ -398,4 +398,41 @@ class LibraryController extends ActiveController
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
+
+    public function actionDownloadFile($file_id)
+    {
+        $model = PracticeMaterial::findOne(['token' => $file_id]);
+        if (!$model)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'File Not found');
+
+        $model->download_count++;
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+        return (new ApiResponse)->success($model->filename, ApiResponse::SUCCESSFUL, 'File found');
+    }
+
+    public function actionDeleteFile()
+    {
+        $token = Yii::$app->request->post('token');
+        $user_id = Yii::$app->user->id;
+        $model = new \yii\base\DynamicModel(compact('token', 'user_id'));
+        $model
+            ->addRule(['token'], 'required')
+            ->addRule(['token'], 'exist', ['targetClass' => PracticeMaterial::className(), 'targetAttribute' => ['token', 'user_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = PracticeMaterial::findOne(['token' => $token]);
+        if (!$model)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'File Not found');
+
+        if ($model->delete())
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'File removed!');
+
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Something went wrong');
+
+    }
 }
