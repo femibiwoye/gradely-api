@@ -131,10 +131,12 @@ class UserModel extends User
         if ($this->isRelationPopulated('teacherSubjectList'))
             $fields['teacherSubjects'] = 'teacherSubjectList';
 
-        //if ($this->isRelationPopulated('assessmentTopicsPerformance'))
-        $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
-        $fields['recommendation'] = 'recommendation';
-        $fields['proctor'] = 'proctor';
+        //if ($this->isRelationPopulated('assessmentTopicsPerformance')) {
+        if ($this->isRelationPopulated('proctor')) {
+            $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
+            $fields['recommendation'] = 'recommendation';
+            $fields['proctor'] = 'proctor';
+        }
 
         return $fields;
     }
@@ -405,7 +407,7 @@ class UserModel extends User
         }
 
         $videos = ArrayHelper::getColumn(VideoAssign::find()
-            ->where(['topic_id'=>$topic['topic_id']])
+            ->where(['topic_id' => $topic['topic_id']])
             ->limit(5)
             ->select('content_id')->all(), 'content_id');
 
@@ -470,14 +472,16 @@ class UserModel extends User
 
     public function getProctor()
     {
-        $model = ProctorReport::find()
-            ->where(['student_id' => $this->id])
-            ->one();
-
-        if (!$model) {
-            return null;
-        }
-
-        return $model;
+        return $this->hasOne(ProctorReport::className(), ['student_id' => 'id']);
+//
+//        $model = ProctorReport::find()
+//            ->where(['student_id' => $this->id])
+//            ->one();
+//
+//        if (!$model) {
+//            return null;
+//        }
+//
+//        return $model;
     }
 }
