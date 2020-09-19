@@ -77,7 +77,7 @@ class LibraryController extends ActiveController
 
         if ($search) {
             $model = $model->
-            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false],['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
 
         if ($format) {
@@ -270,7 +270,7 @@ class LibraryController extends ActiveController
 
         if ($search) {
             $model = $model->
-            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false],['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
 
         if ($format) {
@@ -406,10 +406,11 @@ class LibraryController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'File Not found');
 
         $model->download_count++;
+
         if (!$model->save()) {
             return (new ApiResponse)->error($model->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
-        return (new ApiResponse)->success($model->filename, ApiResponse::SUCCESSFUL, 'File found');
+        return (new ApiResponse)->success(['filename'=>$model->filename,'title'=>$model->title,'extension'=>$model->extension], ApiResponse::SUCCESSFUL, 'File found');
     }
 
     public function actionDeleteFile()
