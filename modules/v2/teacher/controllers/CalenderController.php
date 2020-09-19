@@ -63,7 +63,7 @@ class CalenderController extends ActiveController
         $live_class = Yii::$app->request->get('live_class');
         $school_id = Yii::$app->user->id;
         $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id'));
-        $model->addRule(['school_id', 'teacher_id'], 'required')
+        $model->addRule(['school_id'], 'required')
             ->addRule(['school_id', 'teacher_id'], 'integer')
             ->addRule(['teacher_id'], 'exist', ['targetClass' => SchoolTeachers::className(), 'targetAttribute' => ['teacher_id' => 'teacher_id', 'school_id' => 'school_id']]);
 
@@ -87,7 +87,6 @@ class CalenderController extends ActiveController
                     ->innerJoin('user', 'user.id = homeworks.teacher_id')
                     ->where([
                         'school_id' => Yii::$app->user->id,
-                        'teacher_id' => $teacher_id,
                         'DAY(CURDATE())' => 'DAY(created_at)',
                     ]);
 
@@ -106,7 +105,6 @@ class CalenderController extends ActiveController
                         ])
                         ->innerJoin('user', 'user.id = tutor_session.requester_id')
                         ->where([
-                            'requester_id' => $teacher_id,
                             'DAY(CURDATE())' => 'DAY(created_at)',
                         ]);
 
@@ -114,13 +112,11 @@ class CalenderController extends ActiveController
             $homeworks = $homeworks
                     ->where([
                        'school_id' => Yii::$app->user->id,
-                       'teacher_id' => $teacher_id,
                        'created_at' => $date, 
                     ]);
 
             $live_classes = $live_classes
                     ->where([
-                        'requester_id' => $teacher_id,
                         'created_at' => $date,
                     ]);
         }
@@ -129,17 +125,20 @@ class CalenderController extends ActiveController
             $homeworks = $homeworks
                     ->where([
                        'school_id' => Yii::$app->user->id,
-                       'teacher_id' => $teacher_id,
                        'created_at' => $date,
                        'class_id' => $class_id,
                     ]);
 
             $live_classes = $live_classes
                     ->where([
-                        'requester_id' => $teacher_id,
                         'created_at' => $date,
                         'class' -> $class_id,
                     ]);
+        }
+
+        if (!empty($teacher_id)) {
+            $homeworks = $homeworks->andWhere(['teacher_id' => $teacher_id]);
+            $live_classes = $live_classes->andWhere(['requester_id' => $teacher_id]);
         }
 
         if ($homework == SharedConstant::VALUE_ZERO) {

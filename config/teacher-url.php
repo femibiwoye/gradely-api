@@ -61,5 +61,5 @@ return [
     'POST v2/report/error-report/<type:\w+>' => 'v2/report/report-error', //
 
     //Teacher calender
-    'GET v2/calender/teacher/<teacher_id:\d+>' => 'v2/teacher/calender/teacher-calender',
+    'GET v2/calender/teacher/<teacher_id:\d*>' => 'v2/teacher/calender/teacher-calender',
 ];
