@@ -49,9 +49,11 @@ return [
     'GET v2/library/video' => 'v2/library/video', //
     'GET v2/library/assessment' => 'v2/library/assessment', //
     'GET v2/report/class' => 'v2/library/class-report', //
+    'GET v2/library/download-file/<file_id:[a-zA-Z0-9/]+>' => 'v2/library/download-file', //
     'GET v2/report/homework' => 'v2/report/homework-summary',
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
+    'DELETE v2/library/delete-file' => 'v2/library/delete-file', //
 
 
     //Payment
@@ -79,6 +81,7 @@ return [
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/commands'], 'extraPatterns' => [
         'GET update-school-calendar' => 'update-school-calendar', //
         'GET update-video-token' => 'update-video-token', //
+        'GET update-file-token' => 'update-file-token', //
     ]],
 
 

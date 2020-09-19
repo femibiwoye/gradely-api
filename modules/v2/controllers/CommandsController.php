@@ -4,6 +4,7 @@ namespace app\modules\v2\controllers;
 
 
 use app\modules\v2\models\GenerateString;
+use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\SchoolCalendar;
 use app\modules\v2\models\VideoContent;
 use Yii;
@@ -40,6 +41,22 @@ class CommandsController extends Controller
             }
             $video->token = $token;
             $video->save();
+        }
+
+        return true;
+    }
+
+    public function actionUpdateFileToken()
+    {
+        $files = PracticeMaterial::find()->where(['token' => null])->all();
+
+        foreach ($files as $file) {
+            $token = GenerateString::widget(['length' => 50]);
+            if (PracticeMaterial::find()->where(['token' => $token])->exists()) {
+                $file->token = GenerateString::widget(['length' => 50]);
+            }
+            $file->token = $token;
+            $file->save();
         }
 
         return true;

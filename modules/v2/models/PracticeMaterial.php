@@ -21,6 +21,7 @@ use Yii;
  * @property string $type The file could either belong to practice assessment or feed.
  * @property string|null $raw This contains the object received from the cloud client. It is json encoded in database.
  * @property string $tag
+ * @property string $token
  * @property string $created_at
  * @property string|null $updated_at
  *
@@ -40,11 +41,11 @@ class PracticeMaterial extends \yii\db\ActiveRecord
     {
         return [
             [['user_id', 'title', 'filename', 'filetype', 'extension', 'raw'], 'required'],
-            [['practice_id', 'user_id', 'downloadable'], 'integer'],
-            [['filetype', 'description', 'raw','tag'], 'string'],
-            [['created_at', 'updated_at','tag'], 'safe'],
-            [['title'], 'string', 'max' => 100],
-            [['filesize', 'download_count', 'extension','tag'], 'string', 'max' => 45],
+            [['practice_id', 'user_id', 'downloadable', 'download_count'], 'integer'],
+            [['filetype', 'description', 'raw', 'tag'], 'string'],
+            [['created_at', 'updated_at', 'tag'], 'safe'],
+            [['title', 'token'], 'string', 'max' => 100],
+            [['filesize', 'extension', 'tag'], 'string', 'max' => 45],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
     }
@@ -63,7 +64,11 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'tag',
             'description',
             'type',
+            'downloadable',
+            'download_count',
+            'token',
             'updated_at',
+            'user',
             'feed_likes_and_dislikes' => 'feedLike',
         ];
     }
@@ -134,5 +139,17 @@ class PracticeMaterial extends \yii\db\ActiveRecord
     public function getFeedLike()
     {
         return $this->hasMany(FeedLike::className(), ['parent_id' => 'id']);
+    }
+
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord) {
+            $token = GenerateString::widget(['length' => 50]);
+            if (self::find()->where(['token' => $token])->exists()) {
+                $this->token = GenerateString::widget(['length' => 50]);
+            }
+            $this->token = $token;
+        }
+        return parent::beforeSave($insert);
     }
 }
