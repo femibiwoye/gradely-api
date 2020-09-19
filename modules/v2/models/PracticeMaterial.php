@@ -66,6 +66,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'type',
             'downloadable',
             'download_count',
+            'isOwner',
             'token',
             'updated_at',
             'user',
@@ -139,6 +140,13 @@ class PracticeMaterial extends \yii\db\ActiveRecord
     public function getFeedLike()
     {
         return $this->hasMany(FeedLike::className(), ['parent_id' => 'id']);
+    }
+
+    public function getIsOwner()
+    {
+        if ($this->user_id == Yii::$app->user->id)
+            return 1;
+        return 0;
     }
 
     public function beforeSave($insert)

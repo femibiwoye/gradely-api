@@ -77,7 +77,7 @@ class LibraryController extends ActiveController
 
         if ($search) {
             $model = $model->
-            andWhere(['OR', ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false],['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
 
         if ($format) {
@@ -270,7 +270,7 @@ class LibraryController extends ActiveController
 
         if ($search) {
             $model = $model->
-            andWhere(['OR', ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false],['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
 
         if ($format) {
