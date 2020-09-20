@@ -72,6 +72,6 @@ return [
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
-        'POST student-parent' => 'student-parent'
+        'POST student-parent' => 'student-parent' //
     ]],
 ];

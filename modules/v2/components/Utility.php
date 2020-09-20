@@ -248,5 +248,15 @@ class Utility extends ActiveRecord
         return ['term' => strtolower($term), 'week' => strtolower($week)];
     }
 
+    public static function getSortArray($a, $b)
+    {
+
+        $t1 = strtotime($a['datetime']);
+        $t2 = strtotime($b['datetime']);
+        return $t1 - $t2;
+
+
+    }
+
 
 }

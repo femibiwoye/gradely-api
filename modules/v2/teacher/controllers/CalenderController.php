@@ -53,19 +53,15 @@ class CalenderController extends ActiveController
         return $actions;
     }
 
-    public function actionTeacherCalender($teacher_id)
+
+    public function actionTeacherCalender($teacher_id, $date = null, $class_id = null, $homework = 1, $live_class = 1)
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_SCHOOL) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
-        if(!$school = Schools::findOne(['id'=>Utility::getSchoolAccess()]))
+        if (!$school = Schools::findOne(['id' => Utility::getSchoolAccess()]))
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School not found');
         $school_id = $school->id;
-
-        $date = Yii::$app->request->get('date');
-        $class_id = Yii::$app->request->get('class_id');
-        $homework = Yii::$app->request->get('homework');
-        $live_class = Yii::$app->request->get('live_class');
 
 
         $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id'));
@@ -85,6 +81,9 @@ class CalenderController extends ActiveController
                 'homeworks.subject_id',
                 'homeworks.class_id',
                 'homeworks.created_at',
+                'homeworks.close_date as datetime',
+                'DATE(homeworks.close_date) as date',
+                'TIME(homeworks.close_date) as time',
                 new Expression("'homework' as type"),
                 'user.firstname as teacher_firstname',
                 'user.lastname as teacher_lastname',
@@ -92,10 +91,11 @@ class CalenderController extends ActiveController
                 'user.image as teacher_image',
             ])
             ->innerJoin('user', 'user.id = homeworks.teacher_id')
+            ->innerJoin('school_teachers', 'school_teachers.teacher_id = homeworks.teacher_id')
             ->where([
-                'school_id' => $school_id,
-                'DAY(CURDATE())' => 'DAY(created_at)',
-            ]);
+                'school_teachers.school_id' => $school_id,
+                'homeworks.publish_status' => 1
+            ])->asArray();
 
         $live_classes = TutorSession::find()
             ->select([
@@ -104,6 +104,9 @@ class CalenderController extends ActiveController
                 'tutor_session.subject_id',
                 'tutor_session.class as class_id',
                 'tutor_session.created_at',
+                'tutor_session.availability as datetime',
+                'DATE(tutor_session.availability) as date',
+                'TIME(tutor_session.availability) as time',
                 new Expression("'live_class' as type"),
                 'user.firstname as teacher_firstname',
                 'user.lastname as teacher_lastname',
@@ -111,56 +114,61 @@ class CalenderController extends ActiveController
                 'user.image as teacher_image',
             ])
             ->innerJoin('user', 'user.id = tutor_session.requester_id')
+            ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
             ->where([
-                'DAY(CURDATE())' => 'DAY(created_at)',
                 'is_school' => 1
-            ]);
+            ])->asArray();
 
         if ($date) {
             $homeworks = $homeworks
-                ->where([
-                    'school_id' => $school_id,
-                    'created_at' => $date,
+                ->andWhere([
+                    'DATE(close_date)' => $date,
                 ]);
 
             $live_classes = $live_classes
-                ->where([
-                    'created_at' => $date,
+                ->andWhere([
+                    'DATE(availability)' => $date,
                 ]);
+        } else {
+            $live_classes = $live_classes->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
+            $homeworks = $homeworks->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
         }
 
         if ($class_id) {
             $homeworks = $homeworks
-                ->where([
-                    'school_id' => $school_id,
-                    'created_at' => $date,
+                ->andWhere([
                     'class_id' => $class_id,
                 ]);
 
             $live_classes = $live_classes
-                ->where([
-                    'created_at' => $date,
-                    'class' => $class_id,
+                ->andWhere([
+                    'tutor_session.class' => $class_id,
                 ]);
         }
 
         if (!empty($teacher_id)) {
-            $homeworks = $homeworks->andWhere(['teacher_id' => $teacher_id]);
-            $live_classes = $live_classes->andWhere(['requester_id' => $teacher_id]);
+            $homeworks = $homeworks->andWhere(['homeworks.teacher_id' => $teacher_id]);
+            $live_classes = $live_classes->andWhere(['tutor_session.requester_id' => $teacher_id]);
         }
 
         if ($homework == SharedConstant::VALUE_ZERO) {
-            return (new ApiResponse)->success($live_classes->all(), ApiResponse::SUCCESSFUL, 'Teacher calender found');
+            $homeworks = [];
         }
 
         if ($live_class == SharedConstant::VALUE_ZERO) {
-            return (new ApiResponse)->success($homeworks->all(), ApiResponse::SUCCESSFUL, 'Teacher calender found');
+            $live_classes = [];
         }
 
-        $teacher_calender = array_merge($homeworks->all(), $live_classes->all());
+        $homeworks = $homeworks ? $homeworks->all() : [];
+        $live_classes = $live_classes ? $live_classes->all() : [];
+
+        $teacher_calender = array_merge($homeworks, $live_classes);
         if (!$teacher_calender) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher calender is empty');
         }
+
+        array_multisort(array_column($teacher_calender, "datetime"), SORT_ASC, $teacher_calender);
+
 
         return (new ApiResponse)->success(
             $teacher_calender,
