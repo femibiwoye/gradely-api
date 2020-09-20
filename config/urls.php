@@ -52,7 +52,7 @@ return [
     'GET v2/report/class' => 'v2/library/class-report', //
     'GET v2/library/download-file/<file_id:[a-zA-Z0-9/]+>' => 'v2/library/download-file', //
     'DELETE v2/library/delete-file' => 'v2/library/delete-file', //
-    'GET v2/report/homework' => 'v2/report/homework-summary',
+    'GET v2/report/homework' => 'v2/report/homework-summary', //
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
 
