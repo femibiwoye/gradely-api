@@ -62,15 +62,13 @@ return [
 
 
     //Recommendations
-    'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/recommendation/homework-recommendation',
-    'GET v2/student/catchup/generate-weekly-recommendation' => 'v2/student/recommendation/generate-weekly-recommendation',
-    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/recommendation/weekly-recommendations',
-    'GET v2/student/catchup/generate-daily-recommendation' => 'v2/student/recommendation/generate-daily-recommendations',
-    'GET v2/student/catchup/daily-recommendation' => 'v2/student/recommendation/daily-recommendation',
+    'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/recommendation/homework-recommendation', //
+    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/recommendation/weekly-recommendations', //
+    'GET v2/student/catchup/daily-recommendation' => 'v2/student/recommendation/daily-recommendation', //
 
     //student proctor report
-    'POST v2/student/proctor-report' => 'v2/student/proctor-report/create',
-    'POST v2/student/proctor-feedback' => 'v2/student/proctor-report/proctor-feedback',
+    'POST v2/student/proctor-report' => 'v2/student/proctor-report/create', //
+    'POST v2/student/proctor-feedback' => 'v2/student/proctor-report/proctor-feedback', //
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

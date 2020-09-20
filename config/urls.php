@@ -42,6 +42,7 @@ return [
     'POST v2/live-class' => 'v2/feed/new-live-class', //
 
     //Reports
+    'GET v2/library/summary/<class_id:\d+>' => 'v2/library/summary', //
     'GET v2/library/documents' => 'v2/library/index', //
     'POST v2/library/video' => 'v2/library/upload-video', //
     'POST v2/library/document' => 'v2/library/upload-document', //
@@ -82,6 +83,9 @@ return [
         'GET update-school-calendar' => 'update-school-calendar', //
         'GET update-video-token' => 'update-video-token', //
         'GET update-file-token' => 'update-file-token', //
+
+        'GET generate-weekly-recommendation' => 'generate-weekly-recommendation', // Generate weekly recommendation
+        'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
 
 
