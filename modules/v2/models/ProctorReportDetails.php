@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\SharedConstant;
 use Yii;
 
 /**
@@ -38,11 +39,13 @@ class ProctorReportDetails extends \yii\db\ActiveRecord
     {
         return [
             [['report_id', 'user_id', 'assessment_id', 'integrity'], 'integer'],
-            [['user_id', 'assessment_id', 'file_type', 'name', 'extension', 'url'], 'required'],
+            [['user_id', 'assessment_id', 'file_type', 'name', 'extension', 'url', 'integrity'], 'required'],
             [['file_type', 'name', 'url', 'raw'], 'string'],
+            [['file_type'], 'in', 'range' => SharedConstant::PROCTOR_FILE_TYPE],
             [['created_at'], 'safe'],
             [['extension'], 'string', 'max' => 50],
             [['report_id'], 'exist', 'skipOnError' => true, 'targetClass' => ProctorReport::className(), 'targetAttribute' => ['report_id' => 'id']],
+            [['assessment_id'], 'exist', 'skipOnError' => true, 'targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id']],
         ];
     }
 

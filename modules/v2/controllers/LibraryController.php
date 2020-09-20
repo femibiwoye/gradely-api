@@ -48,6 +48,11 @@ class LibraryController extends ActiveController
         return $actions;
     }
 
+    /**
+     * Documents
+     *
+     * @return ApiResponse
+     */
     public function actionIndex()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -69,6 +74,7 @@ class LibraryController extends ActiveController
         $model = PracticeMaterial::find()
             ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
             ->leftJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->groupBy('practice_material.id')
             ->andWhere(['practice_material.filetype' => 'document']);
 
         if ($class_id) {
@@ -261,7 +267,8 @@ class LibraryController extends ActiveController
         }
 
         $model = $this->modelClass::find()
-            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed']);
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
+            ->groupBy('practice_material.id');
 
         if ($class_id) {
             $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
@@ -410,7 +417,7 @@ class LibraryController extends ActiveController
         if (!$model->save()) {
             return (new ApiResponse)->error($model->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
-        return (new ApiResponse)->success(['filename'=>$model->filename,'title'=>$model->title,'extension'=>$model->extension], ApiResponse::SUCCESSFUL, 'File found');
+        return (new ApiResponse)->success(['filename' => $model->filename, 'title' => $model->title, 'extension' => $model->extension], ApiResponse::SUCCESSFUL, 'File found');
     }
 
     public function actionDeleteFile()
@@ -434,6 +441,52 @@ class LibraryController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'File removed!');
 
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Something went wrong');
+    }
+
+    public function actionSummary($class_id)
+    {
+        $teacher_id = Yii::$app->user->id;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+        $model
+            ->addRule(['class_id', 'teacher_id'], 'integer')
+            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        //For videos
+        $videos = $this->modelClass::find()
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
+            ->innerJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->groupBy('practice_material.id')
+            ->andWhere(['feed.class_id' => $class_id])->count();
+
+
+        //For discussion
+        $discussion = Feed::find()->where(['type' => SharedConstant::FEED_TYPES[0], 'view_by' => ['class', 'all']])->andWhere(['class_id' => $class_id])->count();
+
+
+        //For Documents/Resources
+        $resources = PracticeMaterial::find()
+            ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
+            ->leftJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->andWhere(['practice_material.filetype' => 'document'])
+            ->groupBy('practice_material.id')
+            ->andWhere(['OR', ['homeworks.class_id' => $class_id], ['feed.class_id' => $class_id]])->count();
+
+        $assessment = Homeworks::find()->where(['teacher_id' => $teacher_id, 'type' => SharedConstant::HOMEWORK_TYPES[0]])
+            ->andWhere(['class_id' => $class_id])->count();
+
+        $numbers = [
+            'assessment' => $assessment,
+            'resources' => $resources,
+            'videos' => $videos,
+            'discussion' => $discussion
+        ];
+
+        return (new ApiResponse)->success($numbers, ApiResponse::SUCCESSFUL);
 
     }
+
 }
