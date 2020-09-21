@@ -95,6 +95,31 @@ class TutorSession extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        return [
+            'id',
+            'requester_id',
+            'student_id',
+            'title',
+            'repetition',
+            'class',
+            'subject_id',
+            'session_count',
+            'curriculum_id',
+            'category',
+            'availability',
+            'is_school',
+            'preferred_client',
+            'meeting_token',
+            'meeting_room',
+            'meta',
+            'status',
+            'tutorSessionTiming',
+            'tutorSessionParticipant',
+        ];
+    }
+
     public function scheduleClass($model)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
@@ -221,5 +246,15 @@ class TutorSession extends \yii\db\ActiveRecord
     public function getClasses()
     {
         return $this->hasOne(Classes::className(), ['id' => 'class']);
+    }
+
+    public function getTutorSessionTiming()
+    {
+        return $this->hasOne(TutorSessionTiming::className(), ['session_id' => 'id']);
+    }
+
+    public function getTutorSessionParticipant()
+    {
+        return $this->hasMany(TutorSessionParticipant::className(), ['session_id' => 'id']);
     }
 }
