@@ -47,7 +47,7 @@ class ClassReport extends Model
             return Subjects::findOne(['slug' => Yii::$app->request->get('subject')]);
         }
 
-        return $this->subjects ? $this->subjects[0] : 'Subjects not found!';
+        return $this->subjects ? $this->subjects[0] : null;
     }
 
     public function getCurrentTerm()
@@ -75,11 +75,15 @@ class ClassReport extends Model
         $term = $this->currentTerm;
         $subject = $this->currentSubject;
 
-        $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
+        try {
+            $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
 
-        $record = SubjectTopics::find()->where(['term' => $term, 'subject_id' => $subject->id, 'class_id' => $class->global_class_id])->all();
+            $record = SubjectTopics::find()->where(['term' => $term, 'subject_id' => $subject->id, 'class_id' => $class->global_class_id])->all();
 
-        return $record;
+            return $record;
+        } catch (\Exception $exception) {
+            return null;
+        }
         /*if (Yii::$app->request->get('term')) {
             $record = $record->andWhere(['subject_topics.term' => Yii::$app->request->get('term')]);
         }
@@ -105,9 +109,9 @@ class ClassReport extends Model
     public function getTopicPerformance()
     {
         $class = Yii::$app->request->get('class_id');
-        if(isset($this->currentTopic->id)) {
+        if (isset($this->currentTopic->id)) {
             $topic_id = $this->currentTopic->id;
-        }else{
+        } else {
             $topic_id = null;
         }
 
@@ -191,8 +195,8 @@ class ClassReport extends Model
             $attempted_topic = QuizSummaryDetails::find()
                 ->alias('qsd')
                 ->select([
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                'qsd.topic_id',
+                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                    'qsd.topic_id',
                 ])
                 ->where(['topic_id' => $topic, 'student_id' => $student_id])
                 ->asArray()
