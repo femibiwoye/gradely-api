@@ -18,6 +18,7 @@ use yii\behaviors\SluggableBehavior;
  * @property int|null $school_id
  * @property int $approved
  * @property int|null $approved_by
+ * @property int|null $diagnostics
  * @property string $created_at
  * @property string|null $updated_at
  *
@@ -54,7 +55,7 @@ class Subjects extends \yii\db\ActiveRecord
         return [
             [['slug', 'name', 'description'], 'required'],
             [['description', 'category', 'image'], 'string'],
-            [['status', 'school_id', 'approved', 'approved_by'], 'integer'],
+            [['status', 'school_id', 'approved', 'approved_by','diagnostics'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
             [['slug', 'name'], 'string', 'max' => 100],
         ];
