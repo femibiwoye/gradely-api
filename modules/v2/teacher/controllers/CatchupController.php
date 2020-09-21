@@ -3,7 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{TutorSession, ApiResponse, TutorSessionTiming, TutorSessionParticipant, Classes, User, TeacherClassSubjects, TeacherClass};
+use app\modules\v2\models\{TutorSession, ApiResponse, TutorSessionTiming, TutorSessionParticipant, Classes, User, TeacherClassSubjects, TeacherClass, RecommendedResources};
 use app\modules\v2\student\models\StartPracticeForm;
 use app\modules\v2\components\SharedConstant;
 use yii\rest\ActiveController;
@@ -166,6 +166,30 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');       
+    }
+
+    public function actionVideoRecommendation()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $model = new RecommendedResources;
+        $model->creator_id = Yii::$app->user->id;
+        $model->receiver_id = Yii::$app->request->post('student_id');
+        $model->resources_type = 'video';
+        $model->resources_id = Yii::$app->request->post('resources_id');
+        $model->reference_type = Yii::$app->request->post('reference_type');
+        $model->reference_id = Yii::$app->request->post('reference_id');
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video recommendation failed');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video recommendation succeeded');
     }
 }
 
