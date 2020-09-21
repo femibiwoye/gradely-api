@@ -62,4 +62,7 @@ return [
 
     //Teacher calender
     'GET v2/calender/teacher/<teacher_id:\d*>' => 'v2/teacher/calender/teacher-calender',//
+
+    //Tutor Session
+    'POST v2/teacher/catchup/remedial' => 'v2/teacher/catchup/create-session',
 ];

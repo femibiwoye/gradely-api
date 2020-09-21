@@ -49,5 +49,4 @@ class SharedConstant
     const REFERENCE_TYPE = ['homework', 'catchup', 'recommendation', 'practice'];
     const PROCTOR_FEEDBACK_TYPE = ['reject_submission', 'admin_report', 'report_error'];
     const PROCTOR_FILE_TYPE = ['image', 'audio', 'video'];
-
 }
