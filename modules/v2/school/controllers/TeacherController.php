@@ -116,7 +116,6 @@ class TeacherController extends ActiveController
 
     public function actionPending()
     {
-
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 0])->all();
         $model = UserModel::find()->where(['type' => 'teacher', 'id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
