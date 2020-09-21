@@ -4,7 +4,10 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\models\ClassSubjects;
+use app\modules\v2\models\Subjects;
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{Classes, ApiResponse, StudentSchool};
 
@@ -104,15 +107,35 @@ class ClassController extends ActiveController
 
         $student_school = StudentSchool::find()
             ->where(['student_school.student_id' => $student_id, 'student_school.status' => 1])
-            ->with(['class','school'])
+            ->with(['class', 'school'])
             ->one();
 
         if (!$student_school) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student has not been assigned a class!');
         }
 
-        return (new ApiResponse)->success($student_school, ApiResponse::SUCCESSFUL, 'Student Class succcessfully retrieved');
+        return (new ApiResponse)->success($student_school, ApiResponse::SUCCESSFUL, 'Student Class successfully retrieved');
+    }
 
+    public function actionSubjects()
+    {
+        $student_id = Yii::$app->user->id;
+
+        $student_school = StudentSchool::find()
+            ->where(['student_school.student_id' => $student_id, 'student_school.status' => 1])
+            ->with(['class', 'school'])
+            ->one();
+
+        if (!$student_school) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student has not been assigned a class!');
+        }
+
+        $classSubjectID = ArrayHelper::getColumn(ClassSubjects::find()
+            ->where(['school_id' => $student_school->school_id, 'class_id' => $student_school->class_id])
+            ->all(), 'subject_id');
+
+        $subjects = Subjects::find()->where(['id' => $classSubjectID])->all();
+        return (new ApiResponse)->success($subjects, ApiResponse::SUCCESSFUL, count($subjects) . ' found');
     }
 
 }
