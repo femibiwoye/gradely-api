@@ -4,6 +4,7 @@ namespace app\modules\v2\teacher\controllers;
 
 use Yii;
 use app\modules\v2\models\{TutorSession, ApiResponse, TutorSessionTiming, TutorSessionParticipant, Classes, User, TeacherClassSubjects, TeacherClass};
+use app\modules\v2\student\models\StartPracticeForm;
 use app\modules\v2\components\SharedConstant;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -137,6 +138,34 @@ class CatchupController extends ActiveController
         }
 
         return true;
+    }
+
+    public function actionCreatePractice()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $student_id = Yii::$app->request->post('student_id');
+        $topic_ids = Yii::$app->request->post('topic_id');
+        $teacher_id = Yii::$app->user->id;
+        $form = new \yii\base\DynamicModel(compact('student_id', 'topic_ids', 'teacher_id'));
+        $form->addRule(['student_id', 'topic_ids', 'teacher_id'], 'required');
+        $form->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']]);
+        $form->addRule(['teacher_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = new StartPracticeForm;
+        $model->topic_ids = $topic_ids;
+        $model->type = SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO];
+        if (!$homework_model = $model->initializePractice()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
+        }
+
+        return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');       
     }
 }
 

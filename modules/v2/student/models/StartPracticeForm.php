@@ -50,11 +50,11 @@ class StartPracticeForm extends Model
         return $this->addError('type', 'Type needs to be corrected');
     }
 
-    public function initializePractice()
+    public function initializePractice($student_id = null, $teacher_id = null)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$homework = $this->createHomework()) {
+            if (!$homework = $this->createHomework($student_id, $teacher_id)) {
                 return false;
             }
 
@@ -79,12 +79,13 @@ class StartPracticeForm extends Model
         ]);
     }
 
-    public function createHomework()
+    public function createHomework($student_id = null, $teacher_id = null)
     {
         $homework = new Homeworks(['scenario' => 'student-practice']);
-        $homework->student_id = Yii::$app->user->id;
+        $homework->student_id = $student_id ? $student_id : Yii::$app->user->id;
         $homework->subject_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->subject_id;
         $homework->title = $this->homeworkType;
+        $homework->teacher_id = $teacher_id ? $teacher_id : '';
 
         if(!empty($this->reference_type) &&  $this->reference_type == 'recommendation'){
             $homework->reference_type = 'recommendation';
