@@ -56,15 +56,15 @@ class CatchupController extends ActiveController
         $type = Yii::$app->request->post('type');
         $student_id = Yii::$app->request->post('student_id');
         $subject_id = Yii::$app->request->post('subject_id');
-        $day = Yii::$app->request->post('day');
+        //$day = Yii::$app->request->post('day');
         $time = Yii::$app->request->post('time');
         $date = Yii::$app->request->post('date');
         $class_id = Yii::$app->request->post('class_id');
 
-        $form = new \yii\base\DynamicModel(compact('type', 'student_id', 'subject_id', 'day', 'time', 'class_id', 'date'));
-        $form->addRule(['type', 'student_id', 'subject_id', 'day', 'time', 'class_id', 'date'], 'required');
+        $form = new \yii\base\DynamicModel(compact('type', 'student_id', 'subject_id', 'time', 'class_id', 'date'));
+        $form->addRule(['type', 'student_id', 'subject_id', 'time', 'class_id', 'date'], 'required');
         $form->addRule(['date'], 'date', ['format' => 'php:Y-m-d']);
-        $form->addRule(['time'], 'time', ['format' => 'H:i:s']);
+        $form->addRule(['time'], 'time', ['format' => 'php:H:i:s']);
         $form->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id']]);
         $form->addRule(['subject_id'], 'exist', ['targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['subject_id' => 'subject_id']]);
 
@@ -88,17 +88,17 @@ class CatchupController extends ActiveController
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
-                return false;
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record not generated');
             }
 
             if ($this->students) {
                 if (!$this->tutorSessionParticipant($this->students, $model->id)) {
-                    return false;
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record not generated');
                 }
             }
 
             if (!$this->tutorSessionTiming($model->id)) {
-                return false;
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record not generated');
             }
 
 
@@ -129,7 +129,7 @@ class CatchupController extends ActiveController
     {
         $model = new TutorSessionTiming;
         $model->session_id = $session_id;
-        $model->day = Yii::$app->request->post('day');
+        $model->day = Yii::$app->request->post('date');
         $model->time = Yii::$app->request->post('time');
         if (!$model->save()) {
             return false;
