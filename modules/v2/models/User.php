@@ -331,6 +331,4 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
         return parent::beforeSave($insert);
     }
-
-
 }
