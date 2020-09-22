@@ -40,6 +40,7 @@ return [
     'GET v2/feed/<class_id:\d+>' => 'v2/feed/index', //
     //'GET v2/feed/upcoming' => 'v2/feed/upcoming',
     'POST v2/live-class' => 'v2/feed/new-live-class', //
+    'DELETE v2/feed/delete-feed/<feed_id:\d+>' => 'v2/feed/delete-feed', //
 
     //Reports
     'GET v2/library/summary/<class_id:\d+>' => 'v2/library/summary', //
