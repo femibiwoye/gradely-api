@@ -248,14 +248,16 @@ class Utility extends ActiveRecord
         return ['term' => strtolower($term), 'week' => strtolower($week)];
     }
 
-    public static function getSortArray($a, $b)
+    public static function AbsoluteImage($image,$folder)
     {
-
-        $t1 = strtotime($a['datetime']);
-        $t2 = strtotime($b['datetime']);
-        return $t1 - $t2;
-
-
+        if (empty($image))
+            $image = null;
+        elseif (strpos($image, 'http') !== false)
+            $image = $image;
+        else {
+            $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $image;
+        }
+        return $image;
     }
 
 

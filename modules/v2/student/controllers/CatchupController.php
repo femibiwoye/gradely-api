@@ -419,9 +419,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
         }
 
+        $studentID = Yii::$app->user->id;
         $model = Subjects::find()
-            ->leftJoin('quiz_summary qs', 'qs.subject_id = subjects.id AND qs.submit = 1')
-            ->where(['status' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
+            ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.submit = 1 AND student_id = $studentID")
+            ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
             ->andWhere(['is', 'qs.subject_id', null])
             ->groupBy('id')
             ->all();
@@ -489,9 +490,9 @@ class CatchupController extends ActiveController
 
         $model = PracticeMaterial::find()
             ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id")//removed
-            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
-            ->where(['user_id' => Yii::$app->user->identity->id]) //remogit pullved
-             ->where(['class_id'=>Utility::getStudentClass()])
+            ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
+            ->where(['user_id' => Yii::$app->user->identity->id])//remogit pullved
+            ->where(['class_id' => Utility::getStudentClass()])
             ->andWhere([
                 'filetype' => [
                     SharedConstant::PRACTICE_MATERIAL_TYPES[0],
@@ -536,7 +537,7 @@ class CatchupController extends ActiveController
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
-            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status'])->where(['id' => $model['subject_id']])->asArray()->one();
+            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])->where(['id' => $model['subject_id']])->asArray()->one();
 
             $topicOrders = [];
             foreach ($topics as $index => $topic) {
@@ -549,7 +550,7 @@ class CatchupController extends ActiveController
                         'st.topic',
                         'st.id',
                         'st.subject_id',
-                        'st.image'
+                        Yii::$app->params['topicImage']
                     ])
                     ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                     ->where(['topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])

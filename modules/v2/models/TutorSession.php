@@ -64,7 +64,7 @@ class TutorSession extends \yii\db\ActiveRecord
             ['subject_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['subject_id']],
             ['class_id', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id']],
             ['repetition', 'in', 'range' => ['once', 'daily', 'workdays', 'weekly']],
-            ['availability', 'datetime', 'format' => 'php:Y-m-d H:i']
+            ['availability', 'datetime', 'format' => 'php:Y-m-d H:i:s']
         ];
     }
 
@@ -92,6 +92,31 @@ class TutorSession extends \yii\db\ActiveRecord
             'meta' => 'Meta',
             'status' => 'Status',
             'created_at' => 'Created At',
+        ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'requester_id',
+            'student_id',
+            'title',
+            'repetition',
+            'class',
+            'subject_id',
+            'session_count',
+            'curriculum_id',
+            'category',
+            'availability',
+            'is_school',
+            'preferred_client',
+            'meeting_token',
+            'meeting_room',
+            'meta',
+            'status',
+            'tutorSessionTiming',
+            'tutorSessionParticipant',
         ];
     }
 
@@ -221,5 +246,15 @@ class TutorSession extends \yii\db\ActiveRecord
     public function getClasses()
     {
         return $this->hasOne(Classes::className(), ['id' => 'class']);
+    }
+
+    public function getTutorSessionTiming()
+    {
+        return $this->hasOne(TutorSessionTiming::className(), ['session_id' => 'id']);
+    }
+
+    public function getTutorSessionParticipant()
+    {
+        return $this->hasMany(TutorSessionParticipant::className(), ['session_id' => 'id']);
     }
 }
