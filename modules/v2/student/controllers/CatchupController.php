@@ -537,7 +537,7 @@ class CatchupController extends ActiveController
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
-            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status'])->where(['id' => $model['subject_id']])->asArray()->one();
+            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])->where(['id' => $model['subject_id']])->asArray()->one();
 
             $topicOrders = [];
             foreach ($topics as $index => $topic) {
@@ -550,7 +550,7 @@ class CatchupController extends ActiveController
                         'st.topic',
                         'st.id',
                         'st.subject_id',
-                        'st.image'
+                        Yii::$app->params['topicImage']
                     ])
                     ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                     ->where(['topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])

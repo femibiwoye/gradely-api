@@ -103,6 +103,7 @@ class Questions extends \yii\db\ActiveRecord
             'option_d',
             'option_e',
             'answer',
+            'image',
             'duration',
             'difficulty',
             'type',
