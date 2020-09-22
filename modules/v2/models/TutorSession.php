@@ -64,7 +64,7 @@ class TutorSession extends \yii\db\ActiveRecord
             ['subject_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['subject_id']],
             ['class_id', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id']],
             ['repetition', 'in', 'range' => ['once', 'daily', 'workdays', 'weekly']],
-            ['availability', 'datetime', 'format' => 'php:Y-m-d H:i']
+            ['availability', 'datetime', 'format' => 'php:Y-m-d H:i:s']
         ];
     }
 
