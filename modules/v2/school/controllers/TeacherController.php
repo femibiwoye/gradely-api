@@ -68,11 +68,7 @@ class TeacherController extends ActiveController
         return $actions;
     }
 
-    /**
-     * Login action.
-     *
-     * @return Response|string
-     */
+
 
     public function actionIndex($class_id = null)
     {
