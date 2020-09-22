@@ -3,7 +3,15 @@
 namespace app\modules\v2\teacher\controllers;
 
 use Yii;
-use app\modules\v2\models\{TutorSession, ApiResponse, TutorSessionTiming, TutorSessionParticipant, Classes, User, TeacherClassSubjects, TeacherClass, RecommendedResources};
+use app\modules\v2\models\{TutorSession,
+    ApiResponse,
+    TutorSessionTiming,
+    TutorSessionParticipant,
+    Classes,
+    User,
+    TeacherClassSubjects,
+    TeacherClass,
+    RecommendedResources};
 use app\modules\v2\student\models\StartPracticeForm;
 use app\modules\v2\components\SharedConstant;
 use yii\rest\ActiveController;
@@ -145,10 +153,13 @@ class CatchupController extends ActiveController
         }
 
         $student_id = Yii::$app->request->post('student_id');
-        $topic_ids = Yii::$app->request->post('topic_id');
+        $topic_ids = Yii::$app->request->post('topic_ids');
+        $reference_type = Yii::$app->request->post('reference_type');
+        $reference_id = Yii::$app->request->post('reference_id');
         $teacher_id = Yii::$app->user->id;
-        $form = new \yii\base\DynamicModel(compact('student_id', 'topic_ids', 'teacher_id'));
-        $form->addRule(['student_id', 'topic_ids', 'teacher_id'], 'required');
+        $form = new \yii\base\DynamicModel(compact('student_id', 'topic_ids', 'teacher_id', 'reference_type', 'reference_id'));
+        $form->addRule(['student_id', 'topic_ids', 'teacher_id', 'reference_type', 'reference_id'], 'required');
+        $form->addRule(['reference_type'], 'in', ['range' => SharedConstant::REFERENCE_TYPE]);
         $form->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']]);
         $form->addRule(['teacher_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['teacher_id' => 'id']]);
 
@@ -159,11 +170,13 @@ class CatchupController extends ActiveController
         $model = new StartPracticeForm;
         $model->topic_ids = $topic_ids;
         $model->type = SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO];
-        if (!$homework_model = $model->initializePractice()) {
+        $model->reference_type = $reference_type;
+        $model->reference_id = $reference_id;
+        if (!$homework_model = $model->initializePractice($student_id, $teacher_id)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
         }
 
-        return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');       
+        return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');
     }
 
     public function actionVideoRecommendation()

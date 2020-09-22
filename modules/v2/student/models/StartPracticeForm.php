@@ -2,6 +2,8 @@
 
 namespace app\modules\v2\student\models;
 
+use app\modules\v2\models\Classes;
+use app\modules\v2\models\Schools;
 use Yii;
 use yii\base\Model;
 use yii\helpers\ArrayHelper;
@@ -62,9 +64,9 @@ class StartPracticeForm extends Model
                 return false;
             }
 
-            if (!$this->createHomeworkQuestions($homework)) {
+            /*if (!$this->createHomeworkQuestions($homework)) {
                 return false;
-            }
+            }*/
 
 
             $dbtransaction->commit();
@@ -85,17 +87,29 @@ class StartPracticeForm extends Model
         $homework->student_id = $student_id ? $student_id : Yii::$app->user->id;
         $homework->subject_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->subject_id;
         $homework->title = $this->homeworkType;
-        if ($teacher_id)
+        $topic = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO]);
+        $homework->class_id = $topic->class_id;
+        if ($teacher_id) {
             $homework->teacher_id = $teacher_id;
+            if ($this->reference_type == 'class') {
+                $homework->school_id = Classes::findOne(['id' => $this->reference_id])->school_id;
+                $homework->class_id = $this->reference_id;
+            }
+            if ($this->reference_type == 'homework') {
+                $hwork = Homeworks::findOne(['id' => $this->reference_id]);
+                $homework->school_id = $hwork->school_id;
+                $homework->class_id = $hwork->class_id;
+            }
+        }
 
-        if (!empty($this->reference_type) && $this->reference_type == 'recommendation') {
-            $homework->reference_type = 'recommendation';
+        if ($this->reference_type) {
+            $homework->reference_type = $this->reference_type;
             $homework->reference_id = $this->reference_id;
         }
 
         $homework->type = SharedConstant::HOMEWORK_TYPES[2];
-        $homework->class_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->class_id;
-        $homework->exam_type_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->exam_type_id;
+
+        $homework->exam_type_id = $topic->exam_type_id;
         if (!$homework->save()) {
             return false;
         }
