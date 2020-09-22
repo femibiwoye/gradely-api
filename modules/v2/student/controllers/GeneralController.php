@@ -6,7 +6,9 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\Homeworks;
+use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\notifications\InappNotification;
+use app\modules\v2\models\QuizSummary;
 use app\modules\v2\student\models\StudentHomeworkReport;
 use Yii;
 use yii\data\ActiveDataProvider;
@@ -79,6 +81,19 @@ class GeneralController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Security answer saved');
+    }
+
+    public function actionDashboardTodo()
+    {
+        ///Take practice appears on both
+        //Invite school school for parent
+        //Invite parent for student
+
+        $takePractice = QuizSummary::find()->where(['student_id'=>Yii::$app->user->id,'submit'=>1])->exists();
+        $inviteSchool = InviteLog::find()->where(['sender_id'=>Yii::$app->user->id,'receiver_type'=>'school'])->exists();
+        $inviteParent = InviteLog::find()->where(['sender_id'=>Yii::$app->user->id,'sender_type'=>'student','receiver_type'=>'parent'])->exists();
+
+        return (new ApiResponse)->success(['takePractice' => $takePractice, 'inviteSchool' => $inviteSchool, 'inviteParent' => $inviteParent], ApiResponse::SUCCESSFUL);
     }
 
     /*public function actionUpdateSecurityQuestion()
