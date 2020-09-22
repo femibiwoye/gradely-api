@@ -251,10 +251,8 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
-
         $model = new TutorSession(['scenario' => 'new-class']);
         $model->attributes = Yii::$app->request->post();
-
         $model->requester_id = Yii::$app->user->id;
         $model->category = 'class';
         $model->is_school = 1;
@@ -267,5 +265,30 @@ class FeedController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not created!');
         }
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+    }
+
+    /**
+     *
+     * Delete records from feed
+     *
+     * @param $feed_id
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDeleteFeed($feed_id)
+    {
+        $feed = Feed::findOne(['id' => $feed_id, 'status' => 1]);
+        if (!$feed) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
+        }
+
+        if ($feed->user_id != Yii::$app->user->id)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access');
+
+        if (!$feed->delete())
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not delete this record');
+
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
 }
