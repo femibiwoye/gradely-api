@@ -32,8 +32,9 @@ class RecommendedResources extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['creator_id', 'receiver_id', 'resources_type', 'resources_id'], 'required'],
+            [['creator_id', 'receiver_id', 'resources_type', 'resources_id', 'reference_type','reference_id'], 'required'],
             [['creator_id', 'receiver_id', 'resources_id', 'reference_id'], 'integer'],
+            [['reference_type'], 'in', 'range' => ['class' , 'homework']],
             [['created_at'], 'safe'],
             [['resources_type', 'reference_type'], 'string', 'max' => 50],
         ];

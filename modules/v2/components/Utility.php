@@ -248,10 +248,10 @@ class Utility extends ActiveRecord
         return ['term' => strtolower($term), 'week' => strtolower($week)];
     }
 
-    public static function AbsoluteImage($image,$folder)
+    public static function AbsoluteImage($image, $folder)
     {
         if (empty($image))
-            $image = null;
+            $image = "https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/$folder.png";
         elseif (strpos($image, 'http') !== false)
             $image = $image;
         else {

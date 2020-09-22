@@ -62,7 +62,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
     {
         $fields = parent::fields();
         $fields['image'] = function ($model) {
-            return Utility::AbsoluteImage($model->image,'subjects');
+            return Utility::AbsoluteImage($model->image,'topics');
         };
         return $fields;
     }
