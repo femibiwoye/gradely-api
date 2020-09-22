@@ -11,7 +11,13 @@ use app\modules\v2\models\{TutorSession,
     User,
     TeacherClassSubjects,
     TeacherClass,
-    RecommendedResources};
+    RecommendedResources,
+    QuizSummary,
+    Questions,
+    Subjects,
+    ProctorReport,
+    Homeworks
+};
 use app\modules\v2\student\models\StartPracticeForm;
 use app\modules\v2\components\SharedConstant;
 use yii\rest\ActiveController;
@@ -201,6 +207,48 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video recommendation succeeded');
+    }
+
+    public function actionHomeworkSummaryProctor($student_id, $assessment_id)
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $form = new \yii\base\DynamicModel(compact('student_id', 'assessment_id'));
+        $form->addRule(['student_id', 'assessment_id'], 'required');
+        $form->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']]);
+        $form->addRule(['assessment_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = QuizSummary::find()
+                    ->where([
+                        'student_id' => $student_id,
+                        'homework_id' => $assessment_id,
+                        'submit' => SharedConstant::VALUE_ONE
+                    ])->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework Summary Proctor not found');
+        }
+
+        $data = [
+                'score' => ($model->correct / $model->total_questions) * 100,
+                'correct' => $model->correct,
+                'incorrect' => $model->failed,
+                'skipped' => $model->skipped,
+                'datetime' => $model->submit_at,
+                'subject' => Subjects::findOne(['id' => $model->subject_id]),
+                'assessment_type' => $model->type,
+                'questions' => Questions::findAll(['subject_id' => $model->subject_id]),
+                'proctor' => ProctorReport::findOne(['assessment_id' => $assessment_id, 'student_id' => $student_id])];
+
+        return (new ApiResponse)->success(
+            $data,
+            ApiResponse::SUCCESSFUL, 'Homework Summary Proctor found');
     }
 }
 
