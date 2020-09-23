@@ -125,6 +125,39 @@ class Schools extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        return [
+            'id',
+            'user_id',
+            'slug',
+            'name',
+            'abbr',
+            'logo',
+            'banner',
+            'tagline',
+            'about',
+            'address',
+            'city',
+            'state',
+            'country',
+            'postal_code',
+            'website',
+            'establish_date',
+            'contact_name',
+            'contact_role',
+            'contact_email',
+            'contact_image',
+            'phone',
+            'phone2',
+            'school_email',
+            'school_type',
+            'created_at',
+            'curriculum' => 'schoolCurriculums',
+            'demographics' => 'demographics',
+        ];
+    }
+
 
     /**
      * Gets query for [[ClassSubjects]].
@@ -234,6 +267,28 @@ class Schools extends \yii\db\ActiveRecord
     public function getTeacherClasses()
     {
         return $this->hasMany(TeacherClass::className(), ['school_id' => 'id']);
+    }
+
+    public function getDemographics()
+    {
+        $model = UserProfile::find()->where(['user_id' => $this->user_id]);
+        $total = count($model->all());
+        $gender = [
+            'male' => count($model->andWhere(['gender' => 'male'])->all()) * 100 / $total,
+            'female' => count($model->andWhere(['gender' => 'female'])->all()) * 100 / $total,
+        ];
+
+        $age = [
+            '7-10' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob'."-".'mob'."-".'dob'))), 7])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob'."-".'mob'."-".'dob'))), 10])->all()) * 100 / $total,
+            '11-12' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob'."-".'mob'."-".'dob'))), 11])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob'."-".'mob'."-".'dob'))), 12])->all()) * 100 / $total,
+            '13-15' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob'."-".'mob'."-".'dob'))), 13])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob'."-".'mob'."-".'dob'))), 15])->all()) * 100 / $total,
+            '16+' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob'."-".'mob'."-".'dob'))), 16])->all()) * 100 / $total,
+        ];
+
+        return [
+            'gender' => $gender,
+            'age' => $age,
+        ];
     }
 
 }
