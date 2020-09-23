@@ -19,6 +19,7 @@ return [
     'GET v2/student/security-questions' => 'v2/student/general/security-questions', //
     'PUT v2/student/security-question' => 'v2/student/general/set-security-question', //
     'GET v2/student/general/dashboard-todo' => 'v2/student/general/dashboard-todo', //
+    'GET v2/student/general/class-detail' => 'v2/student/general/class-detail', //
 
     //student homeworks
     'GET v2/student/completed-homework' => 'v2/student/homework/completed-homework', //
@@ -59,6 +60,7 @@ return [
     'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics', //
     'GET v2/student/catchup/watch-video/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/watch-video', //
     'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice', //
+    'POST v2/student/catchup/initialize-practice-temp' => 'v2/student/catchup/initialize-practice-temp',
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
 

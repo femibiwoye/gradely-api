@@ -621,6 +621,26 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');
     }
 
+    public function actionInitializePracticeTemp()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_STUDENT) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = new StartPracticeForm;
+        $model->attributes = Yii::$app->request->post();
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+
+        if (!$homework_model = $model->initializePracticeTemp()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
+        }
+
+        return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');
+    }
+
     public function actionStartPractice()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {

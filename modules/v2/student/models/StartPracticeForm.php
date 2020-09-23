@@ -81,6 +81,30 @@ class StartPracticeForm extends Model
         ]);
     }
 
+    public function initializePracticeTemp($student_id = null, $teacher_id = null)
+    {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$homework = $this->createHomework($student_id, $teacher_id)) {
+                return false;
+            }
+
+            if (!$this->createPracticeTopic($homework->id)) {
+                return false;
+            }
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+
+        return array_merge(ArrayHelper::toArray($homework), [
+            'duration' => $this->questions_duration,
+            'practice_type' => $this->type,
+        ]);
+    }
+
     public function createHomework($student_id = null, $teacher_id = null)
     {
         $homework = new Homeworks(['scenario' => 'student-practice']);

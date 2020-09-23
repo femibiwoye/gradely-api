@@ -27,7 +27,6 @@ return [
     'PUT v2/school/general/update-format-type' => 'v2/school/general/update-format-type', //
     'POST v2/school/general/request-call' => 'v2/school/general/request-call', //
     'GET v2/school/general/dashboard-todo-status' => 'v2/school/general/dashboard-todo-status', //
-    'GET v2/school/profile' => 'v2/school/general/school-profile',
 
 
     //School class homeworks
