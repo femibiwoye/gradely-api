@@ -171,14 +171,15 @@ class HomeworkForm extends Model
 
             if($model->publish_status == SharedConstant::VALUE_ZERO){
 
-                $notification = new InputNotification();
-                if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->one()->id]]))
-                    return false;
+//                $notification = new InputNotification();
+//                if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->id]]))
+//                    return false;
             }
 
-            $notification = new InputNotification();
-            if (!$notification->NewNotification('teacher_create_homework', [['homework_id', $model->id]]))
-                return false;
+//            $notification = new InputNotification();
+//            if (!$notification->NewNotification('teacher_create_homework', [['homework_id', $model->id]]))
+//                return false;
+
 
             //Get all the students in that class
             $classStudents = StudentSchool::findAll(['class_id' => $model->class_id]);
