@@ -49,7 +49,7 @@ class LibraryController extends ActiveController
     }
 
     /**
-     * Documents
+     * Documents in a class
      *
      * @return ApiResponse
      */
@@ -124,6 +124,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Upload video to class and, and share on class feed too.
+     * @return ApiResponse
+     */
     public function actionUploadVideo()
     {
 
@@ -155,6 +159,10 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video uploaded');
     }
 
+    /**
+     * Upload document to class and, and share on class feed too.
+     * @return ApiResponse
+     */
     public function actionUploadDocument()
     {
 
@@ -186,6 +194,10 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Document uploaded');
     }
 
+    /**
+     * All Discussion|Post in a class
+     * @return ApiResponse
+     */
     public function actionDiscussion()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -248,6 +260,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * All videos in a class
+     * @return ApiResponse
+     */
     public function actionVideo()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -318,6 +334,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Return all assessments in a class
+     * @return ApiResponse
+     */
     public function actionAssessment()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -381,6 +401,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Report in a class
+     * @return ApiResponse
+     */
     public function actionClassReport()
     {
         $id = Yii::$app->request->get('class_id');
@@ -406,6 +430,11 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Download file and increment count
+     * @param $file_id
+     * @return ApiResponse
+     */
     public function actionDownloadFile($file_id)
     {
         $model = PracticeMaterial::findOne(['token' => $file_id]);
@@ -420,6 +449,12 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success(['filename' => $model->filename, 'title' => $model->title, 'extension' => $model->extension], ApiResponse::SUCCESSFUL, 'File found');
     }
 
+    /**
+     * Delete a document from library. Either video or file
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionDeleteFile()
     {
         $token = Yii::$app->request->post('token');
@@ -443,6 +478,12 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Something went wrong');
     }
 
+    /**
+     * This returns summary count.
+     * Number of: Discussion, Assessment, Documents and Videos in a class
+     * @param $class_id
+     * @return ApiResponse
+     */
     public function actionSummary($class_id)
     {
         $teacher_id = Yii::$app->user->id;
