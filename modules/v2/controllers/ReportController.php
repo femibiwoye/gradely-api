@@ -70,7 +70,10 @@ class ReportController extends ActiveController
         $homework = Homeworks::find();
         if (Yii::$app->user->identity->type == 'school' && $homework->where(['id' => $id, 'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])])->exists()) {
             $proceedStatus = true;
-        } elseif (Yii::$app->user->identity->type == 'teacher' && $homework->where(['id' => $id, 'teacher_id' => Yii::$app->user->id])->exists()) {
+        } elseif (Yii::$app->user->identity->type == 'teacher' && $homework->where([
+                'id' => $id,
+                //'teacher_id' => Yii::$app->user->id //to be returned
+            ])->exists()) {
             $proceedStatus = true;
         }
 
@@ -127,9 +130,9 @@ class ReportController extends ActiveController
     public function actionGetRemarks($type, $id)
     {
 
-        if(Yii::$app->user->identity->type == 'parent'){
+        if (Yii::$app->user->identity->type == 'parent') {
 
-            if(!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
+            if (!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
         }
 
@@ -154,9 +157,9 @@ class ReportController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access!');
         }
 
-        if(Yii::$app->user->identity->type == 'parent'){
+        if (Yii::$app->user->identity->type == 'parent') {
 
-            if(!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
+            if (!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
         }
 

@@ -141,9 +141,14 @@ class HomeworkController extends ActiveController
     public function actionClassHomeworks($class_id = null)
     {
         if ($class_id) {
-            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+            $model = $this->modelClass::find()->andWhere([
+                //'teacher_id' => Yii::$app->user->id, //to be returned
+                //'class_id' => $class_id, //to be returned
+                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
         } else
-            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+            $model = $this->modelClass::find()->andWhere([
+                //'teacher_id' => Yii::$app->user->id, //to be returned
+                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
 
         if (!$model->count() > 0) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
