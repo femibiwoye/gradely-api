@@ -155,7 +155,7 @@ class HomeworkController extends ActiveController
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $model,
+            'query' => $model->orderBy('id DESC'),
             'pagination' => [
                 'pageSize' => 30,
                 'validatePage' => false,
@@ -181,7 +181,7 @@ class HomeworkController extends ActiveController
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $model,
+            'query' => $model->orderBy('id DESC'),
             'pagination' => [
                 'pageSize' => 30,
                 'validatePage' => false,
