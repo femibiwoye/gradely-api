@@ -195,7 +195,7 @@ class GeneralController extends Controller
         } else
             $user = Yii::$app->user->identity;
 
-        $model = ['status' => Utility::getSubscriptionStatus(), 'plan' => $user->subscription_plan, 'expiry' => $user->subscription_expiry];
+        $model = ['status' => Utility::getSubscriptionStatus($user), 'plan' => $user->subscription_plan, 'expiry' => $user->subscription_expiry];
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 }
