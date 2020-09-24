@@ -25,6 +25,7 @@ class StartPracticeForm extends Model
 {
     public $topic_ids;
     public $type;
+    public $practice_type;
     public $reference_id;
     public $reference_type;
     private $questions_duration = SharedConstant::VALUE_ZERO;
@@ -32,7 +33,7 @@ class StartPracticeForm extends Model
     public function rules()
     {
         return [
-            [['topic_ids', 'type', 'reference_type', 'reference_id'], 'required'],
+            [['topic_ids', 'type', 'reference_type', 'reference_id','practice_type'], 'required'],
             ['topic_ids', 'each', 'rule' => ['integer']],
             ['type', 'in', 'range' => [SharedConstant::MIX_TYPE_ARRAY, SharedConstant::SINGLE_TYPE_ARRAY]],
             ['reference_type', 'in', 'range' => SharedConstant::REFERENCE_TYPE],
@@ -131,7 +132,7 @@ class StartPracticeForm extends Model
             $homework->reference_id = $this->reference_id;
         }
 
-        $homework->type = SharedConstant::HOMEWORK_TYPES[2];
+        $homework->type = $this->practice_type;
 
         $homework->exam_type_id = $topic->exam_type_id;
         if (!$homework->save()) {

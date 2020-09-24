@@ -93,6 +93,7 @@ class CatchupController extends ActiveController
         $model->requester_id = Yii::$app->user->id;
         $model->class = $class_id;
         $model->subject_id = $subject_id;
+        $model->meta = 'recommendation';
         $model->category = SharedConstant::TUTOR_SESSION_CATEGORY_TYPE[SharedConstant::VALUE_ZERO];
         $model->is_school = SharedConstant::VALUE_ONE;
         $model->availability = $date . ' ' . $time;
