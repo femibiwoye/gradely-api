@@ -23,6 +23,7 @@ class StartQuizSummaryForm extends Model
     public $student_id;
     public $practice_id;
     private $total_questions;
+    private $questions = array();
 
     public function rules()
     {
@@ -78,8 +79,26 @@ class StartQuizSummaryForm extends Model
         return PracticeTopics::find()->select('topic_id')->where(['practice_id' => $this->practice_id])->asArray()->all();
     }
 
-    public function getTotalQuestions()
+    public function getTotalQuestions($type, $topic_id)
     {
-        return HomeworkQuestions::find()->where(['homework_id' => $this->practice_id])->count();
+        if ($type == SharedConstant::SINGLE_TYPE_ARRAY) {
+            return [
+                Questions::find()->where(['topic_id' => $topic_id, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
+                Questions::find()->where(['topic_id' => $topic_id, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
+                Questions::find()->where(['topic_id' => $topic_id, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_FIVE)->all(),
+            ];
+        } else {
+            $questions = Questions::find();
+            foreach ($topic_id as $topic) {
+                $this->questions = array_merge(
+                    $this->questions,
+                    $questions->where(['topic_id' => $topic, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_THREE)->all(),
+                    $questions->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_THREE)->all(),
+                    $questions->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_THREE)->all()
+                );
+            }
+
+            return $this->questions;
+        }
     }
 }

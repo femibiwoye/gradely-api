@@ -661,4 +661,27 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
     }
 
+    public function actionStartPracticeTemp()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $type = Yii::$app->request->post('type');
+        $topic_id = Yii::$app->request->post('topic_id');
+        $form = new \yii\base\DynamicModel(compact('type', 'topic_id'));
+        $form->addRule(['type', 'topic_id'], 'required');
+        $form->addRule('type', 'in', ['range' => SharedConstant::PRACTICE_TYPE]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = new StartQuizSummaryForm;
+        if (!$practice_model = $model->getTotalQuestions($type, $topic_id)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Temp not started!');
+        }
+
+        return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice Temp started!');
+    }
 }
