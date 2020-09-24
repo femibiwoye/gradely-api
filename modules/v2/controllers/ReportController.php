@@ -11,6 +11,8 @@ use app\modules\v2\models\Remarks;
 use app\modules\v2\models\ReportError;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\Subjects;
+use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
@@ -90,7 +92,10 @@ class ReportController extends ActiveController
                 ->with(['proctor'])
                 ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
                 ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
-                ->andWhere(['qs.homework_id' => $id, 'qs.submit' => SharedConstant::VALUE_ONE, 'qs.type' => 'homework'])
+                ->andWhere([
+                    'qs.homework_id' => $id,
+                    'qs.submit' => SharedConstant::VALUE_ONE,
+                    'qs.type' => 'homework'])
                 ->all();
         } else if ($data == 'summary') {
             $model = HomeworkReport::find()->where(['id' => $id])->one();
