@@ -50,4 +50,7 @@ class SharedConstant
     const PROCTOR_FEEDBACK_TYPE = ['reject_submission', 'admin_report', 'report_error'];
     const PROCTOR_FILE_TYPE = ['image', 'audio', 'video'];
     const TUTOR_SESSION_CATEGORY_TYPE = ['class'];
+    const PRACTICE_TYPE = ['single', 'mix'];
+    const RECOMMENDATION = 'recommendation';
+    const PENDING_STATUS = 'pending';
 }

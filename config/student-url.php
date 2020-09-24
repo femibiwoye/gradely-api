@@ -62,6 +62,7 @@ return [
     'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice', //
     'POST v2/student/catchup/initialize-practice-temp' => 'v2/student/catchup/initialize-practice-temp',
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
+    'POST v2/student/catchup/start-practice-temp' => 'v2/student/catchup/start-practice-temp',
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
 
     // Diagnostic
