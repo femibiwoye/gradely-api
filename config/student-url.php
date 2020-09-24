@@ -64,6 +64,9 @@ return [
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
 
+    // Diagnostic
+    'POST v2/student/catchup/initialize-diagnostic' => 'v2/student/catchup/initialize-diagnostic',
+
 
     //Recommendations
     'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/recommendation/homework-recommendation', //
