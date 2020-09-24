@@ -29,7 +29,9 @@ use app\modules\v2\models\{Homeworks,
     Subjects,
     Recommendations,
     RecommendationTopics,
-    User
+    User,
+    RecommendedResources,
+    TutorSession
 };
 use app\modules\v2\student\models\{StartPracticeForm, StartQuizSummaryForm};
 use app\modules\v2\components\{SharedConstant, Utility, SessionTermOnly, SessionWeek};
@@ -664,7 +666,61 @@ class CatchupController extends ActiveController
 
             }
 
-            $finalResult[] = array_merge($subject, ['topics' => $topicOrders]);
+            $recommended_videos = RecommendedResources::find()
+                        ->where([
+                            'receiver_id' => Yii::$app->user->id,
+                            'resources_type' => SharedConstant::TYPE_VIDEO
+                        ])
+                        ->andWhere([
+                            'NOT IN',
+                            'resources_id', 
+                            ArrayHelper::getColumn(FileLog::find()->select('file_id')->where(['subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO])->all(), 
+                                'file_id'
+                            )
+                        ])
+                        ->all();
+
+            $tutor_sessions = TutorSession::find()
+                                ->where([
+                                    'student_id' => Yii::$app->user->id,
+                                    'subject_id' => $model['subject_id'],
+                                    'meta' => SharedConstant::RECOMMENDATION,
+                                    'status' => SharedConstant::PENDING_STATUS
+                                ])
+                                ->andWhere('created_at <> (OW() - INTERVAL 48 HOUR)')
+                                ->all();
+
+            $practices = Homeworks::find()
+                                ->where([
+                                    'student_id' => Yii::$app->user->id,
+                                    'subject_id' => $model['subject_id'],
+                                ])
+                                ->andWhere([
+                                    'reference_type' => ['homework', 'class']
+                                ])
+                                ->andWhere([
+                                    'NOT IN',
+                                    'id',
+                                    ArrayHelper::getColumn(
+                                        QuizSummary::find()
+                                            ->where([
+                                                'subject_id' => $model['subject_id'],
+                                                'student_id' => Yii::$app->user->id
+                                            ])
+                                            ->all(),
+                                        'homework_id'
+                                    )
+                                ])
+                                ->all();
+
+            $finalResult[] = array_merge(
+                $subject,
+                [
+                    'topics' => $topicOrders, 
+                    'videos' => $recommended_videos,
+                    'tutor_sessions' => $tutor_sessions,
+                    'practices' => $practices
+                ]);
         }
 
 
