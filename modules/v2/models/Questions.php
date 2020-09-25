@@ -144,7 +144,7 @@ class Questions extends \yii\db\ActiveRecord
 
     public function getQuestionTopic()
     {
-        $topic = SubjectTopics::findOne(['id'=>$this->id]);
+        $topic = SubjectTopics::findOne(['id'=>$this->topic_id]);
         return !empty($topic)?$topic->topic:null;
     }
 
