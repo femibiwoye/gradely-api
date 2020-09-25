@@ -194,9 +194,11 @@ class ClassReport extends Model
         foreach ($topics as $topic) {
             $attempted_topic = QuizSummaryDetails::find()
                 ->alias('qsd')
+                ->leftJoin('subject_topics st','st.id = qsd.topic_id')
                 ->select([
                     new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
                     'qsd.topic_id',
+                    'st.topic'
                 ])
                 ->where(['topic_id' => $topic, 'student_id' => $student_id])
                 ->asArray()
