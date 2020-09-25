@@ -73,13 +73,14 @@ class CatchupController extends ActiveController
         $type = Yii::$app->request->post('type');
         $student_id = Yii::$app->request->post('student_id');
         $subject_id = Yii::$app->request->post('subject_id');
+        $topic_id = Yii::$app->request->post('topic_id');
         //$day = Yii::$app->request->post('day');
         $time = Yii::$app->request->post('time');
         $date = Yii::$app->request->post('date');
         $class_id = Yii::$app->request->post('class_id');
 
-        $form = new \yii\base\DynamicModel(compact('type', 'student_id', 'subject_id', 'time', 'class_id', 'date'));
-        $form->addRule(['type', 'student_id', 'subject_id', 'time', 'class_id', 'date'], 'required');
+        $form = new \yii\base\DynamicModel(compact('type', 'student_id', 'subject_id', 'time', 'class_id', 'date','topic_id'));
+        $form->addRule(['type', 'student_id', 'subject_id', 'time', 'class_id', 'date','topic_id'], 'required');
         $form->addRule(['date'], 'date', ['format' => 'php:Y-m-d']);
         $form->addRule(['time'], 'time', ['format' => 'php:H:i:s']);
         $form->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id']]);
@@ -93,6 +94,7 @@ class CatchupController extends ActiveController
         $model->requester_id = Yii::$app->user->id;
         $model->class = $class_id;
         $model->subject_id = $subject_id;
+        //save topic_id
         $model->meta = 'recommendation';
         $model->category = SharedConstant::TUTOR_SESSION_CATEGORY_TYPE[SharedConstant::VALUE_ZERO];
         $model->is_school = SharedConstant::VALUE_ONE;

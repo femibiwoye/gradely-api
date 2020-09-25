@@ -134,7 +134,7 @@ class UserModel extends User
         //if ($this->isRelationPopulated('assessmentTopicsPerformance')) {
         if ($this->isRelationPopulated('proctor')) {
             $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
-            $fields['recommendation'] = 'recommendation';
+            $fields['recommendations'] = 'recommendation';
             $fields['proctor'] = 'proctor';
         }
 
