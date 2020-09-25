@@ -4,6 +4,7 @@ namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\QuizSummaryDetails;
+use app\modules\v2\models\SubjectTopics;
 use Yii;
 use app\modules\v2\models\{TutorSession,
     ApiResponse,
@@ -72,15 +73,18 @@ class CatchupController extends ActiveController
 
         $type = Yii::$app->request->post('type');
         $student_id = Yii::$app->request->post('student_id');
-        $subject_id = Yii::$app->request->post('subject_id');
+        //$subject_id = Yii::$app->request->post('subject_id');
         $topic_id = Yii::$app->request->post('topic_id');
         //$day = Yii::$app->request->post('day');
         $time = Yii::$app->request->post('time');
         $date = Yii::$app->request->post('date');
         $class_id = Yii::$app->request->post('class_id');
 
-        $form = new \yii\base\DynamicModel(compact('type', 'student_id', 'subject_id', 'time', 'class_id', 'date','topic_id'));
-        $form->addRule(['type', 'student_id', 'subject_id', 'time', 'class_id', 'date','topic_id'], 'required');
+        $topicObject = SubjectTopics::findOne(['id' => $topic_id]);
+        $subject_id = isset($topicObject->subject_id) ? $topicObject->subject_id : null;
+
+        $form = new \yii\base\DynamicModel(compact('type', 'student_id', 'subject_id', 'time', 'class_id', 'date', 'topic_id'));
+        $form->addRule(['type', 'student_id', 'time', 'class_id', 'date', 'topic_id'], 'required');
         $form->addRule(['date'], 'date', ['format' => 'php:Y-m-d']);
         $form->addRule(['time'], 'time', ['format' => 'php:H:i:s']);
         $form->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id']]);
