@@ -371,7 +371,7 @@ class UserModel extends User
         return [
             'remedial' => $this->remedial,
             'videos' => $this->getVideos($this->remedial),
-            'practice' => $this->getPractice($this->remedial),
+            'resources' => $this->getPractice($this->remedial),
         ];
     }
 
