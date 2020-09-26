@@ -115,6 +115,9 @@ class ClassReport extends Model
             $topic_id = null;
         }
 
+        print_r('topic id is: '.$topic_id);
+        die;
+
         $students = User::find()
             ->select([
                 'user.id',
@@ -138,7 +141,7 @@ class ClassReport extends Model
 
         $excellence = [];
         $average = [];
-        $struggling = ['dummy'];
+        $struggling = [];
 
         foreach ($students as $student) {
             array_push($student, $this->getRecommendations($student['id']));
