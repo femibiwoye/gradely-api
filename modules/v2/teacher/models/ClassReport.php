@@ -47,7 +47,7 @@ class ClassReport extends Model
             return Subjects::findOne(['slug' => Yii::$app->request->get('subject')]);
         }
 
-        return $this->subjects ? $this->subjects[0] : 'Subjects not found!';
+        return $this->subjects ? $this->subjects[0] : null;
     }
 
     public function getCurrentTerm()
@@ -75,11 +75,15 @@ class ClassReport extends Model
         $term = $this->currentTerm;
         $subject = $this->currentSubject;
 
-        $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
+        try {
+            $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
 
-        $record = SubjectTopics::find()->where(['term' => $term, 'subject_id' => $subject->id, 'class_id' => $class->global_class_id])->all();
+            $record = SubjectTopics::find()->where(['term' => $term, 'subject_id' => $subject->id, 'class_id' => $class->global_class_id])->all();
 
-        return $record;
+            return $record;
+        } catch (\Exception $exception) {
+            return null;
+        }
         /*if (Yii::$app->request->get('term')) {
             $record = $record->andWhere(['subject_topics.term' => Yii::$app->request->get('term')]);
         }
@@ -105,9 +109,9 @@ class ClassReport extends Model
     public function getTopicPerformance()
     {
         $class = Yii::$app->request->get('class_id');
-        if(isset($this->currentTopic->id)) {
+        if (isset($this->currentTopic->id)) {
             $topic_id = $this->currentTopic->id;
-        }else{
+        } else {
             $topic_id = null;
         }
 
@@ -123,7 +127,7 @@ class ClassReport extends Model
                 new Expression('COUNT(qsd.id) as attempt'),
                 new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct')
             ])
-            ->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1")
+            //->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1") // To be returned
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = user.id AND qsd.topic_id = '$topic_id'")
             ->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.submit = 1")
             ->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
@@ -177,22 +181,30 @@ class ClassReport extends Model
 
     private function getLowestTopicAttempted($student_id)
     {
+
         $topics_attempted = array();
         $topics = QuizSummaryDetails::find()
             ->alias('s')
             ->select(['s.topic_id'])
             ->where(['s.student_id' => $student_id])
             ->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
-            ->groupBy('topic_id')
-            ->asArray()
+            ->groupBy('topic_id');
+
+        if ($this->currentSubject)
+            $topics = $topics->innerJoin('subjects sb', 'sb.id = ' . $this->currentSubject->id);
+
+        $topics = $topics->asArray()
             ->all();
 
         foreach ($topics as $topic) {
             $attempted_topic = QuizSummaryDetails::find()
                 ->alias('qsd')
+                ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
                 ->select([
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                'qsd.topic_id',
+                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                    'qsd.topic_id',
+                    'st.topic',
+                    'st.subject_id'
                 ])
                 ->where(['topic_id' => $topic, 'student_id' => $student_id])
                 ->asArray()
@@ -229,7 +241,7 @@ class ClassReport extends Model
             ])
             ->where(['id' => $topic_id])
             ->asArray()
-            ->one();
+            ->all();
 
         //retrieves assign videos to the topic
         $video = VideoContent::find()

@@ -62,8 +62,8 @@ class QuestionController extends ActiveController
         }
 
         $model = Questions::find()
-            ->innerJoin('homework_questions', 'homework_questions.question_id = questions.id')
-            ->where(['homework_questions.homework_id' => $homework_id])
+            ->innerJoin('homework_questions', "homework_questions.question_id = questions.id")
+            ->where(['homework_questions.homework_id' => $homework_id,'homework_questions.teacher_id'=>$teacher_id])
             ->all();
 
         if (!$model) {
@@ -130,6 +130,7 @@ class QuestionController extends ActiveController
         }
 
         $assignQuestion = new HomeworkQuestions();
+        $assignQuestion->teacher_id = $teacher_id;
         $assignQuestion->homework_id = $homework_id;
         $assignQuestion->question_id = $model->id;
         $assignQuestion->duration = $model->duration;

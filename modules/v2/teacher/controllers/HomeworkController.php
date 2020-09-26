@@ -142,16 +142,21 @@ class HomeworkController extends ActiveController
     public function actionClassHomeworks($class_id = null)
     {
         if ($class_id) {
-            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'class_id' => $class_id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+            $model = $this->modelClass::find()->andWhere([
+                'teacher_id' => Yii::$app->user->id,
+                //'class_id' => $class_id, //To be returned
+                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
         } else
-            $model = $this->modelClass::find()->andWhere(['teacher_id' => Yii::$app->user->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+            $model = $this->modelClass::find()->andWhere([
+                'teacher_id' => Yii::$app->user->id,
+                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
 
         if (!$model->count() > 0) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
+            return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $model,
+            'query' => $model->orderBy('id DESC'),
             'pagination' => [
                 'pageSize' => 30,
                 'validatePage' => false,
@@ -177,7 +182,7 @@ class HomeworkController extends ActiveController
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $model,
+            'query' => $model->orderBy('id DESC'),
             'pagination' => [
                 'pageSize' => 30,
                 'validatePage' => false,

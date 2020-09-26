@@ -40,8 +40,10 @@ return [
     'GET v2/feed/<class_id:\d+>' => 'v2/feed/index', //
     //'GET v2/feed/upcoming' => 'v2/feed/upcoming',
     'POST v2/live-class' => 'v2/feed/new-live-class', //
+    'DELETE v2/feed/delete-feed/<feed_id:\d+>' => 'v2/feed/delete-feed', //
 
     //Reports
+    'GET v2/library/summary/<class_id:\d+>' => 'v2/library/summary', //
     'GET v2/library/documents' => 'v2/library/index', //
     'POST v2/library/video' => 'v2/library/upload-video', //
     'POST v2/library/document' => 'v2/library/upload-document', //
@@ -51,7 +53,7 @@ return [
     'GET v2/report/class' => 'v2/library/class-report', //
     'GET v2/library/download-file/<file_id:[a-zA-Z0-9/]+>' => 'v2/library/download-file', //
     'DELETE v2/library/delete-file' => 'v2/library/delete-file', //
-    'GET v2/report/homework' => 'v2/report/homework-summary',
+    'GET v2/report/homework' => 'v2/report/homework-summary', //
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
 
@@ -82,6 +84,9 @@ return [
         'GET update-school-calendar' => 'update-school-calendar', //
         'GET update-video-token' => 'update-video-token', //
         'GET update-file-token' => 'update-file-token', //
+
+        'GET generate-weekly-recommendation' => 'generate-weekly-recommendation', // Generate weekly recommendation
+        'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
 
 

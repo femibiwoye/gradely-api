@@ -11,6 +11,8 @@ use app\modules\v2\models\Remarks;
 use app\modules\v2\models\ReportError;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\Subjects;
+use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
@@ -70,7 +72,10 @@ class ReportController extends ActiveController
         $homework = Homeworks::find();
         if (Yii::$app->user->identity->type == 'school' && $homework->where(['id' => $id, 'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])])->exists()) {
             $proceedStatus = true;
-        } elseif (Yii::$app->user->identity->type == 'teacher' && $homework->where(['id' => $id, 'teacher_id' => Yii::$app->user->id])->exists()) {
+        } elseif (Yii::$app->user->identity->type == 'teacher' && $homework->where([
+                'id' => $id,
+                'teacher_id' => Yii::$app->user->id
+            ])->exists()) {
             $proceedStatus = true;
         }
 
@@ -87,7 +92,10 @@ class ReportController extends ActiveController
                 ->with(['proctor'])
                 ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
                 ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
-                ->andWhere(['qs.homework_id' => $id, 'qs.submit' => SharedConstant::VALUE_ONE, 'qs.type' => 'homework'])
+                ->andWhere([
+                    //'qs.homework_id' => $id, //To be returned
+                    'qs.submit' => SharedConstant::VALUE_ONE,
+                    'qs.type' => 'homework'])
                 ->all();
         } else if ($data == 'summary') {
             $model = HomeworkReport::find()->where(['id' => $id])->one();
@@ -101,7 +109,7 @@ class ReportController extends ActiveController
         }
 
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
         return (new ApiResponse)->success($data == 'summary' ? $model->getHomeworkSummary() : $model, ApiResponse::SUCCESSFUL, 'Record found');
@@ -127,9 +135,9 @@ class ReportController extends ActiveController
     public function actionGetRemarks($type, $id)
     {
 
-        if(Yii::$app->user->identity->type == 'parent'){
+        if (Yii::$app->user->identity->type == 'parent') {
 
-            if(!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
+            if (!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
         }
 
@@ -154,9 +162,9 @@ class ReportController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access!');
         }
 
-        if(Yii::$app->user->identity->type == 'parent'){
+        if (Yii::$app->user->identity->type == 'parent') {
 
-            if(!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
+            if (!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
         }
 

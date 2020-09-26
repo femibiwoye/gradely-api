@@ -18,6 +18,8 @@ return [
     //student general
     'GET v2/student/security-questions' => 'v2/student/general/security-questions', //
     'PUT v2/student/security-question' => 'v2/student/general/set-security-question', //
+    'GET v2/student/general/dashboard-todo' => 'v2/student/general/dashboard-todo', //
+    'GET v2/student/general/class-detail' => 'v2/student/general/class-detail', //
 
     //student homeworks
     'GET v2/student/completed-homework' => 'v2/student/homework/completed-homework', //
@@ -35,6 +37,7 @@ return [
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class', //
     'POST v2/student/class' => 'v2/student/class/student-class', //
     'GET v2/student/class' => 'v2/student/class/student-class-details', //
+    'GET v2/student/class/subjects' => 'v2/student/class/subjects', //
 
 
     //student report
@@ -57,23 +60,26 @@ return [
     'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics', //
     'GET v2/student/catchup/watch-video/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/watch-video', //
     'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice', //
+    'POST v2/student/catchup/initialize-practice-temp' => 'v2/student/catchup/initialize-practice-temp',
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
+    'POST v2/student/catchup/start-practice-temp' => 'v2/student/catchup/start-practice-temp',
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
+
+    // Diagnostic
+    'POST v2/student/catchup/initialize-diagnostic' => 'v2/student/catchup/initialize-diagnostic',
 
 
     //Recommendations
-    'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/recommendation/homework-recommendation',
-    'GET v2/student/catchup/generate-weekly-recommendation' => 'v2/student/recommendation/generate-weekly-recommendation',
-    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/recommendation/weekly-recommendations',
-    'GET v2/student/catchup/generate-daily-recommendation' => 'v2/student/recommendation/generate-daily-recommendations',
-    'GET v2/student/catchup/daily-recommendation' => 'v2/student/recommendation/daily-recommendation',
+    'GET v2/student/catchup/homework-recommendation/<quiz_id:\d+>' => 'v2/student/recommendation/homework-recommendation', //
+    'GET v2/student/catchup/weekly-recommendation' => 'v2/student/recommendation/weekly-recommendations', //
+    'GET v2/student/catchup/daily-recommendation' => 'v2/student/recommendation/daily-recommendation', //
 
     //student proctor report
-    'POST v2/student/proctor-report' => 'v2/student/proctor-report/create',
-    'POST v2/student/proctor-feedback' => 'v2/student/proctor-report/proctor-feedback',
+    'POST v2/student/proctor-report' => 'v2/student/proctor-report/create', //
+    'POST v2/student/proctor-feedback' => 'v2/student/proctor-report/proctor-feedback', //
 
     //student invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
-        'POST student-parent' => 'student-parent'
+        'POST student-parent' => 'student-parent' //
     ]],
 ];

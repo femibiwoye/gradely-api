@@ -10,6 +10,7 @@ use app\modules\v2\models\Country;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\notifications\InappNotification;
 use app\modules\v2\models\notifications\NotificationOutLogging;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\States;
 use app\modules\v2\models\Timezone;
@@ -184,10 +185,17 @@ class GeneralController extends Controller
         return (new ApiResponse)->success($models, ApiResponse::SUCCESSFUL);
     }
 
-    public function actionStudentSubscription()
+    public function actionStudentSubscription($child_id = null)
     {
-        $user = Yii::$app->user->identity;
-        $model = ['status'=>Utility::getSubscriptionStatus(),'plan'=>$user->subscription_plan,'expiry'=>$user->subscription_expiry];
+        if (Yii::$app->user->identity->type == 'parent') {
+            if ($user = Parents::findOne(['parent_id' => Yii::$app->user->id, 'student_id' => $child_id, 'status' => 1]))
+                $user = User::findOne(['id' => $user->student_id,'type'=>'student']);
+            else
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid child id!');
+        } else
+            $user = Yii::$app->user->identity;
+
+        $model = ['status' => Utility::getSubscriptionStatus($user), 'plan' => $user->subscription_plan, 'expiry' => $user->subscription_expiry];
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 }

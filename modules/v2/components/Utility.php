@@ -248,5 +248,17 @@ class Utility extends ActiveRecord
         return ['term' => strtolower($term), 'week' => strtolower($week)];
     }
 
+    public static function AbsoluteImage($image, $folder)
+    {
+        if (empty($image))
+            $image = "https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/$folder.png";
+        elseif (strpos($image, 'http') !== false)
+            $image = $image;
+        else {
+            $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $image;
+        }
+        return $image;
+    }
+
 
 }

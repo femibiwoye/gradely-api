@@ -12,6 +12,7 @@ use app\modules\v2\models\PracticeTopics;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\VideoAssign;
 use app\modules\v2\models\VideoContent;
+use app\modules\v2\student\models\StartDiagnosticForm;
 use Yii;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
@@ -28,7 +29,9 @@ use app\modules\v2\models\{Homeworks,
     Subjects,
     Recommendations,
     RecommendationTopics,
-    User
+    User,
+    RecommendedResources,
+    TutorSession
 };
 use app\modules\v2\student\models\{StartPracticeForm, StartQuizSummaryForm};
 use app\modules\v2\components\{SharedConstant, Utility, SessionTermOnly, SessionWeek};
@@ -81,6 +84,10 @@ class CatchupController extends ActiveController
         return $actions;
     }
 
+    /**
+     * Return student previous practices
+     * @return ApiResponse
+     */
     public function actionRecentPractice()
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_STUDENT) {
@@ -109,6 +116,11 @@ class CatchupController extends ActiveController
 
     }
 
+    /**
+     * Get comments on a video
+     * @param $video_token
+     * @return ApiResponse
+     */
     public function actionVideoComments($video_token)
     {
         $video = VideoContent::findOne(['token' => $video_token]);
@@ -128,6 +140,11 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Comment on a video
+     *
+     * @return ApiResponse
+     */
     public function actionCommentVideo()
     {
         $video_token = Yii::$app->request->post('video_token');
@@ -155,6 +172,11 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 
+    /**
+     * Like or Dislike a video
+     * @param $video_token
+     * @return ApiResponse
+     */
     public function actionVideoLikes($video_token)
     {
 
@@ -197,6 +219,7 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
+
     public function actionVideo($id)
     {
         $model = PracticeMaterial::find()
@@ -210,6 +233,11 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * This recommend resources in a class
+     * @param $class_id
+     * @return ApiResponse
+     */
     public function actionClassResources($class_id)
     {
         $model = PracticeMaterial::find()
@@ -233,6 +261,11 @@ class CatchupController extends ActiveController
 
     }
 
+    /**
+     * This returned videos that has been watched by a student and recommend them to be watched again.
+     * @param $id
+     * @return ApiResponse
+     */
     public function actionWatchVideoAgain($id)
     {
 
@@ -254,6 +287,10 @@ class CatchupController extends ActiveController
 
     }
 
+    /**
+     * This return last six videos watched by a student
+     * @return ApiResponse
+     */
     public function actionVideosWatched()
     {
 
@@ -278,6 +315,11 @@ class CatchupController extends ActiveController
 
     }
 
+    /**
+     * This return details of videos to be watched
+     * @param $video_token
+     * @return ApiResponse
+     */
     public function actionWatchVideo($video_token)
     {
 
@@ -316,6 +358,12 @@ class CatchupController extends ActiveController
 
     }
 
+    /**
+     * This update video that is being watched by a child to completely watched.
+     * This function enable us to recommend Watch Again videos
+     * @param $video_token
+     * @return ApiResponse
+     */
     public function actionUpdateVideoCompleted($video_token)
     {
         $class_id = Utility::getStudentClass();;
@@ -356,6 +404,13 @@ class CatchupController extends ActiveController
 
     }
 
+    /**
+     * This is to update position of video that is being watched by a student.
+     * This record allow us to recommended videos that was not completely watched by a child.
+     *
+     * @param $video_token
+     * @return ApiResponse
+     */
     public function actionUpdateVideoLength($video_token)
     {
         $video = VideoContent::findOne(['token' => $video_token]);
@@ -412,6 +467,10 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video duration updated');
     }
 
+    /**
+     * This returns all the subjects that are available for diagnostics.
+     * @return ApiResponse
+     */
     public function actionDiagnostic()
     {
         $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
@@ -419,9 +478,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
         }
 
+        $studentID = Yii::$app->user->id;
         $model = Subjects::find()
-            ->leftJoin('quiz_summary qs', 'qs.subject_id = subjects.id AND qs.submit = 1')
-            ->where(['status' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
+            ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.submit = 1 AND student_id = $studentID")
+            ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
             ->andWhere(['is', 'qs.subject_id', null])
             ->groupBy('id')
             ->all();
@@ -434,6 +494,10 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' subjects found');
     }
 
+    /**
+     * The practices that was recently taken by a child
+     * @return ApiResponse
+     */
     public function actionRecentPractices()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
@@ -462,6 +526,10 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($final, ApiResponse::SUCCESSFUL, 'Practice found');
     }
 
+    /**
+     * This returns videos not completely watched by student in a class
+     * @return ApiResponse
+     */
     public function actionIncompleteVideos()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
@@ -480,6 +548,11 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Videos found');
     }
 
+    /**
+     * This returns all materials in a class
+     * Also known as Resources
+     * @return ApiResponse
+     */
     public function actionClassMaterials()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
@@ -489,9 +562,9 @@ class CatchupController extends ActiveController
 
         $model = PracticeMaterial::find()
             ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id")//removed
-            ->innerJoin('homeworks',"homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
-            ->where(['user_id' => Yii::$app->user->identity->id]) //remogit pullved
-             ->where(['class_id'=>Utility::getStudentClass()])
+            ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
+            //->where(['user_id' => Yii::$app->user->identity->id])//remogit pullved
+            ->where(['class_id' => Utility::getStudentClass()])
             ->andWhere([
                 'filetype' => [
                     SharedConstant::PRACTICE_MATERIAL_TYPES[0],
@@ -509,6 +582,10 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * This action generates recommended topic for catchup.
+     * @return ApiResponse
+     */
     public function actionPracticeTopics()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
@@ -536,7 +613,7 @@ class CatchupController extends ActiveController
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
-            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status'])->where(['id' => $model['subject_id']])->asArray()->one();
+            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])->where(['id' => $model['subject_id']])->asArray()->one();
 
             $topicOrders = [];
             foreach ($topics as $index => $topic) {
@@ -549,7 +626,7 @@ class CatchupController extends ActiveController
                         'st.topic',
                         'st.id',
                         'st.subject_id',
-                        'st.image'
+                        Yii::$app->params['topicImage']
                     ])
                     ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                     ->where(['topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
@@ -589,7 +666,61 @@ class CatchupController extends ActiveController
 
             }
 
-            $finalResult[] = array_merge($subject, ['topics' => $topicOrders]);
+            $recommended_videos = RecommendedResources::find()
+                        ->where([
+                            'receiver_id' => Yii::$app->user->id,
+                            'resources_type' => SharedConstant::TYPE_VIDEO
+                        ])
+                        ->andWhere([
+                            'NOT IN',
+                            'resources_id', 
+                            ArrayHelper::getColumn(FileLog::find()->select('file_id')->where(['subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO])->all(), 
+                                'file_id'
+                            )
+                        ])
+                        ->all();
+
+            $tutor_sessions = TutorSession::find()
+                                ->where([
+                                    'student_id' => Yii::$app->user->id,
+                                    'subject_id' => $model['subject_id'],
+                                    'meta' => SharedConstant::RECOMMENDATION,
+                                    'status' => SharedConstant::PENDING_STATUS
+                                ])
+                                ->andWhere('created_at <> (OW() - INTERVAL 48 HOUR)')
+                                ->all();
+
+            $practices = Homeworks::find()
+                                ->where([
+                                    'student_id' => Yii::$app->user->id,
+                                    'subject_id' => $model['subject_id'],
+                                ])
+                                ->andWhere([
+                                    'reference_type' => ['homework', 'class']
+                                ])
+                                ->andWhere([
+                                    'NOT IN',
+                                    'id',
+                                    ArrayHelper::getColumn(
+                                        QuizSummary::find()
+                                            ->where([
+                                                'subject_id' => $model['subject_id'],
+                                                'student_id' => Yii::$app->user->id
+                                            ])
+                                            ->all(),
+                                        'homework_id'
+                                    )
+                                ])
+                                ->all();
+
+            $finalResult[] = array_merge(
+                $subject,
+                [
+                    'topics' => $topicOrders, 
+                    'videos' => $recommended_videos,
+                    'tutor_sessions' => $tutor_sessions,
+                    'practices' => $practices
+                ]);
         }
 
 
@@ -600,7 +731,11 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, 'Practice Topics found');
     }
 
-    public function actionInitializePractice()
+    /**
+     * This initialize practice is used by student for Catchup Only Practices
+     * @return ApiResponse
+     */
+    public function actionInitializePracticeBK()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
@@ -618,6 +753,60 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');
+    }
+
+    /**
+     * This initialize practice is used by student for Diagnostic and Catchup Practices
+     * @return ApiResponse
+     */
+    public function actionInitializePractice()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_STUDENT) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = new StartPracticeForm;
+        $model->attributes = Yii::$app->request->post();
+        $model->practice_type = 'recommendation';
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$homework_model = $model->initializePracticeTemp()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
+        }
+
+        return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Practice Initialization succeeded');
+    }
+
+    public function actionInitializeDiagnostic()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_STUDENT) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $model = new StartDiagnosticForm();
+        $model->attributes = Yii::$app->request->post();
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$diagnosticTopics = $model->initializeDiagnostic()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Diagnostic Initialization failed');
+        }
+
+        $topicIDs = ArrayHelper::getColumn($diagnosticTopics, 'id');
+
+        // Initialize the practice
+        $startPractice = new StartPracticeForm();
+        $startPractice->type = 'mix';
+        $startPractice->topic_ids = $topicIDs;
+        $startPractice->practice_type = 'diagnostic';
+        if (!$homework_model = $startPractice->initializePracticeTemp()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Diagnostic Topics Initialization failed');
+        }
+
+        return (new ApiResponse)->success($homework_model, ApiResponse::SUCCESSFUL, 'Diagnostic Initialization succeeded');
     }
 
     public function actionStartPractice()
@@ -640,4 +829,27 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
     }
 
+    public function actionStartPracticeTemp()
+    {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+        }
+
+        $type = Yii::$app->request->post('type');
+        $topic_id = Yii::$app->request->post('topic_id');
+        $form = new \yii\base\DynamicModel(compact('type', 'topic_id'));
+        $form->addRule(['type', 'topic_id'], 'required');
+        $form->addRule('type', 'in', ['range' => SharedConstant::PRACTICE_TYPE]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $model = new StartQuizSummaryForm;
+        if (!$practice_model = $model->getTotalQuestions($type, $topic_id)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Temp not started!');
+        }
+
+        return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice Temp started!');
+    }
 }

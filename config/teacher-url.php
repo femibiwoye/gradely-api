@@ -59,4 +59,13 @@ return [
 
     //Report error
     'POST v2/report/error-report/<type:\w+>' => 'v2/report/report-error', //
+
+    //Teacher calender
+    'GET v2/calender/teacher/<teacher_id:\d*>' => 'v2/teacher/calender/teacher-calender',//
+
+    //Tutor Session
+    'POST v2/teacher/catchup/remedial' => 'v2/teacher/catchup/create-session', //
+    'POST v2/teacher/catchup/practice' => 'v2/teacher/catchup/create-practice', //
+    'POST v2/teacher/catchup/video-recommendation' => 'v2/teacher/catchup/video-recommendation', //
+    'GET v2/teacher/catchup/homework-summary-proctor/<student_id:\d+>/<assessment_id:\d+>' => 'v2/teacher/catchup/homework-summary-proctor', //
 ];

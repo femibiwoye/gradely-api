@@ -2,6 +2,8 @@
 
 namespace app\modules\v2\student\models;
 
+use app\modules\v2\models\Classes;
+use app\modules\v2\models\Schools;
 use Yii;
 use yii\base\Model;
 use yii\helpers\ArrayHelper;
@@ -23,6 +25,7 @@ class StartPracticeForm extends Model
 {
     public $topic_ids;
     public $type;
+    public $practice_type;
     public $reference_id;
     public $reference_type;
     private $questions_duration = SharedConstant::VALUE_ZERO;
@@ -30,7 +33,7 @@ class StartPracticeForm extends Model
     public function rules()
     {
         return [
-            [['topic_ids', 'type', 'reference_type', 'reference_id'], 'required'],
+            [['topic_ids', 'type', 'reference_type', 'reference_id','practice_type'], 'required'],
             ['topic_ids', 'each', 'rule' => ['integer']],
             ['type', 'in', 'range' => [SharedConstant::MIX_TYPE_ARRAY, SharedConstant::SINGLE_TYPE_ARRAY]],
             ['reference_type', 'in', 'range' => SharedConstant::REFERENCE_TYPE],
@@ -50,11 +53,11 @@ class StartPracticeForm extends Model
         return $this->addError('type', 'Type needs to be corrected');
     }
 
-    public function initializePractice()
+    public function initializePractice($student_id = null, $teacher_id = null)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$homework = $this->createHomework()) {
+            if (!$homework = $this->createHomework($student_id, $teacher_id)) {
                 return false;
             }
 
@@ -62,9 +65,9 @@ class StartPracticeForm extends Model
                 return false;
             }
 
-            if (!$this->createHomeworkQuestions($homework)) {
+            /*if (!$this->createHomeworkQuestions($homework)) {
                 return false;
-            }
+            }*/
 
 
             $dbtransaction->commit();
@@ -79,21 +82,59 @@ class StartPracticeForm extends Model
         ]);
     }
 
-    public function createHomework()
+    public function initializePracticeTemp($student_id = null, $teacher_id = null)
+    {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$homework = $this->createHomework($student_id, $teacher_id)) {
+                return false;
+            }
+
+            if (!$this->createPracticeTopic($homework->id)) {
+                return false;
+            }
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+
+        return array_merge(ArrayHelper::toArray($homework), [
+            'duration' => $this->questions_duration,
+            'practice_type' => $this->type,
+        ]);
+    }
+
+    public function createHomework($student_id = null, $teacher_id = null)
     {
         $homework = new Homeworks(['scenario' => 'student-practice']);
-        $homework->student_id = Yii::$app->user->id;
+        $homework->student_id = $student_id ? $student_id : Yii::$app->user->id;
         $homework->subject_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->subject_id;
         $homework->title = $this->homeworkType;
+        $topic = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO]);
+        $homework->class_id = $topic->class_id;
+        if ($teacher_id) {
+            $homework->teacher_id = $teacher_id;
+            if ($this->reference_type == 'class') {
+                $homework->school_id = Classes::findOne(['id' => $this->reference_id])->school_id;
+                $homework->class_id = $this->reference_id;
+            }
+            if ($this->reference_type == 'homework') {
+                $hwork = Homeworks::findOne(['id' => $this->reference_id]);
+                $homework->school_id = $hwork->school_id;
+                $homework->class_id = $hwork->class_id;
+            }
+        }
 
-        if(!empty($this->reference_type) &&  $this->reference_type == 'recommendation'){
-            $homework->reference_type = 'recommendation';
+        if ($this->reference_type) {
+            $homework->reference_type = $this->reference_type;
             $homework->reference_id = $this->reference_id;
         }
 
-        $homework->type = SharedConstant::HOMEWORK_TYPES[2];
-        $homework->class_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->class_id;
-        $homework->exam_type_id = $this->getSubjectTopics($this->topic_ids[SharedConstant::VALUE_ZERO])->exam_type_id;
+        $homework->type = $this->practice_type;
+
+        $homework->exam_type_id = $topic->exam_type_id;
         if (!$homework->save()) {
             return false;
         }

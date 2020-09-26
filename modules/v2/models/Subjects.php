@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\Utility;
 use Yii;
 use yii\behaviors\SluggableBehavior;
 
@@ -18,6 +19,7 @@ use yii\behaviors\SluggableBehavior;
  * @property int|null $school_id
  * @property int $approved
  * @property int|null $approved_by
+ * @property int|null $diagnostics
  * @property string $created_at
  * @property string|null $updated_at
  *
@@ -46,6 +48,15 @@ class Subjects extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+        $fields['image'] = function ($model) {
+            return Utility::AbsoluteImage($model->image,'subjects');
+        };
+        return $fields;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -54,7 +65,7 @@ class Subjects extends \yii\db\ActiveRecord
         return [
             [['slug', 'name', 'description'], 'required'],
             [['description', 'category', 'image'], 'string'],
-            [['status', 'school_id', 'approved', 'approved_by'], 'integer'],
+            [['status', 'school_id', 'approved', 'approved_by', 'diagnostics'], 'integer'],
             [['created_at', 'updated_at'], 'safe'],
             [['slug', 'name'], 'string', 'max' => 100],
         ];
@@ -108,5 +119,17 @@ class Subjects extends \yii\db\ActiveRecord
     public function getTeacherClassSubjects()
     {
         return $this->hasMany(TeacherClassSubjects::className(), ['subject_id' => 'id']);
+    }
+
+    public function getImageUrl()
+    {
+        if (empty($this->image))
+            $image = null;
+        elseif (strpos($this->image, 'http') !== false)
+            $image = $this->image;
+        else {
+            $image = Yii::$app->params['baseURl'] . '/images/users/' . $this->image;
+        }
+        return $image;
     }
 }

@@ -48,6 +48,11 @@ class LibraryController extends ActiveController
         return $actions;
     }
 
+    /**
+     * Documents in a class
+     *
+     * @return ApiResponse
+     */
     public function actionIndex()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -69,6 +74,7 @@ class LibraryController extends ActiveController
         $model = PracticeMaterial::find()
             ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
             ->leftJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->groupBy('practice_material.id')
             ->andWhere(['practice_material.filetype' => 'document']);
 
         if ($class_id) {
@@ -118,6 +124,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Upload video to class and, and share on class feed too.
+     * @return ApiResponse
+     */
     public function actionUploadVideo()
     {
 
@@ -149,6 +159,10 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video uploaded');
     }
 
+    /**
+     * Upload document to class and, and share on class feed too.
+     * @return ApiResponse
+     */
     public function actionUploadDocument()
     {
 
@@ -180,6 +194,10 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Document uploaded');
     }
 
+    /**
+     * All Discussion|Post in a class
+     * @return ApiResponse
+     */
     public function actionDiscussion()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -242,6 +260,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * All videos in a class
+     * @return ApiResponse
+     */
     public function actionVideo()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -261,7 +283,8 @@ class LibraryController extends ActiveController
         }
 
         $model = $this->modelClass::find()
-            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed']);
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
+            ->groupBy('practice_material.id');
 
         if ($class_id) {
             $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
@@ -311,6 +334,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Return all assessments in a class
+     * @return ApiResponse
+     */
     public function actionAssessment()
     {
         $class_id = Yii::$app->request->get('class_id');
@@ -374,6 +401,10 @@ class LibraryController extends ActiveController
         //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Report in a class
+     * @return ApiResponse
+     */
     public function actionClassReport()
     {
         $id = Yii::$app->request->get('class_id');
@@ -399,6 +430,11 @@ class LibraryController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
     }
 
+    /**
+     * Download file and increment count
+     * @param $file_id
+     * @return ApiResponse
+     */
     public function actionDownloadFile($file_id)
     {
         $model = PracticeMaterial::findOne(['token' => $file_id]);
@@ -410,9 +446,15 @@ class LibraryController extends ActiveController
         if (!$model->save()) {
             return (new ApiResponse)->error($model->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
-        return (new ApiResponse)->success(['filename'=>$model->filename,'title'=>$model->title,'extension'=>$model->extension], ApiResponse::SUCCESSFUL, 'File found');
+        return (new ApiResponse)->success(['filename' => $model->filename, 'title' => $model->title, 'extension' => $model->extension], ApiResponse::SUCCESSFUL, 'File found');
     }
 
+    /**
+     * Delete a document from library. Either video or file
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionDeleteFile()
     {
         $token = Yii::$app->request->post('token');
@@ -434,6 +476,58 @@ class LibraryController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'File removed!');
 
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Something went wrong');
+    }
+
+    /**
+     * This returns summary count.
+     * Number of: Discussion, Assessment, Documents and Videos in a class
+     * @param $class_id
+     * @return ApiResponse
+     */
+    public function actionSummary($class_id)
+    {
+        $teacher_id = Yii::$app->user->id;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+        $model
+            ->addRule(['class_id', 'teacher_id'], 'integer')
+            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        //For videos
+        $videos = $this->modelClass::find()
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
+            ->innerJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->groupBy('practice_material.id')
+            ->andWhere(['feed.class_id' => $class_id])->count();
+
+
+        //For discussion
+        $discussion = Feed::find()->where(['type' => SharedConstant::FEED_TYPES[0], 'view_by' => ['class', 'all']])->andWhere(['class_id' => $class_id])->count();
+
+
+        //For Documents/Resources
+        $resources = PracticeMaterial::find()
+            ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
+            ->leftJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->andWhere(['practice_material.filetype' => 'document'])
+            ->groupBy('practice_material.id')
+            ->andWhere(['OR', ['homeworks.class_id' => $class_id], ['feed.class_id' => $class_id]])->count();
+
+        $assessment = Homeworks::find()->where(['teacher_id' => $teacher_id, 'type' => SharedConstant::HOMEWORK_TYPES[0]])
+            ->andWhere(['class_id' => $class_id])->count();
+
+        $numbers = [
+            'assessment' => $assessment,
+            'resources' => $resources,
+            'videos' => $videos,
+            'discussion' => $discussion
+        ];
+
+        return (new ApiResponse)->success($numbers, ApiResponse::SUCCESSFUL);
 
     }
+
 }

@@ -134,7 +134,7 @@ class UserModel extends User
         //if ($this->isRelationPopulated('assessmentTopicsPerformance')) {
         if ($this->isRelationPopulated('proctor')) {
             $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
-            $fields['recommendation'] = 'recommendation';
+            $fields['recommendations'] = 'recommendation';
             $fields['proctor'] = 'proctor';
         }
 
@@ -371,7 +371,7 @@ class UserModel extends User
         return [
             'remedial' => $this->remedial,
             'videos' => $this->getVideos($this->remedial),
-            'practice' => $this->getPractice($this->remedial),
+            'resources' => $this->getPractice($this->remedial),
         ];
     }
 
@@ -398,7 +398,7 @@ class UserModel extends User
 
     public function getVideos($topic = null)
     {
-        if ($topic['score'] >= 75) {
+        if (isset($topic['score']) && $topic['score'] >= 75) {
             return null;
         }
 

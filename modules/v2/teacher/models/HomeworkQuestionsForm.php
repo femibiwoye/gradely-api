@@ -70,10 +70,10 @@ class HomeworkQuestionsForm extends Model
     public function deleteQuestion($type = 0, $homework_id, $question_id = null)
     {
         $model = HomeworkQuestions::find()
-            ->where(['homework_id' => $homework_id, 'teacher_id' => Yii::$app->user->identity->id]);
+            ->where(['homework_id' => $homework_id, 'teacher_id' => Yii::$app->user->id]);
         if ($type == 1) {
             if ($model->exists()) {
-                return HomeworkQuestions::deleteAll(['homework_id' => $homework_id, 'teacher_id' => Yii::$app->user->identity->id]);
+                return HomeworkQuestions::deleteAll(['homework_id' => $homework_id, 'teacher_id' => Yii::$app->user->id]);
             }
         } else {
             $model = $model->andWhere(['question_id' => $question_id]);

@@ -33,12 +33,13 @@ class ProctorFeedback extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'proctor_id', 'assessment_id'], 'required'],
+            [['user_id', 'proctor_id', 'assessment_id','type','report','details'], 'required'],
             [['user_id', 'proctor_id', 'assessment_id'], 'integer'],
             [['type', 'report', 'details'], 'string'],
             [['type'], 'in', 'range' => SharedConstant::PROCTOR_FEEDBACK_TYPE],
             [['created_at'], 'safe'],
             [['user_id'], 'exist', 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
+            [['proctor_id'], 'exist', 'targetClass' => ProctorReport::className(), 'targetAttribute' => ['proctor_id' => 'id','assessment_id']],
             [['assessment_id'], 'exist', 'targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id']],
         ];
     }

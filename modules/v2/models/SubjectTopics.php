@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use app\modules\v1\models\QuizSummary;
+use app\modules\v2\components\Utility;
 use Yii;
 use yii\helpers\ArrayHelper;
 use app\modules\v2\components\{SharedConstant};
@@ -55,6 +56,15 @@ class SubjectTopics extends \yii\db\ActiveRecord
             [['slug', 'topic'], 'string', 'max' => 200],
             [['image'], 'string', 'max' => 255],
         ];
+    }
+
+    public function fields()
+    {
+        $fields = parent::fields();
+        $fields['image'] = function ($model) {
+            return Utility::AbsoluteImage($model->image,'topics');
+        };
+        return $fields;
     }
 
     /**

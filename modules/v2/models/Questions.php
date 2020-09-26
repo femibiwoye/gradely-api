@@ -50,10 +50,9 @@ class Questions extends \yii\db\ActiveRecord
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration', 'option_a', 'option_b', 'option_c', 'option_d'], 'required', 'on' => 'create-multiple'],
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration'], 'required', 'on' => 'create-bool'],
             [['answer'], 'integer', 'on' => 'create-bool'],
-            [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category'], 'string'],
+            [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category','image'], 'string'],
             [['created_at'], 'safe'],
             //[['answer'], 'string', 'max' => 1],
-            [['image'], 'string', 'max' => 200],
             [['comprehension_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comprehension::className(), 'targetAttribute' => ['comprehension_id' => 'id']],
         ];
     }
@@ -103,6 +102,7 @@ class Questions extends \yii\db\ActiveRecord
             'option_d',
             'option_e',
             'answer',
+            'image',
             'duration',
             'difficulty',
             'type',
@@ -144,7 +144,7 @@ class Questions extends \yii\db\ActiveRecord
 
     public function getQuestionTopic()
     {
-        $topic = SubjectTopics::findOne(['id'=>$this->id]);
+        $topic = SubjectTopics::findOne(['id'=>$this->topic_id]);
         return !empty($topic)?$topic->topic:null;
     }
 
