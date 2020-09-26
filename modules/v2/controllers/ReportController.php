@@ -74,7 +74,7 @@ class ReportController extends ActiveController
             $proceedStatus = true;
         } elseif (Yii::$app->user->identity->type == 'teacher' && $homework->where([
                 'id' => $id,
-                //'teacher_id' => Yii::$app->user->id //to be returned
+                'teacher_id' => Yii::$app->user->id
             ])->exists()) {
             $proceedStatus = true;
         }
@@ -109,7 +109,7 @@ class ReportController extends ActiveController
         }
 
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
         return (new ApiResponse)->success($data == 'summary' ? $model->getHomeworkSummary() : $model, ApiResponse::SUCCESSFUL, 'Record found');

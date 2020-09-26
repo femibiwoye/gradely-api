@@ -394,7 +394,7 @@ class CommandsController extends Controller
         }
 
         if (!$this->daily_recommended_topics) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendations not found');
+            $this->startRecommendationsAgain($subjects, $classID);
         }
 
         $daily_recommended_videos = VideoContent::find()
@@ -412,6 +412,37 @@ class CommandsController extends Controller
 
         $this->topics = array_merge($this->daily_recommended_topics, $daily_recommended_videos);
         $this->createRecommendations($this->topics, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE]);
+    }
+
+    private function startRecommendationsAgain($subjects, $classID)
+    {
+        foreach ($subjects as $subject) {
+            $model = SubjectTopics::find()
+                ->select([
+                    'subject_topics.id',
+                    'subject_topics.topic',
+                    'subject_topics.week_number',
+                    'subject_topics.term',
+                    'subject_topics.class_id',
+                    'subjects.name as subject_name',
+                    'subjects.id as subject_id',
+                    new Expression("'practice' AS type"),
+                ])
+                ->innerJoin('subjects', 'subjects.id = subject_topics.subject_id')
+                ->where([
+                    'subject_topics.subject_id' => $subject,
+                    'subject_topics.class_id' => $classID
+                ])
+                ->asArray()
+                ->limit(SharedConstant::VALUE_ONE)
+                ->all();
+
+            if (sizeof($this->daily_recommended_topics) == SharedConstant::VALUE_THREE) {
+                break;
+            }
+
+            $this->daily_recommended_topics = array_merge($this->daily_recommended_topics, $model);
+        }
     }
 
     private function randomDailyRecommendationTopics($recommended_topics, $subjects, $weekly_recommended_topics)
