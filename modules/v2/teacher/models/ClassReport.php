@@ -181,24 +181,30 @@ class ClassReport extends Model
 
     private function getLowestTopicAttempted($student_id)
     {
+
         $topics_attempted = array();
         $topics = QuizSummaryDetails::find()
             ->alias('s')
             ->select(['s.topic_id'])
             ->where(['s.student_id' => $student_id])
             ->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
-            ->groupBy('topic_id')
-            ->asArray()
+            ->groupBy('topic_id');
+
+        if ($this->currentSubject)
+            $topics = $topics->innerJoin('subjects sb', 'sb.id = ' . $this->currentSubject->id);
+
+        $topics = $topics->asArray()
             ->all();
 
         foreach ($topics as $topic) {
             $attempted_topic = QuizSummaryDetails::find()
                 ->alias('qsd')
-                ->leftJoin('subject_topics st','st.id = qsd.topic_id')
+                ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
                 ->select([
                     new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
                     'qsd.topic_id',
-                    'st.topic'
+                    'st.topic',
+                    'st.subject_id'
                 ])
                 ->where(['topic_id' => $topic, 'student_id' => $student_id])
                 ->asArray()
@@ -212,6 +218,8 @@ class ClassReport extends Model
 
     private function getLowestAttemptedTopic($attempted_topics)
     {
+        print_r($attempted_topics);
+        die;
         $least_attempted_topic = array();
         foreach ($attempted_topics as $attempted_topic) {
             if (empty($least_attempted_topic)) {

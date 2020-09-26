@@ -142,16 +142,16 @@ class HomeworkController extends ActiveController
     {
         if ($class_id) {
             $model = $this->modelClass::find()->andWhere([
-                //'teacher_id' => Yii::$app->user->id, //to be returned
-                //'class_id' => $class_id, //to be returned
+                'teacher_id' => Yii::$app->user->id,
+                'class_id' => $class_id,
                 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
         } else
             $model = $this->modelClass::find()->andWhere([
-                //'teacher_id' => Yii::$app->user->id, //to be returned
+                'teacher_id' => Yii::$app->user->id,
                 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
 
         if (!$model->count() > 0) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
+            return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
         $provider = new ActiveDataProvider([
