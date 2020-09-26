@@ -155,7 +155,7 @@ class ClassReport extends Model
 
         $studentsCount = StudentSchool::find()->where(['class_id' => $class, 'status' => SharedConstant::VALUE_ONE])->count();
 
-        return ['studentsCountccc' => $studentsCount, 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling];
+        return ['studentsCount' => $studentsCount, 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling];
 
     }
 
