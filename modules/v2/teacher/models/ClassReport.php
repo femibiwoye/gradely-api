@@ -141,9 +141,9 @@ class ClassReport extends Model
         $struggling = [];
 
         foreach ($students as $student) {
-            array_push($student, $this->getRecommendations($student['id']));
-            $student['recommendations'] = $student[SharedConstant::VALUE_ZERO];
-            unset($student[SharedConstant::VALUE_ZERO]);
+//            array_push($student, $this->getRecommendations($student['id']));
+//            $student['recommendations'] = $student[SharedConstant::VALUE_ZERO];
+//            unset($student[SharedConstant::VALUE_ZERO]);
             if ($student['score'] >= 75) {
                 $excellence[] = $student;
             } elseif ($student['score'] >= 50 && $student['score'] < 75) {
@@ -218,8 +218,6 @@ class ClassReport extends Model
 
     private function getLowestAttemptedTopic($attempted_topics)
     {
-        print_r($attempted_topics);
-        die;
         $least_attempted_topic = array();
         foreach ($attempted_topics as $attempted_topic) {
             if (empty($least_attempted_topic)) {
