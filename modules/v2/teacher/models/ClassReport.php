@@ -127,7 +127,7 @@ class ClassReport extends Model
                 new Expression('COUNT(qsd.id) as attempt'),
                 new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct')
             ])
-            //->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1")
+            //->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1") // To be returned
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = user.id AND qsd.topic_id = '$topic_id'")
             ->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.submit = 1")
             ->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])

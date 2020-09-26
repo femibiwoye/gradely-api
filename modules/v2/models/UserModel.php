@@ -398,7 +398,7 @@ class UserModel extends User
 
     public function getVideos($topic = null)
     {
-        if ($topic['score'] >= 75) {
+        if (isset($topic['score']) && $topic['score'] >= 75) {
             return null;
         }
 
