@@ -98,7 +98,7 @@ class CatchupController extends ActiveController
         $model->requester_id = Yii::$app->user->id;
         $model->class = $class_id;
         $model->subject_id = $subject_id;
-        //save topic_id
+        //save topic_id. Session sometimes needs to be topic bases. Instead of subject.
         $model->meta = 'recommendation';
         $model->category = SharedConstant::TUTOR_SESSION_CATEGORY_TYPE[SharedConstant::VALUE_ZERO];
         $model->is_school = SharedConstant::VALUE_ONE;
@@ -188,6 +188,7 @@ class CatchupController extends ActiveController
         $model->type = SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO];
         $model->reference_type = $reference_type;
         $model->reference_id = $reference_id;
+        $model->practice_type = 'recommendation';
         if (!$homework_model = $model->initializePractice($student_id, $teacher_id)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
         }
