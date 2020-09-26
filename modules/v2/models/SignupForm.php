@@ -74,10 +74,17 @@ class SignupForm extends Model
         $user->setPassword($this->password);
         $user->generatePasswordResetToken();
         $user->generateAuthKey();
+
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$user->save() || !$this->generateCode($user) || !$this->createProfile($user)) {
                 return false;
+            }
+
+            if($this->scenario == 'parent-student-signup'){
+                $notification = new InputNotification();
+                if (!$notification->NewNotification('parent_adds_student', [['student_id', $user->id]]))
+                    return false;
             }
 
             $notification = new InputNotification();

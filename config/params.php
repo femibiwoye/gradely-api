@@ -1,5 +1,6 @@
 <?php
 
+
 //$year = date('Y');
 $year = "2021";
 $ftBegin = "2020-08-09";
@@ -11,6 +12,11 @@ return [
     'second_term_end' => $year . '-04-18',
     'third_term_start' => $year . '-04-19',
     'third_term_end' => $year . '-09-08',
+
+    'domain' => Yii::$app->request->BaseUrl,
+    'appName' => 'gradely',
+
+    'secret_token' => SECRET_TOKEN,
 
     //Payment gateway
     'payment_sk' => PAYSTACK_SK,

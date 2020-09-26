@@ -127,7 +127,7 @@ class InviteLog extends \yii\db\ActiveRecord
         }
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('student_invite_parent', [['student_id', $this->sender_id]]))
+        if (!$notification->NewNotification('student_invite_parent', [['invitation_id', $model->id]]))
             return false;
 
         return $model;
@@ -187,6 +187,11 @@ class InviteLog extends \yii\db\ActiveRecord
         $model->receiver_type = 'school';
         $model->token = Yii::$app->security->generateRandomString(100);
         if ($model->save()) {
+
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('teacher_invite_school', [['invitation_id', $model->id]]))
+                return false;
+
             return $model;
         }
         return false;

@@ -84,6 +84,7 @@ class HomeworkController extends ActiveController
 
         $form->school_id = $schoolID;
         $form->teacher_id = Yii::$app->user->id;
+
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
