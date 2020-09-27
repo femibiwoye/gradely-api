@@ -667,56 +667,56 @@ class CatchupController extends ActiveController
             }
 
             $recommended_videos = RecommendedResources::find()
-                        ->where([
-                            'receiver_id' => Yii::$app->user->id,
-                            'resources_type' => SharedConstant::TYPE_VIDEO
-                        ])
-                        ->andWhere([
-                            'NOT IN',
-                            'resources_id', 
-                            ArrayHelper::getColumn(FileLog::find()->select('file_id')->where(['subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO])->all(), 
-                                'file_id'
-                            )
-                        ])
-                        ->all();
+                ->where([
+                    'receiver_id' => Yii::$app->user->id,
+                    'resources_type' => SharedConstant::TYPE_VIDEO
+                ])
+                ->andWhere([
+                    'NOT IN',
+                    'resources_id',
+                    ArrayHelper::getColumn(FileLog::find()->select('file_id')->where(['subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO])->all(),
+                        'file_id'
+                    )
+                ])
+                ->all();
 
             $tutor_sessions = TutorSession::find()
-                                ->where([
-                                    'student_id' => Yii::$app->user->id,
-                                    'subject_id' => $model['subject_id'],
-                                    'meta' => SharedConstant::RECOMMENDATION,
-                                    'status' => SharedConstant::PENDING_STATUS
-                                ])
-                                ->andWhere('created_at <> (OW() - INTERVAL 48 HOUR)')
-                                ->all();
+                ->where([
+                    'student_id' => Yii::$app->user->id,
+                    'subject_id' => $model['subject_id'],
+                    'meta' => SharedConstant::RECOMMENDATION,
+                    'status' => SharedConstant::PENDING_STATUS
+                ])
+                ->andWhere('created_at <> (OW() - INTERVAL 48 HOUR)')
+                ->all();
 
             $practices = Homeworks::find()
-                                ->where([
-                                    'student_id' => Yii::$app->user->id,
-                                    'subject_id' => $model['subject_id'],
-                                ])
-                                ->andWhere([
-                                    'reference_type' => ['homework', 'class']
-                                ])
-                                ->andWhere([
-                                    'NOT IN',
-                                    'id',
-                                    ArrayHelper::getColumn(
-                                        QuizSummary::find()
-                                            ->where([
-                                                'subject_id' => $model['subject_id'],
-                                                'student_id' => Yii::$app->user->id
-                                            ])
-                                            ->all(),
-                                        'homework_id'
-                                    )
-                                ])
-                                ->all();
+                ->where([
+                    'student_id' => Yii::$app->user->id,
+                    'subject_id' => $model['subject_id'],
+                ])
+                ->andWhere([
+                    'reference_type' => ['homework', 'class']
+                ])
+                ->andWhere([
+                    'NOT IN',
+                    'id',
+                    ArrayHelper::getColumn(
+                        QuizSummary::find()
+                            ->where([
+                                'subject_id' => $model['subject_id'],
+                                'student_id' => Yii::$app->user->id
+                            ])
+                            ->all(),
+                        'homework_id'
+                    )
+                ])
+                ->all();
 
             $finalResult[] = array_merge(
                 $subject,
                 [
-                    'topics' => $topicOrders, 
+                    'topics' => $topicOrders,
                     'videos' => $recommended_videos,
                     'tutor_sessions' => $tutor_sessions,
                     'practices' => $practices
@@ -829,24 +829,45 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
     }
 
-    public function actionStartPracticeTemp()
+    public function actionGetPracticeQuestions()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
-        $type = Yii::$app->request->post('type');
-        $topic_id = Yii::$app->request->post('topic_id');
-        $form = new \yii\base\DynamicModel(compact('type', 'topic_id'));
-        $form->addRule(['type', 'topic_id'], 'required');
-        $form->addRule('type', 'in', ['range' => SharedConstant::PRACTICE_TYPE]);
+        $practice_id = Yii::$app->request->post('practice_id');
+        $student_id = Yii::$app->user->id;
+        $form = new \yii\base\DynamicModel(compact('practice_id', 'student_id'));
+        $form->addRule(['practice_id', 'student_id'], 'required');
+        $form->addRule(['practice_id', 'student_id'], 'integer');
+        $form->addRule(['practice_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['student_id', 'practice_id' => 'id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
+        if (Homeworks::find()
+            ->alias('hm')
+            ->where(['hm.student_id' => $student_id, 'hm.id' => $practice_id])
+            ->innerJoin('quiz_summary qs', 'qs.homework_id = hm.id AND qs.submit=1')
+            ->exists()) {
+            $form->addError('practice_id', 'Practice already taken');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!Homeworks::find()
+            ->alias('hm')
+            ->where(['hm.student_id' => $student_id, 'hm.id' => $practice_id])
+            ->innerJoin('practice_topics pt', 'pt.practice_id = hm.id')
+            ->exists()) {
+            $form->addError('practice_id', 'Topics not available, try again.');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $homework = Homeworks::findOne([['student_id' => $student_id, 'id' => $practice_id]]);
+
         $model = new StartQuizSummaryForm;
-        if (!$practice_model = $model->getTotalQuestions($type, $topic_id)) {
+        if (!$practice_model = $model->getTotalQuestions($homework)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Temp not started!');
         }
 
