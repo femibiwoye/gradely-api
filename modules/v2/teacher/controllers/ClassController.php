@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Remarks;
 use app\modules\v2\models\Schools;
@@ -164,6 +165,10 @@ class ClassController extends ActiveController
         if (!$teacher || !$teacher->classes) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes not found!');
         }
+
+        $notification = new InputNotification();
+        if (!$notification->NewNotification('teacher_assigned_class', [['teacher_id', Yii::$app->user->id]]))
+            return false;
 
         return (new ApiResponse)->success($teacher->classes, ApiResponse::SUCCESSFUL, 'Classes found');
     }

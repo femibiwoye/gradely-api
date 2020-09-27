@@ -206,7 +206,8 @@ class ClassReport extends Model
                     'st.topic',
                     'st.subject_id'
                 ])
-                ->where(['topic_id' => $topic, 'student_id' => $student_id])
+                ->where([
+                    'topic_id' => $topic, 'student_id' => $student_id])
                 ->asArray()
                 ->all();
 
