@@ -109,7 +109,8 @@ class QuizSummary extends \yii\db\ActiveRecord
 
     public function getScore()
     {
-        return $this->total_questions > 0 ? round(($this->correct / count($this->homeworkQuestions)) * 100) : 0;
+        $total = count($this->homeworkQuestions);
+        return $total > 0 ? round(($this->correct / $total) * 100) : 0;
     }
 
     public function getStudent()
