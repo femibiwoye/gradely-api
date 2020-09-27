@@ -13,10 +13,10 @@ return [
     'third_term_start' => $year . '-04-19',
     'third_term_end' => $year . '-09-08',
 
-    'domain' => Yii::$app->request->BaseUrl,
+    //'domain' => Yii::$app->request->BaseUrl,
     'appName' => 'gradely',
 
-    'secret_token' => SECRET_TOKEN,
+    'live_class_secret_token' => LIVE_CLASS_SECRET_TOKEN,
 
     //Payment gateway
     'payment_sk' => PAYSTACK_SK,
