@@ -57,6 +57,7 @@ use app\modules\v2\components\SharedConstant;
 class UserModel extends User
 {
 
+    public $pid = 1;
     /**
      * {@inheritdoc}
      */
@@ -483,8 +484,9 @@ class UserModel extends User
 
     public function getProctor()
     {
-        return $this->hasOne(ProctorReport::className(), ['student_id' => 'id'])
-            ->orWhere(['>=','id',1]) // to be removed
+        //return $this->hasOne(ProctorReport::className(), ['student_id' => 'id']) //to be returned
+        return $this->hasOne(ProctorReport::className(), ['id' => 'pid'])
+            ->orWhere(['id'=>1]) // to be removed
             //->andWhere(['assessment_id' => Yii::$app->request->get('id')])
         ;
 //
