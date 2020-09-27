@@ -135,6 +135,7 @@ class UserModel extends User
         if ($this->isRelationPopulated('proctor')) {
             $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
             $fields['recommendations'] = 'recommendation';
+            $fields['quizSummary'] = 'homeworkQuizSummary';
             $fields['proctor'] = 'proctor';
         }
 
@@ -360,7 +361,7 @@ class UserModel extends User
             ->innerJoin('homework_questions hq', 'hq.homework_id=qsd.homework_id')
             ->innerJoin('quiz_summary qus', "qus.id = qsd.quiz_id AND qus.type = 'homework'")
             ->leftJoin('subject_topics st', 'st.id=qsd.topic_id')
-            ->where(['qsd.homework_id' => Yii::$app->request->get('id')])
+            //->where(['qsd.homework_id' => Yii::$app->request->get('id')]) //To be returned
             ->groupBy(['qsd.topic_id'])
             ->orderBy('score ASC')
             ->asArray();
@@ -393,6 +394,7 @@ class UserModel extends User
             return $most_least_topic;
         }
 
+
         return SharedConstant::VALUE_NULL;
     }
 
@@ -411,7 +413,9 @@ class UserModel extends User
             ->limit(5)
             ->select('content_id')->all(), 'content_id');
 
-        return VideoContent::find()->where(['id' => $videos])->limit(SharedConstant::VALUE_FIVE)->all();
+        return VideoContent::find()
+            //->where(['id' => $videos]) //To be returned
+            ->limit(SharedConstant::VALUE_FIVE)->all();
     }
 
     public function getPractice($least_topic = null)
@@ -432,7 +436,7 @@ class UserModel extends User
                 'qsd.topic_id',
             ])
             ->where([
-                'homework_id' => $quizSummary->homework_id
+                //'homework_id' => $quizSummary->homework_id //To be returned
             ])
             ->orderBy(['score' => SORT_ASC])
             ->asArray()
@@ -469,10 +473,20 @@ class UserModel extends User
 
         return $topics = array_merge($topic_objects, $video);
     }
+    public function getHomeworkQuizSummary()
+    {
+        return $this->hasOne(QuizSummary::className(), ['student_id' => 'id'])
+            //->andWhere(['homework_id' => Yii::$app->request->get('id'),'submit'=>1]) //to be returned
+            ;
+    }
+
 
     public function getProctor()
     {
-        return $this->hasOne(ProctorReport::className(), ['student_id' => 'id']);
+        return $this->hasOne(ProctorReport::className(), ['student_id' => 'id'])
+            ->orWhere(['>=','id',1]) // to be removed
+            //->andWhere(['assessment_id' => Yii::$app->request->get('id')])
+        ;
 //
 //        $model = ProctorReport::find()
 //            ->where(['student_id' => $this->id])
