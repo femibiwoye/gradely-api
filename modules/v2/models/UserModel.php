@@ -57,7 +57,7 @@ use app\modules\v2\components\SharedConstant;
 class UserModel extends User
 {
 
-    public $pid = 1;
+    public $pid = 1; // To be removed
     /**
      * {@inheritdoc}
      */
@@ -474,6 +474,8 @@ class UserModel extends User
 
         return $topics = array_merge($topic_objects, $video);
     }
+
+
     public function getHomeworkQuizSummary()
     {
         return $this->hasOne(QuizSummary::className(), ['student_id' => 'id'])
