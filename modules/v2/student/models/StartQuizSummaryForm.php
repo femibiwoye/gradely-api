@@ -4,6 +4,7 @@ namespace app\modules\v2\student\models;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Questions;
+use app\modules\v2\models\SubjectTopics;
 use Yii;
 use yii\base\Model;
 use app\modules\v2\components\SharedConstant;
@@ -79,26 +80,33 @@ class StartQuizSummaryForm extends Model
         return PracticeTopics::find()->select('topic_id')->where(['practice_id' => $this->practice_id])->asArray()->all();
     }
 
-    public function getTotalQuestions($type, $topic_id)
+    public function getTotalQuestions(Homeworks $homework)
     {
-        if ($type == SharedConstant::SINGLE_TYPE_ARRAY) {
-            return [
-                Questions::find()->where(['topic_id' => $topic_id, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
-                Questions::find()->where(['topic_id' => $topic_id, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
-                Questions::find()->where(['topic_id' => $topic_id, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_FIVE)->all(),
-            ];
+        $topics = ArrayHelper::getColumn($homework->topicsID, 'topic_id');
+
+        $homeworkData = ['id' => $homework->id, 'title' => $homework->title];
+        if (count($topics) == 1) {
+            $topic = SubjectTopics::find()->where(['id' => $topics])->one();
+            $questions = array_merge(
+                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
+                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
+                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_FIVE)->all()
+            );
+            return array_merge($homeworkData, ['type' => 'single', 'topic' => ArrayHelper::toArray($topic), 'questions' => $questions]);
         } else {
-            $questions = Questions::find();
-            foreach ($topic_id as $topic) {
-                $this->questions = array_merge(
-                    $this->questions,
-                    $questions->where(['topic_id' => $topic, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_THREE)->all(),
-                    $questions->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_THREE)->all(),
-                    $questions->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_THREE)->all()
+            foreach ($topics as $topic) {
+                $topic = SubjectTopics::find()->where(['id' => $topic])->one();
+                $questions = array_merge(
+                    Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_THREE)->all(),
+                    Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_THREE)->all(),
+                    Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_THREE)->all()
                 );
+
+                $this->questions[] = ['topic' => ArrayHelper::toArray($topic), 'questions' => $questions];
+
             }
 
-            return $this->questions;
+            return array_merge($homeworkData, ['type' => 'mix', 'topics' => $this->questions]);
         }
     }
 }
