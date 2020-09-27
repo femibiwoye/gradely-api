@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\v2\teacher\models;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\models\StudentSchool;
 use Yii;
 use yii\base\Model;
@@ -48,6 +49,11 @@ class AddStudentForm extends Model {
 			return false;
 		}
 
+        $notification = new InputNotification();
+        if (!$notification->NewNotification('teacher_add_student_student', [['student_id', $user->id]]))
+            return false;
+
+
 		$this->addToClass($user);
 
 		return $user;
@@ -81,6 +87,10 @@ class AddStudentForm extends Model {
 				array_push($this->added_students, $student);
 			}
 
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('teacher_adds_student', [['teacher_id', Yii::$app->user->id]]))
+                return false;
+
 			$dbtransaction->commit();
 		} catch (\Exception $e) {
 			$dbtransaction->rollBack();
@@ -91,7 +101,9 @@ class AddStudentForm extends Model {
 	}
 
 	public function checkParent($student, $user) {
+
 		$parent = User::find()->andWhere(['email' => $student['email']])->andWhere(['type' => SharedConstant::TYPE_PARENT])->one();
+		
 		if ($parent) {
 			$model = new Parents;
 			$model->student_id = $user->id;
@@ -103,6 +115,10 @@ class AddStudentForm extends Model {
 			if (!$model->save(false)) {
 				return false;
 			}
+
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('teacher_add_student_parent', [['parent_id', $parent->id]]))
+                return false;
 
 		} else {
 			$model = new InviteLog;
