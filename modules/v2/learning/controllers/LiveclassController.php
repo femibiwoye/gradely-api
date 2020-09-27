@@ -23,7 +23,8 @@ class LiveclassController extends Controller
 {
 
 
-    public function actionStartClass(){
+    public function actionStartClass()
+    {
 
         $tutor_session_id = Yii::$app->request->post('id');
         $form = new \yii\base\DynamicModel(compact('tutor_session_id'));
@@ -35,12 +36,12 @@ class LiveclassController extends Controller
 
         $tutor_session = TutorSession::findOne(['id' => $tutor_session_id, 'requester_id' => Yii::$app->user->id]);
 
-        if(!$tutor_session)
+        if (!$tutor_session)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
 
         $teacher = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]);
 
-        if(Yii::$app->user->identity->type != 'teacher' )
+        if (Yii::$app->user->identity->type != 'teacher')
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
 
         $tutor_session->meeting_room = GenerateString::widget();
@@ -48,11 +49,11 @@ class LiveclassController extends Controller
 
         //if($tutor_session->save()){
 
-            $classAttendance = new ClassAttendance();
-            $classAttendance->session_id = $tutor_session_id;
-            $classAttendance->user_id = $teacher->teacher_id;
-            $classAttendance->type = 'host';
-            $classAttendance->save();
+        $classAttendance = new ClassAttendance();
+        $classAttendance->session_id = $tutor_session_id;
+        $classAttendance->user_id = $teacher->teacher_id;
+        $classAttendance->type = 'host';
+        $classAttendance->save();
         //}
 
         $teacherName = $teacher->teacher->firstname . ' ' . $teacher->teacher->lastname;
@@ -60,18 +61,18 @@ class LiveclassController extends Controller
         $payload = [
             "context" => [
                 "user" => [
-                    "avatar" => Yii::$app->params['domain'] . "/images/profile-thumb.JPG", //update
+                    "avatar" => $teacher->teacher->image, //update
                     "name" => "{$teacherName}", //update
                     "email" => "{$teacher->teacher->email}" //update
-                    ]
-                    ],
-                    "aud" => Yii::$app->params['appName'],
-                    "iss" => Yii::$app->params['appName'],
-                    "sub" => "class.gradely.ng",
-                    "room" => "{$tutor_session->meeting_room}" //Update: tutor_session.meeting_room
-                    ];
+                ]
+            ],
+            "aud" => Yii::$app->params['appName'],
+            "iss" => Yii::$app->params['appName'],
+            "sub" => "class.gradely.ng",
+            "room" => "{$tutor_session->meeting_room}" //Update: tutor_session.meeting_room
+        ];
 
-        $token = UserJwt::encode($payload, Yii::$app->params['secret_token']);
+        $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
 
         $tutor_session->meeting_token = $token;
         $tutor_session->token = $token;
@@ -80,7 +81,8 @@ class LiveclassController extends Controller
         return $token;
     }
 
-    public function actionJoinClass(){
+    public function actionJoinClass()
+    {
 
         $tutor_session_id = Yii::$app->request->post('id');
         $form = new \yii\base\DynamicModel(compact('tutor_session_id'));
@@ -92,7 +94,7 @@ class LiveclassController extends Controller
 
         $tutor_session = TutorSession::findOne($tutor_session_id);
 
-        if(!$tutor_session)
+        if (!$tutor_session)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
 
         $student = TutorSessionParticipant::findOne(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]);
@@ -100,19 +102,19 @@ class LiveclassController extends Controller
         $schoolStudent = StudentSchool::findOne(['student_id' => Yii::$app->user->id]);
 
 
-        if(Yii::$app->user->identity->type != 'student' )
+        if (Yii::$app->user->identity->type != 'student')
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
 
 
-        if($schoolStudent->class_id != $tutor_session->class_id)
+        if ($schoolStudent->class_id != $tutor_session->class_id)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Forbidden');
 
 
-        if($tutor_session->status == 'pending') {
+        if ($tutor_session->status == 'pending') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher has not started');
-        }elseif ($tutor_session->status == 'completed'){
+        } elseif ($tutor_session->status == 'completed') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class has finished!');
-        }else{
+        } else {
 
             $classAttendance = new ClassAttendance();
             $classAttendance->session_id = $tutor_session_id;
@@ -121,12 +123,13 @@ class LiveclassController extends Controller
 
             $studentName = $student->student->firstname . ' ' . $student->student->lastname;
 
+            $email = $student->student->email ? $student->student->email : 'support@gmail.com';
             $payload = [
                 "context" => [
                     "user" => [
-                        "avatar" => Yii::$app->params['domain'] . "/images/profile-thumb.JPG", //update
+                        "avatar" => $student->student->image, //update
                         "name" => "{$studentName}", //update
-                        "email" => "{$student->student->email}" //update
+                        "email" => "{$email}" //update
                     ]
                 ],
                 "aud" => Yii::$app->params['appName'],
@@ -135,7 +138,7 @@ class LiveclassController extends Controller
                 "room" => "{$tutor_session->meeting_room}" //Update: tutor_session.meeting_room
             ];
 
-            $token = UserJwt::encode($payload, Yii::$app->params['secret_token']);
+            $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
 
             $classAttendance->token = $token;
             $classAttendance->save();
@@ -145,18 +148,19 @@ class LiveclassController extends Controller
 
     }
 
-    public function actionEndClass($id){
+    public function actionEndClass($id)
+    {
 
         $tutor_session = TutorSession::findOne($id);
 
-        if(!$tutor_session)
+        if (!$tutor_session)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
 
 
         if ($tutor_session->requester_id == Yii::$app->user->id) {
             $tutor_session->status = 'completed';
             $tutor_session->save();
-           }
+        }
 
 
         if ($tutor_session->status == 'ongoing' || $tutor_session->status == 'completed') {
