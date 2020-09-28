@@ -417,7 +417,7 @@ class UserModel extends User
 
         $classID = Utility::getStudentClass(null, $this->id);
         return VideoContent::find()
-            ->select(['*', new Expression("$classID as class_id")])
+            ->select(['*', new Expression("'$classID' as class_id")])
             //->where(['id' => $videos]) //To be returned
             ->limit(SharedConstant::VALUE_FIVE)->asArray()->all();
     }
