@@ -58,6 +58,7 @@ class UserModel extends User
 {
 
     public $pid = 1; // To be removed
+
     /**
      * {@inheritdoc}
      */
@@ -414,9 +415,11 @@ class UserModel extends User
             ->limit(5)
             ->select('content_id')->all(), 'content_id');
 
+        $classID = Utility::getStudentClass(null, $this->id);
         return VideoContent::find()
+            ->select(['*', new Expression("$classID as class_id")])
             //->where(['id' => $videos]) //To be returned
-            ->limit(SharedConstant::VALUE_FIVE)->all();
+            ->limit(SharedConstant::VALUE_FIVE)->asArray()->all();
     }
 
     public function getPractice($least_topic = null)
@@ -478,8 +481,7 @@ class UserModel extends User
 
     public function getHomeworkQuizSummary()
     {
-        return $this->hasOne(QuizSummary::className(), ['student_id' => 'id'])
-            //->andWhere(['homework_id' => Yii::$app->request->get('id'),'submit'=>1]) //to be returned
+        return $this->hasOne(QuizSummary::className(), ['student_id' => 'id'])//->andWhere(['homework_id' => Yii::$app->request->get('id'),'submit'=>1]) //to be returned
             ;
     }
 
@@ -488,9 +490,9 @@ class UserModel extends User
     {
         //return $this->hasOne(ProctorReport::className(), ['student_id' => 'id']) //to be returned
         return $this->hasOne(ProctorReport::className(), ['id' => 'pid'])
-            ->orWhere(['id'=>1]) // to be removed
+            ->orWhere(['id' => 1]) // to be removed
             //->andWhere(['assessment_id' => Yii::$app->request->get('id')])
-        ;
+            ;
 //
 //        $model = ProctorReport::find()
 //            ->where(['student_id' => $this->id])
