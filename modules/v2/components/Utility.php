@@ -206,6 +206,12 @@ class Utility extends ActiveRecord
         }
     }
 
+    /**
+     * If student class category.
+     * Student could either be in primary or secondary
+     * @param $class_id
+     * @return string|null
+     */
     public static function getStudentClassCategory($class_id)
     {
         if ($class_id >= 7 && $class_id <= 12)
@@ -217,6 +223,12 @@ class Utility extends ActiveRecord
         return $category;
     }
 
+    /**
+     * Child subscription status
+     * @param null $student
+     * @param null $value
+     * @return bool
+     */
     public static function getSubscriptionStatus($student = null, $value = null)
     {
         if (empty($student)) {
@@ -230,6 +242,11 @@ class Utility extends ActiveRecord
         }
     }
 
+    /**
+     * This return current week and term of a student.
+     * @return array
+     * @throws \Exception
+     */
     public static function getStudentTermWeek()
     {
         $school_id = StudentSchool::find()
@@ -248,6 +265,12 @@ class Utility extends ActiveRecord
         return ['term' => strtolower($term), 'week' => strtolower($week)];
     }
 
+    /**
+     * This manages image url.
+     * @param $image
+     * @param $folder
+     * @return string
+     */
     public static function AbsoluteImage($image, $folder)
     {
         if (empty($image))
@@ -258,6 +281,29 @@ class Utility extends ActiveRecord
             $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $image;
         }
         return $image;
+    }
+
+    public static function GetVideo($contentID)
+    {
+        $url = Yii::$app->params['videoDomain'] . "?content_id=$contentID&user_id=" . Yii::$app->user->id;
+        $curl = curl_init("$url");
+
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31'
+        );
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+            'Authorization: Bearer ' . Yii::$app->params['wizItUpKey'],
+            'Content-Type: application/json',
+            "Cache-Control: no-cache",
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return json_decode($response);
     }
 
 

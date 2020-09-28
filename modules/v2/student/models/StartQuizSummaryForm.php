@@ -4,6 +4,7 @@ namespace app\modules\v2\student\models;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Questions;
+use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\SubjectTopics;
 use Yii;
 use yii\base\Model;
@@ -84,11 +85,15 @@ class StartQuizSummaryForm extends Model
     {
         $topics = ArrayHelper::getColumn($homework->topicsID, 'topic_id');
 
+        //This are questions that has been previously attempted by child;
+        $alreadyAttemptedQuestions = ArrayHelper::getColumn(QuizSummaryDetails::find()->where(['student_id' => $homework->student_id])->groupBy('question_id')->all(), 'question_id');
+
+
         $homeworkData = ['id' => $homework->id, 'title' => $homework->title];
         if (count($topics) == 1) {
             $topic = SubjectTopics::find()->where(['id' => $topics])->one();
             $questions = array_merge(
-                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
+            Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
                 Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
                 Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_FIVE)->all()
             );

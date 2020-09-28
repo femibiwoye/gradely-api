@@ -27,4 +27,10 @@ return [
     'questionImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/questions/',image))) as image",
     'subjectImage' => "IF(image IS NULL or image = '', 'https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/subjects.png',IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/subjects/',image))) as image",
     'topicImage' => "IF(image IS NULL or image = '', 'https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/topics.png',IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/topics/',image))) as image",
+
+    //WIzItUp url
+    'videoDomain' => 'https://api.wizitup.com/reseller/v1/get-link',
+
+    //WizItUp Content Access Key
+    'wizItUpKey' => WIZITUP_KEY
 ];
