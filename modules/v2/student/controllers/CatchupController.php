@@ -335,15 +335,14 @@ class CatchupController extends ActiveController
             //->with(['views'])
             ->one();
 
-        $videos = ['https://www.youtube.com/embed/LRhOuyXemwI',
-            'https://www.youtube.com/embed/UZByHx5fHzA',
-            'https://www.youtube.com/embed/YXWFUJj7Ac',
-            'http://www.html5rocks.com/en/tutorials/video/basics/devstories.mp4'];
+        $videoObject = Utility::GetVideo($video->id);
+
+        $videoUrl = isset($videoObject->data->content_link) ? $videoObject->data->content_link : null;
 
         $video = array_merge(
             ArrayHelper::toArray($video),
             [
-                'url' => $videos[mt_rand(0, 3)],
+                'url' => $videoUrl,
                 'assign' => $video->videoAssigned,
                 'topic' => $video->videoAssigned->topic,
                 'subject' => $video->videoAssigned->topic->subject
