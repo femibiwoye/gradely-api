@@ -251,7 +251,7 @@ class ClassReport extends Model
                 new Expression("'video' as type")
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            ->where(['video_assign.topic_id' => 'topic_id'])
+            //->where(['video_assign.topic_id' => $topic_id]) //To be returned
             ->limit(SharedConstant::VALUE_THREE)
             ->asArray()
             ->all();
