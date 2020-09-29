@@ -6,7 +6,7 @@ use Yii;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\models\{ApiResponse};
+use app\modules\v2\models\{ApiResponse, Subscriptions};
 use app\modules\v2\teacher\models\TutorPaymentForm;
 
 class PaymentController extends ActiveController
@@ -62,5 +62,15 @@ class PaymentController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher payments done');
+    }
+
+    public function actionSearchTutor($tutor_id)
+    {
+        $model = Subscriptions::findOne(['reference_id' => $tutor_id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Tutor record found');
     }
 }
