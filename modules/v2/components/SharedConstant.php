@@ -53,4 +53,7 @@ class SharedConstant
     const PRACTICE_TYPE = ['single', 'mix'];
     const RECOMMENDATION = 'recommendation';
     const PENDING_STATUS = 'pending';
+    const PAY_AS_YOU_GO = 'payg';
+    const PAID = 'paid';
+    const VALUE_TWELVE = 12;
 }

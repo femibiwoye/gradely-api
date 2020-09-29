@@ -63,6 +63,9 @@ return [
     //Teacher calender
     'GET v2/calender/teacher/<teacher_id:\d*>' => 'v2/teacher/calender/teacher-calender',//
 
+    //Teacher payment
+    'POST v2/payment/tutor' => 'v2/teacher/payment/tutor-payment',
+
     //Tutor Session
     'POST v2/teacher/catchup/remedial' => 'v2/teacher/catchup/create-session', //
     'POST v2/teacher/catchup/practice' => 'v2/teacher/catchup/create-practice', //

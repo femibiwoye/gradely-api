@@ -92,6 +92,36 @@ class Subscriptions extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        return [
+            'id',
+            'user_id',
+            'payment_details_id',
+            'reference_id',
+            'price',
+            'quantity',
+            'duration',
+            'duration_count',
+            'total',
+            'payment',
+            'amount_paid',
+            'transaction_id',
+            'plan_code',
+            'plan',
+            'type',
+            'meta',
+            'renew_status',
+            'coupon',
+            'status',
+            'created_at',
+            'paid_at',
+            'subscriptionChildrens',
+            'tutorSession'
+        ];
+    }
+
+
     /**
      * Gets query for [[SubscriptionChildrens]].
      *
@@ -100,6 +130,15 @@ class Subscriptions extends \yii\db\ActiveRecord
     public function getSubscriptionChildrens()
     {
         return $this->hasMany(SubscriptionChildren::className(), ['subscription_id' => 'id']);
+    }
+
+    public function getTutorSession()
+    {
+        return TutorSession::find()
+                ->innerJoin('subscriptions', 'subscriptions.user_id = tutor_session.requester_id')
+                ->where(['subscriptions.id' => $this->id])
+                ->asArray()
+                ->all();   
     }
 
     public function ConfirmPayment(Subscriptions $model)
