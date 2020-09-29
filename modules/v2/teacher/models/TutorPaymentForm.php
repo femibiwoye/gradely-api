@@ -67,7 +67,7 @@ class TutorPaymentForm extends Model
             $model->coupon = $this->coupon;
 
         $model->transaction_id = GenerateString::widget(['length' => 20]) . mt_rand(10, 99);
-        $model->payment = SharedConstant::PAID;
+        $model->payment = SharedConstant::UN_PAID;
         $model->total = !empty($this->coupon) ? ($model->price - (($model->price * $this->couponDetails->percentage) / 100)) : $model->price;
         $model->reference_id = $this->reference_id;
         $dbtransaction = Yii::$app->db->beginTransaction();

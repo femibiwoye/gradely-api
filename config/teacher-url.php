@@ -66,6 +66,7 @@ return [
     //Teacher payment
     'POST v2/payment/tutor' => 'v2/teacher/payment/tutor-payment',
     'GET v2/payment/tutor-search/<tutor_id:\d+>' => 'v2/teacher/payment/search-tutor',
+    'PUT v2/payment/status/<id:\d+>' => 'v2/payment/payment-status',
 
     //Tutor Session
     'POST v2/teacher/catchup/remedial' => 'v2/teacher/catchup/create-session', //
