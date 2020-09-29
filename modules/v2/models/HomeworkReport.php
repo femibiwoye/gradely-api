@@ -60,6 +60,7 @@ class HomeworkReport extends Homeworks
             'struggling_students' => $this->strugglingStudents,
             'average_students' => $this->averageStudents,
             'excellence_students' => $this->excellentStudents,
+            'due_date' => $this->close_date
 
         ];
     }
@@ -308,8 +309,8 @@ class HomeworkReport extends Homeworks
     public function getProctor()
     {
         $model = ProctorReport::find()
-                    ->where(['assessment_id' => $this->id])
-                    ->one();
+            ->where(['assessment_id' => $this->id])
+            ->one();
 
         if (!$model) {
             return SharedConstant::VALUE_NULL;
