@@ -67,6 +67,8 @@ return [
     'GET v2/parent/child-subscription' => 'v2/payment/children-subscription',// for parent
     'GET v2/parent/my-subscription' => 'v2/payment/child-subscription',// For student
 
+    //website errors
+    'POST v2/error/report-error' => 'v2/error/website-error',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

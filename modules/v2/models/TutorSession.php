@@ -55,7 +55,7 @@ class TutorSession extends \yii\db\ActiveRecord
         return [
             [['requester_id', 'category'], 'required'],
             [['requester_id', 'student_id', 'class', 'subject_id', 'session_count', 'curriculum_id', 'is_school'], 'integer'],
-            [['repetition', 'preferred_client', 'meeting_token', 'token', 'meta', 'status'], 'string'],
+            [['repetition', 'preferred_client', 'meeting_token', 'meta', 'status'], 'string'],
             [['availability', 'created_at'], 'safe'],
             [['title'], 'string', 'max' => 200],
             [['category'], 'string', 'max' => 50],
