@@ -847,7 +847,7 @@ class CatchupController extends ActiveController
 
         if (Homeworks::find()
             ->alias('hm')
-            ->where(['hm.student_id' => $student_id, 'hm.id' => $practice_id])
+            ->where(['hm.student_id' => $student_id, 'hm.id' => $practice_id, 'qs.student_id' => $student_id])
             ->innerJoin('quiz_summary qs', 'qs.homework_id = hm.id AND qs.submit=1')
             ->exists()) {
             $form->addError('practice_id', 'Practice already taken');
