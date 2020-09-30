@@ -54,6 +54,7 @@ class StartDiagnosticForm extends Model
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
 
+
             $globalClass = Utility::getStudentClass(SharedConstant::VALUE_ONE);
             if (empty($globalClass)) {
                 return false;
@@ -61,10 +62,11 @@ class StartDiagnosticForm extends Model
 
             $termWeek = Utility::getStudentTermWeek();
 
-            return $topics = $this->diagnosticTopics($globalClass, $this->subject_id, $termWeek);
-
+            $topics = $this->diagnosticTopics($globalClass, $this->subject_id, $termWeek);
 
             $dbtransaction->commit();
+
+            return $topics;
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
             return false;

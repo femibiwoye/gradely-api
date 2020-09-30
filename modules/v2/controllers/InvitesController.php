@@ -152,6 +152,9 @@ class InvitesController extends ActiveController
         if (!$model = InviteLog::findOne(['token' => $token, 'status' => 0]))
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid or expired token');
 
+        if (Yii::$app->user->identity->type != $model->receiver_type)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Your invitation does not correspond with you.');
+
 
         if ($model->sender_type == 'school' && $model->receiver_type == 'school') {
 
