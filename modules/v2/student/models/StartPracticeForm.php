@@ -86,6 +86,7 @@ class StartPracticeForm extends Model
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
+
             if (!$homework = $this->createHomework($student_id, $teacher_id)) {
                 return false;
             }
@@ -93,6 +94,7 @@ class StartPracticeForm extends Model
             if (!$this->createPracticeTopic($homework->id)) {
                 return false;
             }
+
 
             $dbtransaction->commit();
         } catch (Exception $e) {
