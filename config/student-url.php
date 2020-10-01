@@ -57,7 +57,7 @@ return [
     'GET v2/student/catchup/recent-practices' => 'v2/student/catchup/recent-practices', //
     'GET v2/student/catchup/incomplete-video' => 'v2/student/catchup/incomplete-videos', //
     'GET v2/student/catchup/practice-materials' => 'v2/student/catchup/class-materials', //
-    'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-topics', //
+    'GET v2/student/catchup/practice-recommendations' => 'v2/student/catchup/practice-recommendations', //
     'GET v2/student/catchup/watch-video/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/watch-video', //
     'POST v2/student/catchup/initialize-practice' => 'v2/student/catchup/initialize-practice', //
     //'POST v2/student/catchup/initialize-practice-temp' => 'v2/student/catchup/initialize-practice-temp',
@@ -67,6 +67,7 @@ return [
 
     // Diagnostic
     'POST v2/student/catchup/initialize-diagnostic' => 'v2/student/catchup/initialize-diagnostic', //
+    'POST v2/student/catchup/submit-practice' => 'v2/student/catchup/submit-practice', //
 
 
     //Recommendations
