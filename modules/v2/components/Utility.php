@@ -314,5 +314,9 @@ class Utility extends ActiveRecord
         return json_decode($response);
     }
 
+    public static function ImageQuery($name)
+    {
+        return "IF($name.image IS NULL or $name.image = '', 'https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/topics.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
+    }
 
 }
