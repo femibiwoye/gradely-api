@@ -12,6 +12,7 @@ use Yii;
  * @property int $homework_id
  * @property int $student_id
  * @property int $question_id
+ * @property int $time_spent
  * @property string $selected
  * @property string|null $answer
  * @property int|null $topic_id
@@ -36,7 +37,7 @@ class QuizSummaryDetails extends \yii\db\ActiveRecord
     {
         return [
             [['quiz_id', 'homework_id', 'student_id', 'question_id', 'selected'], 'required'],
-            [['quiz_id', 'homework_id', 'student_id', 'question_id', 'topic_id'], 'integer'],
+            [['quiz_id', 'homework_id', 'student_id', 'question_id', 'topic_id','time_spent'], 'integer'],
             [['created_at'], 'safe'],
             [['selected', 'answer'], 'string', 'max' => 1],
             [['quiz_id'], 'exist', 'skipOnError' => true, 'targetClass' => QuizSummary::className(), 'targetAttribute' => ['quiz_id' => 'id']],

@@ -8,7 +8,9 @@ use app\modules\v2\models\Classes;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\FeedLike;
 use app\modules\v2\models\FileLog;
+use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\PracticeTopics;
+use app\modules\v2\models\Questions;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\VideoAssign;
 use app\modules\v2\models\VideoContent;
@@ -666,34 +668,27 @@ class CatchupController extends ActiveController
             }
 
 
-            //Get all videos watched by student in specified subject
-            $alreadyWatchedVideos = ArrayHelper::getColumn(FileLog::find()->select('file_id')
-                ->where(['user_id' => $student_id, 'subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO, 'is_completed'=>0])->all(),
-                'file_id');
-
-            $recommended_videos = RecommendedResources::find()
-                ->where([
-                    'receiver_id' => Yii::$app->user->id,
-                    'resources_type' => SharedConstant::TYPE_VIDEO
-                ])
-                ->andWhere([
-                    'NOT IN',
-                    'resources_id',
-                    $alreadyWatchedVideos
-                ])
-                ->all();
-
             $tutor_sessions = TutorSession::find()
+                ->select([
+                    'tutor_session.*',
+                    new Expression("'live_class' as type"),
+                ])
                 ->where([
                     'student_id' => $student_id,
                     'subject_id' => $model['subject_id'],
                     'meta' => SharedConstant::RECOMMENDATION,
-                    'status' => SharedConstant::PENDING_STATUS
+                    'status' => SharedConstant::PENDING_STATUS,
+                    'is_school' => 1
                 ])
-                ->andWhere('created_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)')
-                ->all();
+                //Student only sees live_class/remedial that supposed to hold within the next 72hours
+                ->andWhere('availability > DATE_SUB(NOW(), INTERVAL 72 HOUR)')
+                ->asArray()->all();
 
             $practices = Homeworks::find()
+                ->select([
+                    'homeworks.*',
+                    new Expression("'practice' as type"),
+                ])
                 ->where([
                     'student_id' => $student_id,
                     'subject_id' => $model['subject_id'],
@@ -716,13 +711,15 @@ class CatchupController extends ActiveController
                 ])
                 ->all();
 
+
+            $recommendedVideos = $this->getRecommendedVideos($student_id, $model);
+
+            $topicOrders = array_merge($topicOrders, $recommendedVideos, $tutor_sessions, $practices);
+
             $finalResult[] = array_merge(
                 $subject,
                 [
                     'topics' => $topicOrders,
-                    'videos' => $recommended_videos,
-                    'tutor_sessions' => $tutor_sessions,
-                    'practices' => $practices
                 ]);
         }
 
@@ -732,6 +729,38 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, 'Practice Topics found');
+    }
+
+    protected function getRecommendedVideos($student_id, $model)
+    {
+        //Get all videos watched by student in specified subject
+        $alreadyWatchedVideos = ArrayHelper::getColumn(FileLog::find()->select('file_id')
+            ->where(['user_id' => $student_id, 'subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO, 'is_completed' => 0])->all(),
+            'file_id');
+
+        $recommended_videos = RecommendedResources::find()
+//                ->select([
+//                    'recommended_resources.*',
+//                    new Expression("'resource' as type"),
+//                ])
+            ->where([
+                'receiver_id' => Yii::$app->user->id,
+                'resources_type' => SharedConstant::TYPE_VIDEO
+            ])
+            ->andWhere([
+                'NOT IN',
+                'resources_id',
+                $alreadyWatchedVideos
+            ])
+            ->all();
+
+        // Get actual video object
+        $recommendedVideos = VideoContent::find()
+            ->select(['*', new Expression("'video' as type"),])
+            ->where(['id' => ArrayHelper::getColumn($recommended_videos, 'resources_id')])
+            ->asArray()->all();
+
+        return $recommendedVideos;
     }
 
     /**
@@ -875,5 +904,119 @@ class CatchupController extends ActiveController
         }
 
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice Temp started!');
+    }
+
+    private function saveHomeworkQuestion($practice_id, $student_id, $question)
+    {
+        $model = new HomeworkQuestions();
+        $model->homework_id = $practice_id;
+        $model->teacher_id = $student_id;
+        $model->question_id = $question->id;
+        $model->duration = $question->duration;
+        $model->difficulty = $question->difficulty;
+        if ($model->save())
+            return true;
+    }
+
+
+    public function actionSubmitPractice()
+    {
+
+        $attempts = \Yii::$app->request->post('attempts');
+        $practice_id = \Yii::$app->request->post('practice_id');
+
+        $student_id = \Yii::$app->user->id;
+
+        $failedCount = 0;
+        $correctCount = 0;
+
+        $model = new \yii\base\DynamicModel(compact('attempts', 'practice_id', 'student_id'));
+        $model->addRule(['attempts', 'practice_id'], 'required')
+            ->addRule(['practice_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['practice_id' => 'id', 'student_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice not validated');
+        }
+
+        if (!is_array($attempts)) {
+            //return error that questions is invalid
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question must be array');
+        }
+
+        if (QuizSummary::find()->where(['homework_id' => $practice_id, 'student_id' => \Yii::$app->user->id, 'submit' => 1])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice already submitted');
+        }
+
+        //use transaction before saving;
+        $dbtransaction = \Yii::$app->db->beginTransaction();
+        try {
+
+            $homework = Homeworks::findOne(['id' => $practice_id, 'student_id' => $student_id]);
+
+            $quizSummary = new QuizSummary();
+            $quizSummary->homework_id = $practice_id;
+            $quizSummary->attributes = \Yii::$app->request->post();
+            $quizSummary->teacher_id = $homework->teacher_id;
+            $quizSummary->student_id = \Yii::$app->user->id;
+            $quizSummary->class_id = Utility::getStudentClass();
+            $quizSummary->subject_id = $homework->subject_id;
+            $quizSummary->term = Utility::getStudentTermWeek('term');
+            $quizSummary->total_questions = count($attempts);
+            $quizSummary->type = $homework->type;
+            if (!$quizSummary->validate()) {
+                return (new ApiResponse)->error($quizSummary->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice not validated');
+            }
+
+
+            if (!$quizSummary->save()) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your attempt');
+            }
+
+            foreach ($attempts as $question) {
+                if (!isset($question['selected']) || !isset($question['question'])  || !isset($question['time_spent']) )
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt data is not valid');
+
+
+                if (!in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Invalid option '{$question['selected']}' provided");
+
+                $qsd = new QuizSummaryDetails();
+                $qsd->quiz_id = $quizSummary->id;
+                $qsd->question_id = $question['question'];
+                $qsd->selected = $question['selected'];
+                $questionModel = Questions::findOne(['id' => $question['question']]);
+                $qsd->answer = $questionModel->answer;
+                $qsd->topic_id = $questionModel->topic_id;
+                $qsd->student_id = \Yii::$app->user->id;
+                $qsd->homework_id = $quizSummary->homework_id;
+                $qsd->time_spent = $question['time_spent'];
+
+                if ($question['selected'] != $questionModel->answer)
+                    $failedCount = +1;
+
+                if ($question['selected'] == $questionModel->answer)
+                    $correctCount = +1;
+
+                if (!$qsd->save() || !$this->saveHomeworkQuestion($practice_id, $student_id, $questionModel))
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more attempt not saved');
+
+            }
+
+            $quizSummary->failed = $failedCount;
+            $quizSummary->correct = $correctCount;
+            $quizSummary->skipped = $quizSummary->total_questions - ($correctCount + $failedCount);
+            $quizSummary->submit = SharedConstant::VALUE_ONE;
+            $quizSummary->submit_at = date('Y-m-d H:i:s');
+
+            if (!$quizSummary->save())
+                return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
+
+            $dbtransaction->commit();
+            return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Practice processing completed');
+        } catch (\Exception $ex) {
+            $dbtransaction->rollBack();
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
+        }
+
     }
 }

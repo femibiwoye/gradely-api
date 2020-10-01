@@ -67,6 +67,7 @@ return [
 
     // Diagnostic
     'POST v2/student/catchup/initialize-diagnostic' => 'v2/student/catchup/initialize-diagnostic', //
+    'POST v2/student/catchup/submit-practice' => 'v2/student/catchup/submit-practice', //
 
 
     //Recommendations

@@ -247,7 +247,7 @@ class Utility extends ActiveRecord
      * @return array
      * @throws \Exception
      */
-    public static function getStudentTermWeek()
+    public static function getStudentTermWeek($only = null)
     {
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id'])
@@ -262,6 +262,14 @@ class Utility extends ActiveRecord
             $term = SessionTermOnly::widget(['id' => $school_id['school_id']]);
             $week = SessionTermOnly::widget(['id' => $school_id['school_id'], 'weekOnly' => true]);
         }
+        if (!empty($only)) {
+            if ($only == 'week')
+                return strtolower($week);
+            elseif ($only == 'term')
+                return strtolower($term);
+
+        }
+
         return ['term' => strtolower($term), 'week' => strtolower($week)];
     }
 
