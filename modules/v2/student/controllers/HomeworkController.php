@@ -177,6 +177,7 @@ class HomeworkController extends ActiveController
     {
         $topics = SubjectTopics::find()->alias('topic')
             ->innerJoin('quiz_summary_details qsd', 'topic.id = qsd.topic_id')
+            ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
             ->andWhere(['qsd.homework_id' => $homework_id])
             ->all();
 

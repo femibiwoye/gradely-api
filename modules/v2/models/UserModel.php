@@ -450,11 +450,12 @@ class UserModel extends User
 
         //$topic_objects retrieves topic objects
         $topic_objects = SubjectTopics::find()
+            ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
             ->select([
                 'subject_topics.*',
                 new Expression("'practice' as type")
             ])
-            ->where(['id' => ArrayHelper::getColumn($topics, 'topic_id')])
+            ->where(['subject_topics.id' => ArrayHelper::getColumn($topics, 'topic_id')])
             ->asArray()
             ->all();
 

@@ -630,6 +630,7 @@ class CatchupController extends ActiveController
                         Yii::$app->params['topicImage']
                     ])
                     ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
+                    ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
                     ->where(['topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
                     //->where(['st.subject_id' => $model['subject_id']])
                     ->orderBy('score')
