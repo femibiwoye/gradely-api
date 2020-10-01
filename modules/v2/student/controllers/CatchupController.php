@@ -666,6 +666,10 @@ class CatchupController extends ActiveController
             }
 
             $recommended_videos = RecommendedResources::find()
+                ->select([
+                    'recommended_resources.*',
+                    new Expression("'resource' as type"),
+                ])
                 ->where([
                     'receiver_id' => Yii::$app->user->id,
                     'resources_type' => SharedConstant::TYPE_VIDEO
@@ -680,16 +684,24 @@ class CatchupController extends ActiveController
                 ->all();
 
             $tutor_sessions = TutorSession::find()
+                ->select([
+                    'tutor_session.*',
+                    new Expression("'session' as type"),
+                ])
                 ->where([
                     'student_id' => Yii::$app->user->id,
                     'subject_id' => $model['subject_id'],
                     'meta' => SharedConstant::RECOMMENDATION,
                     'status' => SharedConstant::PENDING_STATUS
                 ])
-                ->andWhere('created_at <> (OW() - INTERVAL 48 HOUR)')
+                ->andWhere('created_at <> (NOW() - INTERVAL 48 HOUR)')
                 ->all();
 
             $practices = Homeworks::find()
+                ->select([
+                    'homeworks.*',
+                    new Expression("'practice' as type"),
+                ])
                 ->where([
                     'student_id' => Yii::$app->user->id,
                     'subject_id' => $model['subject_id'],
@@ -712,13 +724,12 @@ class CatchupController extends ActiveController
                 ])
                 ->all();
 
+            $topicOrders = array_merge($topicOrders, $recommended_videos, $tutor_sessions, $practices);
+
             $finalResult[] = array_merge(
                 $subject,
                 [
                     'topics' => $topicOrders,
-                    'videos' => $recommended_videos,
-                    'tutor_sessions' => $tutor_sessions,
-                    'practices' => $practices
                 ]);
         }
 
