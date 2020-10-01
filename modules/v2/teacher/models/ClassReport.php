@@ -78,7 +78,9 @@ class ClassReport extends Model
         try {
             $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
 
-            $record = SubjectTopics::find()->where(['term' => $term, 'subject_id' => $subject->id, 'class_id' => $class->global_class_id])->all();
+            $record = SubjectTopics::find()
+                ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
+                ->where(['subject_topics.term' => $term, 'subject_topics.subject_id' => $subject->id, 'subject_topics.class_id' => $class->global_class_id])->all();
 
             return $record;
         } catch (\Exception $exception) {

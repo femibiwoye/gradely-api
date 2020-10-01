@@ -598,7 +598,7 @@ class CatchupController extends ActiveController
         $student_id = Yii::$app->user->id;
         $models = QuizSummary::find()
             ->select('subject_id')
-            ->where(['student_id' => $student_id])
+            //->where(['student_id' => $student_id]) //TO be returned
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id')
             ->asArray()
@@ -610,11 +610,12 @@ class CatchupController extends ActiveController
                 ->select('quiz_summary_details.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type != 'recommendation'")
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
-                ->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => Yii::$app->user->id])
+                //->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => Yii::$app->user->id]) // To be returned
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
-            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])->where(['id' => $model['subject_id']])->asArray()->one();
+            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])
+                ->where(['id' => $model['subject_id']])->asArray()->one();
 
             $topicOrders = [];
             foreach ($topics as $index => $topic) {
@@ -627,11 +628,11 @@ class CatchupController extends ActiveController
                         'st.topic',
                         'st.id',
                         'st.subject_id',
-                        Yii::$app->params['topicImage']
+                        Utility::ImageQuery('st')
                     ])
                     ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
-                    ->where(['topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
-                    //->where(['st.subject_id' => $model['subject_id']])
+                    ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
+                    //->where(['qsd.topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']]) // To be returned
                     ->orderBy('score')
                     ->asArray()
                     ->groupBy('qsd.topic_id')
@@ -684,35 +685,9 @@ class CatchupController extends ActiveController
                 ->andWhere('availability > DATE_SUB(NOW(), INTERVAL 72 HOUR)')
                 ->asArray()->all();
 
-            $practices = Homeworks::find()
-                ->select([
-                    'homeworks.*',
-                    new Expression("'practice' as type"),
-                ])
-                ->where([
-                    'student_id' => $student_id,
-                    'subject_id' => $model['subject_id'],
-                ])
-                ->andWhere([
-                    'reference_type' => ['homework', 'class']
-                ])
-                ->andWhere([
-                    'NOT IN',
-                    'id',
-                    ArrayHelper::getColumn(
-                        QuizSummary::find()
-                            ->where([
-                                'subject_id' => $model['subject_id'],
-                                'student_id' => Yii::$app->user->id
-                            ])
-                            ->all(),
-                        'homework_id'
-                    )
-                ])
-                ->all();
-
 
             $recommendedVideos = $this->getRecommendedVideos($student_id, $model);
+            $practices = $this->getRecommendedPractices($student_id, $model);
 
             $topicOrders = array_merge($topicOrders, $recommendedVideos, $tutor_sessions, $practices);
 
@@ -761,6 +736,54 @@ class CatchupController extends ActiveController
             ->asArray()->all();
 
         return $recommendedVideos;
+    }
+
+    protected function getRecommendedPractices($student_id, $model)
+    {
+        $practicesList = Homeworks::find()
+            ->select([
+                'homeworks.*',
+                new Expression("'practice' as type"),
+            ])
+            ->where([
+                'student_id' => $student_id,
+                'subject_id' => $model['subject_id'],
+            ])
+            ->andWhere([
+                'reference_type' => ['homework', 'class']
+            ])
+            ->andWhere("
+                            NOT EXISTS
+                    (
+                    SELECT  null 
+                    FROM    quiz_summary qs
+                    WHERE   qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1
+                    )
+                ")
+//                ->andWhere([
+//                    'NOT IN',
+//                    'id',
+//                    ArrayHelper::getColumn(
+//                        QuizSummary::find()
+//                            ->where([
+//                                'subject_id' => $model['subject_id'],
+//                                'student_id' => Yii::$app->user->id
+//                            ])
+//                            ->all(),
+//                        'homework_id'
+//                    )
+//                ])
+            ->all();
+
+        $practices = [];
+        foreach ($practicesList as $practice) {
+            $practices[] = [
+                'type' => 'practice',
+                'practice_id' => $practice->id,
+                'topics' => $practice->topics,
+            ];
+        }
+        return $practices;
     }
 
     /**
@@ -861,6 +884,11 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
     }
 
+    /**
+     *
+     * This returns questions to be attempted
+     * @return ApiResponse
+     */
     public function actionGetPracticeQuestions()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
@@ -906,6 +934,13 @@ class CatchupController extends ActiveController
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice Temp started!');
     }
 
+    /**
+     * Because diagnostic and practice questions are not pre-generated, we save their attempted questions records on submission
+     * @param $practice_id
+     * @param $student_id
+     * @param $question
+     * @return bool
+     */
     private function saveHomeworkQuestion($practice_id, $student_id, $question)
     {
         $model = new HomeworkQuestions();
@@ -919,6 +954,10 @@ class CatchupController extends ActiveController
     }
 
 
+    /**
+     * This process diagnostic and practice attempts
+     * @return ApiResponse
+     */
     public function actionSubmitPractice()
     {
 
@@ -973,7 +1012,7 @@ class CatchupController extends ActiveController
             }
 
             foreach ($attempts as $question) {
-                if (!isset($question['selected']) || !isset($question['question'])  || !isset($question['time_spent']) )
+                if (!isset($question['selected']) || !isset($question['question']) || !isset($question['time_spent']))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt data is not valid');
 
 
