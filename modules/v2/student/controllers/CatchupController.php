@@ -585,7 +585,7 @@ class CatchupController extends ActiveController
      * This action generates recommended topic for catchup.
      * @return ApiResponse
      */
-    public function actionPracticeTopics()
+    public function actionPracticeRecommendations()
     {
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
@@ -593,10 +593,10 @@ class CatchupController extends ActiveController
 
 
         $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
-
+        $student_id = Yii::$app->user->id;
         $models = QuizSummary::find()
             ->select('subject_id')
-            ->where(['student_id' => Yii::$app->user->id])
+            ->where(['student_id' => $student_id])
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id')
             ->asArray()
@@ -665,6 +665,12 @@ class CatchupController extends ActiveController
 
             }
 
+
+            //Get all videos watched by student in specified subject
+            $alreadyWatchedVideos = ArrayHelper::getColumn(FileLog::find()->select('file_id')
+                ->where(['user_id' => $student_id, 'subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO, 'is_completed'=>0])->all(),
+                'file_id');
+
             $recommended_videos = RecommendedResources::find()
                 ->where([
                     'receiver_id' => Yii::$app->user->id,
@@ -673,25 +679,23 @@ class CatchupController extends ActiveController
                 ->andWhere([
                     'NOT IN',
                     'resources_id',
-                    ArrayHelper::getColumn(FileLog::find()->select('file_id')->where(['subject_id' => $model['subject_id'], 'type' => SharedConstant::TYPE_VIDEO])->all(),
-                        'file_id'
-                    )
+                    $alreadyWatchedVideos
                 ])
                 ->all();
 
             $tutor_sessions = TutorSession::find()
                 ->where([
-                    'student_id' => Yii::$app->user->id,
+                    'student_id' => $student_id,
                     'subject_id' => $model['subject_id'],
                     'meta' => SharedConstant::RECOMMENDATION,
                     'status' => SharedConstant::PENDING_STATUS
                 ])
-                ->andWhere('created_at <> (OW() - INTERVAL 48 HOUR)')
+                ->andWhere('created_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)')
                 ->all();
 
             $practices = Homeworks::find()
                 ->where([
-                    'student_id' => Yii::$app->user->id,
+                    'student_id' => $student_id,
                     'subject_id' => $model['subject_id'],
                 ])
                 ->andWhere([
