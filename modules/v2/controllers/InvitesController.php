@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, SharedConstant};
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\SchoolRole;
 use Yii;
@@ -10,7 +10,7 @@ use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
 use yii\filters\auth\CompositeAuth;
 use yii\web\Controller;
 use yii\web\Response;
-use app\modules\v2\models\{Schools, User, InviteLog, SchoolTeachers, Parents};
+use app\modules\v2\models\{Schools, User, InviteLog, SchoolTeachers, SchoolAdmin, Parents, TeacherClass};
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -157,18 +157,50 @@ class InvitesController extends ActiveController
 
 
         if ($model->sender_type == 'school' && $model->receiver_type == 'school') {
+            $school_admin = new SchoolAdmin;
+            $school_admin->school_id = $model->sender_id;
+            $school_admin->user_id = Yii::$app->user->id;
+            $school_admin->level = Yii::$app->request->post('level');
+            if (!$school_admin->save()) {
+                return false;
+            }
+
+            $model->extra_data = $school_admin->level;
 
         } elseif ($model->sender_type == 'school' && $model->receiver_type == 'teacher') {
+            $school_teacher = new SchoolTeachers;
+            $school_teacher->teacher_id = Yii::$app->user->id;
+            $school_teacher->school_id = $model->sender_id;
+            if (!$school_teacher->save()) {
+                return false;
+            }
+
+            $teacher_class = new TeacherClass;
+            $teacher_class->teacher_id = Yii::$app->user->id;
+            $teacher_class->school_id = $model->sender_id;
+            $teacher_class->class_id = $model->receiver_class;
+            if (!$teacher_class->save()) {
+                return false;
+            }
 
         } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
 
-        } elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
 
+        } elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
+            $parent_model = new Parents;
+            $parent_model->parent_id = Yii::$app->user->id;
+            $parent_model->student_id = $model->sender_id;
+            if (!$parent_model->save()) {
+                return false;
+            }
         }
 
+        $model->status = SharedConstant::VALUE_ONE;
+        if (!$model->save()) {
+            return false;
+        }
 
         return (new ApiResponse)->success($model);
-
     }
 
 
