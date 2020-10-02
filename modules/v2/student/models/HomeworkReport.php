@@ -4,6 +4,7 @@ namespace app\modules\v2\student\models;
 
 use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\Homeworks;
+use app\modules\v2\models\PracticeTopics;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\SubjectTopics;
@@ -29,6 +30,7 @@ class HomeworkReport extends QuizSummary
             'actualAttemptCount' => 'countAttemptedQuestions',
             'actualScore' => 'homeworkScore',
             'homework_title' => 'homeworkTitle',
+            'topics',
             'questions',
             'recommendations'
         ];
@@ -80,6 +82,15 @@ class HomeworkReport extends QuizSummary
             ->innerJoin('questions q', 'q.id = hq.question_id')
             ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id')
             ->asArray()
+            ->all();
+    }
+
+    public function getTopics()
+    {
+        return SubjectTopics::find()
+            ->alias('st')
+            ->innerJoin('practice_topics pt','pt.topic_id = st.id')
+            ->where(['pt.practice_id'=>$this->homework_id])
             ->all();
     }
 
