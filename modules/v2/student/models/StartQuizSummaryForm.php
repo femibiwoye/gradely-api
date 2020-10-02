@@ -83,26 +83,32 @@ class StartQuizSummaryForm extends Model
 
     public function getTotalQuestions(Homeworks $homework)
     {
-        $topics = ArrayHelper::getColumn($homework->topicsID, 'topic_id');
+        $topics = ArrayHelper::getColumn(PracticeTopics::find()->where(['practice_id' => $homework->id])->groupBy(['topic_id'])->all(), 'topic_id');
 
         //This are questions that has been previously attempted by child;
-        $alreadyAttemptedQuestions = ArrayHelper::getColumn(QuizSummaryDetails::find()->where(['student_id' => $homework->student_id])->groupBy('question_id')->all(), 'question_id');
+        // $alreadyAttemptedQuestions = ArrayHelper::getColumn(QuizSummaryDetails::find()->where(['student_id' => $homework->student_id])->groupBy('question_id')->all(), 'question_id');
 
 
         $homeworkData = ['id' => $homework->id, 'title' => $homework->title];
         if (count($topics) == 1) {
             $topic = SubjectTopics::find()->where(['id' => $topics])->one();
             $questions = array_merge(
-            Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
+                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
                 Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
-                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_FIVE)->all()
+                Questions::find()->where([
+                    'topic_id' => $topics, 'difficulty' => 'hard',
+                    'type' => 'bool' //To be removed
+                ])->limit(SharedConstant::VALUE_FIVE)->all()
             );
             return array_merge($homeworkData, ['type' => 'single', 'topic' => ArrayHelper::toArray($topic), 'questions' => $questions]);
         } else {
             foreach ($topics as $topic) {
                 $topic = SubjectTopics::find()->where(['id' => $topic])->one();
                 $questions = array_merge(
-                    Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_THREE)->all(),
+                    Questions::find()->where([
+                        'topic_id' => $topic, 'difficulty' => 'easy',
+                        'type' => 'bool' //To be removed
+                    ])->limit(SharedConstant::VALUE_THREE)->all(),
                     Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_THREE)->all(),
                     Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_THREE)->all()
                 );
