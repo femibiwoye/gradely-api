@@ -995,7 +995,8 @@ class CatchupController extends ActiveController
             $quizSummary = new QuizSummary();
             $quizSummary->homework_id = $practice_id;
             $quizSummary->attributes = \Yii::$app->request->post();
-            $quizSummary->teacher_id = $homework->teacher_id;
+            if ($homework->teacher_id)
+                $quizSummary->teacher_id = $homework->teacher_id;
             $quizSummary->student_id = \Yii::$app->user->id;
             $quizSummary->class_id = Utility::getStudentClass();
             $quizSummary->subject_id = $homework->subject_id;
