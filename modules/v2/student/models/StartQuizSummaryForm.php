@@ -103,7 +103,7 @@ class StartQuizSummaryForm extends Model
             return array_merge($homeworkData, ['type' => 'single', 'topic' => ArrayHelper::toArray($topic), 'questions' => $questions]);
         } else {
             foreach ($topics as $topic) {
-                $topic = SubjectTopics::find()->where(['id' => $topic])->one();
+                $topicObject = SubjectTopics::find()->where(['id' => $topic])->one();
                 $questions = array_merge(
                     Questions::find()->where([
                         'topic_id' => $topic, 'difficulty' => 'easy',
@@ -113,7 +113,7 @@ class StartQuizSummaryForm extends Model
                     Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_THREE)->all()
                 );
 
-                $this->questions[] = ['topic' => ArrayHelper::toArray($topic), 'questions' => $questions];
+                $this->questions[] = ['topic' => ArrayHelper::toArray($topicObject), 'questions' => $questions];
 
             }
 
