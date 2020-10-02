@@ -951,6 +951,8 @@ class CatchupController extends ActiveController
         $model->difficulty = $question->difficulty;
         if ($model->save())
             return true;
+
+        return false;
     }
 
 
@@ -1023,7 +1025,7 @@ class CatchupController extends ActiveController
                 $qsd = new QuizSummaryDetails();
                 $qsd->quiz_id = $quizSummary->id;
                 $qsd->question_id = $question['question'];
-                $qsd->selected = $question['selected'];
+                $qsd->selected = (string)$question['selected'];
                 if (!$questionModel = Questions::findOne(['id' => $question['question']]))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not valid');
                 $qsd->answer = $questionModel->answer;

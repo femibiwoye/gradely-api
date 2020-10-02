@@ -15,6 +15,7 @@ use app\modules\v2\models\RecommendationTopics;
 use app\modules\v2\models\SchoolCalendar;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\SubjectTopics;
+use app\modules\v2\models\TutorSession;
 use app\modules\v2\models\User;
 use app\modules\v2\models\VideoContent;
 use Yii;
@@ -33,6 +34,10 @@ class CommandsController extends Controller
     private $daily_recommended_topics = array();
     private $subjects;
 
+    /**
+     * Update school calendar
+     * @return int
+     */
     public function actionUpdateSchoolCalendar()
     {
         return SchoolCalendar::updateAll([
@@ -47,6 +52,11 @@ class CommandsController extends Controller
         ], ['status' => 1]);
     }
 
+    /**
+     * For videos that does not have token generated. It will generate unique token to the content.
+     * @return bool
+     * @throws \Exception
+     */
     public function actionUpdateVideoToken()
     {
         $videos = VideoContent::find()->where(['token' => null])->all();
@@ -63,6 +73,11 @@ class CommandsController extends Controller
         return true;
     }
 
+    /**
+     * For media files that does not have token generated. It will generate unique token to the files.
+     * @return bool
+     * @throws \Exception
+     */
     public function actionUpdateFileToken()
     {
         $files = PracticeMaterial::find()->where(['token' => null])->all();
@@ -77,6 +92,26 @@ class CommandsController extends Controller
         }
 
         return true;
+    }
+
+    public function actionUpdateLiveClassVideo($token)
+    {
+        if (TutorSession::find()->where(['meeting_room' => $token])->exists() && !PracticeMaterial::find()->where(['filename'=>$token . '.mp4'])->exists()) {
+            $tutorSession = TutorSession::find()->where(['meeting_room' => $token])->one();
+            $model = new PracticeMaterial();
+            $model->user_id = $tutorSession->requester_id;
+            $model->type = SharedConstant::FEED_TYPE;
+            $model->tag = 'live_class';
+            $model->filetype = SharedConstant::TYPE_VIDEO;
+            $model->title = $tutorSession->title;
+            $model->filename = $token . '.mp4';
+            $model->extension = 'mp4';
+            if (!$model->save()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
+            }
+            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video successfully saved');
+        }
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Token is invalid');
     }
 
 
