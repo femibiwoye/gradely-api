@@ -42,10 +42,10 @@ class QuizSummary extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'term'], 'required'],
+            [['homework_id', 'subject_id', 'student_id', 'class_id', 'total_questions', 'term'], 'required'],
             [['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'correct', 'failed', 'skipped', 'submit', 'topic_id'], 'integer'],
             [['type', 'term'], 'string'],
-            [['created_at'], 'safe'],
+            [['created_at', 'teacher_id'], 'safe'],
             [['submit_at'], 'string', 'max' => 50],
         ];
     }
