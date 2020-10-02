@@ -99,7 +99,9 @@ class StartQuizSummaryForm extends Model
                     //'topic_id' => $topic,// To be returned
                     'difficulty' => 'hard',
                     'type' => 'bool' //To be removed
-                ])->limit(SharedConstant::VALUE_FIVE)->all()
+                ])
+                    ->orderBy('rand()')//To be removed
+                    ->limit(SharedConstant::VALUE_FIVE)->all()
             );
             return array_merge($homeworkData, ['type' => 'single', 'topic' => ArrayHelper::toArray($topic), 'questions' => $questions]);
         } else {
@@ -110,7 +112,9 @@ class StartQuizSummaryForm extends Model
                         //'topic_id' => $topic,// To be returned
                         'difficulty' => 'easy',
                         'type' => 'bool' //To be removed
-                    ])->limit(SharedConstant::VALUE_THREE)->all(),
+                    ])
+                        ->orderBy('rand()')//To be removed
+                        ->limit(SharedConstant::VALUE_THREE)->all(),
                     Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_THREE)->all(),
                     Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_THREE)->all()
                 );
