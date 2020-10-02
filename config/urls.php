@@ -78,6 +78,7 @@ return [
         'GET verify' => 'verify', //
         'PUT resend/<id:\d+>' => 'resend', //
         'DELETE remove/<id:\d+>' => 'remove', //
+        'PUT verified/<token:\w+>' => 'verified',
     ]],
 
 
