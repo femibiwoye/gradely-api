@@ -1024,7 +1024,8 @@ class CatchupController extends ActiveController
                 $qsd->quiz_id = $quizSummary->id;
                 $qsd->question_id = $question['question'];
                 $qsd->selected = $question['selected'];
-                $questionModel = Questions::findOne(['id' => $question['question']]);
+                if (!$questionModel = Questions::findOne(['id' => $question['question']]))
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not valid');
                 $qsd->answer = $questionModel->answer;
                 $qsd->topic_id = $questionModel->topic_id;
                 $qsd->student_id = \Yii::$app->user->id;
