@@ -96,7 +96,8 @@ class StartQuizSummaryForm extends Model
                 Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
                 Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
                 Questions::find()->where([
-                    'topic_id' => $topics, 'difficulty' => 'hard',
+                    //'topic_id' => $topic,// To be returned
+                    'difficulty' => 'hard',
                     'type' => 'bool' //To be removed
                 ])->limit(SharedConstant::VALUE_FIVE)->all()
             );
@@ -106,7 +107,8 @@ class StartQuizSummaryForm extends Model
                 $topicObject = SubjectTopics::find()->where(['id' => $topic])->one();
                 $questions = array_merge(
                     Questions::find()->where([
-                        'topic_id' => $topic, 'difficulty' => 'easy',
+                        //'topic_id' => $topic,// To be returned
+                        'difficulty' => 'easy',
                         'type' => 'bool' //To be removed
                     ])->limit(SharedConstant::VALUE_THREE)->all(),
                     Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_THREE)->all(),
