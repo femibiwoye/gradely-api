@@ -139,6 +139,12 @@ class HomeworkController extends ActiveController
     }
 
 
+    /**
+     * Student report endpoint
+     * Can be used for Homework, Exam, Quiz, Diagnostic, Practice.
+     * @param $id
+     * @return ApiResponse
+     */
     public function actionHomeworkReport($id)
     {
         $student_id = Utility::getParentChildID();
