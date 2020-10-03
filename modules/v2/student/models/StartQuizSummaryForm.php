@@ -90,40 +90,41 @@ class StartQuizSummaryForm extends Model
 
 
         $homeworkData = ['id' => $homework->id, 'title' => $homework->title];
-        if (count($topics) == 1) {
-            $topic = SubjectTopics::find()->where(['id' => $topics])->one();
+//        if (count($topics) == 1) {
+//            $topic = SubjectTopics::find()->where(['id' => $topics])->one();
+//            $questions = array_merge(
+//                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
+//                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
+//                Questions::find()->where([
+//                    //'topic_id' => $topic,// To be returned
+//                    'difficulty' => 'hard',
+//                    'type' => 'bool' //To be removed
+//                ])
+//                    ->orderBy('rand()')//To be removed
+//                    ->limit(SharedConstant::VALUE_FIVE)->all()
+//            );
+//            return array_merge($homeworkData, ['type' => 'single', 'topics' => [['topic' => ArrayHelper::toArray($topic), 'questions' => $questions]]]);
+//        } else {
+        $questionCount = count($topics) <= 1 ? 5 : 3;
+        foreach ($topics as $topic) {
+            $topicObject = SubjectTopics::find()->where(['id' => $topic])->one();
             $questions = array_merge(
-                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'easy'])->limit(SharedConstant::VALUE_FIVE)->all(),
-                Questions::find()->where(['topic_id' => $topics, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_FIVE)->all(),
                 Questions::find()->where([
                     //'topic_id' => $topic,// To be returned
-                    'difficulty' => 'hard',
+                    'difficulty' => 'easy',
                     'type' => 'bool' //To be removed
                 ])
                     ->orderBy('rand()')//To be removed
-                    ->limit(SharedConstant::VALUE_FIVE)->all()
+                    ->limit($questionCount)->all(),
+                Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit($questionCount)->all(),
+                Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit($questionCount)->all()
             );
-            return array_merge($homeworkData, ['type' => 'single', 'topics' => [['topic' => ArrayHelper::toArray($topic), 'questions' => $questions]]]);
-        } else {
-            foreach ($topics as $topic) {
-                $topicObject = SubjectTopics::find()->where(['id' => $topic])->one();
-                $questions = array_merge(
-                    Questions::find()->where([
-                        //'topic_id' => $topic,// To be returned
-                        'difficulty' => 'easy',
-                        'type' => 'bool' //To be removed
-                    ])
-                        ->orderBy('rand()')//To be removed
-                        ->limit(SharedConstant::VALUE_THREE)->all(),
-                    Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit(SharedConstant::VALUE_THREE)->all(),
-                    Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit(SharedConstant::VALUE_THREE)->all()
-                );
 
-                $this->questions[] = ['topic' => ArrayHelper::toArray($topicObject), 'questions' => $questions];
+            $this->questions[] = ['topic' => ArrayHelper::toArray($topicObject), 'questions' => $questions];
 
-            }
-
-            return array_merge($homeworkData, ['type' => 'mix', 'topics' => $this->questions]);
         }
+
+        return array_merge($homeworkData, ['type' => count($topics) <= 1 ? 'single' : 'mix', 'topics' => $this->questions]);
+//        }
     }
 }
