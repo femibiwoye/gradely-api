@@ -3,6 +3,7 @@
 namespace app\modules\v2\learning\controllers;
 
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\ClassAttendance;
 use app\modules\v2\models\GenerateString;
@@ -10,6 +11,7 @@ use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
+use SebastianBergmann\CodeCoverage\Util;
 use yii\filters\auth\HttpBearerAuth;
 use yii\rest\Controller;
 use app\modules\v2\models\TutorSessionParticipant;
@@ -44,62 +46,65 @@ class LiveClassController extends Controller
         return $behaviors;
     }
 
-    public function actionStartClass()
+    private function classAttendance($session_id, $userID, $type)
     {
-
-        $session_id = Yii::$app->request->post('session_id');
-        $form = new \yii\base\DynamicModel(compact('session_id'));
-        $form->addRule(['session_id'], 'required');
-
-        if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
-        }
-
-        $tutor_session = TutorSession::findOne(['id' => $session_id, 'requester_id' => Yii::$app->user->id]);
-
-        if (!$tutor_session)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
-
-        $teacher = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]);
-
-        if (Yii::$app->user->identity->type != 'teacher')
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
-
-        $tutor_session->meeting_room = GenerateString::widget();
-        $tutor_session->status = 'ongoing';
-
-        //if($tutor_session->save()){
-
         $classAttendance = new ClassAttendance();
-        $classAttendance->session_id = $tutor_session_id;
-        $classAttendance->user_id = $teacher->teacher_id;
-        $classAttendance->type = 'host';
+        $classAttendance->session_id = $session_id;
+        $classAttendance->user_id = $userID;
+        $classAttendance->type = $type;
         $classAttendance->save();
-        //}
+    }
 
-        $teacherName = $teacher->teacher->firstname . ' ' . $teacher->teacher->lastname;
+    private function getPayload($user, $room)
+    {
+        $teacherName = $user->firstname . ' ' . $user->lastname;
+        $image = Utility::ProfileImage($user->image);
 
         $payload = [
             "context" => [
                 "user" => [
-                    "avatar" => $teacher->teacher->image, //update
-                    "name" => "{$teacherName}", //update
-                    "email" => "{$teacher->teacher->email}" //update
+                    "avatar" => "$image",
+                    "name" => "$teacherName",
+                    "email" => "$user->email"
                 ]
             ],
             "aud" => Yii::$app->params['appName'],
             "iss" => Yii::$app->params['appName'],
             "sub" => "class.gradely.ng",
-            "room" => "{$tutor_session->meeting_room}" //Update: tutor_session.meeting_room
+            "room" => "{$room}"
         ];
 
-        $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
 
+        return $payload;
+    }
+
+    public function actionStartClass()
+    {
+        if (Yii::$app->user->identity->type != 'teacher')
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
+
+        $session_id = Yii::$app->request->post('session_id');
+        $requester_id = Yii::$app->user->id;
+        $status = 'pending';
+        $form = new \yii\base\DynamicModel(compact('session_id', 'requester_id', 'status'));
+        $form->addRule(['session_id'], 'required')
+            ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['requester_id', 'session_id' => 'id', 'status']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        $tutor_session = TutorSession::findOne(['id' => $session_id, 'requester_id' => $requester_id]);
+        $tutor_session->meeting_room = GenerateString::widget();
+        $tutor_session->status = 'ongoing';
+
+        $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
+        $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
+        $this->classAttendance($session_id, $requester_id, SharedConstant::LIVE_CLASS_USER_TYPE[0]);
         $tutor_session->meeting_token = $token;
-        $tutor_session->token = $token;
         $tutor_session->save();
 
-        return $token;
+        return (new ApiResponse)->success($token, ApiResponse::SUCCESSFUL);
     }
 
     public function actionJoinClass()
@@ -198,7 +203,7 @@ class LiveClassController extends Controller
 
     public function actionUpdateLiveClassVideo($token)
     {
-        if (TutorSession::find()->where(['meeting_room' => $token])->exists() && !PracticeMaterial::find()->where(['filename'=>$token . '.mp4'])->exists()) {
+        if (TutorSession::find()->where(['meeting_room' => $token])->exists() && !PracticeMaterial::find()->where(['filename' => $token . '.mp4'])->exists()) {
             $tutorSession = TutorSession::find()->where(['meeting_room' => $token])->one();
             $model = new PracticeMaterial();
             $model->user_id = $tutorSession->requester_id;

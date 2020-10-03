@@ -51,6 +51,7 @@ class SharedConstant
     const PROCTOR_FILE_TYPE = ['image', 'audio', 'video'];
     const TUTOR_SESSION_CATEGORY_TYPE = ['class'];
     const PRACTICE_TYPE = ['single', 'mix'];
+    const LIVE_CLASS_USER_TYPE = ['host', 'attendee'];
     const RECOMMENDATION = 'recommendation';
     const PENDING_STATUS = 'pending';
     const PAY_AS_YOU_GO = 'payg';

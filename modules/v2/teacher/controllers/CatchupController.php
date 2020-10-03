@@ -185,7 +185,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $model = new StartPracticeForm;
+        $model = new StartPracticeForm(['scenario' => 'create-practice']);
         $model->topic_ids = $topic_ids;
         $model->type = SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO];
         $model->reference_type = $reference_type;
@@ -283,7 +283,7 @@ class CatchupController extends ActiveController
             'student_name' => $student->firstname . ' ' . $student->lastname,
             'student_image' => Utility::ProfileImage($student->image),
             'score' => ($model->correct / count($homeworkQuestions)) * 100,
-            'maximum_score' => 70,
+            'maximum_score' => 100,
             'correct' => $model->correct,
             'incorrect' => $model->failed,
             'skipped' => $model->skipped,
