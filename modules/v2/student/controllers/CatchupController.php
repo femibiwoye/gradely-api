@@ -617,56 +617,56 @@ class CatchupController extends ActiveController
             $subject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])
                 ->where(['id' => $model['subject_id']])->asArray()->one();
 
+            // $topicOrders = [];
+            //foreach ($topics as $index => $topic) {
+            $topicModels = QuizSummaryDetails::find()
+                ->alias('qsd')
+                ->select([
+                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                    'COUNT(qsd.id) as total',
+                    'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
+                    'st.topic',
+                    'st.id',
+                    'st.subject_id',
+                    Utility::ImageQuery('st')
+                ])
+                ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']}") // AND st.class_id = $class_id //To be returned
+                ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
+                ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'), 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
+                ->orderBy('score')
+                ->asArray()
+                ->groupBy('qsd.topic_id')
+                ->limit(10)
+                ->all();
+
             $topicOrders = [];
-            foreach ($topics as $index => $topic) {
-                $topicModels = QuizSummaryDetails::find()
-                    ->alias('qsd')
-                    ->select([
-                        new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                        'COUNT(qsd.id) as total',
-                        'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
-                        'st.topic',
-                        'st.id',
-                        'st.subject_id',
-                        Utility::ImageQuery('st')
-                    ])
-                    ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']}")
-                    ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
-                    ->where(['qsd.topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
-                    ->orderBy('score')
-                    ->asArray()
-                    ->groupBy('qsd.topic_id')
-                    ->limit(10)
-                    ->all();
+            foreach ($topicModels as $key => $inner) {
+                if ($key <= 3) {
+                    $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                }
 
-                $topicOrders = [];
-                foreach ($topicModels as $key => $inner) {
-                    if ($key <= 3) {
-                        $topicOrders[] = ['type' => 'single', 'topic' => $inner];
-                    }
-
-                    if ($key > 3 && $key <= 6) {
-                        if (isset($topicModels[4])) {
-                            $temp = array_splice($topicModels, 4, 3);
-                            if (count($temp) == 1)
-                                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
-                            else
-                                $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
-                        }
-                    }
-
-                    if ($key > 6 && $key <= 9) {
-                        if (isset($topicModels[7])) {
-                            $temp = array_splice($topicModels, 8, 3);
-                            if (count($temp) == 1)
-                                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
-                            else
-                                $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
-                        }
+                if ($key > 3 && $key <= 6) {
+                    if (isset($topicModels[4])) {
+                        $temp = array_splice($topicModels, 4, 3);
+                        if (count($temp) == 1)
+                            $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                        else
+                            $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
                     }
                 }
 
+                if ($key > 6 && $key <= 9) {
+                    if (isset($topicModels[7])) {
+                        $temp = array_splice($topicModels, 8, 3);
+                        if (count($temp) == 1)
+                            $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                        else
+                            $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
+                    }
+                }
             }
+
+            //}
 
 
             $tutor_sessions = TutorSession::find()
