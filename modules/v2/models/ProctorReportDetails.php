@@ -15,6 +15,7 @@ use Yii;
  * @property string $file_type
  * @property string $name
  * @property string $extension
+ * @property string $size
  * @property int|null $integrity This holds the integrity score of a practice
  * @property string $url
  * @property string|null $raw
@@ -39,11 +40,11 @@ class ProctorReportDetails extends \yii\db\ActiveRecord
     {
         return [
             [['report_id', 'user_id', 'assessment_id', 'integrity'], 'integer'],
-            [['user_id', 'assessment_id', 'file_type', 'name', 'extension', 'url', 'integrity'], 'required'],
+            [['user_id', 'assessment_id', 'file_type', 'name', 'extension', 'url', 'integrity','size'], 'required'],
             [['file_type', 'name', 'url', 'raw'], 'string'],
             [['file_type'], 'in', 'range' => SharedConstant::PROCTOR_FILE_TYPE],
             [['created_at'], 'safe'],
-            [['extension'], 'string', 'max' => 50],
+            [['extension','size'], 'string', 'max' => 50],
             [['report_id'], 'exist', 'skipOnError' => true, 'targetClass' => ProctorReport::className(), 'targetAttribute' => ['report_id' => 'id']],
             [['assessment_id'], 'exist', 'skipOnError' => true, 'targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id']],
         ];
