@@ -90,9 +90,6 @@ return [
 
         'GET generate-weekly-recommendation' => 'generate-weekly-recommendation', // Generate weekly recommendation
         'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
-
     ]],
-
-    'GET v2/update-live-class-video/<token:[a-zA-Z0-9/]+>' => 'v2/commands/update-live-class-video'
 
 ];
