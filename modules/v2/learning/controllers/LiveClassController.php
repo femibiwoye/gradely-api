@@ -47,15 +47,15 @@ class LiveClassController extends Controller
     public function actionStartClass()
     {
 
-        $tutor_session_id = Yii::$app->request->post('id');
-        $form = new \yii\base\DynamicModel(compact('tutor_session_id'));
-        $form->addRule(['tutor_session_id'], 'required');
+        $session_id = Yii::$app->request->post('session_id');
+        $form = new \yii\base\DynamicModel(compact('session_id'));
+        $form->addRule(['session_id'], 'required');
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        $tutor_session = TutorSession::findOne(['id' => $tutor_session_id, 'requester_id' => Yii::$app->user->id]);
+        $tutor_session = TutorSession::findOne(['id' => $session_id, 'requester_id' => Yii::$app->user->id]);
 
         if (!$tutor_session)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
