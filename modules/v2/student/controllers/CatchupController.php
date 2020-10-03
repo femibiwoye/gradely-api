@@ -1035,10 +1035,10 @@ class CatchupController extends ActiveController
                 $qsd->time_spent = $question['time_spent'];
 
                 if ($question['selected'] != $questionModel->answer)
-                    $failedCount = +1;
+                    $failedCount = $failedCount + 1;
 
                 if ($question['selected'] == $questionModel->answer)
-                    $correctCount = +1;
+                    $correctCount = $correctCount + 1;
 
                 if (!$qsd->save() || !$this->saveHomeworkQuestion($practice_id, $student_id, $questionModel))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more attempt not saved');
