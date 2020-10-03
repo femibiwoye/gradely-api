@@ -272,7 +272,9 @@ class CatchupController extends ActiveController
         }
 
         $data = [
+            'student_id' => $student_id,
             'score' => ($model->correct / count($homeworkQuestions)) * 100,
+            'maximum_score' => 70,
             'correct' => $model->correct,
             'incorrect' => $model->failed,
             'skipped' => $model->skipped,
@@ -282,7 +284,7 @@ class CatchupController extends ActiveController
             'assessment_type' => $model->type,
             'questions' => $allQuestions,
             'proctor' => ProctorReport::findOne(['assessment_id' => $assessment_id,
-            //    'student_id' => $student_id //To be returned
+                //    'student_id' => $student_id //To be returned
             ])];
 
         return (new ApiResponse)->success(
