@@ -242,7 +242,7 @@ class CatchupController extends ActiveController
             ->alias('qs')
             ->innerJoin('homeworks h', "h.id = qs.homework_id AND h.type = 'homework'")
             ->where([
-                'qs.student_id' => $student_id,
+                //'qs.student_id' => $student_id, //To be returned
                 'qs.homework_id' => $assessment_id,
                 'qs.submit' => SharedConstant::VALUE_ONE
             ])->one();
@@ -253,7 +253,9 @@ class CatchupController extends ActiveController
 
         $homework = Homeworks::find()
             ->select(['title', 'tag', 'created_at', 'close_date'])
-            ->where(['id' => $assessment_id, 'teacher_id' => Yii::$app->user->id])
+            ->where(['id' => $assessment_id,
+                //'teacher_id' => Yii::$app->user->id //To be returned
+            ])
             ->asArray()->one();
 
         $homeworkQuestions = ArrayHelper::getColumn(HomeworkQuestions::find()->where(['homework_id' => $assessment_id])->all(), 'question_id');
@@ -279,7 +281,9 @@ class CatchupController extends ActiveController
             'subject' => Subjects::findOne(['id' => $model->subject_id]),
             'assessment_type' => $model->type,
             'questions' => $allQuestions,
-            'proctor' => ProctorReport::findOne(['assessment_id' => $assessment_id, 'student_id' => $student_id])];
+            'proctor' => ProctorReport::findOne(['assessment_id' => $assessment_id,
+            //    'student_id' => $student_id //To be returned
+            ])];
 
         return (new ApiResponse)->success(
             $data,
