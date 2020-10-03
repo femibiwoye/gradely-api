@@ -103,7 +103,7 @@ class StartQuizSummaryForm extends Model
                     ->orderBy('rand()')//To be removed
                     ->limit(SharedConstant::VALUE_FIVE)->all()
             );
-            return array_merge($homeworkData, ['type' => 'single', 'topic' => ArrayHelper::toArray($topic), 'questions' => $questions]);
+            return array_merge($homeworkData, ['type' => 'single', 'topics' => [['topic' => ArrayHelper::toArray($topic), 'questions' => $questions]]]);
         } else {
             foreach ($topics as $topic) {
                 $topicObject = SubjectTopics::find()->where(['id' => $topic])->one();
