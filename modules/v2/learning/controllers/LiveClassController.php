@@ -6,9 +6,11 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\ClassAttendance;
 use app\modules\v2\models\GenerateString;
+use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
+use yii\filters\auth\HttpBearerAuth;
 use yii\rest\Controller;
 use app\modules\v2\models\TutorSessionParticipant;
 
@@ -19,9 +21,28 @@ use Yii;
 /**
  * Default controller for the `learning` module
  */
-class LiveclassController extends Controller
+class LiveClassController extends Controller
 {
 
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+        //For CORS
+        $auth = $behaviors['authenticator'];
+        unset($behaviors['authenticator']);
+
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::className(),
+        ];
+
+        //$behaviors['authenticator'] = $auth;
+        $behaviors['authenticator'] = [
+            'class' => HttpBearerAuth::className(),
+            'except' => ['update-live-class-video'],
+        ];
+
+        return $behaviors;
+    }
 
     public function actionStartClass()
     {
@@ -172,5 +193,26 @@ class LiveclassController extends Controller
             }
         }
 
+    }
+
+
+    public function actionUpdateLiveClassVideo($token)
+    {
+        if (TutorSession::find()->where(['meeting_room' => $token])->exists() && !PracticeMaterial::find()->where(['filename'=>$token . '.mp4'])->exists()) {
+            $tutorSession = TutorSession::find()->where(['meeting_room' => $token])->one();
+            $model = new PracticeMaterial();
+            $model->user_id = $tutorSession->requester_id;
+            $model->type = SharedConstant::FEED_TYPE;
+            $model->tag = 'live_class';
+            $model->filetype = SharedConstant::TYPE_VIDEO;
+            $model->title = $tutorSession->title;
+            $model->filename = $token . '.mp4';
+            $model->extension = 'mp4';
+            if (!$model->save()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
+            }
+            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video successfully saved');
+        }
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Token is invalid');
     }
 }

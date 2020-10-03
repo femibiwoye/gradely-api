@@ -230,7 +230,9 @@ class CatchupController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('student_id', 'assessment_id', 'teacher_id'));
         $form->addRule(['student_id', 'assessment_id'], 'required');
         $form->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']]);
-        $form->addRule(['assessment_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id', 'teacher_id']]);
+        $form->addRule(['assessment_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id'
+            //    , 'teacher_id' //To be returned
+        ]]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');

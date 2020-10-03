@@ -94,26 +94,6 @@ class CommandsController extends Controller
         return true;
     }
 
-    public function actionUpdateLiveClassVideo($token)
-    {
-        if (TutorSession::find()->where(['meeting_room' => $token])->exists() && !PracticeMaterial::find()->where(['filename'=>$token . '.mp4'])->exists()) {
-            $tutorSession = TutorSession::find()->where(['meeting_room' => $token])->one();
-            $model = new PracticeMaterial();
-            $model->user_id = $tutorSession->requester_id;
-            $model->type = SharedConstant::FEED_TYPE;
-            $model->tag = 'live_class';
-            $model->filetype = SharedConstant::TYPE_VIDEO;
-            $model->title = $tutorSession->title;
-            $model->filename = $token . '.mp4';
-            $model->extension = 'mp4';
-            if (!$model->save()) {
-                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
-            }
-            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video successfully saved');
-        }
-        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Token is invalid');
-    }
-
 
     /**
      * Weekly Recommendation

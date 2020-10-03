@@ -39,9 +39,9 @@ class Module extends \yii\base\Module
             'tutor' => [
                 'class' => 'app\modules\v2\tutor\Module',
             ],
-            /*'invite' => [
-                'class' => 'app\modules\v2\invite\Module',
-            ]*/
+            'learning' => [
+                'class' => 'app\modules\v2\learning\Module',
+            ]
         ];
 
     }
