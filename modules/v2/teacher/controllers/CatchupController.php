@@ -2,9 +2,11 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\SubjectTopics;
+use app\modules\v2\models\UserModel;
 use Yii;
 use app\modules\v2\models\{TutorSession,
     ApiResponse,
@@ -266,13 +268,20 @@ class CatchupController extends ActiveController
         $allQuestions = [];
         foreach ($questions as $question) {
             $quizDetails = QuizSummaryDetails::findOne(['quiz_id' => $model->id, 'homework_id' => $assessment_id, 'question_id' => $question['id']]);
+            if (!$quizDetails)
+                continue;
             $correctStatus = $quizDetails->selected == $question['answer'];
             $selected = $quizDetails->selected;
             $allQuestions[] = array_merge(ArrayHelper::toArray($question), ['correctStatus' => $correctStatus, 'selected' => $selected]);
         }
 
+        $student = User::find()->select(['firstname', 'lastname', 'image', 'code'])->where(['id' => $student_id])->one();
+
         $data = [
             'student_id' => $student_id,
+            'student_code' => $student->code,
+            'student_name' => $student->firstname . ' ' . $student->lastname,
+            'student_image' => Utility::ProfileImage($student->image),
             'score' => ($model->correct / count($homeworkQuestions)) * 100,
             'maximum_score' => 70,
             'correct' => $model->correct,

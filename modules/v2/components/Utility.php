@@ -281,7 +281,7 @@ class Utility extends ActiveRecord
      */
     public static function AbsoluteImage($image, $folder)
     {
-        if (empty($image))
+        if (empty($image) && !empty($folder))
             $image = "https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/$folder.png";
         elseif (strpos($image, 'http') !== false)
             $image = $image;
@@ -289,6 +289,19 @@ class Utility extends ActiveRecord
             $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $image;
         }
         return $image;
+    }
+
+    public static function ProfileImage($image)
+    {
+        if (empty($image))
+            $image = null;
+        elseif (strpos($image, 'http') !== false)
+            $image = $image;
+        else {
+            $image = Yii::$app->params['baseURl'] . '/images/users/' . $image;
+        }
+        return $image;
+
     }
 
     public static function GetVideo($contentID)
