@@ -598,7 +598,7 @@ class CatchupController extends ActiveController
         $student_id = Yii::$app->user->id;
         $models = QuizSummary::find()
             ->select('subject_id')
-            //->where(['student_id' => $student_id]) //TO be returned
+            ->where(['student_id' => $student_id])
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id')
             ->asArray()
@@ -610,7 +610,7 @@ class CatchupController extends ActiveController
                 ->select('quiz_summary_details.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type != 'recommendation'")
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
-                //->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => Yii::$app->user->id]) // To be returned
+                ->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => Yii::$app->user->id])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
@@ -632,7 +632,7 @@ class CatchupController extends ActiveController
                     ])
                     ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                     ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
-                    //->where(['qsd.topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']]) // To be returned
+                    ->where(['qsd.topic_id' => $topic->topic_id, 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
                     ->orderBy('score')
                     ->asArray()
                     ->groupBy('qsd.topic_id')
