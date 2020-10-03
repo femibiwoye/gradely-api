@@ -25,7 +25,6 @@ use yii\helpers\ArrayHelper;
  * @property int $is_school
  * @property string|null $preferred_client
  * @property string|null $meeting_token For daily.co, this is used to set the host
- * @property string|null $token Generated and used to set the host
  * @property string|null $meeting_room this is use to determine the room for this class
  * @property string|null $meta Any additional data
  * @property string $status
