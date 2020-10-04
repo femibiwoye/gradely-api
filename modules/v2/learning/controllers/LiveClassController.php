@@ -201,8 +201,17 @@ class LiveClassController extends Controller
     }
 
 
-    public function actionUpdateLiveClassVideo($token)
+    public function actionUpdateLiveClassVideo($token, $url)
     {
+
+        $model = new \yii\base\DynamicModel(compact('token', 'url'));
+        $model->addRule(['token', 'url'], 'required')
+            ->addRule(['url'], 'url')
+            ->addRule(['token'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['token' => 'meeting_room']]);
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
         if (TutorSession::find()->where(['meeting_room' => $token])->exists() && !PracticeMaterial::find()->where(['filename' => $token . '.mp4'])->exists()) {
             $tutorSession = TutorSession::find()->where(['meeting_room' => $token])->one();
             $model = new PracticeMaterial();
@@ -211,7 +220,7 @@ class LiveClassController extends Controller
             $model->tag = 'live_class';
             $model->filetype = SharedConstant::TYPE_VIDEO;
             $model->title = $tutorSession->title;
-            $model->filename = $token . '.mp4';
+            $model->filename = $url;
             $model->extension = 'mp4';
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
