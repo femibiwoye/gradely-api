@@ -562,7 +562,7 @@ class CatchupController extends ActiveController
         $class_id = Utility::getStudentClass();
 
         $model = PracticeMaterial::find()
-            ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id")//removed
+            //->innerJoin('homeworks', "homeworks.id = practice_material.practice_id")//removed
             ->innerJoin('homeworks', "homeworks.id = practice_material.practice_id AND homeworks.class_id = $class_id")
             //->where(['user_id' => Yii::$app->user->identity->id])//remogit pullved
             ->where(['class_id' => Utility::getStudentClass()])

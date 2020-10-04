@@ -60,6 +60,10 @@ class LiveClassController extends Controller
         $teacherName = $user->firstname . ' ' . $user->lastname;
         $image = Utility::ProfileImage($user->image);
 
+        /// To change class name, add #config.subject="" to the end of the token
+        /// #config.subject=%22This%20is%20new%20name%22
+        /// e.g https://class.gradely.ng/dgo8wbrxed5fb710a1bgbul0rkmkw6?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6XC9cL3Jlcy5jbG91ZGluYXJ5LmNvbVwvZ3JhZGVseVwvaW1hZ2VcL3VwbG9hZFwvdjE2MDAzNDAyOTNcL3VzZXJcL2hjaGRpc2dqZnA0dzBhaGhkemJpLnBuZyIsIm5hbWUiOiJIYW51bWFuIGhhbnVtYW4iLCJlbWFpbCI6ImhhbnVtYW5AZ21haWwuY29tIn19LCJhdWQiOiJncmFkZWx5IiwiaXNzIjoiZ3JhZGVseSIsInN1YiI6ImNsYXNzLmdyYWRlbHkubmciLCJyb29tIjoiZGdvOHdicnhlZDVmYjcxMGExYmdidWwwcmtta3c2In0.2YoIO-1p4tD2uc0h7uHrPBIl1-TTPwpe0XCZm0ogM0o#config.subject=%22This%20is%20new%20name%22
+
         $payload = [
             "context" => [
                 "user" => [
@@ -201,12 +205,11 @@ class LiveClassController extends Controller
     }
 
 
-    public function actionUpdateLiveClassVideo($token, $url)
+    public function actionUpdateLiveClassVideo($token)
     {
 
-        $model = new \yii\base\DynamicModel(compact('token', 'url'));
-        $model->addRule(['token', 'url'], 'required')
-            ->addRule(['url'], 'url')
+        $model = new \yii\base\DynamicModel(compact('token'));
+        $model->addRule(['token'], 'required')
             ->addRule(['token'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['token' => 'meeting_room']]);
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
@@ -220,7 +223,7 @@ class LiveClassController extends Controller
             $model->tag = 'live_class';
             $model->filetype = SharedConstant::TYPE_VIDEO;
             $model->title = $tutorSession->title;
-            $model->filename = $url;
+            $model->filename = $token;
             $model->extension = 'mp4';
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
