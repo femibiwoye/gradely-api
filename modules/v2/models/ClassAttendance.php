@@ -14,7 +14,7 @@ use Yii;
  * @property string $joined_at
  * @property string|null $joined_updated
  * @property string|null $ended_at
- * @property string $token Generated for student joining the class
+ * @property string $token Generated for host starting the meeting or student joining the class
  *
  * @property TutorSession $session
  * @property User $user
