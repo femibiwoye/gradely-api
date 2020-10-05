@@ -290,6 +290,20 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
     }
 
+    public function actionDelete($id)
+    {
+        $model = TutorSession::findOne(['id' => $id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        if (!$model->delete()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not deleted');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted successfully!');
+    }
+
     /**
      *
      * Delete records from feed
