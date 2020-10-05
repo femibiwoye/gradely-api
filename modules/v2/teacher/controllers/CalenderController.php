@@ -130,8 +130,8 @@ class CalenderController extends ActiveController
                     'DATE(availability)' => $date,
                 ]);
         } else {
-            $live_classes = $live_classes->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
-            $homeworks = $homeworks->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
+//            $live_classes = $live_classes->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
+//            $homeworks = $homeworks->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
         }
 
         if ($class_id) {
