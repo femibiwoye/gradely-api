@@ -144,7 +144,7 @@ class HomeworkController extends ActiveController
         if ($class_id) {
             $model = $this->modelClass::find()->andWhere([
                 'teacher_id' => Yii::$app->user->id,
-                //'class_id' => $class_id, //To be returned
+                'class_id' => $class_id,
                 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
         } else
             $model = $this->modelClass::find()->andWhere([

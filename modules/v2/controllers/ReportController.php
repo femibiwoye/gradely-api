@@ -93,7 +93,7 @@ class ReportController extends ActiveController
                 ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
                 ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
                 ->andWhere([
-                    //'qs.homework_id' => $id, //To be returned
+                    'qs.homework_id' => $id,
                     'qs.submit' => SharedConstant::VALUE_ONE,
                     'qs.type' => 'homework'])
                 ->all();
