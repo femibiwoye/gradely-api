@@ -40,6 +40,8 @@ class TutorSession extends \yii\db\ActiveRecord
      */
     private $new_sessions = [];
     public $class_id;
+    public $view_by;
+    public $description;
 
     public static function tableName()
     {
@@ -60,11 +62,14 @@ class TutorSession extends \yii\db\ActiveRecord
             [['category'], 'string', 'max' => 50],
             [['meeting_room'], 'string', 'max' => 255],
 
-            [['requester_id', 'class_id', 'subject_id', 'repetition', 'category', 'availability', 'title'], 'required', 'on' => 'new-class'],
+            [['requester_id', 'class_id', 'subject_id', 'repetition', 'category', 'availability', 'title', 'view_by'], 'required', 'on' => 'new-class'],
             ['subject_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['subject_id']],
             ['class_id', 'exist', 'targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id']],
             ['repetition', 'in', 'range' => ['once', 'daily', 'workdays', 'weekly']],
-            ['availability', 'datetime', 'format' => 'php:Y-m-d H:i:s']
+            ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
+            ['availability', 'datetime', 'format' => 'php:Y-m-d H:i'],
+
+            [['description'],'string']
         ];
     }
 
@@ -183,7 +188,7 @@ class TutorSession extends \yii\db\ActiveRecord
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
 
             $condition = ['class' => $classes, 'status' => 'pending'];
-        }elseif (Yii::$app->user->identity->type == 'student'){
+        } elseif (Yii::$app->user->identity->type == 'student') {
 
             if ($studentModel = StudentSchool::find()
                 ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one())
@@ -192,7 +197,7 @@ class TutorSession extends \yii\db\ActiveRecord
                 $student_class = null;
 
             $condition = ['class' => $student_class];
-        }elseif (Yii::$app->user->identity->type == 'parent'){
+        } elseif (Yii::$app->user->identity->type == 'parent') {
 
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
 
@@ -233,7 +238,9 @@ class TutorSession extends \yii\db\ActiveRecord
         $model = new Feed;
         $model->type = 'live_class';
         $model->class_id = $this->class_id;
-        $model->view_by = 'all';
+        $model->view_by = $this->view_by;
+        if (!empty($this->description))
+            $model->description = $this->description;
         $model->user_id = Yii::$app->user->id;
         $model->reference_id = $homework_id;
         if (!$model->save(false)) {
