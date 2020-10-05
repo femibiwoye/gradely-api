@@ -81,6 +81,8 @@ class CalenderController extends ActiveController
                 'homeworks.title',
                 'homeworks.subject_id',
                 'homeworks.class_id',
+                'subjects.name',
+                'classes.class_name',
                 'homeworks.created_at',
                 'homeworks.close_date as datetime',
                 'DATE(homeworks.close_date) as date',
@@ -93,6 +95,8 @@ class CalenderController extends ActiveController
             ])
             ->innerJoin('user', 'user.id = homeworks.teacher_id')
             ->innerJoin('school_teachers', 'school_teachers.teacher_id = homeworks.teacher_id')
+            ->innerJoin('subjects', 'subjects.id = homeworks.subject_id')
+            ->innerJoin('classes', 'classes.id = homeworks.class_id')
             ->where([
                 'school_teachers.school_id' => $school_id,
                 'homeworks.publish_status' => 1
@@ -106,6 +110,8 @@ class CalenderController extends ActiveController
                 'tutor_session.class as class_id',
                 'tutor_session.created_at',
                 'tutor_session.availability as datetime',
+                'subjects.name',
+                'classes.class_name',
                 'DATE(tutor_session.availability) as date',
                 'TIME(tutor_session.availability) as time',
                 new Expression("'live_class' as type"),
@@ -116,6 +122,8 @@ class CalenderController extends ActiveController
             ])
             ->innerJoin('user', 'user.id = tutor_session.requester_id')
             ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
+            ->innerJoin('subjects', 'subjects.id = tutor_session.subject_id')
+            ->innerJoin('classes', 'classes.id = tutor_session.class')
             ->where([
                 'is_school' => 1
             ])->asArray();
