@@ -5,6 +5,7 @@ namespace app\modules\v2\teacher\controllers;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Schools;
 use Yii;
+use yii\data\ArrayDataProvider;
 use yii\db\Expression;
 use app\modules\v2\models\{ApiResponse, Homeworks, TutorSession, SchoolTeachers};
 use yii\rest\ActiveController;
@@ -169,11 +170,19 @@ class CalenderController extends ActiveController
 
         array_multisort(array_column($teacher_calender, "datetime"), SORT_ASC, $teacher_calender);
 
+        $provider = new ArrayDataProvider([
+            'allModels' => $teacher_calender,
+            'pagination' => [
+                'pageSize' => 20,
+                'validatePage' => false,
+            ],
+            'sort'=> [
+                'attributes' => [
+                    'id'
+                ],
+                'defaultOrder' => ['id' => SORT_ASC]]
+        ]);
 
-        return (new ApiResponse)->success(
-            $teacher_calender,
-            ApiResponse::SUCCESSFUL,
-            'Teacher calender found'
-        );
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Teacher calender found',$provider);
     }
 }
