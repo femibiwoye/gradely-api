@@ -267,7 +267,7 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
-    public function actionUpdateLiveClass($id)
+    public function actionUpdateLiveClassAvailability($id)
     {
         $availability = Yii::$app->request->post('availability');
         if (!$availability) {
@@ -292,7 +292,7 @@ class FeedController extends ActiveController
 
     public function actionDelete($id)
     {
-        $model = TutorSession::findOne(['id' => $id]);
+        $model = TutorSession::findOne(['id' => $id, 'requester_id' => Yii::$app->user->id]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
@@ -304,7 +304,7 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted successfully!');
     }
 
-    public function actionUpdate($id)
+    public function actionUpdateLiveClassDetails($id)
     {
         $subject_id = Yii::$app->request->post('subject_id');
         $title = Yii::$app->request->post('title');
