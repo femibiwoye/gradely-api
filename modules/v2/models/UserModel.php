@@ -57,8 +57,6 @@ use app\modules\v2\components\SharedConstant;
 class UserModel extends User
 {
 
-    public $pid = 1; // To be removed
-
     /**
      * {@inheritdoc}
      */
@@ -363,7 +361,7 @@ class UserModel extends User
             ->innerJoin('homework_questions hq', 'hq.homework_id=qsd.homework_id')
             ->innerJoin('quiz_summary qus', "qus.id = qsd.quiz_id AND qus.type = 'homework'")
             ->leftJoin('subject_topics st', 'st.id=qsd.topic_id')
-            //->where(['qsd.homework_id' => Yii::$app->request->get('id')]) //To be returned
+            ->where(['qsd.homework_id' => Yii::$app->request->get('id')])
             ->groupBy(['qsd.topic_id'])
             ->orderBy('score ASC')
             ->asArray();
@@ -418,7 +416,7 @@ class UserModel extends User
         $classID = Utility::getStudentClass(null, $this->id);
         return VideoContent::find()
             ->select(['*', new Expression("'$classID' as class_id")])
-            //->where(['id' => $videos]) //To be returned
+            ->where(['id' => $videos])
             ->limit(SharedConstant::VALUE_FIVE)->asArray()->all();
     }
 
@@ -440,7 +438,7 @@ class UserModel extends User
                 'qsd.topic_id',
             ])
             ->where([
-                //'homework_id' => $quizSummary->homework_id //To be returned
+                'homework_id' => $quizSummary->homework_id
             ])
             ->orderBy(['score' => SORT_ASC])
             ->asArray()
@@ -482,18 +480,16 @@ class UserModel extends User
 
     public function getHomeworkQuizSummary()
     {
-        return $this->hasOne(QuizSummary::className(), ['student_id' => 'id'])//->andWhere(['homework_id' => Yii::$app->request->get('id'),'submit'=>1]) //to be returned
+        return $this->hasOne(QuizSummary::className(), ['student_id' => 'id'])
+            ->andWhere(['homework_id' => Yii::$app->request->get('id'),'submit'=>1])
             ;
     }
 
 
     public function getProctor()
     {
-        //return $this->hasOne(ProctorReport::className(), ['student_id' => 'id']) //to be returned
-        return $this->hasOne(ProctorReport::className(), ['id' => 'pid'])
-            ->orWhere(['id' => 1]) // to be removed
-            //->andWhere(['assessment_id' => Yii::$app->request->get('id')])
-            ;
+        return $this->hasOne(ProctorReport::className(), ['student_id' => 'id'])
+            ->andWhere(['assessment_id' => Yii::$app->request->get('id')]);
 //
 //        $model = ProctorReport::find()
 //            ->where(['student_id' => $this->id])

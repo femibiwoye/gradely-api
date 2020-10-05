@@ -232,9 +232,7 @@ class CatchupController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('student_id', 'assessment_id', 'teacher_id'));
         $form->addRule(['student_id', 'assessment_id'], 'required');
         $form->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']]);
-        $form->addRule(['assessment_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id'
-            //    , 'teacher_id' //To be returned
-        ]]);
+        $form->addRule(['assessment_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id', 'teacher_id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
@@ -244,7 +242,7 @@ class CatchupController extends ActiveController
             ->alias('qs')
             ->innerJoin('homeworks h', "h.id = qs.homework_id AND h.type = 'homework'")
             ->where([
-                //'qs.student_id' => $student_id, //To be returned
+                'qs.student_id' => $student_id,
                 'qs.homework_id' => $assessment_id,
                 'qs.submit' => SharedConstant::VALUE_ONE
             ])->one();
@@ -256,7 +254,7 @@ class CatchupController extends ActiveController
         $homework = Homeworks::find()
             ->select(['title', 'tag', 'created_at', 'close_date'])
             ->where(['id' => $assessment_id,
-                //'teacher_id' => Yii::$app->user->id //To be returned
+                'teacher_id' => Yii::$app->user->id
             ])
             ->asArray()->one();
 
@@ -293,7 +291,7 @@ class CatchupController extends ActiveController
             'assessment_type' => $model->type,
             'questions' => $allQuestions,
             'proctor' => ProctorReport::findOne(['assessment_id' => $assessment_id,
-                //    'student_id' => $student_id //To be returned
+                    'student_id' => $student_id
             ])];
 
         return (new ApiResponse)->success(
