@@ -33,6 +33,7 @@ class HomeworkForm extends Model
     public $homework_model;
     public $tag;
     public $description;
+    public $lesson_description;
 
     public function rules()
     {
@@ -53,6 +54,7 @@ class HomeworkForm extends Model
             //validateTopicCurriculum Validates open_date and close_date, tag and topic
             //['topics_id', 'validateTopicCurriculum'],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
+            [['description','lesson_description'], 'string']
         ];
     }
 
@@ -150,6 +152,9 @@ class HomeworkForm extends Model
         //$model->exam_type_id = SubjectTopics::find()->where(['id' => $this->topics_id])->one()->exam_type_id;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
+            if (!empty($this->lesson_description))
+                $model->description = $this->lesson_description;
+
             if (!$model->save()) {
                 return false;
             }
@@ -256,6 +261,9 @@ class HomeworkForm extends Model
         $model->view_by = $this->view_by;
         $model->user_id = $this->teacher_id;
         $model->reference_id = $homework->id;
+        if (!empty($this->description))
+            $model->description = $this->description;
+
         if (!$model->save(false)) {
             return false;
         }
