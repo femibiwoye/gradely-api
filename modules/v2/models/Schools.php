@@ -279,10 +279,10 @@ class Schools extends \yii\db\ActiveRecord
         ];
 
         $age = [
-            '7-10' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 7])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 10])->all()) * 100 / $total,
-            '11-12' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 11])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 12])->all()) * 100 / $total,
-            '13-15' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 13])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 15])->all()) * 100 / $total,
-            '16+' => count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 16])->all()) * 100 / $total,
+            '7-10' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 7])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 10])->all()) * 100 / $total : 0,
+            '11-12' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 11])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 12])->all()) * 100 / $total : 0,
+            '13-15' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 13])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 15])->all()) * 100 / $total : 0,
+            '16+' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 16])->all()) * 100 / $total : 0,
         ];
 
         return [
