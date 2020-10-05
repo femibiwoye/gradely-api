@@ -267,6 +267,29 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
+    public function actionUpdateLiveClass($id)
+    {
+        $availability = Yii::$app->request->post('availability');
+        if (!$availability) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Availability time cannot be blank!');
+        }
+
+        $model = TutorSession::find()
+                    ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
+                    ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->availability = $availability;
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
+    }
+
     /**
      *
      * Delete records from feed
