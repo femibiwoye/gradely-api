@@ -40,8 +40,8 @@ return [
     //'GET v2/feed/upcoming' => 'v2/feed/upcoming',
     'POST v2/live-class' => 'v2/feed/new-live-class', //
     'DELETE v2/live-class/<id:\d+>' => 'v2/feed/delete',
-    'PUT v2/feed-availability/<id:\d+>' => 'v2/feed/update-live-class',
-    'PUT v2/live-class/subject-title/<id:\d+>' => 'v2/feed/update',
+    'PUT v2/live-class-availability/<id:\d+>' => 'v2/feed/update-live-class-availability',
+    'PUT v2/live-class-details/<id:\d+>' => 'v2/feed/update-live-class-details',
 
     //Reports
     'GET v2/library/summary/<class_id:\d+>' => 'v2/library/summary', //
