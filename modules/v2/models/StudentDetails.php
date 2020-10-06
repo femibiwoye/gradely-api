@@ -61,7 +61,6 @@ class StudentDetails extends User
 
     public function getHomework()
     {
-
         return QuizSummary::find()
             ->alias('q')
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
@@ -81,7 +80,29 @@ class StudentDetails extends User
 
     public function getFeeds()
     {
-        return Feed::find()->where(['user_id' => $this->id])->limit(5)->all();
+        return Feed::find()
+            ->alias('f')
+            ->select([
+                'f.id',
+                'f.description',
+                'f.created_at',
+                'count(fl.id) as likeCount',
+                'count(fc.id) as commentCount',
+                'pm.title',
+                'pm.filename',
+                'pm.filetype',
+                'pm.filesize',
+                'pm.tag',
+                'pm.token',
+            ])
+            ->leftJoin('feed_like fl', "fl.parent_id = f.id AND fl.type = 'feed'")
+            ->leftJoin('feed_comment fc', "fc.feed_id = f.id AND fc.type = 'feed'")
+            ->leftJoin('practice_material pm', "pm.practice_id = f.id AND pm.type = 'feed'")
+            //->where(['f.user_id' => $this->id]) //To be returned
+            ->orderBy('rand()')//To be removed
+            ->limit(5)
+            ->groupBy('f.id')
+            ->asArray()->all();
     }
 
     public function getStudentParents()
