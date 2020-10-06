@@ -77,7 +77,9 @@ class TutorProfile extends \yii\db\ActiveRecord
             'created_at',
             'updated_at',
             'tutor',
-            'curriculum'
+            'curriculum',
+            'availability',
+            'calender',
         ];
     }
 
@@ -91,9 +93,27 @@ class TutorProfile extends \yii\db\ActiveRecord
         return $this->hasOne(User::className(), ['id' => 'tutor_id']);
     }
 
+    public function getAvailability()
+    {
+        return $this->hasOne(TutorAvailability::className(), ['user_id' => 'tutor_id']);
+    }
+
     public function getTutorSubject()
     {
         return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id']);
+    }
+
+    public function getCalender()
+    {
+        return [
+            'date' => date('m/d/Y', strtotime($this->tutorSession->availability)),
+            'time' => date('H:i:s A', strtotime($this->tutorSession->availability)),
+        ];
+    }
+
+    public function getTutorSession()
+    {
+        return TutorSession::findOne(['requester_id' => $this->tutor_id]);
     }
 
     public function getReview()
