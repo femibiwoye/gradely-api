@@ -54,7 +54,7 @@ class FeedController extends ActiveController
         return $actions;
     }
 
-    public function actionIndex($class_id = null)
+    public function actionIndex($class_id = null, $token = null)
     {
         $me = Yii::$app->request->get('me');
         $subject_id = Yii::$app->request->get('subject_id');
@@ -95,25 +95,25 @@ class FeedController extends ActiveController
             $models = $this->modelClass::find();
             if ($teacher) {
                 $teachers = ArrayHelper::getColumn(
-                    SchoolTeachers::find()->where(['school_id' => Yii::$app->user->id])->all(), 
+                    SchoolTeachers::find()->where(['school_id' => Yii::$app->user->id])->all(),
                     'teacher_id'
                 );
 
                 $models = $this->modelClass::find()
-                            ->innerJoin('user', 'user.id = feed.user_id')
-                            ->where(['user.type' => 'teacher'])
-                            ->andWhere(['feed.user_id' => $teachers])
-                            ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
-                            ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+                    ->innerJoin('user', 'user.id = feed.user_id')
+                    ->where(['user.type' => 'teacher'])
+                    ->andWhere(['feed.user_id' => $teachers])
+                    ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
+                    ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
 
-            }            
+            }
 
             if ($student) {
                 $models = $this->modelClass::find()
-                            ->innerJoin('user', 'user.id = feed.user_id')
-                            ->where(['user.type' => ['student', 'parent']])
-                            ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
-                            ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+                    ->innerJoin('user', 'user.id = feed.user_id')
+                    ->where(['user.type' => ['student', 'parent']])
+                    ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
+                    ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
             }
 
         } elseif (Yii::$app->user->identity->type == 'student') {
@@ -152,15 +152,17 @@ class FeedController extends ActiveController
         if ($homework && $homework != SharedConstant::VALUE_ZERO)
             $models = $models->andWhere(['type' => SharedConstant::FEED_TYPES[2]]);
 
+        if ($token && $models = $models->andWhere(['token' => $token])->one()) {
+            $comments = FeedComment::find()->where(['feed_id' => $models->id, 'type' => 'feed'])->orderBy('id')->all();
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($models), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
+        }
+
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
 
         $provider = new ActiveDataProvider([
             'query' => $models->orderBy('id DESC'),
-//            'id' => function ($model) {
-//                return $model->id;
-//            },
             'pagination' => [
                 'pageSize' => 3,
                 'validatePage' => false,
@@ -310,8 +312,8 @@ class FeedController extends ActiveController
         }
 
         $model = TutorSession::find()
-                    ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
-                    ->one();
+            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
+            ->one();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -350,8 +352,8 @@ class FeedController extends ActiveController
         }
 
         $model = TutorSession::find()
-                    ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
-                    ->one();
+            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
+            ->one();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
