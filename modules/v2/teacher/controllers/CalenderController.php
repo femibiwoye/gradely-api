@@ -57,12 +57,21 @@ class CalenderController extends ActiveController
 
     public function actionTeacherCalender($teacher_id, $date = null, $class_id = null, $homework = 1, $live_class = 1)
     {
-        if (Yii::$app->user->identity->type != SharedConstant::TYPE_SCHOOL) {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_SCHOOL && Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
-        if (!$school = Schools::findOne(['id' => Utility::getSchoolAccess()]))
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School not found');
-        $school_id = $school->id;
+
+        if (Yii::$app->user->identity->type == SharedConstant::TYPE_SCHOOL) {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $school_id = $school->id;
+        } else {
+            $teacher = SchoolTeachers::findOne(['teacher_id' => Yii::$app->user->id]);
+            $school_id = $teacher->school_id;
+            $teacher_id = $teacher->teacher_id;
+        }
+
+        if (!isset($school_id))
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User record not found');
 
 
         $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id'));
@@ -139,8 +148,8 @@ class CalenderController extends ActiveController
                     'DATE(availability)' => $date,
                 ]);
         } else {
-//            $live_classes = $live_classes->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
-//            $homeworks = $homeworks->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
+            $live_classes = $live_classes->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
+            $homeworks = $homeworks->andWhere(['DAY(CURDATE())' => 'DAY(created_at)']);
         }
 
         if ($class_id) {
@@ -178,19 +187,7 @@ class CalenderController extends ActiveController
 
         array_multisort(array_column($teacher_calender, "datetime"), SORT_ASC, $teacher_calender);
 
-        $provider = new ArrayDataProvider([
-            'allModels' => $teacher_calender,
-            'pagination' => [
-                'pageSize' => 20,
-                'validatePage' => false,
-            ],
-            'sort'=> [
-                'attributes' => [
-                    'id'
-                ],
-                'defaultOrder' => ['id' => SORT_ASC]]
-        ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Teacher calender found',$provider);
+        return (new ApiResponse)->success($teacher_calender, ApiResponse::SUCCESSFUL, 'Teacher calender found');
     }
 }
