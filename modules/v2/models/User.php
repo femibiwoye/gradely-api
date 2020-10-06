@@ -117,7 +117,11 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
     public function getUserProfile()
     {
-        return $this->hasOne(UserProfile::className(), ['user_id' => 'id']);
+        $models = $this->hasOne(UserProfile::className(), ['user_id' => 'id']);
+        if (Yii::$app->request->get('gender'))
+            return $models->where(['gender' => Yii::$app->request->get('gender')]);
+
+        return $models; 
     }
 
     public function getRemarks()
