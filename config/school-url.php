@@ -53,6 +53,8 @@ return [
     'GET v2/school/student/profile/<student_id:\d+>' => 'v2/school/student/profile', //
     'GET v2/school/student/summary/<student_id:\d+>' => 'v2/school/student/summary', //
     'DELETE v2/school/student/<student_id:\d+>' => 'v2/school/student/remove-student', //
+    'GET v2/school/student/<id:\d+>' => 'v2/teacher/class/get-student', //
+    'PUT v2/school/student/update-class' => 'v2/school/student/update-class', //
 
     //School Profile
     'GET v2/school/profile/school' => 'v2/school/profile/school', //
