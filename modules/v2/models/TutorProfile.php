@@ -36,7 +36,7 @@ class TutorProfile extends \yii\db\ActiveRecord
     {
         return [
             [['tutor_id'], 'required'],
-            [['tutor_id', 'verified', 'satisfaction'], 'integer'],
+            [['tutor_id', 'verified', 'satisfaction', 'availability'], 'integer'],
             [['video_sample'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['language_level', 'experience'], 'string', 'max' => 50],
@@ -57,8 +57,27 @@ class TutorProfile extends \yii\db\ActiveRecord
             'language_level' => 'Language Level',
             'satisfaction' => 'Satisfaction',
             'experience' => 'Experience',
+            'availability' => 'Availability',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
+        ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'tutor_id',
+            'verified',
+            'video_sample',
+            'language_level',
+            'satisfaction',
+            'experience',
+            'availability',
+            'created_at',
+            'updated_at',
+            'tutor',
+            'curriculum'
         ];
     }
 
@@ -70,5 +89,44 @@ class TutorProfile extends \yii\db\ActiveRecord
     public function getTutor()
     {
         return $this->hasOne(User::className(), ['id' => 'tutor_id']);
+    }
+
+    public function getTutorSubject()
+    {
+        return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id']);
+    }
+
+    public function getReview()
+    {
+        return $this->hasMany(Review::className(), ['receiver_id' => 'tutor_id']);
+    }
+
+    public function getTutorReview()
+    {
+        return $this->getReview()->where(['receiver_type' => 'tutor']);
+    }
+
+    public function getSumRating()
+    {
+        $sum_rating = 0;
+        foreach ($this->tutorReview as $review) {
+            $sum_rating = $sum_rating + $review->rate;
+        }
+
+        return $sum_rating;
+    }
+
+    public function getCurriculum()
+    {
+        $subjects = $this->getTutorSubject();
+        if (Yii::$app->request->get('subject'))
+            $subjects = $subjects->where(['slug' => Yii::$app->request->get('subject')]); 
+        $total_rating = count($this->tutorReview);
+        $sum_rating = $this->sumRating / $total_rating;
+        return [
+            'subjects' => $subjects->all(),
+            'rating' => $sum_rating,
+            'total_rating' => $total_rating,
+        ];
     }
 }
