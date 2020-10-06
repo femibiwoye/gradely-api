@@ -55,7 +55,7 @@ class CalenderController extends ActiveController
     }
 
 
-    public function actionTeacherCalender($teacher_id, $date = null, $class_id = null, $homework = 1, $live_class = 1)
+    public function actionTeacherCalender($teacher_id, $date = null, $class_id = null, $homework = 1, $live_class = 1, $exam = 1)
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_SCHOOL && Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
@@ -164,13 +164,17 @@ class CalenderController extends ActiveController
                 ]);
         }
 
+        if ($exam == 0) {
+            $homeworks = $homeworks->andWhere(['!=', 'homeworks.tag', 'exam']);
+        }
+
         if (!empty($teacher_id)) {
             $homeworks = $homeworks->andWhere(['homeworks.teacher_id' => $teacher_id]);
             $live_classes = $live_classes->andWhere(['tutor_session.requester_id' => $teacher_id]);
         }
 
         if ($homework == SharedConstant::VALUE_ZERO) {
-            $homeworks = [];
+            $homeworks = $homeworks->andWhere(['!=', 'homeworks.tag', 'homework']);
         }
 
         if ($live_class == SharedConstant::VALUE_ZERO) {
