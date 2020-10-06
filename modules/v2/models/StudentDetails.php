@@ -282,11 +282,15 @@ class StudentDetails extends User
 
     public function checkStudentInTeacherClass()
     {
-        $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => 1])->all();
-        foreach ($teacher_classes as $teacher_class) {
-            if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $this->id])->exists()) {
-                return true;
+        if (Yii::$app->user->identity->type == 'teacher') {
+            $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => 1])->all();
+            foreach ($teacher_classes as $teacher_class) {
+                if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $this->id])->exists()) {
+                    return true;
+                }
             }
+        } elseif (Yii::$app->user->identity->type == 'school' && StudentSchool::find()->where(['student_id' => $this->id, 'school_id' => Utility::getSchoolAccess(Yii::$app->user->id)])->exists()) {
+            return true;
         }
 
         return false;

@@ -105,6 +105,11 @@ class StudentController extends ActiveController
         return (new ApiResponse)->success($homeworks, ApiResponse::SUCCESSFUL, 'Homeworks found');
     }
 
+    /**
+     * Get student profile details
+     * @param $student_id
+     * @return ApiResponse
+     */
     public function actionProfile($student_id)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -120,6 +125,14 @@ class StudentController extends ActiveController
         return (new ApiResponse)->success($detail);
     }
 
+    /**
+     * Remove student from class and school.
+     *
+     * @param $student_id
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionRemoveStudent($student_id)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -133,6 +146,29 @@ class StudentController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student Removed!');
+    }
+
+    public function actionUpdateClass()
+    {
+        $student_id = Yii::$app->request->post('student_id');
+        $class_id = Yii::$app->request->post('class_id');
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id'));
+        $model->addRule(['student_id', 'class_id'], 'required');
+        $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id', 'school_id']]);
+        $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'class_id' => 'id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id]);
+        $model->class_id = $class_id;
+        if ($model->save())
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
+        return (new ApiResponse)->success(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
 
 
