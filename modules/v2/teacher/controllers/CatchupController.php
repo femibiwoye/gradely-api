@@ -104,7 +104,8 @@ class CatchupController extends ActiveController
         $model->meta = 'recommendation';
         $model->category = SharedConstant::TUTOR_SESSION_CATEGORY_TYPE[SharedConstant::VALUE_ZERO];
         $model->is_school = SharedConstant::VALUE_ONE;
-        $model->availability = $date . ' ' . $time;
+        $model->availability = date("Y-m-d H:i", strtotime($date . ' ' . $time));
+        $model->participant_type = $type;
         if (Yii::$app->request->post('type') == 'single') {
             $model->student_id = Yii::$app->request->post('student_id');
         } else {
@@ -114,24 +115,24 @@ class CatchupController extends ActiveController
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record not generated');
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Remedial session record not generated');
             }
 
             if ($this->students) {
                 if (!$this->tutorSessionParticipant($this->students, $model->id)) {
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record not generated');
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Remedial participant could not be saved');
                 }
             }
 
             if (!$this->tutorSessionTiming($model->id)) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record not generated');
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Remedial session timing could not be saved');
             }
 
 
             $dbtransaction->commit();
         } catch (Exception $e) {
             $dbtransaction->rollBack();
-            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record not generated');
+            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record failed');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Tutor session record generated');
@@ -291,7 +292,7 @@ class CatchupController extends ActiveController
             'assessment_type' => $model->type,
             'questions' => $allQuestions,
             'proctor' => ProctorReport::findOne(['assessment_id' => $assessment_id,
-                    'student_id' => $student_id
+                'student_id' => $student_id
             ])];
 
         return (new ApiResponse)->success(
