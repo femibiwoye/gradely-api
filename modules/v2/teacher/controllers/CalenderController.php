@@ -148,8 +148,8 @@ class CalenderController extends ActiveController
                     'DATE(availability)' => $date,
                 ]);
         } else {
-            $live_classes = $live_classes->andWhere(['DAY(CURDATE())' => 'DAY(availability)']);
-            $homeworks = $homeworks->andWhere(['DAY(CURDATE())' => 'DAY(close_date)']);
+            $live_classes = $live_classes->andWhere([ 'DATE(availability)'=>new Expression('DATE(CURDATE())')]);
+            $homeworks = $homeworks->andWhere(['DATE(close_date)'=>new Expression('DATE(CURDATE())')]);
         }
 
         if ($class_id) {
