@@ -63,24 +63,41 @@ class TutorProfile extends \yii\db\ActiveRecord
         ];
     }
 
+    /*
+        public function fields()
+        {
+            return [
+                'id',
+                'tutor_id',
+                'verified',
+                'video_sample',
+                'language_level',
+                'satisfaction',
+                'experience',
+                'availability',
+                'created_at',
+                'updated_at',
+                'tutor',
+                'curriculum',
+                'ratings',
+                'availability',
+                'calender',
+                'reviews' => 'review',
+            ];
+        }*/
+
     public function fields()
     {
-        return [
-            'id',
-            'tutor_id',
-            'verified',
-            'video_sample',
-            'language_level',
-            'satisfaction',
-            'experience',
-            'availability',
-            'created_at',
-            'updated_at',
-            'tutor',
-            'curriculum',
-            'availability',
-            'calender',
-        ];
+        $fields = parent::fields();
+
+        $fields['user'] = 'user';
+        if ($this->isRelationPopulated('curriculum')) {
+            $fields['curriculum'] = 'curriculum';
+            $fields['subject'] = 'subject';
+        }
+
+
+        return $fields;
     }
 
     /**
@@ -88,7 +105,7 @@ class TutorProfile extends \yii\db\ActiveRecord
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getTutor()
+    public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'tutor_id']);
     }
@@ -100,13 +117,17 @@ class TutorProfile extends \yii\db\ActiveRecord
 
     public function getTutorSubject()
     {
-        return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id']);
+        return Subjects::find()
+            ->innerJoin('tutor_subject', 'tutor_subject.subject_id = subjects.id')
+            ->where(['tutor_subject.tutor_id' => $this->tutor_id])
+            ->all();
+
     }
 
     public function getCalender()
     {
         return [
-            'date' => date('m/d/Y', strtotime($this->tutorSession->availability)),
+            'date' => date('Y-m-d', strtotime($this->tutorSession->availability)),
             'time' => date('H:i:s A', strtotime($this->tutorSession->availability)),
         ];
     }
@@ -136,17 +157,37 @@ class TutorProfile extends \yii\db\ActiveRecord
         return $sum_rating;
     }
 
+    public function getRatings()
+    {
+        $rating_list = array();
+        foreach ($this->tutorReview as $review) {
+            $rating_list = array_merge($rating_list, $review->list);
+        }
+
+        return $rating_list;
+    }
+
+    public function getTutorCurriculum()
+    {
+        return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id'])
+            ->groupBy('curriculum_id');
+    }
+    public function getTutorSubjects()
+    {
+        return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id'])
+            ->groupBy('subject_id');
+    }
+
     public function getCurriculum()
     {
-        $subjects = $this->getTutorSubject();
-        if (Yii::$app->request->get('subject'))
-            $subjects = $subjects->where(['slug' => Yii::$app->request->get('subject')]);
-        $total_rating = count($this->tutorReview);
-        $sum_rating = $total_rating > 0 ? $this->sumRating / $total_rating : 0;
-        return [
-            'subjects' => $subjects->all(),
-            'rating' => $sum_rating,
-            'total_rating' => $total_rating,
-        ];
+        return $this->hasMany(ExamType::className(), ['id' => 'curriculum_id'])
+            ->select(['id', 'slug', 'name', 'title', 'description'])
+            ->via('tutorCurriculum');
+    }
+
+    public function getSubject()
+    {
+        return $this->hasMany(Subjects::className(),['id'=>'subject_id'])
+            ->via('tutorSubjects');
     }
 }

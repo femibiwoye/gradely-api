@@ -46,8 +46,9 @@ class TutorController extends ActiveController
     public function actionIndex()
     {
         $models = TutorProfile::find()
-                        ->where(['availability' => SharedConstant::VALUE_ONE])
-                        ->all();
+            ->where(['availability' => SharedConstant::VALUE_ONE])
+            ->with(['curriculum','subject'])
+            ->all();
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
@@ -67,6 +68,11 @@ class TutorController extends ActiveController
 
     public function actionTutorReview()
     {
+        $review_model = Review::findOne(['sender_id' => Yii::$app->user->id, 'receiver_id' => Yii::$app->request->post('receiver_id')]);
+        if ($review_model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Review already made');
+        }
+
         $type = Yii::$app->user->identity->type;
         if ($type == SharedConstant::TYPE_SCHOOL || $type == SharedConstant::TYPE_TEACHER) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');
@@ -74,14 +80,15 @@ class TutorController extends ActiveController
 
         $session_id = Yii::$app->request->post('session_id');
         $rate = Yii::$app->request->post('rate');
-        $sender_id = Yii::$app->request->post('sender_id');
-        $receiver_id = Yii::$app->user->identity->id;
+        $sender_id = Yii::$app->user->id;
+        $receiver_id = Yii::$app->request->post('receiver_id');
         $form = new \yii\base\DynamicModel(compact('session_id', 'sender_id', 'rate', 'receiver_id'));
         $form->addRule(['session_id', 'sender_id', 'receiver_id', 'rate'], 'required');
         $form->addRule(['session_id', 'rate', 'sender_id', 'receiver_id'], 'integer');
         $form->addRule('session_id', 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
         $form->addRule(['sender_id', 'receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['sender_id' => 'id']]);
         $form->addRule(['receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['receiver_id' => 'id']]);
+        $form->addRule(['sender_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['sender_id' => 'student_id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');

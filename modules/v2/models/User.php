@@ -121,7 +121,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         if (Yii::$app->request->get('gender'))
             return $models->where(['gender' => Yii::$app->request->get('gender')]);
 
-        return $models; 
+        return $models;
     }
 
     public function getRemarks()
@@ -300,6 +300,16 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return $this->auth_key;
     }
 
+    /**
+     * Generate verification token to reset email
+     */
+    public function generateVerificationKey()
+    {
+        $this->verification_token = Yii::$app->security->generateRandomString(100);
+
+        return $this->verification_token;
+    }
+
     public static function find()
     {
         return parent::find()->andWhere(['<>', 'user.status', self::STATUS_DELETED]);
@@ -328,7 +338,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         if ($this->isNewRecord) {
             $this->created_at = time();
             $this->updated_at = time();
-            $this->status = self::STATUS_ACTIVE;
+            //$this->status = self::STATUS_ACTIVE;
         } else {
             $this->updated_at = time();
         }
