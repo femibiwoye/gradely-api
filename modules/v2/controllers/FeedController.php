@@ -144,7 +144,9 @@ class FeedController extends ActiveController
 
         //To filter by student id
         if ($student_id) {
-            $models = $models->andWhere(['user_id' => $student_id,'class_id'=>$class_id]);
+            $models = $models
+                ->innerJoin('user', 'user.id = feed.user_id')
+                ->andWhere(['feed.user_id' => $student_id,'feed.class_id'=>$class_id,'user.type'=>'student']);
         }
 
         if ($type)
