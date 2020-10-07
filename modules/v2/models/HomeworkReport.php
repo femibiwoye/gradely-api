@@ -52,6 +52,7 @@ class HomeworkReport extends Homeworks
     public function getHomeworkSummary()
     {
         return [
+            'title' => $this->title,
             'tag' => $this->tag,
             'average' => $this->average,
             'completion_rate' => $this->completedRate,
