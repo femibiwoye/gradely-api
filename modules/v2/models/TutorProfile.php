@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "tutor_profile".
@@ -91,9 +92,13 @@ class TutorProfile extends \yii\db\ActiveRecord
         $fields = parent::fields();
 
         $fields['user'] = 'user';
-        if ($this->isRelationPopulated('curriculum')) {
-            $fields['curriculum'] = 'curriculum';
-            $fields['subject'] = 'subject';
+        $fields['rating'] = 'rating';
+        $fields['curriculum'] = 'curriculum';
+        $fields['subject'] = 'subject';
+        if ($this->isRelationPopulated('calendar')) {
+
+            $fields['calendar'] = 'calendar';
+            $fields['reviews'] = 'reviews';
         }
 
 
@@ -137,34 +142,22 @@ class TutorProfile extends \yii\db\ActiveRecord
         return TutorSession::findOne(['requester_id' => $this->tutor_id]);
     }
 
-    public function getReview()
+    public function getReviews()
     {
         return $this->hasMany(Review::className(), ['receiver_id' => 'tutor_id']);
     }
 
-    public function getTutorReview()
+
+    public function getRating()
     {
-        return $this->getReview()->where(['receiver_type' => 'tutor']);
-    }
+        $rate =  Review::find()->select([
+            new Expression('ROUND(SUM(rate)/count(id),1) as rate'),
+        ])
+            ->where(['receiver_id' => $this->tutor_id])
+            ->asArray()
+            ->one();
 
-    public function getSumRating()
-    {
-        $sum_rating = 0;
-        foreach ($this->tutorReview as $review) {
-            $sum_rating = $sum_rating + $review->rate;
-        }
-
-        return $sum_rating;
-    }
-
-    public function getRatings()
-    {
-        $rating_list = array();
-        foreach ($this->tutorReview as $review) {
-            $rating_list = array_merge($rating_list, $review->list);
-        }
-
-        return $rating_list;
+        return $rate["rate"];
     }
 
     public function getTutorCurriculum()
@@ -172,6 +165,7 @@ class TutorProfile extends \yii\db\ActiveRecord
         return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id'])
             ->groupBy('curriculum_id');
     }
+
     public function getTutorSubjects()
     {
         return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id'])
@@ -187,7 +181,13 @@ class TutorProfile extends \yii\db\ActiveRecord
 
     public function getSubject()
     {
-        return $this->hasMany(Subjects::className(),['id'=>'subject_id'])
+        return $this->hasMany(Subjects::className(), ['id' => 'subject_id'])
             ->via('tutorSubjects');
+    }
+
+    public function getCalendar()
+    {
+        return $this->hasMany(TutorAvailability::className(), ['user_id' => 'tutor_id'])
+            ->andWhere(['status'=>1]);
     }
 }
