@@ -220,7 +220,7 @@ class FeedController extends ActiveController
 
     public function actionFeedLike($post_id)
     {
-        $model = Feed::findOne(['id' => $post_id, 'type' => 'feed']);
+        $model = Feed::findOne(['id' => $post_id]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Post is not found!');
         }
