@@ -146,7 +146,13 @@ class FeedController extends ActiveController
         if ($student_id) {
             $models = $models
                 ->innerJoin('user', 'user.id = feed.user_id')
-                ->andWhere(['feed.user_id' => $student_id,'feed.class_id'=>$class_id,'user.type'=>'student']);
+                ->andWhere([
+//                    'feed.user_id' => $student_id, //To be returned
+//                    'feed.class_id' => $class_id, //To be returned
+//                    'user.type' => 'student' //To be returned
+                    'feed.type' => 'post' // to be removed;
+                ])
+                ->orderBy('rand()');// to be removed;
         }
 
         if ($type)
