@@ -85,6 +85,7 @@ class StudentDetails extends User
             ->select([
                 'f.id',
                 'f.description',
+                'f.token as feed_token',
                 'f.created_at',
                 'count(fl.id) as likeCount',
                 'count(fc.id) as commentCount',
@@ -93,7 +94,7 @@ class StudentDetails extends User
                 'pm.filetype',
                 'pm.filesize',
                 'pm.tag',
-                'pm.token',
+                'pm.token as attachment_token',
             ])
             ->leftJoin('feed_like fl', "fl.parent_id = f.id AND fl.type = 'feed'")
             ->leftJoin('feed_comment fc', "fc.feed_id = f.id AND fc.type = 'feed'")

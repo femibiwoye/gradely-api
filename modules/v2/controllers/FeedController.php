@@ -54,7 +54,7 @@ class FeedController extends ActiveController
         return $actions;
     }
 
-    public function actionIndex($class_id = null, $token = null)
+    public function actionIndex($class_id = null, $token = null,$student_id = null)
     {
         $me = Yii::$app->request->get('me');
         $subject_id = Yii::$app->request->get('subject_id');
@@ -93,6 +93,7 @@ class FeedController extends ActiveController
                     ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id')[0];
 
             $models = $this->modelClass::find();
+            //Return all teacher feeds
             if ($teacher) {
                 $teachers = ArrayHelper::getColumn(
                     SchoolTeachers::find()->where(['school_id' => Yii::$app->user->id])->all(),
@@ -108,6 +109,7 @@ class FeedController extends ActiveController
 
             }
 
+            // Return all student and parent feed
             if ($student) {
                 $models = $this->modelClass::find()
                     ->innerJoin('user', 'user.id = feed.user_id')
