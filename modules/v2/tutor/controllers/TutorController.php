@@ -46,8 +46,9 @@ class TutorController extends ActiveController
     public function actionIndex()
     {
         $models = TutorProfile::find()
-                        ->where(['availability' => SharedConstant::VALUE_ONE])
-                        ->all();
+            ->where(['availability' => SharedConstant::VALUE_ONE])
+            ->with(['curriculum','subject'])
+            ->all();
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
