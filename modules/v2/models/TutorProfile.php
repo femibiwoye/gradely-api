@@ -99,6 +99,7 @@ class TutorProfile extends \yii\db\ActiveRecord
 
             $fields['calendar'] = 'calendar';
             $fields['reviews'] = 'reviews';
+            $fields['tutor_availability'] = 'tutorAvailability';
         }
 
 
@@ -113,11 +114,6 @@ class TutorProfile extends \yii\db\ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'tutor_id']);
-    }
-
-    public function getAvailability()
-    {
-        return $this->hasOne(TutorAvailability::className(), ['user_id' => 'tutor_id']);
     }
 
     public function getTutorSubject()
@@ -150,7 +146,7 @@ class TutorProfile extends \yii\db\ActiveRecord
 
     public function getRating()
     {
-        $rate =  Review::find()->select([
+        $rate = Review::find()->select([
             new Expression('ROUND(SUM(rate)/count(id),1) as rate'),
         ])
             ->where(['receiver_id' => $this->tutor_id])
@@ -188,6 +184,12 @@ class TutorProfile extends \yii\db\ActiveRecord
     public function getCalendar()
     {
         return $this->hasMany(TutorAvailability::className(), ['user_id' => 'tutor_id'])
-            ->andWhere(['status'=>1]);
+            ->andWhere(['status' => 1]);
+    }
+
+    public function getTutorAvailability()
+    {
+        return $this->hasMany(TutorSession::className(), ['requester_id' => 'tutor_id'])
+            ->select(['DATE(availability) date', 'TIME(availability) time'])->andWhere(['status' => 'pending'])->asArray();
     }
 }
