@@ -78,8 +78,10 @@ class TutorProfile extends \yii\db\ActiveRecord
             'updated_at',
             'tutor',
             'curriculum',
+            'ratings',
             'availability',
             'calender',
+            'reviews' => 'review',
         ];
     }
 
@@ -100,13 +102,17 @@ class TutorProfile extends \yii\db\ActiveRecord
 
     public function getTutorSubject()
     {
-        return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id']);
+        return Subjects::find()
+                    ->innerJoin('tutor_subject', 'tutor_subject.subject_id = subjects.id')
+                    ->where(['tutor_subject.tutor_id' => $this->tutor_id])
+                    ->all();
+
     }
 
     public function getCalender()
     {
         return [
-            'date' => date('m/d/Y', strtotime($this->tutorSession->availability)),
+            'date' => date('Y-m-d', strtotime($this->tutorSession->availability)),
             'time' => date('H:i:s A', strtotime($this->tutorSession->availability)),
         ];
     }
@@ -136,15 +142,25 @@ class TutorProfile extends \yii\db\ActiveRecord
         return $sum_rating;
     }
 
+    public function getRatings()
+    {
+        $rating_list = array();
+        foreach ($this->tutorReview as $review) {
+            $rating_list = array_merge($rating_list, $review->list);
+        }
+
+        return $rating_list;
+    }
+
     public function getCurriculum()
     {
         $subjects = $this->getTutorSubject();
         if (Yii::$app->request->get('subject'))
             $subjects = $subjects->where(['slug' => Yii::$app->request->get('subject')]); 
         $total_rating = count($this->tutorReview);
-        $sum_rating = $this->sumRating / $total_rating;
+        $sum_rating = $this->sumRating / 1;
         return [
-            'subjects' => $subjects->all(),
+            'subjects' => $subjects,
             'rating' => $sum_rating,
             'total_rating' => $total_rating,
         ];

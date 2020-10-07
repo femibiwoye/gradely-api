@@ -45,6 +45,7 @@ class Review extends \yii\db\ActiveRecord
             [['recommended_topic', 'tutor_rate_student'], 'string', 'max' => 50],
             [['receiver_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['receiver_id' => 'id']],
             [['sender_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['sender_id' => 'id']],
+            [['topic_taught'], 'exist', 'targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_taught' => 'id']],
         ];
     }
 
@@ -65,6 +66,16 @@ class Review extends \yii\db\ActiveRecord
             'tutor_rate_student' => 'Tutor Rate Student',
             'tutor_comment' => 'Tutor Comment',
             'created_at' => 'Created At',
+        ];
+    }
+
+    public function fields()
+    {
+        return [
+            'sender',
+            'rate',
+            'review_message' => 'review',
+            'created_at'
         ];
     }
 
