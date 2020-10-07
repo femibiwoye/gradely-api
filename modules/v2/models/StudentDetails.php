@@ -100,6 +100,7 @@ class StudentDetails extends User
             ->leftJoin('feed_comment fc', "fc.feed_id = f.id AND fc.type = 'feed'")
             ->leftJoin('practice_material pm', "pm.practice_id = f.id AND pm.type = 'feed'")
             //->where(['f.user_id' => $this->id]) //To be returned
+            ->where(['f.type' => 'post']) //To be removed
             ->orderBy('rand()')//To be removed
             ->limit(5)
             ->groupBy('f.id')
