@@ -152,9 +152,9 @@ class FeedController extends ActiveController
         if ($homework && $homework != SharedConstant::VALUE_ZERO)
             $models = $models->andWhere(['type' => SharedConstant::FEED_TYPES[2]]);
 
-        if ($token && $models = $models->andWhere(['token' => $token])->one()) {
-            $comments = FeedComment::find()->where(['feed_id' => $models->id, 'type' => 'feed'])->orderBy('id')->all();
-            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($models), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
+        if ($token && $oneMmodels = $models->andWhere(['token' => $token])->one()) {
+            $comments = FeedComment::find()->where(['feed_id' => $oneMmodels->id, 'type' => 'feed'])->orderBy('id')->all();
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }
 
         if (!$models->exists()) {

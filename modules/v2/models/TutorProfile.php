@@ -140,9 +140,9 @@ class TutorProfile extends \yii\db\ActiveRecord
     {
         $subjects = $this->getTutorSubject();
         if (Yii::$app->request->get('subject'))
-            $subjects = $subjects->where(['slug' => Yii::$app->request->get('subject')]); 
+            $subjects = $subjects->where(['slug' => Yii::$app->request->get('subject')]);
         $total_rating = count($this->tutorReview);
-        $sum_rating = $this->sumRating / $total_rating;
+        $sum_rating = $total_rating > 0 ? $this->sumRating / $total_rating : 0;
         return [
             'subjects' => $subjects->all(),
             'rating' => $sum_rating,
