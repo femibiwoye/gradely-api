@@ -216,7 +216,14 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getMiniComment()
     {
-        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type'=>'feed'])->limit(2)->orderBy('id');
+        return $this->hasMany(FeedComment::className(),
+            //['feed_id' => 'id']) //To be returned
+            ['status' => 'status']) //To be removed
+            //->where(['type'=>'feed']) //To be returned
+            ->orWhere(['feed_id'=>1])// To be removed
+            ->limit(2)
+            //->orderBy('id'); /To be returned
+            ->orderBy('rand()'); //To be removed
     }
 
     public function FeedDisliked()
