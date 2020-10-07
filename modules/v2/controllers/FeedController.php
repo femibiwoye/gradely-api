@@ -54,7 +54,7 @@ class FeedController extends ActiveController
         return $actions;
     }
 
-    public function actionIndex($class_id = null, $token = null,$student_id = null)
+    public function actionIndex($class_id = null, $token = null, $student_id = null)
     {
         $me = Yii::$app->request->get('me');
         $subject_id = Yii::$app->request->get('subject_id');
@@ -140,6 +140,13 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->where(['class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
+        }
+
+        //To filter by student id
+        if ($student_id) {
+            $models = $models
+                ->innerJoin('user', 'user.id = feed.user_id')
+                ->andWhere(['feed.user_id' => $student_id,'feed.class_id'=>$class_id,'user.type'=>'student']);
         }
 
         if ($type)
