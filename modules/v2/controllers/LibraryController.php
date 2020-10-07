@@ -489,23 +489,23 @@ class LibraryController extends ActiveController
     public function actionSummary($class_id)
     {
         $status = 1;
-        if(Yii::$app->user->identity->type == 'teacher') {
+        if (Yii::$app->user->identity->type == 'teacher') {
             $teacher_id = Yii::$app->user->id;
 
-            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id','status'));
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'status'));
             $model
                 ->addRule(['class_id', 'teacher_id'], 'integer')
-                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id','status']]);
+                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id', 'status']]);
 
             $assessment = Homeworks::find()->where(['teacher_id' => $teacher_id, 'type' => SharedConstant::HOMEWORK_TYPES[0]])
                 ->andWhere(['class_id' => $class_id])->count();
-        }elseif(Yii::$app->user->identity->type == 'school'){
+        } elseif (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $school_id = $school->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
             $model
                 ->addRule(['class_id'], 'integer')
-                ->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id'=>'id', 'school_id']]);
+                ->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id']]);
 
             $assessment = Homeworks::find()->where(['school_id' => $school->id, 'type' => SharedConstant::HOMEWORK_TYPES[0]])
                 ->andWhere(['class_id' => $class_id])->count();
@@ -533,7 +533,6 @@ class LibraryController extends ActiveController
             ->andWhere(['practice_material.filetype' => 'document'])
             ->groupBy('practice_material.id')
             ->andWhere(['OR', ['homeworks.class_id' => $class_id], ['feed.class_id' => $class_id]])->count();
-
 
 
         $numbers = [
