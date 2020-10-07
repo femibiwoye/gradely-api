@@ -93,6 +93,8 @@ class GeneralController extends Controller
 
         elseif ($user->type == 'teacher')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getTeacherAdditionalData($user->id));
+        elseif ($user->type == 'student')
+            $user = array_merge(ArrayHelper::toArray($user), ['school_class_id'=>Utility::getStudentClass()]);
 
         return (new ApiResponse)->success($user);
     }
@@ -189,7 +191,7 @@ class GeneralController extends Controller
     {
         if (Yii::$app->user->identity->type == 'parent') {
             if ($user = Parents::findOne(['parent_id' => Yii::$app->user->id, 'student_id' => $child_id, 'status' => 1]))
-                $user = User::findOne(['id' => $user->student_id,'type'=>'student']);
+                $user = User::findOne(['id' => $user->student_id, 'type' => 'student']);
             else
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid child id!');
         } else

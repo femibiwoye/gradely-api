@@ -70,12 +70,12 @@ class Homeworks extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required','on' => 'assessment'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id'], 'integer'],
-            [['description', 'access_status', 'type'], 'string'],
+            [['description', 'access_status', 'type','tag'], 'string'],
             [['open_date', 'close_date', 'created_at'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
-            [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required','on' => 'student-practice'],
+            [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],
         ];
     }
 
@@ -133,7 +133,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'topics',
             'attachments',
             'average',
-            'completion',
+            'completion'=>'completedRate',
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
 //            'homework_performance' => 'homeworkPerformance'
@@ -171,14 +171,14 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getCompletedRate()
     {
-        $completed = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+        $completed = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->count();
 
-        return count($this->getQuizSummaryRecord()->all()) > 0 ? count($completed) * 100 / count($this->getQuizSummaryRecord()->all()) : 0;
+        return $this->getQuizSummaryRecord()->count() > 0 ? ($completed / $this->getStudentExpectedCount()) * 100 : 0;
     }
 
-    public function getStudentExpected()
+    public function getStudentExpectedCount()
     {
-        return count($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE]));
+        return StudentSchool::find()->where(['class_id'=>$this->class_id,'school_id'=>$this->school_id])->count();
     }
 
     public function getStudentsSubmitted()
@@ -279,12 +279,13 @@ class Homeworks extends \yii\db\ActiveRecord
             ->all();
     }
 
-    public function getCompletion()
+    /*public function getCompletion()
     {
-        $quizSummaryRecords = $this->getQuizSummaryRecord()->all();
+        $quizSummaryRecords = $this->getQuizSummaryRecord()->andWhere(['submit'=>SharedConstant::VALUE_ONE])->all();
         if (!$quizSummaryRecords) {
             return SharedConstant::VALUE_ZERO;
         }
+
 
         foreach ($quizSummaryRecords as $quizSummaryRecord) {
             if ($quizSummaryRecord->submit = SharedConstant::VALUE_ONE) {
@@ -292,8 +293,8 @@ class Homeworks extends \yii\db\ActiveRecord
             }
         }
 
-        return ($this->sum_of_attempts / count($quizSummaryRecords)) * 100 . '%';
-    }
+        return ($this->sum_of_attempts / count($quizSummaryRecords)) * 100;
+    }*/
 
     public function getExpiryStatus()
     {

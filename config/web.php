@@ -1,4 +1,7 @@
 <?php
+
+use yii\base\Event;
+
 require 'var.php';
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
@@ -27,7 +30,15 @@ $config = [
     ],
     'components' => [
         'response' => [
-            'format' => \yii\web\Response::FORMAT_JSON
+            'format' => \yii\web\Response::FORMAT_JSON,
+            'on beforeSend' => function ($event) {
+                $response = $event->sender;
+                if ($response->statusCode > 400 && is_array($response->data)) {
+                    //Save the error to db so that it will be logged
+
+                    \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => $response->data['name'], 'raw' => json_encode($response->data)]);
+                }
+            },
         ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation

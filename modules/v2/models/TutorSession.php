@@ -24,6 +24,7 @@ use yii\helpers\ArrayHelper;
  * @property string|null $availability
  * @property int $is_school
  * @property string|null $preferred_client
+ * @property string|null $participant_type
  * @property string|null $meeting_token For daily.co, this is used to set the host
  * @property string|null $meeting_room this is use to determine the room for this class
  * @property string|null $meta Any additional data
@@ -56,7 +57,7 @@ class TutorSession extends \yii\db\ActiveRecord
         return [
             [['requester_id', 'category'], 'required'],
             [['requester_id', 'student_id', 'class', 'subject_id', 'session_count', 'curriculum_id', 'is_school'], 'integer'],
-            [['repetition', 'preferred_client', 'meeting_token', 'meta', 'status'], 'string'],
+            [['repetition', 'preferred_client', 'meeting_token', 'meta', 'status','participant_type'], 'string'],
             [['availability', 'created_at'], 'safe'],
             [['title'], 'string', 'max' => 200],
             [['category'], 'string', 'max' => 50],

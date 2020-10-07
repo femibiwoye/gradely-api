@@ -2,7 +2,9 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\PracticeMaterial;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\UserModel;
 use Yii;
 use yii\data\ActiveDataProvider;
@@ -486,12 +488,28 @@ class LibraryController extends ActiveController
      */
     public function actionSummary($class_id)
     {
-        $teacher_id = Yii::$app->user->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
-        $model
-            ->addRule(['class_id', 'teacher_id'], 'integer')
-            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+        $status = 1;
+        if (Yii::$app->user->identity->type == 'teacher') {
+            $teacher_id = Yii::$app->user->id;
 
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'status'));
+            $model
+                ->addRule(['class_id', 'teacher_id'], 'integer')
+                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id', 'status']]);
+
+            $assessment = Homeworks::find()->where(['teacher_id' => $teacher_id, 'type' => SharedConstant::HOMEWORK_TYPES[0]])
+                ->andWhere(['class_id' => $class_id])->count();
+        } elseif (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $school_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
+            $model
+                ->addRule(['class_id'], 'integer')
+                ->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id']]);
+
+            $assessment = Homeworks::find()->where(['school_id' => $school->id, 'type' => SharedConstant::HOMEWORK_TYPES[0]])
+                ->andWhere(['class_id' => $class_id])->count();
+        }
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
@@ -516,8 +534,6 @@ class LibraryController extends ActiveController
             ->groupBy('practice_material.id')
             ->andWhere(['OR', ['homeworks.class_id' => $class_id], ['feed.class_id' => $class_id]])->count();
 
-        $assessment = Homeworks::find()->where(['teacher_id' => $teacher_id, 'type' => SharedConstant::HOMEWORK_TYPES[0]])
-            ->andWhere(['class_id' => $class_id])->count();
 
         $numbers = [
             'assessment' => $assessment,

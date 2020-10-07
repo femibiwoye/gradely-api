@@ -47,6 +47,7 @@ class TeacherProfile extends User
         $classes = Classes::find()
             ->where(['id' => $classes])->all();
         $returns = [];
+
         foreach ($classes as $class) {
             $subjects = ArrayHelper::getColumn(TeacherClassSubjects::find()
                 ->where(['school_id' => $class->school_id, 'teacher_id' => $this->id, 'status' => 1, 'class_id' => $class->id])
@@ -54,12 +55,14 @@ class TeacherProfile extends User
                 ->all(), 'subject_id');
             $returns[] = array_merge(ArrayHelper::toArray($class), ['subjects' => Subjects::find()->where(['id' => $subjects])->select(['id', 'slug', 'name'])->all()]);
         }
+        
         return $returns;
     }
 
     public function getHomework()
     {
-        $model = Homeworks::find()->andWhere(['teacher_id' => $this->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1])->all();
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $model = Homeworks::find()->andWhere(['teacher_id' => $this->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1, 'school_id' => $school->id])->all();
         return $model;
     }
 
