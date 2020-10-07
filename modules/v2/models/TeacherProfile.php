@@ -59,7 +59,8 @@ class TeacherProfile extends User
 
     public function getHomework()
     {
-        $model = Homeworks::find()->andWhere(['teacher_id' => $this->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1])->all();
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $model = Homeworks::find()->andWhere(['teacher_id' => $this->id, 'type' => 'homework', 'status' => 1, 'publish_status' => 1, 'school_id' => $school->id])->all();
         return $model;
     }
 
