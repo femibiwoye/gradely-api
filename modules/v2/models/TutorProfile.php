@@ -4,6 +4,7 @@ namespace app\modules\v2\models;
 
 use Yii;
 use yii\db\Expression;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "tutor_profile".
@@ -94,12 +95,13 @@ class TutorProfile extends \yii\db\ActiveRecord
         $fields['user'] = 'user';
         $fields['rating'] = 'rating';
         $fields['curriculum'] = 'curriculum';
-        $fields['subject'] = 'subject';
         if ($this->isRelationPopulated('calendar')) {
 
             $fields['calendar'] = 'calendar';
             $fields['reviews'] = 'reviews';
             $fields['tutor_availability'] = 'tutorAvailability';
+            $fields['ratings'] = 'ratings';
+            $fields['preferred_classes'] = 'preferredClasses';
         }
 
 
@@ -143,17 +145,28 @@ class TutorProfile extends \yii\db\ActiveRecord
         return $this->hasMany(Review::className(), ['receiver_id' => 'tutor_id']);
     }
 
-
     public function getRating()
     {
         $rate = Review::find()->select([
             new Expression('ROUND(SUM(rate)/count(id),1) as rate'),
+            new Expression('count(id) as total_rate'),
+
         ])
             ->where(['receiver_id' => $this->tutor_id])
             ->asArray()
             ->one();
 
-        return $rate["rate"];
+        return $rate;
+    }
+
+    public function getRatings()
+    {
+        $connection = Yii::$app->getDb();
+        $command = $connection->createCommand("SELECT rate, 
+ROUND((COUNT(*) / (SELECT COUNT(*) FROM review)),1) * 100 AS percentage
+FROM review
+GROUP BY rate;");
+        return $result = $command->queryAll();
     }
 
     public function getTutorCurriculum()
@@ -162,24 +175,40 @@ class TutorProfile extends \yii\db\ActiveRecord
             ->groupBy('curriculum_id');
     }
 
-    public function getTutorSubjects()
+    public function getPreferredClasses()
     {
-        return $this->hasMany(TutorSubject::className(), ['tutor_id' => 'tutor_id'])
-            ->groupBy('subject_id');
+        return GlobalClass::find()
+            ->alias('gc')
+            ->innerJoin('tutor_subject ts','ts.class = gc.id')
+            ->select([
+                'gc.description'
+            ])
+            ->where(['ts.tutor_id'=>$this->tutor_id])
+            ->groupBy('ts.class')->all();
     }
 
     public function getCurriculum()
     {
-        return $this->hasMany(ExamType::className(), ['id' => 'curriculum_id'])
+        $exams = $this->hasMany(ExamType::className(), ['id' => 'curriculum_id'])
             ->select(['id', 'slug', 'name', 'title', 'description'])
-            ->via('tutorCurriculum');
+            ->via('tutorCurriculum')->all();
+
+        $return = [];
+        foreach ($exams as $exam) {
+            $subjects = Subjects::find()
+                ->innerJoin('tutor_subject ts', 'ts.subject_id = subjects.id')
+                ->select(['subjects.name'])
+                ->where(['ts.curriculum_id' => $exam->id])->asArray()->all();
+            $return[] = array_merge(ArrayHelper::toArray($exam), ['subjects' => $subjects]);
+        }
+        return $return;
     }
 
-    public function getSubject()
-    {
-        return $this->hasMany(Subjects::className(), ['id' => 'subject_id'])
-            ->via('tutorSubjects');
-    }
+//    public function getSubject()
+//    {
+//        return $this->hasMany(Subjects::className(), ['id' => 'subject_id'])
+//            ->via('tutorSubjects');
+//    }
 
     public function getCalendar()
     {
