@@ -71,12 +71,14 @@ class Review extends \yii\db\ActiveRecord
 
     public function fields()
     {
-        return [
-            'sender',
-            'rate',
-            'review_message' => 'review',
-            'created_at'
-        ];
+        $fields = parent::fields();
+
+        $fields['sender'] = 'sender';
+        $fields['rate'] = 'rate';
+        $fields['review'] = 'review';
+        $fields['created_at'] = 'created_at';
+
+        return $fields;
     }
 
     /**

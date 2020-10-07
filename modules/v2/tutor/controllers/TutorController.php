@@ -47,7 +47,7 @@ class TutorController extends ActiveController
     {
         $models = TutorProfile::find()
             ->where(['availability' => SharedConstant::VALUE_ONE])
-            ->with(['curriculum','subject'])
+            ->with(['calendar'])
             ->all();
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -58,7 +58,9 @@ class TutorController extends ActiveController
 
     public function actionProfile($tutor_id)
     {
-        $model = TutorProfile::findOne(['tutor_id' => $tutor_id]);
+        $model = TutorProfile::find()
+            ->with(['calendar'])
+            ->where(['tutor_id' => $tutor_id])->one();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor record not found');
         }
