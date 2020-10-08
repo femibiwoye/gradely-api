@@ -117,7 +117,8 @@ class Subscriptions extends \yii\db\ActiveRecord
             'created_at',
             'paid_at',
             'subscriptionChildrens',
-            'tutorSession'
+            'tutorSession',
+            'cardDetail'=>'cardDetail'
         ];
     }
 
@@ -130,6 +131,11 @@ class Subscriptions extends \yii\db\ActiveRecord
     public function getSubscriptionChildrens()
     {
         return $this->hasMany(SubscriptionChildren::className(), ['subscription_id' => 'id']);
+    }
+
+    public function getCardDetail()
+    {
+        return $this->hasOne(SubscriptionPaymentDetails::className(), ['id' => 'payment_details_id']);
     }
 
     public function getTutorSession()

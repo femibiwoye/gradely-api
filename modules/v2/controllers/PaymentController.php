@@ -4,10 +4,12 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Parents;
+use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubscriptionChildren;
 use app\modules\v2\models\SubscriptionPaymentDetails;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
+use app\paystack\Paystack\Routes\Subscription;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -272,6 +274,15 @@ class PaymentController extends ActiveController
 
         return ['card' => $cardDetails, 'child' => $child];
 
+    }
+
+    public function actionBillingHistory()
+    {
+        $subscription = Subscriptions::find()
+
+            ->where(['user_id'=>Yii::$app->user->id])->all();
+
+        return $subscription;
     }
 
 
