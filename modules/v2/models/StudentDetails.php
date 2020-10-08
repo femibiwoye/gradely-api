@@ -42,6 +42,7 @@ class StudentDetails extends User
             'remarks' => 'remarks',
             'topics' => 'topicBreakdown',
             'homework',
+            'subjects' => 'classSubjects',
             'completion_rate' => 'totalHomeworks',
             'positions' => 'statistics',
             'performance' => 'performance',
@@ -391,6 +392,24 @@ class StudentDetails extends User
             'struggling' => $struggling
         ];
 
+    }
+
+    public function getClassSubjects()
+    {
+        $studentID = $this->id;
+        return Subjects::find()
+            ->alias('s')
+            ->select([
+                's.id',
+                's.slug',
+                's.name',
+                //'s.description',
+                //'s.image',
+            ])
+            ->innerJoin('student_school ss', "ss.student_id = $studentID")
+            ->innerJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id')
+            ->where(['s.status' => 1, 'cs.status' => 1])
+            ->all();
     }
 
     private function topicPerformanceMini($data)
