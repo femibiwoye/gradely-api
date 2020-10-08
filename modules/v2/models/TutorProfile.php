@@ -204,12 +204,6 @@ GROUP BY rate;");
         return $return;
     }
 
-//    public function getSubject()
-//    {
-//        return $this->hasMany(Subjects::className(), ['id' => 'subject_id'])
-//            ->via('tutorSubjects');
-//    }
-
     public function getCalendar()
     {
         return $this->hasMany(TutorAvailability::className(), ['user_id' => 'tutor_id'])
