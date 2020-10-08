@@ -36,7 +36,7 @@ class StudentDetails extends User
             'email',
             'phone',
             'type',
-            'class_name'=>'className',
+            'class_name' => 'className',
             'profile' => 'userProfile',
             'parents' => 'studentParents',
             'remarks' => 'remarks',
@@ -58,10 +58,10 @@ class StudentDetails extends User
     {
         $class = Classes::find()
             ->select(['classes.class_name'])
-            ->innerJoin('student_school ss','ss.class_id = classes.id')
-            ->where(['ss.student_id'=>$this->id])
+            ->innerJoin('student_school ss', 'ss.class_id = classes.id')
+            ->where(['ss.student_id' => $this->id])
             ->one();
-     return isset($class->class_name)?$class->class_name:null;
+        return isset($class->class_name) ? $class->class_name : null;
     }
 
     public function getSummary()
@@ -71,12 +71,18 @@ class StudentDetails extends User
 
     public function getHomework()
     {
-        return QuizSummary::find()
+        $model = QuizSummary::find()
             ->alias('q')
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
             ->where(['q.student_id' => $this->id])
-            ->joinWith(['childHomework', 'subject'])
-            ->asArray()
+            ->joinWith(['childHomework', 'subject']);
+
+        if (Yii::$app->request->get('subject'))
+            $model = $model->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
+        if (Yii::$app->request->get('term'))
+            $model = $model->andWhere(['q.term' => Yii::$app->request->get('term')]);
+
+        return $model->asArray()
             ->all();
     }
 
@@ -90,7 +96,7 @@ class StudentDetails extends User
 
     public function getFeeds()
     {
-        return Feed::find()
+        $model = Feed::find()
             ->alias('f')
             ->select([
                 'f.id',
@@ -110,9 +116,14 @@ class StudentDetails extends User
             ->leftJoin('feed_comment fc', "fc.feed_id = f.id AND fc.type = 'feed'")
             ->leftJoin('practice_material pm', "pm.practice_id = f.id AND pm.type = 'feed'")
             //->where(['f.user_id' => $this->id]) //To be returned
-            ->where(['f.type' => 'post']) //To be removed
-            ->orderBy('rand()')//To be removed
-            ->limit(5)
+            ->where(['f.type' => 'post']);//To be removed
+
+
+        if (Yii::$app->request->get('subject'))
+            $model = $model->andWhere(['f.subject_id' => Yii::$app->request->get('subject')]);
+
+        return $model->orderBy('rand()')//To be removed
+        ->limit(5)
             ->groupBy('f.id')
             ->asArray()->all();
     }
@@ -154,14 +165,22 @@ class StudentDetails extends User
         }
 
         $homeworkCount = Homeworks::find()
-            ->where(['AND', $condition, [/*'class_id' => $class->class_id,*/ 'status' => 1]])
-            ->count();
+            ->where(['AND', $condition, [/*'class_id' => $class->class_id,*/ 'status' => 1]]);
+        if (Yii::$app->request->get('subject'))
+            $homeworkCount = $homeworkCount->andWhere(['homeworks.subject_id' => Yii::$app->request->get('subject')]);
+        $homeworkCount = $homeworkCount->count();
 
         $studentCount = QuizSummary::find()
             ->alias('q')
             ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1])
-            ->innerJoin('homeworks', "homeworks.id = q.homework_id" . $condition2)
-            ->count();
+            ->innerJoin('homeworks', "homeworks.id = q.homework_id" . $condition2);
+
+        if (Yii::$app->request->get('subject'))
+            $studentCount = $studentCount->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
+        if (Yii::$app->request->get('term'))
+            $studentCount = $studentCount->andWhere(['q.term' => Yii::$app->request->get('term')]);
+
+        $studentCount = $studentCount->count();
 
         return $homeworkCount > 0 ? round($studentCount / $homeworkCount * 100) : 0;
 
@@ -184,8 +203,14 @@ class StudentDetails extends User
         $topics = QuizSummaryDetails::find()
             ->alias('s')
             ->select(['s.topic_id'])
-            ->where(['s.student_id' => $this->id])
-            ->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
+            ->where(['s.student_id' => $this->id]);
+
+        if (Yii::$app->request->get('subject'))
+            $topics = $topics->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
+        if (Yii::$app->request->get('term'))
+            $topics = $topics->andWhere(['q.term' => Yii::$app->request->get('term')]);
+
+        $topics = $topics->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
             ->groupBy('topic_id')
             ->asArray()
             ->all();
@@ -314,12 +339,16 @@ class StudentDetails extends User
         $averages = [];
         $struggling = [];
 
-        $activeTopics = QuizSummaryDetails::find()->select(['topic_id'])->where(['student_id' => $this->id]);
+        $activeTopics = QuizSummaryDetails::find()->select(['qsd.topic_id'])
+            ->alias('qsd')
+            ->where(['qsd.student_id' => $this->id]);
 
 
-        if (isset($_GET['term']))
-            $activeTopics = $activeTopics->andWhere(['term' => isset($_GET['term'])]);
-        $activeTopics = ArrayHelper::getColumn($activeTopics->groupBy('topic_id')->all(), 'topic_id');
+        if (isset($_GET['term'])) {
+            $term = $_GET['term'];
+            $activeTopics = $activeTopics->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.term ='$term'");
+        }
+        $activeTopics = ArrayHelper::getColumn($activeTopics->groupBy('qsd.topic_id')->all(), 'topic_id');
 
         if (!empty($activeTopics)) {
 
