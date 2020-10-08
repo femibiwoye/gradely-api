@@ -36,7 +36,7 @@ class StudentDetails extends User
             'email',
             'phone',
             'type',
-            'type',
+            'class_name'=>'className',
             'profile' => 'userProfile',
             'parents' => 'studentParents',
             'remarks' => 'remarks',
@@ -52,6 +52,16 @@ class StudentDetails extends User
     public function getUser()
     {
         return $this;
+    }
+
+    public function getClassName()
+    {
+        $class = Classes::find()
+            ->select(['classes.class_name'])
+            ->innerJoin('student_school ss','ss.class_id = classes.id')
+            ->where(['ss.student_id'=>$this->id])
+            ->one();
+     return isset($class->class_name)?$class->class_name:null;
     }
 
     public function getSummary()
