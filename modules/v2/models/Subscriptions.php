@@ -118,7 +118,7 @@ class Subscriptions extends \yii\db\ActiveRecord
             'paid_at',
             'subscriptionChildrens',
             'tutorSession',
-            'cardDetail'=>'cardDetail'
+            'cardDetail' => 'cardDetail'
         ];
     }
 
@@ -135,16 +135,18 @@ class Subscriptions extends \yii\db\ActiveRecord
 
     public function getCardDetail()
     {
-        return $this->hasOne(SubscriptionPaymentDetails::className(), ['id' => 'payment_details_id']);
+        return $this->hasOne(SubscriptionPaymentDetails::className(), ['id' => 'payment_details_id'])->select([
+            'last4', 'exp_month', 'exp_year', 'channel', 'bank', 'card_type', 'brand'
+        ]);
     }
 
     public function getTutorSession()
     {
         return TutorSession::find()
-                ->innerJoin('subscriptions', 'subscriptions.user_id = tutor_session.requester_id')
-                ->where(['subscriptions.id' => $this->id])
-                ->asArray()
-                ->all();   
+            ->innerJoin('subscriptions', 'subscriptions.user_id = tutor_session.requester_id')
+            ->where(['subscriptions.id' => $this->id])
+            ->asArray()
+            ->all();
     }
 
     public function ConfirmPayment(Subscriptions $model)

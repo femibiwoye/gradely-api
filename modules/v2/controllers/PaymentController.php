@@ -279,10 +279,9 @@ class PaymentController extends ActiveController
     public function actionBillingHistory()
     {
         $subscription = Subscriptions::find()
+            ->where(['user_id' => Yii::$app->user->id])->all();
 
-            ->where(['user_id'=>Yii::$app->user->id])->all();
-
-        return $subscription;
+        return (new ApiResponse)->success($subscription, ApiResponse::SUCCESSFUL);
     }
 
 
