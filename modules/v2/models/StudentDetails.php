@@ -307,7 +307,6 @@ class StudentDetails extends User
             $this->direction = null;
             $this->improvement = null;
         }
-
         return true;
     }
 
@@ -315,7 +314,6 @@ class StudentDetails extends User
     {
         $studentAnalytics = new StudentAnalytics();
         return $result = $studentAnalytics->Analytics($this);
-
     }
 
     public function checkStudentInTeacherClass()
