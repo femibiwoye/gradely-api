@@ -116,14 +116,13 @@ class StudentDetails extends User
             ->leftJoin('feed_like fl', "fl.parent_id = f.id AND fl.type = 'feed'")
             ->leftJoin('feed_comment fc', "fc.feed_id = f.id AND fc.type = 'feed'")
             ->leftJoin('practice_material pm', "pm.practice_id = f.id AND pm.type = 'feed'")
-            //->where(['f.user_id' => $this->id]) //To be returned
-            ->where(['f.type' => 'post']);//To be removed
+            ->where(['f.user_id' => $this->id]);
 
 
         if (Yii::$app->request->get('subject'))
             $model = $model->andWhere(['f.subject_id' => Yii::$app->request->get('subject')]);
 
-        return $model->orderBy('rand()')//To be removed
+        return $model->orderBy('id DESC')
         ->limit(5)
             ->groupBy('f.id')
             ->asArray()->all();
