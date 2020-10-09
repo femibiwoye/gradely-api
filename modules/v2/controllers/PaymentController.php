@@ -224,6 +224,7 @@ class PaymentController extends ActiveController
 
             $children[$key] = array_merge(
                 $children[$key],
+                ['class' => Utility::StudentClassDetails($child['id'])],
                 ['catchup' =>
                     ['status' => Utility::getSubscriptionStatus(User::findOne($child['id'])),
                         //'amount' => 1500,
@@ -233,8 +234,6 @@ class PaymentController extends ActiveController
                         'duration' => isset($childSub->subscription) ? $childSub->subscription->duration : null,
                         'duration_count' => isset($childSub->subscription) ? $childSub->subscription->duration_count : null,
                         'plan' => isset($childSub->subscription) ? $childSub->subscription->plan : null,
-
-
                     ]
                 ],
                 ['tutor' => null]

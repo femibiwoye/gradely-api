@@ -5,6 +5,7 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\notifications\InappNotification;
@@ -112,33 +113,7 @@ class GeneralController extends ActiveController
      */
     public function actionClassDetail($child = null)
     {
-        $user = Yii::$app->user->identity;
-        if ($user->type == 'parent' && $child) {
-            $parent = Parents::findOne(['parent_id' => $user->id, 'student_id' => $child, 'status' => 1]);
-            if ($parent)
-                $user = User::findOne(['id' => $child]);
-            else
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid');
-
-        }
-        if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1])) {
-            $className = $classes->class->class_name;
-            $schoolName = $classes->school->name;
-            $hasSchool = true;
-        } else {
-            $className = null;
-            $schoolName = null;
-            $hasSchool = false;
-        }
-
-        $return = [
-            'profileClass' => $user->class,
-            'class_name' => $className,
-            'school_name' => $schoolName,
-            'has_school' => $hasSchool
-        ];
-
-        return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success(Utility::StudentClassDetails($child), ApiResponse::SUCCESSFUL);
 
     }
 

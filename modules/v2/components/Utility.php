@@ -3,6 +3,7 @@
 namespace app\modules\v2\components;
 
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
@@ -342,4 +343,32 @@ class Utility extends ActiveRecord
         return "IF($name.image IS NULL or $name.image = '', 'https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/topics.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
     }
 
+    public static function StudentClassDetails($child = null)
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type == 'parent' && $child) {
+            $parent = Parents::findOne(['parent_id' => $user->id, 'student_id' => $child, 'status' => 1]);
+            if ($parent)
+                $user = User::findOne(['id' => $child]);
+            else
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid');
+
+        }
+        if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1])) {
+            $className = $classes->class->class_name;
+            $schoolName = $classes->school->name;
+            $hasSchool = true;
+        } else {
+            $className = null;
+            $schoolName = null;
+            $hasSchool = false;
+        }
+
+        return $return = [
+            'profileClass' => $user->class,
+            'class_name' => $className,
+            'school_name' => $schoolName,
+            'has_school' => $hasSchool
+        ];
+    }
 }
