@@ -76,7 +76,7 @@ class LibraryController extends ActiveController
         $model = PracticeMaterial::find()
             ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
             ->leftJoin('feed', 'feed.user_id = practice_material.user_id')
-            ->groupBy('practice_material.id DESC')
+            ->groupBy('practice_material.id')
             ->andWhere(['practice_material.filetype' => 'document']);
 
         if ($class_id) {
@@ -106,7 +106,7 @@ class LibraryController extends ActiveController
             } elseif ($sort == 'z-a') {
                 $model = $model->orderBy(['title' => SORT_DESC]);
             } else {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['id' => SORT_DESC]);
             }
         }
 
@@ -264,7 +264,7 @@ class LibraryController extends ActiveController
             } elseif ($sort == 'z-a') {
                 $model = $model->orderBy(['description' => SORT_DESC]);
             } else {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['id' => SORT_DESC]);
             }
         }
 
@@ -308,7 +308,7 @@ class LibraryController extends ActiveController
 
         $model = $this->modelClass::find()
             ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
-            ->groupBy('practice_material.id DESC');
+            ->groupBy('practice_material.id');
 
         if ($class_id) {
             $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
