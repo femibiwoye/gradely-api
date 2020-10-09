@@ -125,7 +125,6 @@ class Feed extends \yii\db\ActiveRecord
     }
 
 
-
     public function attachmentSave($feed_id)
     {
         $file = Yii::$app->request->post('file');
@@ -177,6 +176,10 @@ class Feed extends \yii\db\ActiveRecord
         if ($this->type == SharedConstant::FEED_TYPES[4] || $this->type == SharedConstant::FEED_TYPES[5]) {
             return $this->hasOne(PracticeMaterial::className(), ['id' => 'reference_id']);
         }
+
+        if ($this->type == SharedConstant::FEED_TYPES[6]) {
+            return $this->hasOne(TutorSession::className(), ['id' => 'reference_id']);
+        }
     }
 
     public function getSubject()
@@ -211,19 +214,16 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getFeedCommentCount()
     {
-        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type'=>'feed'])->count();
+        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type' => 'feed'])->count();
     }
 
     public function getMiniComment()
     {
         return $this->hasMany(FeedComment::className(),
-            //['feed_id' => 'id']) //To be returned
-            ['status' => 'status']) //To be removed
-            //->where(['type'=>'feed']) //To be returned
-            ->orWhere(['feed_id'=>1])// To be removed
+            ['feed_id' => 'id'])
+            ->where(['type' => 'feed'])
             ->limit(2)
-            //->orderBy('id'); /To be returned
-            ->orderBy('rand()'); //To be removed
+            ->orderBy('id');
     }
 
     public function FeedDisliked()
