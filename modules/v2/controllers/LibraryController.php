@@ -132,16 +132,21 @@ class LibraryController extends ActiveController
      */
     public function actionUploadVideo()
     {
-
         $class_id = Yii::$app->request->post('class_id');
         $tag = Yii::$app->request->post('tag');
         $teacher_id = Yii::$app->user->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
-        $model->addRule(['tag', 'class_id'], 'required')
-            ->addRule(['class_id'], 'integer');
+
         if (Yii::$app->user->identity->type = 'teacher') {
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
+            $model->addRule(['tag', 'class_id'], 'required')
+                ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
         } elseif (Yii::$app->user->identity->type = 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $teacher_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
+            $model->addRule(['tag', 'class_id'], 'required')
+                ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
@@ -163,7 +168,6 @@ class LibraryController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not uploaded');
         }
 
-
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Video uploaded');
     }
 
@@ -177,12 +181,17 @@ class LibraryController extends ActiveController
         $class_id = Yii::$app->request->post('class_id');
         $tag = Yii::$app->request->post('tag');
         $teacher_id = Yii::$app->user->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
-        $model->addRule(['tag', 'class_id'], 'required')
-            ->addRule(['class_id'], 'integer');
         if (Yii::$app->user->identity->type = 'teacher') {
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
+            $model->addRule(['tag', 'class_id'], 'required')
+                ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
         } elseif (Yii::$app->user->identity->type = 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $teacher_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
+            $model->addRule(['tag', 'class_id'], 'required')
+                ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
