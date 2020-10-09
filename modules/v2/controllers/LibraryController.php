@@ -180,8 +180,9 @@ class LibraryController extends ActiveController
 
         $class_id = Yii::$app->request->post('class_id');
         $tag = Yii::$app->request->post('tag');
-        $teacher_id = Yii::$app->user->id;
+
         if (Yii::$app->user->identity->type = 'teacher') {
+            $teacher_id = Yii::$app->user->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
@@ -192,7 +193,7 @@ class LibraryController extends ActiveController
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
-            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+            //$model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
         }
