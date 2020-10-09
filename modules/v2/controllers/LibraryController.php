@@ -138,8 +138,14 @@ class LibraryController extends ActiveController
         $teacher_id = Yii::$app->user->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
         $model->addRule(['tag', 'class_id'], 'required')
-            ->addRule(['class_id'], 'integer')
-            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+            ->addRule(['class_id'], 'integer');
+        if (Yii::$app->user->identity->type = 'teacher') {
+            $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+        } elseif (Yii::$app->user->identity->type = 'school') {
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+        } else {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
+        }
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
@@ -173,8 +179,14 @@ class LibraryController extends ActiveController
         $teacher_id = Yii::$app->user->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
         $model->addRule(['tag', 'class_id'], 'required')
-            ->addRule(['class_id'], 'integer')
-            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+            ->addRule(['class_id'], 'integer');
+        if (Yii::$app->user->identity->type = 'teacher') {
+            $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+        } elseif (Yii::$app->user->identity->type = 'school') {
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+        } else {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
+        }
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
