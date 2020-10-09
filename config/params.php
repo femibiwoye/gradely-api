@@ -32,5 +32,7 @@ return [
     'videoDomain' => 'https://api.wizitup.com/reseller/v1/get-link',
 
     //WizItUp Content Access Key
-    'wizItUpKey' => WIZITUP_KEY
+    'wizItUpKey' => WIZITUP_KEY,
+
+    'live_class_limit'=>20
 ];

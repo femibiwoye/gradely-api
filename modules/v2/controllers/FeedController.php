@@ -93,29 +93,36 @@ class FeedController extends ActiveController
                     ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id')[0];
 
             $models = $this->modelClass::find();
-            //Return all teacher feeds
-            if ($teacher) {
-                $teachers = ArrayHelper::getColumn(
-                    SchoolTeachers::find()->where(['school_id' => Yii::$app->user->id])->all(),
-                    'teacher_id'
-                );
 
+            if ($teacher || $student) {
+                //Return all teacher feeds
+                if ($teacher) {
+                    $teachers = ArrayHelper::getColumn(
+                        SchoolTeachers::find()->where(['school_id' => Yii::$app->user->id])->all(),
+                        'teacher_id'
+                    );
+
+                    $models = $this->modelClass::find()
+                        ->innerJoin('user', 'user.id = feed.user_id')
+                        ->where(['user.type' => 'teacher'])
+                        ->andWhere(['feed.user_id' => $teachers])
+                        ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
+                        ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+
+                }
+
+                // Return all student and parent feed
+                if ($student) {
+                    $models = $this->modelClass::find()
+                        ->innerJoin('user', 'user.id = feed.user_id')
+                        ->where(['user.type' => ['student', 'parent']])
+                        ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
+                        ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+                }
+            } else {
                 $models = $this->modelClass::find()
-                    ->innerJoin('user', 'user.id = feed.user_id')
-                    ->where(['user.type' => 'teacher'])
-                    ->andWhere(['feed.user_id' => $teachers])
-                    ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
-                    ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
-
-            }
-
-            // Return all student and parent feed
-            if ($student) {
-                $models = $this->modelClass::find()
-                    ->innerJoin('user', 'user.id = feed.user_id')
-                    ->where(['user.type' => ['student', 'parent']])
-                    ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
-                    ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+                    ->where(['AND', ['class_id' => $class_id], ['not', ['class_id' => null]]])
+                    ->orWhere(['AND', ['user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'class_id', new \yii\db\Expression('null')]]);
             }
 
         } elseif (Yii::$app->user->identity->type == 'student') {
@@ -303,6 +310,21 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
+        $school_id = Utility::getSchoolID(Yii::$app->user->id);
+        if (!$school_id) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');
+        }
+
+        $tutor_session = TutorSession::find()
+                            ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
+                            ->where(['school_teachers.school_id' => $school_id,'is_school'=>1])
+                            ->andWhere('YEARWEEK(tutor_session.created_at) = YEARWEEK(NOW())')
+                            ->andWhere(['OR',["tutor_session.meta != 'recommendation'"],["tutor_session.participant_type = 'single'"]])
+                            ->count();
+        if ($tutor_session >= Yii::$app->params['live_class_limit']) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "You've had the maximum eligible live class limit");
+        }
+
         $model = new TutorSession(['scenario' => 'new-class']);
         $model->attributes = Yii::$app->request->post();
         $model->requester_id = Yii::$app->user->id;

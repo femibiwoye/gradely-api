@@ -8,7 +8,7 @@ use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\models\{ApiResponse, TutorProfile, TutorSession, Review};
+use app\modules\v2\models\{ApiResponse, TutorProfile, TutorSession, Review, SubjectTopics};
 
 class TutorController extends ActiveController
 {
@@ -114,6 +114,7 @@ class TutorController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('session_id', 'sender_id', 'rate', 'receiver_id'));
         $form->addRule(['session_id', 'sender_id', 'receiver_id', 'rate'], 'required');
         $form->addRule(['session_id', 'rate', 'sender_id', 'receiver_id'], 'integer');
+        $form->addRule(['rate'], 'compare', ['operator' => '<=', 'compareValue' => 5]);
         $form->addRule('session_id', 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
         $form->addRule(['sender_id', 'receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['sender_id' => 'id']]);
         $form->addRule(['receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['receiver_id' => 'id']]);
@@ -155,6 +156,7 @@ class TutorController extends ActiveController
         $form->addRule('session_id', 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
         $form->addRule(['sender_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['sender_id' => 'id']]);
         $form->addRule(['receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['receiver_id' => 'id']]);
+        $form->addRule(['topic_taught'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_taught' => 'id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
