@@ -42,16 +42,6 @@ class Utility extends ActiveRecord
         return array_unique($schools);
     }
 
-    public static function getSchoolID($teacher_id)
-    {
-        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id]);
-        if (!$model) {
-            return false;
-        }
-
-        return $model->school_id;
-    }
-
     public static function allSchoolUserID($schoolID)
     {
         $userID = Yii::$app->user->id;
@@ -312,6 +302,16 @@ class Utility extends ActiveRecord
         }
         return $image;
 
+    }
+
+    public static function getTeacherSchoolID($teacher_id)
+    {
+        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id,'status'=>1]);
+        if (!$model) {
+            return false;
+        }
+
+        return $model->school_id;
     }
 
     public static function GetVideo($contentID)
