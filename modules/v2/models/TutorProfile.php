@@ -95,6 +95,7 @@ class TutorProfile extends \yii\db\ActiveRecord
         $fields['user'] = 'user';
         $fields['rating'] = 'rating';
         $fields['curriculum'] = 'curriculum';
+        $fields['sessionCount'] = 'sessionCount';
         if ($this->isRelationPopulated('calendar')) {
 
             $fields['calendar'] = 'calendar';
@@ -179,11 +180,11 @@ GROUP BY rate;");
     {
         return GlobalClass::find()
             ->alias('gc')
-            ->innerJoin('tutor_subject ts','ts.class = gc.id')
+            ->innerJoin('tutor_subject ts', 'ts.class = gc.id')
             ->select([
                 'gc.description'
             ])
-            ->where(['ts.tutor_id'=>$this->tutor_id])
+            ->where(['ts.tutor_id' => $this->tutor_id])
             ->groupBy('ts.class')->all();
     }
 
@@ -202,6 +203,11 @@ GROUP BY rate;");
             $return[] = array_merge(ArrayHelper::toArray($exam), ['subjects' => $subjects]);
         }
         return $return;
+    }
+
+    public function getSessionCount()
+    {
+        return (int) $this->hasMany(TutorSession::className(), ['requester_id' => 'tutor_id'])->andWhere(['is_school' => 0, 'status' => 'completed'])->count();
     }
 
     public function getCalendar()

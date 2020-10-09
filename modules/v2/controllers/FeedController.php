@@ -93,29 +93,36 @@ class FeedController extends ActiveController
                     ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id')[0];
 
             $models = $this->modelClass::find();
-            //Return all teacher feeds
-            if ($teacher) {
-                $teachers = ArrayHelper::getColumn(
-                    SchoolTeachers::find()->where(['school_id' => Yii::$app->user->id])->all(),
-                    'teacher_id'
-                );
 
+            if ($teacher || $student) {
+                //Return all teacher feeds
+                if ($teacher) {
+                    $teachers = ArrayHelper::getColumn(
+                        SchoolTeachers::find()->where(['school_id' => Yii::$app->user->id])->all(),
+                        'teacher_id'
+                    );
+
+                    $models = $this->modelClass::find()
+                        ->innerJoin('user', 'user.id = feed.user_id')
+                        ->where(['user.type' => 'teacher'])
+                        ->andWhere(['feed.user_id' => $teachers])
+                        ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
+                        ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+
+                }
+
+                // Return all student and parent feed
+                if ($student) {
+                    $models = $this->modelClass::find()
+                        ->innerJoin('user', 'user.id = feed.user_id')
+                        ->where(['user.type' => ['student', 'parent']])
+                        ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
+                        ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+                }
+            } else {
                 $models = $this->modelClass::find()
-                    ->innerJoin('user', 'user.id = feed.user_id')
-                    ->where(['user.type' => 'teacher'])
-                    ->andWhere(['feed.user_id' => $teachers])
-                    ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
-                    ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
-
-            }
-
-            // Return all student and parent feed
-            if ($student) {
-                $models = $this->modelClass::find()
-                    ->innerJoin('user', 'user.id = feed.user_id')
-                    ->where(['user.type' => ['student', 'parent']])
-                    ->where(['AND', ['feed.class_id' => $class_id], ['not', ['feed.class_id' => null]]])
-                    ->orWhere(['AND', ['feed.user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'feed.class_id', new \yii\db\Expression('null')]]);
+                    ->where(['AND', ['class_id' => $class_id], ['not', ['class_id' => null]]])
+                    ->orWhere(['AND', ['user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'class_id', new \yii\db\Expression('null')]]);
             }
 
         } elseif (Yii::$app->user->identity->type == 'student') {
