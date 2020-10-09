@@ -114,6 +114,7 @@ class TutorController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('session_id', 'sender_id', 'rate', 'receiver_id'));
         $form->addRule(['session_id', 'sender_id', 'receiver_id', 'rate'], 'required');
         $form->addRule(['session_id', 'rate', 'sender_id', 'receiver_id'], 'integer');
+        $form->addRule(['rate'], 'compare', ['operator' => '<=', 'compareValue' => 5]);
         $form->addRule('session_id', 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
         $form->addRule(['sender_id', 'receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['sender_id' => 'id']]);
         $form->addRule(['receiver_id'], 'exist', ['targetClass' => $this->modelClass::className(), 'targetAttribute' => ['receiver_id' => 'id']]);
