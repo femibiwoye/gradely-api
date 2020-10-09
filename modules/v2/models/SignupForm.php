@@ -29,6 +29,8 @@ class SignupForm extends Model
             ['email', 'trim'],
             ['email', 'email', 'message' => 'Provide a valid email address'],
             ['email', 'string', 'min' => 8, 'max' => 50],
+            [['first_name', 'last_name'], 'string', 'min' => 3],
+
             ['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken.'],
             ['email', 'match', 'pattern' => "/^[@a-zA-Z0-9+._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
 
@@ -37,7 +39,7 @@ class SignupForm extends Model
             ['phone', 'string', 'min' => 11, 'max' => 14],
             ['phone', 'match', 'pattern' => '/(^[0]\d{10}$)|(^[\+]?[234]\d{12}$)/'],
 
-            ['password', 'string', 'min' => 6],
+            ['password', 'string', 'min' => 4],
 
             [['email', 'phone'], 'required', 'on' => 'teacher-signup'],
             [['email', 'phone'], 'required', 'on' => 'parent-signup'],
