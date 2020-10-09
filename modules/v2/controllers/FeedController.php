@@ -310,17 +310,18 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
-        $school_id = Utility::getSchoolID(Yii::$app->user->id);
+        $school_id = Utility::getTeacherSchoolID(Yii::$app->user->id);
         if (!$school_id) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');
         }
 
         $tutor_session = TutorSession::find()
-                            ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
-                            ->where(['school_teachers.school_id' => $school_id,'is_school'=>1])
-                            ->andWhere('YEARWEEK(tutor_session.created_at) = YEARWEEK(NOW())')
-                            ->andWhere(['OR',["tutor_session.meta != 'recommendation'"],["tutor_session.participant_type = 'single'"]])
-                            ->count();
+            ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
+            ->where(['school_teachers.school_id' => $school_id, 'is_school' => 1, 'school_teachers.teacher_id' => Yii::$app->user->id])
+            ->andWhere('YEARWEEK(tutor_session.created_at) = YEARWEEK(NOW())')
+            ->andFilterWhere(['OR', "IF(tutor_session.meta = 'recommendation', IF(tutor_session.participant_type = 'single', 1, 0), 0) = 0"])
+            ->count();
+
         if ($tutor_session >= Yii::$app->params['live_class_limit']) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "You've had the maximum eligible live class limit");
         }
