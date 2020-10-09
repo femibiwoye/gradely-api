@@ -1,206 +1,110 @@
 <?php
 
-namespace app\modules\v1\school\controllers;
+namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Parents;
+use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\UserModel;
 use Yii;
-use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
-use yii\web\Controller;
-use yii\web\Response;
+use yii\data\ActiveDataProvider;
+use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
-use yii\filters\auth\HttpBearerAuth;
-use app\modules\v1\utility\Utility; 
-use app\modules\v1\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
-use yii\db\Expression;
+
+
 /**
- * Schools controller
+ * Schools/Parent controller
  */
 class ParentsController extends ActiveController
 {
-    public $modelClass = 'api\models\User';
-    
+    public $modelClass = 'app\modules\v2\models\Parents';
+
     /**
-     * {@inheritdoc}
+     * @return array
      */
-
-    private $request;
-
-    public function beforeAction($action)
-    {
-        $this->request = \yii::$app->request->post();
-        return parent::beforeAction($action);
-    }
-
     public function behaviors()
     {
-        return [
-            'verbs' => [
-                'class' => \yii\filters\VerbFilter::className(),
-                'actions' => [
-                    'list-parents' => ['get']
+        $behaviors = parent::behaviors();
+
+        //For CORS
+        $auth = $behaviors['authenticator'];
+        unset($behaviors['authenticator']);
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::className(),
+        ];
+        $behaviors['authenticator'] = $auth;
+        $behaviors['authenticator'] = [
+            'class' => CustomHttpBearerAuth::className(),
+        ];
+
+        //Control user type that can access this
+        $behaviors['access'] = [
+            'class' => AccessControl::className(),
+            'rules' => [
+                [
+                    'allow' => true,
+                    'matchCallback' => function () {
+                        return Yii::$app->user->identity->type == 'school';
+                    },
                 ],
             ],
-            'authenticator' => [
-                'class' => HttpBearerAuth::className(),
-                'only' => [
-                            'list-parents'
-                        ]
-            ],            
         ];
+
+        return $behaviors;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function actions()
     {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
-        ];
-
-
-        return [
-            [
-              'class' => \yii\ filters\ ContentNegotiator::className(),
-              'formats' => [
-                'application/json' => \yii\ web\ Response::FORMAT_JSON,
-              ],
-            ],
-            
-          ];
+        $actions = parent::actions();
+        unset($actions['index']);
+        unset($actions['create']);
+        unset($actions['update']);
+        unset($actions['delete']);
+        unset($actions['view']);
+        return $actions;
     }
 
-    public function actionListParents(){
 
-        //get all parents
-        $getAllParents = Parents::find()
-                ->select('parents.*')
-                ->innerJoin('student_school', '`student_school`.`student_id` = `parents`.`student_id`')
-                ->where(['student_school.school_id' => Utility::getSchoolId()])
-                ->all();
+    public function actionIndex()
+    {
+        // return date_default_timezone_get().' - '.date('d M Y h:i:s');
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $classes = StudentSchool::find()
+            ->where(['school_id' => $school->id]);
 
-        $parentChildren = [];
-        if(!empty($getAllParents)){
-
-            $storeParentId = []; $allChildrenInfo = "";
-            $keys = []; $getparentChildrenInfo = []; $getAllChildren = [];  $getSingleParentId = []; $getParentUserInfos = []; $i =1;
-            foreach($getAllParents as $key => $getParent){
-
-
-                //if(in_array($getParent->parent_id, $storeParentId)){
-                    $getParentUserInfos[] = User::find()->where(['id' => $getParent->parent_id])->one();
-
-
-                    // $storeParentId[] = $getParent->parent_id;
-                    // if(in_array('15', $storeParentId)){
-
-                    //     continue;
-                    // }
-
-                    //get all children of parent
-                    $getAllChildren[] = Parents::findAll(['parent_id' => $getParent->parent_id]);
-
-                    
-
-                    foreach($getAllChildren as $key => $getChild){
-                        $allChildrenInfo = [];
-                        foreach($getChild as $key => $getAllChild){
-                            $allChildrenInfo[] =  User::findAll(['id' => $getAllChild->student_id]);
-                        }
-                    }
-                //}
-
-                    /*to fix issue store every parentid in an array so before 
-                    looping check if it exist in the array, if it does move to the next line else
-                    */
-                    /*trying to avoid checking for parentid that has already been checked so 
-                    as to avoid repeatition*/
-                    // $storeParentId[] = $getParent->parent_id;
-                    // if(in_array($getParent->parent_id, $storeParentId)){
-
-                    //     continue;
-                    // }
-
-                    //pass result gotten from query above to $getParentUserInfos[] below
-                    // unset($getParentUserInfos[$key]->username);
-                    // unset($getParentUserInfos[$key]->code);
-                    // unset($getParentUserInfos[$key]->password_hash);
-                    // unset($getParentUserInfos[$key]->password_reset_token);
-                    // unset($getParentUserInfos[$key]->auth_key);
-                    // unset($getParentUserInfos[$key]->class);
-                    // unset($getParentUserInfos[$key]->status);
-                    // unset($getParentUserInfos[$key]->subscription_expiry);
-                    // unset($getParentUserInfos[$key]->subscription_plan);
-                    // unset($getParentUserInfos[$key]->created_at);
-                    // unset($getParentUserInfos[$key]->updated_at);
-                    // unset($getParentUserInfos[$key]->verification_token);
-                    // unset($getParentUserInfos[$key]->oauth_provider);
-                    // unset($getParentUserInfos[$key]->token);
-                    // unset($getParentUserInfos[$key]->token_expires);
-                    // unset($getParentUserInfos[$key]->oauth_uid);
-                    // unset($getParentUserInfos[$key]->last_accessed);
-
-
-                    // unset($allChildrenInfo[$key]->username);
-                    // unset($allChildrenInfo[$key]->code);
-                    // unset($allChildrenInfo[$key]->password_hash);
-                    // unset($allChildrenInfo[$key]->password_reset_token);
-                    // unset($allChildrenInfo[$key]->auth_key);
-                    // unset($allChildrenInfo[$key]->class);
-                    // unset($allChildrenInfo[$key]->status);
-                    // unset($allChildrenInfo[$key]->subscription_expiry);
-                    // unset($allChildrenInfo[$key]->subscription_plan);
-                    // unset($allChildrenInfo[$key]->created_at);
-                    // unset($allChildrenInfo[$key]->updated_at);
-                    // unset($allChildrenInfo[$key]->verification_token);
-                    // unset($allChildrenInfo[$key]->oauth_provider);
-                    // unset($allChildrenInfo[$key]->token);
-                    // unset($allChildrenInfo[$key]->token_expires);
-                    // unset($allChildrenInfo[$key]->oauth_uid);
-                    // unset($allChildrenInfo[$key]->last_accessed);
-
-                    $getParentUserInfos[] = 
-
-                    [
-                    
-                        'children' => $allChildrenInfo
-                    ];
-
-                    
-            }
-            var_export($storeParentId);//exit;
-            //var_export($getAllChildren);
-            //var_export($allChildrenInfo);
-            //var_export($getAllParents);
-            //var_export($getAllParents);
-            //var_dump($getParentUserInfos); exit;
-            //unset($getParentUserInfos[0]->firstname);
-            Yii::info('[School parent listing succesful] School ID:'.Utility::getSchoolId());
-             return $getParentUserInfos;
-             //return $allChildrenInfo;
-            // return[
-            //     'code' => 200,
-            //     'message' => "School parent listing succesful",
-            //     'data' => [
-            //         'parent_id' => $getParentUserInfoAll->id,
-            //         'parent_name' => $getParentUserInfoAll->firstname.' '.$getParentUserInfoAll->lastname,
-            //         'phone' => $getParentUserInfoAll->phone,
-            //         'email' => $getParentUserInfoAll->email,
-            //         'image_url' => $getParentUserInfoAll->image,
-            //         //'parent_relationship' => $getParentUserInfoAll->role,
-            //         'children' =>[
-            //             'child_name' => $getparentChildrenInfoAll->firstname.' '.$getparentChildrenInfoAll->lastname,
-            //             'image_url' => $getparentChildrenInfoAll->image
-            //             //TODO
-            //             //also pass child/children class and parent relationship
-            //         ]
-            //     ]
-            // ];
+        if (!$classes->exists()) {
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
+
+        //Get Students ID
+        $studentID = ArrayHelper::getColumn($classes->all(), 'student_id');
+        $parentsID = Parents::find()->where(['student_id' => $studentID, 'status' => 1])->all();
+
+
+        $parentsList = UserModel::find()
+            ->with(['parentChildren'])
+            ->where(['AND', ['id' => ArrayHelper::getColumn($parentsID, 'parent_id'), 'type' => 'parent'], ['<>', 'status', 0]]);
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $parentsList,
+            'sort' => [
+                'attributes' => ['id', 'firstname', 'lastname', 'email'],
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                    'firstname' => SORT_ASC,
+                ]
+            ],
+            'pagination' => [
+                //'defaultPageSize' => 1, //With this, you can specify how many number of content you want per page
+                'pageSize' => 1, // This is a fixed number of content to be rendered per page.
+            ],
+        ]);
+        //return $dataProvider->pagination->pageSize;
+
+        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, count($parentsID) . ' parents found', $dataProvider);
     }
 }

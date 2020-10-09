@@ -9,7 +9,7 @@ use yii\behaviors\SluggableBehavior;
  * This is the model class for table "schools".
  *
  * @property int $id
- * @property int $user_id
+ * @property int|null $user_id
  * @property string $slug
  * @property string|null $name
  * @property string $abbr
@@ -32,16 +32,26 @@ use yii\behaviors\SluggableBehavior;
  * @property string|null $phone2
  * @property string|null $school_email
  * @property string|null $school_type
+ * @property string $naming_format SS is primary, junior and senior secondary school naming format. Yeah is for year1 to year12.
+ * @property string|null $timezone
+ * @property string|null $boarding_type
  * @property string $created_at
  *
+ * @property ClassSubjects[] $classSubjects
+ * @property Classes[] $classes
+ * @property SchoolAdmin[] $schoolAdmins
+ * @property SchoolCalendar[] $schoolCalendars
+ * @property SchoolClassCurriculum[] $schoolClassCurriculums
+ * @property SchoolCurriculum[] $schoolCurriculums
  * @property SchoolOptions[] $schoolOptions
+ * @property SchoolSubject[] $schoolSubjects
+ * @property SchoolTeachers[] $schoolTeachers
+ * @property User $user
+ * @property TeacherClass[] $teacherClasses
  */
 class Schools extends \yii\db\ActiveRecord
 {
-    const SCENERIO_EDIT_SCHOOL_PROFILE = 'edit_school_profile';
-    /**
-     * {@inheritdoc}
-     */
+
     public static function tableName()
     {
         return 'schools';
@@ -53,7 +63,8 @@ class Schools extends \yii\db\ActiveRecord
             [
                 'class' => SluggableBehavior::className(),
                 'attribute' => 'name',
-                'ensureUnique' => true
+                'ensureUnique' => true,
+                'immutable' => true
             ],
             [
                 'class' => SluggableBehavior::className(),
@@ -65,32 +76,24 @@ class Schools extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
             //[['user_id', 'slug', 'abbr'], 'required'],
             [['user_id'], 'integer'],
-            [['about'], 'string'],
+            [['about', 'naming_format'], 'string'],
             [['created_at'], 'safe'],
             [['slug', 'name', 'logo', 'banner', 'tagline', 'address'], 'string', 'max' => 255],
             [['abbr'], 'string', 'max' => 10],
             [['city', 'state', 'country', 'website', 'contact_name', 'contact_email', 'contact_image', 'school_email', 'school_type'], 'string', 'max' => 100],
             [['postal_code', 'establish_date'], 'string', 'max' => 20],
-            [['contact_role'], 'string', 'max' => 50],
+            [['contact_role', 'timezone', 'boarding_type'], 'string', 'max' => 50],
             [['phone', 'phone2'], 'string', 'max' => 15],
-            [['name','about','address','city','state','country','postal_code','website','phone','school_email'], 'required',
-                 'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
-            ],
+
             [['name', 'abbr'], 'required', 'on' => 'school_signup'],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -114,12 +117,106 @@ class Schools extends \yii\db\ActiveRecord
             'contact_role' => 'Contact Role',
             'contact_email' => 'Contact Email',
             'contact_image' => 'Contact Image',
-            'phone' => 'Phone',
-            'phone2' => 'Phone2',
+            'phone' => 'School Phone',
+            'phone2' => 'Contact Phone',
             'school_email' => 'School Email',
             'school_type' => 'School Type',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'user_id',
+            'slug',
+            'name',
+            'abbr',
+            'logo',
+            'banner',
+            'tagline',
+            'about',
+            'address',
+            'city',
+            'state',
+            'country',
+            'postal_code',
+            'website',
+            'establish_date',
+            'contact_name',
+            'contact_role',
+            'contact_email',
+            'contact_image',
+            'phone',
+            'phone2',
+            'school_email',
+            'school_type',
+            'created_at',
+            'curriculum' => 'schoolCurriculums',
+            'demographics' => 'demographics',
+        ];
+    }
+
+
+    /**
+     * Gets query for [[ClassSubjects]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getClassSubjects()
+    {
+        return $this->hasMany(ClassSubjects::className(), ['school_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Classes]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getClasses()
+    {
+        return $this->hasMany(Classes::className(), ['school_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[SchoolAdmins]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSchoolAdmins()
+    {
+        return $this->hasMany(SchoolAdmin::className(), ['school_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[SchoolCalendars]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSchoolCalendars()
+    {
+        return $this->hasMany(SchoolCalendar::className(), ['school_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[SchoolClassCurriculums]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSchoolClassCurriculums()
+    {
+        return $this->hasMany(SchoolClassCurriculum::className(), ['school_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[SchoolCurriculums]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSchoolCurriculums()
+    {
+        return $this->hasMany(SchoolCurriculum::className(), ['school_id' => 'id']);
     }
 
     /**
@@ -131,4 +228,67 @@ class Schools extends \yii\db\ActiveRecord
     {
         return $this->hasMany(SchoolOptions::className(), ['school_id' => 'id']);
     }
+
+    /**
+     * Gets query for [[SchoolSubjects]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSchoolSubjects()
+    {
+        return $this->hasMany(SchoolSubject::className(), ['school_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[SchoolTeachers]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSchoolTeachers()
+    {
+        return $this->hasMany(SchoolTeachers::className(), ['school_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[User]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getUser()
+    {
+        return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    /**
+     * Gets query for [[TeacherClasses]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getTeacherClasses()
+    {
+        return $this->hasMany(TeacherClass::className(), ['school_id' => 'id']);
+    }
+
+    public function getDemographics()
+    {
+        $model = UserProfile::find()->where(['user_id' => $this->user_id]);
+        $total = count($model->all());
+        $gender = [
+            'male' => $total > 0 ? count($model->andWhere(['gender' => 'male'])->all()) * 100 / $total : 0,
+            'female' => $total > 0 ? count($model->andWhere(['gender' => 'female'])->all()) * 100 / $total : 0,
+        ];
+
+        $age = [
+            '7-10' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 7])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 10])->all()) * 100 / $total : 0,
+            '11-12' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 11])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 12])->all()) * 100 / $total : 0,
+            '13-15' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 13])->andWhere(['<=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 15])->all()) * 100 / $total : 0,
+            '16+' => $total > 0 ? count($model->andWhere(['>=', (date('Y') - date('Y', strtotime('yob' . "-" . 'mob' . "-" . 'dob'))), 16])->all()) * 100 / $total : 0,
+        ];
+
+        return [
+            'gender' => $gender,
+            'age' => $age,
+        ];
+    }
+
 }

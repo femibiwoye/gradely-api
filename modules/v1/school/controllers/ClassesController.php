@@ -581,7 +581,6 @@ class ClassesController extends ActiveController
     }
 
     private function getSchoolType($schoolType, $format){
-        
         if($format == 'grade 1-12'){
             $classStart = ""; $classEnd = "";
             if($schoolType == 'primary'){   

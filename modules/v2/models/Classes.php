@@ -1,8 +1,9 @@
 <?php
 
-namespace app\modules\v1\models;
+namespace app\modules\v2\models;
 
 use Yii;
+use yii\behaviors\SluggableBehavior;
 
 /**
  * This is the model class for table "classes".
@@ -20,12 +21,35 @@ class Classes extends \yii\db\ActiveRecord
 {
     const SCENERIO_CREATE_CLASS = 'create_class';
     const SCENERIO_UPDATE_CLASS = 'update_class';
+
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
         return 'classes';
+    }
+
+    /**
+     * Get and ensure unique name for class slug and class abbreviation
+     * @return array
+     */
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'class_name',
+                //'ensureUnique' => true
+            ],
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'abbreviation',
+                //'ensureUnique' => true,
+                'slugAttribute' => 'abbreviation'
+            ]
+
+        ];
     }
 
     /**
@@ -40,11 +64,11 @@ class Classes extends \yii\db\ActiveRecord
             [['slug', 'class_name'], 'string', 'max' => 255],
             [['abbreviation', 'class_code'], 'string', 'max' => 20],
             [['class_code'], 'unique'],
-            [['global_class_id','class_name','class_code'], 'required',
-                 'on' => self::SCENERIO_CREATE_CLASS
+            [['global_class_id', 'class_name', 'class_code'], 'required',
+                'on' => self::SCENERIO_CREATE_CLASS
             ],
-            [['global_class_id','class_name','abbreviation'], 'required',
-                 'on' => self::SCENERIO_UPDATE_CLASS
+            [['global_class_id', 'class_name', 'abbreviation'], 'required',
+                'on' => self::SCENERIO_UPDATE_CLASS
             ]
         ];
     }
@@ -64,5 +88,40 @@ class Classes extends \yii\db\ActiveRecord
             'class_code' => 'Class Code',
             'created_at' => 'Created At',
         ];
+    }
+
+
+
+    public function fields()
+    {
+        $fields = parent::fields();
+        //$fields['homeworks'] = 'homeworks';
+        if ($this->isRelationPopulated('homeworks'))
+            $fields['homeworks'] = 'homeworks';
+
+
+        return $fields;
+    }
+
+
+    public function getSchool()
+    {
+        return $this->hasOne(Schools::className(), ['id' => 'school_id']);
+    }
+
+    public function getGlobalClass()
+    {
+        return $this->hasOne(GlobalClass::className(), ['id' => 'global_class_id']);
+    }
+
+
+    public function getStudentSchool()
+    {
+        return $this->hasMany(StudentSchool::className(), ['class_id' => 'id']);
+    }
+
+    public function getHomeworks()
+    {
+        return $this->hasMany(Homeworks::className(), ['class_id' => 'id']);
     }
 }

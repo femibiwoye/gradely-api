@@ -1,712 +1,239 @@
 <?php
 
-namespace app\modules\v1\school\controllers;
+namespace app\modules\v2\school\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\components\{Utility, SharedConstant};
+use app\modules\v2\models\{Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User, Homeworks};
+use app\modules\v2\school\models\ClassForm;
 use Yii;
-use yii\filters\{AccessControl,VerbFilter,ContentNegotiator};
-use yii\web\Controller;
-use yii\web\Response;
-use yii\rest\ActiveController;
-use yii\filters\auth\HttpBearerAuth;
-use app\modules\v1\utility\Utility; 
-use app\modules\v1\models\{User,Homeworks,SchoolTeachers,TutorSession,QuizSummary,QuizSummaryDetails,Schools,Classes,GlobalClass,TeacherClass,Questions};
 use yii\db\Expression;
+use yii\filters\AccessControl;
+use yii\rest\ActiveController;
+use yii\helpers\ArrayHelper;
+
+
 /**
- * Schools controller
+ * Schools/Parent controller
  */
 class ClassesController extends ActiveController
 {
-    public $modelClass = 'api\models\User';
-    
+    public $modelClass = 'app\modules\v2\models\Classes';
+
     /**
-     * {@inheritdoc}
+     * @return array
      */
-
-    private $request;
-
-    public function beforeAction($action)
-    {
-        $this->request = \yii::$app->request->post();
-        return parent::beforeAction($action);
-    }
-
     public function behaviors()
     {
-        return [
+        $behaviors = parent::behaviors();
 
-            'verbs' => [
-                'class' => \yii\filters\VerbFilter::className(),
-                'actions' => [
-                    'list-teachers' => ['get'],
-                    'detailed-teacher-profile' => ['get'],
-                    'homework-created-by-teacher' => ['get'],
-                    'remove-teacher-from-class' => ['delete'],
-                    'generate-class' => ['post'],
-                    'list-class' => ['get'],
-                    'create-class' => ['post'],
-                    'view-class' => ['get'],
-                    'update-class' => ['update'],
-                    'delete-class' => ['delete'],
-                    'list-parents' => ['get'],
-                    'homework-performance' => ['get'],
-                    'homework-review' => ['get'],
-                    'remove-child-class' => ['delete'],
-                    'change-student-class' => ['update'],
-                    'get-class-details' => ['get'],
-                    'list-students-class' => ['post'],
+        //For CORS
+        $auth = $behaviors['authenticator'];
+        unset($behaviors['authenticator']);
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::className(),
+        ];
+        $behaviors['authenticator'] = $auth;
+        $behaviors['authenticator'] = [
+            'class' => CustomHttpBearerAuth::className(),
+        ];
+
+        //Control user type that can access this
+        $behaviors['access'] = [
+            'class' => AccessControl::className(),
+            'rules' => [
+                [
+                    'allow' => true,
+                    'matchCallback' => function () {
+                        return Yii::$app->user->identity->type == 'school';
+                    },
                 ],
             ],
-
-            'authenticator' => [
-                'class' => HttpBearerAuth::className(),
-                'only' => [
-                            'list-teachers','detailed-teacher-profile','homework-created-by-teacher',
-                            'remove-teacher-from-class','generate-class','list-class','create-class',
-                            'view-class','update-class','delete-class','list-homework',
-                            'homework-performance','homework-review','remove-child-class',
-                            'change-student-class','get-class-details','list-students-class'
-                        ]
-            ],            
         ];
+
+        return $behaviors;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function actions()
     {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
-            'captcha' => [
-                'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
-            ],
-        ];
-
-
-        return [
-            [
-              'class' => \yii\ filters\ ContentNegotiator::className(),
-              'formats' => [
-                'application/json' => \yii\ web\ Response::FORMAT_JSON,
-              ],
-            ],
-            
-          ];
+        $actions = parent::actions();
+        unset($actions['index']);
+        unset($actions['create']);
+        unset($actions['update']);
+        unset($actions['delete']);
+        unset($actions['view']);
+        return $actions;
     }
 
-    public function actionListTeachers($id):array{
+    public function actionIndex()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        $getTeachers = User::find()
-                            ->select('user.*')
-                            ->innerJoin('teacher_class', '`user`.`id` = `teacher_class`.`teacher_id`')
-                            ->where(['teacher_class.class_id' => $id])
-                            ->all();
-        if(!empty($getTeachers)){
+        $getAllClasses = Classes::find()
+            ->select([
+                'classes.id',
+                'classes.slug',
+                'class_code',
+                'class_name',
+                'abbreviation',
+                'global_class_id',
+                'classes.school_id',
+                'schools.name school_name',
+                new Expression('CASE WHEN h.class_id IS NULL THEN 1 ELSE 0 END as can_delete')
+            ])
+            ->leftJoin('schools', 'schools.id = classes.school_id')
+            ->leftJoin('homeworks h', "h.class_id = classes.id AND h.school_id = classes.school_id")
+            ->where(['classes.school_id' => $school->id])
+            ->asArray();
 
-            unset($getTeachers[0]->username);
-            unset($getTeachers[0]->code);
-            unset($getTeachers[0]->password_hash);
-            unset($getTeachers[0]->password_reset_token);
-            unset($getTeachers[0]->auth_key);
-            unset($getTeachers[0]->class);
-            unset($getTeachers[0]->status);
-            unset($getTeachers[0]->subscription_expiry);
-            unset($getTeachers[0]->subscription_plan);
-            unset($getTeachers[0]->created_at);
-            unset($getTeachers[0]->updated_at);
-            unset($getTeachers[0]->verification_token);
-            unset($getTeachers[0]->oauth_provider);
-            unset($getTeachers[0]->token);
-            unset($getTeachers[0]->token_expires);
-            unset($getTeachers[0]->oauth_uid);
-            unset($getTeachers[0]->last_accessed);
 
-            return [
-                'code' => '200',
-                'message' => 'teachers succesfully listed',
-                'data' => $getTeachers
-            ];
+        if (!$getAllClasses->exists()) {
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No classes available!');
         }
-
-        return [
-            'code' =>'404',
-            'message' => 'teachers not found'
-        ];
+        return (new ApiResponse)->success($getAllClasses->all(), ApiResponse::SUCCESSFUL, $getAllClasses->count() . ' classes found');
     }
 
-    public function actionDetailedTeacherProfile($id):array{
+    public function actionGroupClasses()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        $getDetailedTeacherProfile = User::find()
-        ->select('user.*')
-        ->innerJoin('teacher_class', '`teacher_class`.`teacher_id` = `user`.`id`')
-        ->where(['teacher_class.teacher_id' => $id])
-        ->one();
+        $globalClasses = Utility::getMyGlobalClassesID($school->school_type);
+        $classes = [];
 
-        $getClasses =   Count(
-                            TeacherClass::find()->where(['teacher_id' => $id])->all()
-                        );
-
-        $liveSessions = Count(
-                            TutorSession::find()
-                            ->select('tutor_session.*')
-                            ->innerJoin('teacher_class', '`teacher_class`.`class_id` = `tutor_session`.`class`')
-                            ->where(['teacher_class.teacher_id' => $id])
-                            ->where(['tutor_session.status' => '2'])
-                            ->all()
-                        );
-        
-
-        $homeWorks = Count(
-                        Homeworks::find()
-                        ->select('homeworks.*')
-                        ->innerJoin('school_teachers', '`school_teachers`.`teacher_id` = `homeworks`.`teacher_id`')
-                        ->where(['homeworks.teacher_id' => $id])
-                        ->all()
-                    );
-
-        $classes = Classes::find()
-                        ->select('classes.*')
-                        ->innerJoin('teacher_class', '`teacher_class`.`class_id` = `classes`.`id`')
-                        ->where(['teacher_class.teacher_id' => $id])
-                        ->all();
-
-        $getTeacherUserId = TeacherClass::findOne(['teacher_id' => $id]);
-
-        $userObject ="";
-
-        if(!empty($getTeacherUserId)){
-            $userObject = User::findOne(['id' => $getTeacherUserId->teacher_id]);
-
-            unset($userObject->auth_key);
-            unset($userObject->password_hash);
-            unset($userObject->password_reset_token);
-            unset($userObject->token);
-            unset($userObject->token_expires);
+        foreach ($globalClasses as $class) {
+            $globalTemp = Utility::getGlobalClasses($class->id, $school);
+            $classes[] = array_merge($globalTemp, ['classes' => $class->getSchoolClasses($school->id)]);
         }
 
-        $topHomework = Count(Homeworks::find()
-        ->select('homeworks.*')
-        ->where(['teacher_id' => $id])
-        ->limit(5)
-        ->all());
-
-        $topHomeworkPercentage = QuizSummary::find()
-                                    ->select('quiz_summary.*')
-                                    ->innerJoin('homeworks', '`quiz_summary`.`teacher_id` = `homeworks`.`teacher_id`')
-                                    ->where(['homeworks.teacher_id' =>$id])
-                                    ->where(['quiz_summary.type' =>'1'])
-                                    ->where(['quiz_summary.submit' =>'1'])
-                                    ->limit(5)
-                                    ->all();
-
-        $activitiesDueTodayHomeWork = Homeworks::find()->where(['teacher_id' => $id,'close_date' => date('Y-m-d H:i:s')])->all();
-
-        $getTeacherUserId = User::findOne(['id' => $id]);
-        $activitiesDueTodayClassSession = "";
-        if(!empty($getTeacherUserId)){
-
-            $activitiesDueTodayClassSession = TutorSession::find()->where(['requester_id' => $getTeacherUserId->id])->all();
-        }
-        return [
-            'code' => '200',
-            'message' => 'teachers succesfully listed',
-            'data' =>   [
-                            'name' => $getDetailedTeacherProfile->firstname.' '.$getDetailedTeacherProfile->lastname,
-                            'number_classes' => $getClasses ?? 0,
-                            'live_sessions' => $liveSessions ?? 0,
-                            'homework' => $homeWorks ?? 0,
-                            'about' => '',
-                            'classes' =>$classes ?? 0,
-                            'user' => $userObject ?? '',
-                            'topHomework' => 
-                                [
-                                'total' => $topHomework ?? 0,
-                                'percentage' => Yii::$app->GradelyComponent->getTopHomeworkPercentage($topHomeworkPercentage[0]->total_questions, $topHomeworkPercentage[0]->correct),
-                                //'percentage' => $topHomeworkPercentage[0]->total_questions / $topHomeworkPercentage[0]->correct *100
-                                ],
-                            'activitiesDueTodayHomeWork' => $activitiesDueTodayHomeWork ?? 0,
-                            'activitiesDueTodayClassSession' => $activitiesDueTodayClassSession ?? 0
-                        ]
-        ];
+        return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL);
     }
 
-    public function actionHomeworkCreatedByTeacher($id):array{
-
-        $homeworkCreatedByTeacher = Homeworks::find()->where(['teacher_id' => $id])->all();
-
-        if(!empty($homeworkCreatedByTeacher)){
-            return[
-                'code' => '200',
-                'message' => 'successful',
-                'data' => $homeworkCreatedByTeacher
-            ];
+    public function actionView($id)
+    {
+        $getClass = Classes::find()
+            ->where(['school_id' => Utility::getSchoolAccess(), 'classes.id' => $id])
+            ->joinWith(['school', 'globalClass'])
+            ->asArray()
+            ->one();
+        if ($getClass) {
+            return (new ApiResponse)->success($getClass, ApiResponse::SUCCESSFUL, 'Class found');
         }
 
-        return[
-            'code' => '404',
-            'message' => 'could not find any homework for this teacher',
-        ];
+        return (new ApiResponse)->success(null, ApiResponse::NOT_FOUND, 'Class not found!');
     }
 
-    public function actionRemoveTeacherFromClass($id):array{
+    /** Create a single class
+     * @return ApiResponse
+     */
+    public function actionCreate()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        $findTeacher = TeacherClass::findOne(['teacher_id' => $id]);
-
-        if(!empty($findTeacher)){
-            try{
-
-                $findTeacher->delete();
-                return[
-                    'code' => '404',
-                    'message' => 'Teacher Removed from class',
-                ];
-            }
-            catch(Exception $exception){
-                return[
-                    'code' => '200',
-                    'message' => $exception->getMessage(),
-                ];
-            }
+        $form = new ClassForm(['scenario' => ClassForm::SCENERIO_CREATE_CLASS]);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        return[
-            'code' => '404',
-            'message' => 'could not find teacher',
-        ];
+        if (!$model = $form->newClass($school)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class is not updated');
+        }
+
+        return (new ApiResponse)->success($model);
     }
 
-    public function actionGenerateClass(){
-
-            //$this->getSchoolType('primary','grade 1-12');
-            //$this->getSchoolType('secondary','grade 1-12');
-            //$this->getSchoolType('primary','year 1-12');
-            //$this->getSchoolType('secondary','year 1-12');
-            //$this->getSchoolType('primary-secondary','year 1-12');
-            $generateSchool = $this->getSchoolType($this->request['school_type'],$this->request['format']);
-        
-            if($generateSchool){
-        
-                Yii::info('[Class generated succesfully]');
-                return[
-                    'code' => 200,
-                    'message' => "Successfully created"
-                ];
-            }
-    }
-    
-    public function actionCreateClass(){
-
-        $classes = new Classes(['scenario' => Classes::SCENERIO_CREATE_CLASS]);
-        $classes->attributes = \Yii::$app->request->post();
-        if ($classes->validate()) {
-            $classes->school_id = Utility::getSchoolId();
-            $classes->global_class_id = $this->request['global_class_id'];
-            $classes->class_name = $this->request['class_name'];
-            $classes->class_code = $this->request['class_code'];
-            $classes->slug = \yii\helpers\Inflector::slug($this->request['class_name']);
-            $classes->abbreviation = Utility::abreviate($classes->slug);
-
-            if ($classes->save()) {
-                return[
-                    'code' => 200,
-                    'message' => "Successfully created"
-                ];
-            }
-
-            $classes->validate();
-            Yii::info('[Class generated succesfully] Error:'.$classes->validate().'');
-            return $classes;
+    public function actionUpdate()
+    {
+        $form = new ClassForm(['scenario' => ClassForm::SCENERIO_UPDATE_CLASS]);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
-        return $classes->errors;
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $classModel = Classes::find()->where(['school_id' => $school->id, 'id' => $form->id]);
+        if (!$classModel->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This is not a valid class!');
+        }
+
+        $model = $classModel->one();
+        $model->class_name = $form->class_name;
+        $model->save();
+
+        return (new ApiResponse)->success($model, null, 'Class successfully updated.');
     }
 
-    public function actionListClass(){
+    public function actionGenerateClasses()
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
+//        if (count($school->classes) > 5)
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes are already generated');
 
-        //create a method that gets the users bearer token from the header
-        // then using the bearer token, get the userid, then use the userid to get to get to get the schoolid
-        //then use the schooid to list
-        $getAllClasses = classes::find()->where(['school_id' => Utility::getSchoolId()])->all();
-        
+        $form = new ClassForm(['scenario' => ClassForm::SCENERIO_GENERATE_CLASSES]);
+        $form->attributes = Yii::$app->request->post();
 
-        if(!empty($getAllClasses)){
-
-            Yii::info('[Class Listing succesful] school_id:'.Utility::getSchoolId().'');
-            return[
-                'code' => 200,
-                'message' => "ok",
-                'data'=> $getAllClasses
-            ];
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        Yii::info('[Couldnt find any class for this school] school_id:'.Utility::getSchoolId().'');
-        return[
-            'code' => 200,
-            'message' => "Couldnt find any class for this school"
-        ];
+        if (!$form->generateClasses($school)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Classes was not generated');
+        }
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        return (new ApiResponse)->success($school->classes, null, count($school->classes) . ' classes generated!');
     }
 
-    public function actionViewClass($id){
+    public function actionStudentInClass($class_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
 
-        $getClass = Classes::findOne(['school_id' => $id]);
+        $status = 1;
+        $model = new \yii\base\DynamicModel(compact('class_id', 'school_id','status'));
+        $model->addRule(['class_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id','status']]);
 
-        if(!empty($getClass)){
-
-            Yii::info('[Class view successful] school_id:'.$id.'');
-            return[
-                'code' => 200,
-                'message' => "ok",
-                'data' => $getClass
-            ];
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        Yii::info('[Could not find any class with this id under this school] school_id:'.$id.'');
-        return[
-            'code' => 200,
-            'message' => "Could not find any class with this id under this school"
-        ];
+        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id,'status'=>1])->all(), 'student_id');
+
+        $students = User::find()->where(['id' => $student_ids])
+            ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
+            ->orderBy('id DESC');
+
+        if (!$students) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Students not found');
+        }
+
+        return (new ApiResponse)->success($students->all(), ApiResponse::SUCCESSFUL, 'Students record found');
+
     }
 
-    public function actionUpdateClass($id){
+    public function actionDelete($class_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $password = Yii::$app->request->post('password');
 
-        $classes = new Classes(['scenario' => Classes::SCENERIO_UPDATE_CLASS]);
-        $classes->attributes = \Yii::$app->request->post();
-        if ($classes->validate()) {
 
-            $getClass = Classes::find()->where(['id' => $id])->one();
-            if(!empty($getClass)){
-                
-                $getClass->global_class_id = $this->request['global_class_id'];
-                $getClass->class_name = $this->request['class_name'];
-                $getClass->abbreviation = $this->request['class_code'];
-
-                try{
-                    
-                    $getClass->save();
-                    Yii::info('[Class update successful] school_id:'.$id.'');
-                    return[
-                        'code' => '200',
-                        'message' => "Class update succesful"
-                    ];
-                }
-                catch (Exception $exception){
-                    Yii::info('[Class update successful] '.$exception->getMessage());
-                    return[
-                        'code' => '500',
-                        'message' => $exception->getMessage()
-                    ];
-                }
-            }
-
-            Yii::info('[class does not exist] Class ID:'.$id);
-            return[
-                'code' => 200,
-                'message' => 'class does not exist'
-            ];
+        if (empty($password)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password is required');
         }
-        return $classes->errors;
+
+        if (!Yii::$app->user->identity->validatePassword($password)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Password is not correct!');
+        }
+
+        $model = Classes::findOne(['id' => $class_id, 'school_id' => $school->id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
+        }
+
+        if (!Homeworks::find()->where(['class_id' => $model->id])->exists() && $model->delete())
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Class deleted.');
+        else
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class could not be deleted.');
     }
 
-    public function actionDeleteClass($id){
-
-        $getClass = Classes::findOne(['id' => $id]);
-
-        if(!empty($getClass)){
-
-            try{
-                $getClass->delete();
-                Yii::info('[class delete succesful] Class ID:'.$id);
-                return[
-                    'code' => '200',
-                    'message' => "Class delete succesful"
-                ];
-            }
-            catch (Exception $exception){
-                return[
-                    'code' => '500',
-                    'message' => $exception->getMessage()
-                ];
-            }
-        }
-
-        Yii::info('[class does not exist] Class ID:'.$id);
-        return[
-            'code' => 404,
-            'message' => 'class does not exist'
-        ];
-    }
-
-    public function actionListHomework($id):array{
-        $getAllHomework = Homeworks::find()->where(['class_id' => $id])->all();
-
-        if(!empty($getAllHomework)){
-
-            return [
-
-                'code' => '200',
-                'message' => 'Listing successful',
-                'data' => $getAllHomework
-            ];
-        }
-        else{
-                return [
-    
-                    'code' => '200',
-                    'message' => 'Could not find any homework under this class'
-                ];
-        }
-    }
-
-    public function actionHomeworkPerformance($id):array{
-        
-        $getAllHomeworkPerformance = QuizSummaryDetails::find()
-                            ->select('quiz_summary_details.*')
-                            ->innerJoin('homeworks',  '`quiz_summary_details`.`id` = `homeworks`.`homework_id`')
-                            ->where(['homeworks.class_id' =>$id])
-                            ->limit(30)
-                            ->all();
-
-        if(!empty($getAllHomeworkPerformance)){
-
-            return [
-
-                'code' => '200',
-                'message' => 'Listing successful',
-                'data' => $getAllHomeworkPerformance
-            ];
-        }
-        else{
-                return [
-    
-                    'code' => '200',
-                    'message' => 'Could not find any homework under this class'
-                ];
-        }
-    }
-
-
-    public function actionHomeworkReview($id):array{
-
-        //calculate average
-        $averageClassScores = QuizSummary::find()
-                                 ->where(['class_id' => $id,'submit' => 1])
-                                 //->average('correct')
-                                 ->all();
-
-        $i = 0; $allAverageScores = 0;
-        foreach($averageClassScores as $averageClassScore){
-            $allAverageScores += $averageClassScore->topic_id;
-            $i++;
-        }
-
-        if($i != 0){
-            $resultAverageScore = $allAverageScores/$i;
-        }
-        //calculate best performing topic
-        $bestPerformingTopics = QuizSummary::find()
-                                ->where(['class_id' => $id,'submit' => 1])
-                                ->orderBy(['correct' => SORT_DESC])
-                                ->limit(10)
-                                //->average('correct')
-                                ->all();
-
-
-        $bestPerformingTopicsArray = [];
-        foreach($bestPerformingTopics as $bestPerformingTopic){
-                $bestPerformingTopicsArray[] = $bestPerformingTopic->topic_id;
-        }
-
-        // var_dump($bestPerformingTopicsArray);
-        // exit;
-
-
-        //calculate least performing topic
-        $leastPerformingTopics = QuizSummary::find()
-                                ->where(['class_id' => $id,'submit' => 1])
-                                ->orderBy(['correct' => SORT_ASC])
-                                ->limit(10)
-                                //->average('correct')
-                                ->all();
-
-
-        $leastPerformingTopicsArray = [];
-        foreach($leastPerformingTopics as $leastPerformingTopic){
-                $leastPerformingTopicsArray[] = $leastPerformingTopic->topic_id;
-        }
-
-        //calculate completion rate
-        $completionRate =   Count(
-                                    QuizSummary::find()->where(['class_id' => $id,'submit' => 1])->all()
-                            );
-
-        
-        $getHomeworks = QuizSummary::find()
-                            ->select(' quiz_summary.*')
-                            ->innerJoin('quiz_summary_details', '`quiz_summary_details`.`quiz_id` = `quiz_summary`.`id`')
-                            ->where(['quiz_summary.class_id' => $id])
-                            ->where(['quiz_summary.type' => 1])
-                            ->all();
-
-        $allHomeworkIds = [];                    
-        foreach($getHomeworks as $getHomework){
-            $allHomeworkIds[] = $getHomework->homework_id;
-        }
-
-        $getAllQuestions = [];
-        foreach($allHomeworkIds as $allHomeworkId){
-            $getAllQuestions[] = Questions::find()->where(['homework_id' => $allHomeworkId])->all();
-        }
-
-        $attemptedQuestions = $getAllQuestions;
-
-        // Yii::$app->GradelyComponent->welcome();
-        // exit;
-
-        return [
-
-            'code' => '200',
-            'message' => 'Listing successful',
-            'data' => 
-            [
-                'averageClassScore' => $resultAverageScore ?? 0,
-                'completionRate' => $completionRate ?? 0,
-                'attemptedQuestions' => $attemptedQuestions ?? 0,
-                'bestPerformingTopic' => $bestPerformingTopicsArray ?? 0,
-                'leastPerformingTopic' => $leastPerformingTopicsArray ?? 0
-            ]
-        ];
-    }
-
-    private function getSchoolType($schoolType, $format){
-        
-        if($format == 'grade 1-12'){
-            $classStart = ""; $classEnd = "";
-            if($schoolType == 'primary'){   
-                $classStart = "1"; $classEnd = "6";
-            }
-            elseif($schoolType == 'secondary'){
-                $classStart = 7; $classEnd = 12;
-            }
-            elseif($schoolType == 'primary-secondary'){
-                $classStart = "1"; $classEnd = "12";
-            }
-            //$i= 1;
-            for($i = $classStart; $i <= $classEnd; $i++){
-                $classes = new Classes();
-                $classes->school_id = Utility::getSchoolUserId();
-                $classes->global_class_id = $i;
-                $classes->slug = 'Year-'.$i;
-                $classes->class_name =  'Year '.$i;
-                $classes->abbreviation =  'y'.$i;
-                $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'/YEAR'.$i;
-                $classes->save();
-            }
-            return $classes;
-        }
-
-
-
-        if($format == 'year 1-12'){
-        
-            $classStart = ""; $classEnd = ""; $slugPrepend = "";
-            if($schoolType == 'primary'){   
-
-                $classStart = "1"; $classEnd = "6"; $slugPrepend = "Primary";
-
-                for($i = $classStart; $i <= $classEnd; $i++){
-                    $classes = new Classes();
-                    $classes->school_id = Utility::getSchoolId();
-                    $classes->global_class_id = $i;
-                    $classes->slug = $slugPrepend.$i;
-                    $classes->class_name =  $slugPrepend.$i;
-                    $classes->abbreviation =  $slugPrepend.$i;
-                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'/YEAR'.$i;
-                    $classes->save();
-                }
-
-                return $classes;
-            }
-            elseif($schoolType == 'secondary'){
-                $classStart = "7"; $classEnd = "9";
-                $year = 1;
-                for($i = $classStart; $i <= $classEnd; $i++){
-                    $classes = new Classes();
-                    $classes->school_id = Utility::getSchoolId();
-                    $classes->global_class_id = $i;
-                    $classes->slug = 'junior-secondary-school-'.$year.'-'.Utility::getSchoolId();
-                    $classes->class_name =  'Junior Secondary School-'.$year;
-                    $classes->abbreviation =  'jss'.$year;
-                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'JSS'.$year.'';
-                    $classes->save();
-                    $year++;
-                }
-                return $classes;
-
-                $year = 1;
-                $classStart = "10"; $classEnd = "12";
-                for($i = $classStart; $i <= $classEnd; $i++){
-                    $classes = new Classes();
-                    $classes->school_id = Utility::getSchoolId();
-                    $classes->global_class_id = $i;
-                    $classes->slug = 'senior-secondary-school-'.$year.'-'.Utility::getSchoolId();
-                    $classes->class_name =  'Senior Secondary School-'.$year;
-                    $classes->abbreviation =  'sss'.$year;
-                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'SSS'.$year.'';
-                    $classes->save();
-                    $year++;
-                }
-                return $classes;
-            }
-
-            elseif($schoolType == 'primary-secondary'){
-
-                $classStart = "1"; $classEnd = "6"; $slugPrepend = "Primary";
-
-                for($i = $classStart; $i <= $classEnd; $i++){
-                    $classes = new Classes();
-                    $classes->school_id = Utility::getSchoolId();
-                    $classes->global_class_id = $i;
-                    $classes->slug = $slugPrepend.$i;
-                    $classes->class_name =  $slugPrepend.$i;
-                    $classes->abbreviation =  $slugPrepend.$i;
-                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'/YEAR'.$i;
-                    $classes->save();
-                }
-                return $classes;
-
-                $classStart = "7"; $classEnd = "9";
-                $year = 1;
-                for($i = $classStart; $i <= $classEnd; $i++){
-                    $classes = new Classes();
-                    $classes->school_id = Utility::getSchoolId();
-                    $classes->global_class_id = $i;
-                    $classes->slug = 'junior-secondary-school-'.$year.'-'.Utility::getSchoolId();
-                    $classes->class_name =  'Junior Secondary School-'.$year;
-                    $classes->abbreviation =  'jss'.$year;
-                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'JSS'.$year.'';
-                    $classes->save();
-                    $year++;
-                }
-                return $classes;
-
-                $year = 1;
-                $classStart = "10"; $classEnd = "12";
-                for($i = $classStart; $i <= $classEnd; $i++){
-                    $classes = new Classes();
-                    $classes->school_id = Utility::getSchoolId();
-                    $classes->global_class_id = $i;
-                    $classes->slug = 'senior-secondary-school-'.$year.'-'.Utility::getSchoolId();
-                    $classes->class_name =  'Senior Secondary School-'.$year;
-                    $classes->abbreviation =  'sss'.$year;
-                    $classes->class_code = Utility::abreviate(Utility::getSchoolName()).'SSS'.$year.'';
-                    $classes->save();
-                    $year++;
-                }
-                return $classes;
-            }
-        }
-    }
 }

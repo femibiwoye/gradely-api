@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\models\User;
 use Yii;
 use yii\base\Model;
@@ -48,6 +49,9 @@ class PasswordResetRequestForm extends Model {
 			return false;
 		}
 
+        $notification = new InputNotification();
+        if (!$notification->NewNotification('forgot_password', [['user_id', $user->id]]))
+            return false;
 		//TODO:: will send an email here.
 
 		return true;

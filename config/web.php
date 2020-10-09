@@ -1,34 +1,47 @@
 <?php
 
+use yii\base\Event;
+
+require 'var.php';
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
+$mainUrl = require 'urls.php';
+$schoolUrl = require 'school-url.php';
+$studentUrl = require 'student-url.php';
+$teacherUrl = require 'teacher-url.php';
+$parentUrl = require 'parent-url.php';
+$tutorUrl = require 'tutor-url.php';
+$learningUrl = require 'learning-url.php';
 
 $config = [
-    'id' => 'gradely',
-    'name' => 'gradely',
+    'id' => 'gradely-v2',
+    'name' => 'gradely-v2',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'timeZone' => 'Africa/Lagos',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
     ],
     'modules' => [
-        'v1' => [
-            'class' => 'app\modules\v1\Module',
-        ],
         'v2' => [
             'class' => 'app\modules\v2\Module',
         ],
     ],
     'components' => [
-        // ? This is global content negotiation. Instead, i included it top module base| Modules.php
         'response' => [
-            'format' => \yii\web\Response::FORMAT_JSON
+            'format' => \yii\web\Response::FORMAT_JSON,
+            'on beforeSend' => function ($event) {
+                $response = $event->sender;
+                if ($response->statusCode > 400 && is_array($response->data)) {
+                    //Save the error to db so that it will be logged
+
+                    \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => $response->data['name'], 'raw' => json_encode($response->data)]);
+                }
+            },
         ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            // Because we are building stateless API, we have to disable cookie
-            //'cookieValidationKey' => 'ClFWPll1Nwe_IJPF2jPppZG520Bqq2YI',
             'enableCookieValidation' => false,
             'enableCsrfValidation' => false,
             'parsers' => [
@@ -64,16 +77,18 @@ $config = [
                 ],
             ],
         ],
-        'db' => $db,
+
+        'db' => $db['db'],
+        'notification' => $db['main'],
 
         'urlManager' => [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => require 'urls.php',
+            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl),
         ],
-    ],
 
+    ],
     'params' => $params,
 ];
 
@@ -83,15 +98,14 @@ if (YII_ENV_DEV) {
     $config['modules']['debug'] = [
         'class' => 'yii\debug\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        //'allowedIPs' => ['127.0.0.1', '::1', '192.168.*.*'],
     ];
 
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        'allowedIPs' => ['127.0.0.1', '::1', '192.168.*.*', '172.24.0.1'],
     ];
 }
 

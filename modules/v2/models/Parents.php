@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v1\models;
+namespace app\modules\v2\models;
 
 use Yii;
 
@@ -58,5 +58,29 @@ class Parents extends \yii\db\ActiveRecord
             'invitation_token' => 'Invitation Token',
             'created_at' => 'Created At',
         ];
+    }
+
+    public function getStudentProfile()
+    {
+        return $this->hasOne(UserModel::className(), ['id' => 'student_id']);
+    }
+
+    public function getStudentClass()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->via('studentSchool');
+    }
+
+    public function getStudentSchool()
+    {
+        return $this->hasOne(StudentSchool::className(), ['student_id' => 'student_id']);
+    }
+
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord) {
+            $this->created_at = date('Y-m-d H:i:s');;
+        }
+
+        return parent::beforeSave($insert);
     }
 }

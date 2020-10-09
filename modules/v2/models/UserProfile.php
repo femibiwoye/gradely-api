@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "user_profile".
@@ -41,10 +42,21 @@ class UserProfile extends \yii\db\ActiveRecord
             [['user_id', 'dob', 'mob', 'yob'], 'integer'],
             [['created_at'], 'safe'],
             [['gender'], 'string', 'max' => 50],
-            [['address'], 'string', 'max' => 255],
+            [['address', 'postal_code', 'about'], 'string', 'max' => 255],
             [['city', 'state', 'country'], 'string', 'max' => 100],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
         ];
+    }
+
+    public function fields()
+    {
+        $fields = parent::fields();
+        $fields['birth_date'] = function ($model){
+          return date('d-m-Y',strtotime("{$model->dob}-{$model->mob}-{$model->yob}"));
+        };
+        unset($fields['dob'],$fields['mob'],$fields['yob']);
+
+        return $fields;
     }
 
     /**
@@ -75,5 +87,27 @@ class UserProfile extends \yii\db\ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    public function imageProcessing()
+    {
+        if (!isset($this->image)) {
+            return true;
+        }
+
+        $img = UploadedFile::getInstance($this->user, 'image');
+        $imageName = 'user_' . $this->user->id . '.' . $img->getExtension();
+
+        $user = User::findOne($this->user->id);
+
+        if($user->image){
+
+            unlink(\Yii::getAlias('@webroot') . '/images/users/' . $user->image);
+
+            $user->image = $this->image;
+            $user->save();
+        }
+        $img->saveAs(Yii::getAlias('@webroot') . '/images/users/' . $imageName);
+        return $this->image = $imageName;
     }
 }

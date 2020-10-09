@@ -3,11 +3,15 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\SignupForm;
 use Yii;
 use app\modules\v2\models\{Login, User, ApiResponse, PasswordResetRequestForm, ResetPasswordForm};
+use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
-use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
+use yii\filters\auth\HttpBearerAuth;
+use yii\web\Response;
 
 
 /**
@@ -15,72 +19,28 @@ use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
  */
 class AuthController extends Controller
 {
-    public $modelClass = 'app\modules\v2\models\User';
-
-//    public function behaviors()
-//    {
-//        $behaviors = parent::behaviors();
-//
-//        //For CORS
-//        $auth = $behaviors['authenticator'];
-//        unset($behaviors['authenticator']);
-//        $behaviors['corsFilter'] = [
-//            'class' => \yii\filters\Cors::className(),
-//        ];
-//        $behaviors['authenticator'] = $auth;
-//        $behaviors['authenticator'] = [
-//            'class' => CompositeAuth::className(),
-//            'authMethods' => [
-//                HttpBearerAuth::className(),
-//            ],
-//            'only' => ['logout'],
-//        ];
-//
-//        return $behaviors;
-//    }
-
 
 
     public function behaviors()
     {
         $behaviors = parent::behaviors();
 
-        // remove authentication filter
-        //$auth = $behaviors['authenticator'];
+        //For CORS
+        $auth = $behaviors['authenticator'];
         unset($behaviors['authenticator']);
 
-        // add CORS filter
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
-            'cors' => [
-                // restrict access to
-                'Origin' => ['*'],
-                // Allow only POST and PUT methods
-                'Access-Control-Request-Method' => ['*'],
-                // Allow only headers 'X-Wsse'
-                'Access-Control-Request-Headers' => ['*'],
-                // Allow credentials (cookies, authorization headers, etc.) to be exposed to the browser
-                'Access-Control-Allow-Credentials' => true,
-                // Allow OPTIONS caching
-                'Access-Control-Max-Age' => 3600,
-                // Allow the X-Pagination-Current-Page header to be exposed to the browser.
-                'Access-Control-Expose-Headers' => ['X-Pagination-Current-Page'],
-            ],
         ];
 
-        // re-add authentication filter
+        //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
             'only' => ['logout'],
         ];
-        // avoid authentication on CORS-pre-flight requests (HTTP OPTIONS method)
-        $behaviors['authenticator']['except'] = ['options'];
 
         return $behaviors;
     }
-
-
-
 
 
     /**
@@ -94,9 +54,11 @@ class AuthController extends Controller
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
             $user->updateAccessToken();
-            return (new ApiResponse)->success($user, null,'Login is successful');
+            if ($user->type == 'school')
+                $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+            return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
         }
     }
 
@@ -110,7 +72,7 @@ class AuthController extends Controller
     public function actionSignup($type)
     {
         if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNKNOWN, 'This is an unknown user type');
+            return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'This is an unknown user type');
         }
 
         $form = new SignupForm(['scenario' => "$type-signup"]);
@@ -124,6 +86,10 @@ class AuthController extends Controller
         }
 
         $user->updateAccessToken();
+        if ($user->type == 'school')
+            $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+
+
         return (new ApiResponse)->success($user, null, 'You have successfully signed up as a' . $type);
     }
 
@@ -149,6 +115,7 @@ class AuthController extends Controller
      */
     public function actionForgotPassword()
     {
+
         $form = new PasswordResetRequestForm();
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
@@ -159,7 +126,7 @@ class AuthController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED);
         }
 
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL,'Email successfully sent');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Email successfully sent');
     }
 
     /**
@@ -170,6 +137,7 @@ class AuthController extends Controller
     {
         $form = new ResetPasswordForm;
         $form->attributes = Yii::$app->request->post();
+
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
@@ -179,6 +147,15 @@ class AuthController extends Controller
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Password successfully changed');
+    }
+
+    public function actionValidateToken()
+    {
+        if (!Yii::$app->request->post('token'))
+            return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED, 'Token is required');
+
+        $token = Yii::$app->request->post('token');
+        return User::find()->where(['token' => $token])->exists() ? true : false;
     }
 }
 

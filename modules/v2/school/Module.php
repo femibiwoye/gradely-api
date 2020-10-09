@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\v1\school;
+namespace app\modules\v2\school;
 
 use Yii;
 use yii\web\Response;
@@ -12,7 +12,7 @@ class Module extends \yii\base\Module
     /**
      * {@inheritdoc}
      */
-    public $controllerNamespace = 'app\modules\v1\school\controllers';
+    public $controllerNamespace = 'app\modules\v2\school\controllers';
 
     /**
      * {@inheritdoc}
@@ -20,9 +20,8 @@ class Module extends \yii\base\Module
     public function init()
     {
         parent::init();
-        \Yii::$app->user->enableSession = false;
+        Yii::$app->user->enableSession = false;
         Yii::$app->response->format = Response::FORMAT_JSON;
-
 
     }
 }

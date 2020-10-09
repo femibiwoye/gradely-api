@@ -69,4 +69,14 @@ class SubjectTopics extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
         ];
     }
+
+    public function getTopicPerformanceByID($id,$studentID)
+    {
+        $model = QuizSummary::find()->where(['topic_id'=>$id,'student_id'=>$studentID]);
+        if($model->sum('correct')>0) {
+            return $model->sum('correct') / $model->sum('total_questions') * 100;
+        }else{
+            return 0;
+        }
+    }
 }

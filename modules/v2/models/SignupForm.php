@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 
+use app\modules\v2\components\InputNotification;
 use Yii;
 use yii\base\Model;
 
@@ -22,12 +23,14 @@ class SignupForm extends Model
     public function rules()
     {
         return [
-            [['first_name', 'last_name','password'], 'required'],
+            [['first_name', 'last_name', 'password'], 'required'],
             [['first_name', 'last_name', 'password'], 'filter', 'filter' => 'trim'],
 
             ['email', 'trim'],
             ['email', 'email', 'message' => 'Provide a valid email address'],
             ['email', 'string', 'min' => 8, 'max' => 50],
+            [['first_name', 'last_name'], 'string', 'min' => 3],
+
             ['email', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This email address has already been taken.'],
             ['email', 'match', 'pattern' => "/^[@a-zA-Z0-9+._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
 
@@ -36,15 +39,19 @@ class SignupForm extends Model
             ['phone', 'string', 'min' => 11, 'max' => 14],
             ['phone', 'match', 'pattern' => '/(^[0]\d{10}$)|(^[\+]?[234]\d{12}$)/'],
 
-            ['password', 'string', 'min' => 6],
+            ['password', 'string', 'min' => 4],
 
             [['email', 'phone'], 'required', 'on' => 'teacher-signup'],
             [['email', 'phone'], 'required', 'on' => 'parent-signup'],
+            [['email', 'phone'], 'required', 'on' => 'tutor-signup'],
 
-            [['school_name', 'email', 'phone','country'], 'required', 'on' => 'school-signup'],
+            [['school_name', 'email', 'phone', 'country'], 'required', 'on' => 'school-signup'],
 
-            [['class','country'], 'required', 'on' => 'student-signup'],
+            [['class', 'country'], 'required', 'on' => 'student-signup'],
             [['email'], 'safe', 'on' => 'student-signup'],
+
+            [['class'], 'required', 'on' => 'parent-student-signup'],
+            //[['email', 'country'], 'safe', 'on' => 'parent-student-signup'],
         ];
     }
 
@@ -60,18 +67,32 @@ class SignupForm extends Model
         $user = new User;
         $user->firstname = $this->first_name;
         $user->lastname = $this->last_name;
-        $user->phone = $this->phone;
+        if (!empty($this->phone))
+            $user->phone = $this->phone;
         $user->type = $type;
-        $user->email = $this->email;
+        if (!empty($this->email))
+            $user->email = $this->email;
         $user->class = $this->class;
         $user->setPassword($this->password);
         $user->generatePasswordResetToken();
         $user->generateAuthKey();
+        $user->generateVerificationKey();
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$user->save() || !$this->generateCode($user) || !$this->createProfile($user)) {
                 return false;
             }
+
+            if ($this->scenario == 'parent-student-signup') {
+                $notification = new InputNotification();
+                if (!$notification->NewNotification('parent_adds_student', [['student_id', $user->id]]))
+                    return false;
+            }
+
+            $notification = new InputNotification();
+            if (!$notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]))
+                return false;
+
 
             $dbtransaction->commit();
         } catch (Exception $e) {

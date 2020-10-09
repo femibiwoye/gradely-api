@@ -19,13 +19,11 @@ class TeacherUpdateEmailForm extends Model {
 	public function rules() {
 		return [
 			['email', 'filter', 'filter' => 'trim'],
-			['email', 'required'],
+			[['email', 'confirm_password'], 'required'],
 			['email', 'email', 'message'=> 'Provide a valid email address.'],
 			['email', 'string', 'min' => 8, 'max' => 64],
 			['email', 'match', 'pattern' => "/^[@a-zA-Z0-9._-]+$/", 'message' => "Email can only contain letters, numbers or any of these special characters [@._-]"],
-			['email', 'exist', 'targetClass' => User::className(), 'when' => function($model) {
-				return $this->user->email == $this->email;
-			}],
+			['email', 'unique', 'targetClass' => User::className(), 'targetAttribute' => ['email' => 'email']],
 
 			['confirm_password', 'validateConfirmPassword'],
 		];
@@ -33,7 +31,8 @@ class TeacherUpdateEmailForm extends Model {
 
 	public function validateConfirmPassword() {
 		if (!$this->user->validatePassword($this->confirm_password)) {
-			$this->addError('Password is incorrect!');
+			$this->addError('confirm_password', 'Password is incorrect!');
+			return false;
 		}
 
 		return true;
