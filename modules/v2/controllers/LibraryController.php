@@ -76,7 +76,7 @@ class LibraryController extends ActiveController
         $model = PracticeMaterial::find()
             ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
             ->leftJoin('feed', 'feed.user_id = practice_material.user_id')
-            ->groupBy('practice_material.id')
+            ->groupBy('practice_material.id DESC')
             ->andWhere(['practice_material.filetype' => 'document']);
 
         if ($class_id) {
@@ -181,19 +181,19 @@ class LibraryController extends ActiveController
         $class_id = Yii::$app->request->post('class_id');
         $tag = Yii::$app->request->post('tag');
 
-        if (Yii::$app->user->identity->type = 'teacher') {
+        if (Yii::$app->user->identity->type == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
-        } elseif (Yii::$app->user->identity->type = 'school') {
+        } elseif (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $teacher_id = $school->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
-            //$model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
         }
@@ -308,7 +308,7 @@ class LibraryController extends ActiveController
 
         $model = $this->modelClass::find()
             ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
-            ->groupBy('practice_material.id');
+            ->groupBy('practice_material.id DESC');
 
         if ($class_id) {
             $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
