@@ -7,7 +7,7 @@ use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\Schools;
-use app\modules\v2\models\{TeacherClass, Classes, StudentSchool};
+use app\modules\v2\models\{TeacherClass, Classes, StudentSchool, SchoolTeachers};
 
 use app\modules\v2\models\User;
 use Yii;
@@ -40,6 +40,16 @@ class Utility extends ActiveRecord
         $schools = ArrayHelper::merge(ArrayHelper::getColumn($schools, 'id'), ArrayHelper::getColumn($schoolAdmin, 'school_id'));
 
         return array_unique($schools);
+    }
+
+    public static function getSchoolID($teacher_id)
+    {
+        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id]);
+        if (!$model) {
+            return false;
+        }
+
+        return $model->school_id;
     }
 
     public static function allSchoolUserID($schoolID)

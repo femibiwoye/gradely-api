@@ -303,6 +303,22 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
+        $school_id = Utility::getSchoolID(Yii::$app->user->id);
+        if (!$school_id) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');
+        }
+
+        $tutor_session = TutorSession::find()
+                            ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
+                            ->where(['school_teachers.school_id' => $school_id])
+                            ->andWhere('YEARWEEK(tutor_session.created_at) = YEARWEEK(NOW())')
+                            ->andWhere('tutor_session.meta != "recommendation"')
+                            ->andWhere('tutor_session.participant_type = "single"')
+                            ->all();
+        if (count($tutor_session) >= 20) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Limit of live sessions in current week is completed!');
+        }
+
         $model = new TutorSession(['scenario' => 'new-class']);
         $model->attributes = Yii::$app->request->post();
         $model->requester_id = Yii::$app->user->id;
