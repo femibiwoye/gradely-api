@@ -108,6 +108,8 @@ class LibraryController extends ActiveController
             } else {
                 $model = $model->orderBy(['id' => SORT_DESC]);
             }
+        }else{
+            $model = $model->orderBy(['created_at' => SORT_DESC]);
         }
 
         $provider = new ActiveDataProvider([
@@ -340,12 +342,14 @@ class LibraryController extends ActiveController
             } else {
                 $model = $model->orderBy(['created_at' => SORT_DESC]);
             }
+        }else{
+            $model = $model->orderBy(['created_at' => SORT_DESC]);
         }
 
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 2,
                 'validatePage' => false,
             ],
             'sort' => [
