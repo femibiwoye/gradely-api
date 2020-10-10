@@ -136,12 +136,12 @@ class LibraryController extends ActiveController
         $tag = Yii::$app->request->post('tag');
         $teacher_id = Yii::$app->user->id;
 
-        if (Yii::$app->user->identity->type = 'teacher') {
+        if (Yii::$app->user->identity->type == 'teacher') {
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
-        } elseif (Yii::$app->user->identity->type = 'school') {
+        } elseif (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $teacher_id = $school->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
