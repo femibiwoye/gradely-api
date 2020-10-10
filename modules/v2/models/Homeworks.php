@@ -113,6 +113,7 @@ class Homeworks extends \yii\db\ActiveRecord
         return [
             'id',
             'title',
+            'description',
             'subject',
             'teacher',
             'class_id',
