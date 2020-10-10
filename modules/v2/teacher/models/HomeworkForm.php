@@ -54,7 +54,7 @@ class HomeworkForm extends Model
             //validateTopicCurriculum Validates open_date and close_date, tag and topic
             //['topics_id', 'validateTopicCurriculum'],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
-            [['description','lesson_description'], 'string']
+            [['description', 'lesson_description'], 'string']
         ];
     }
 
@@ -261,6 +261,7 @@ class HomeworkForm extends Model
         $model->view_by = $this->view_by;
         $model->user_id = $this->teacher_id;
         $model->reference_id = $homework->id;
+        $model->subject_id = $homework->subject_id;
         if (!empty($this->description))
             $model->description = $this->description;
 
