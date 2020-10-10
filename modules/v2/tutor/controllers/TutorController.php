@@ -89,7 +89,7 @@ class TutorController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $models,
             'pagination' => [
-                'pageSize' => 20,
+                'pageSize' => 2,
                 'validatePage' => false,
             ],
         ]);
