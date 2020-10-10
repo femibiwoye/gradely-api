@@ -108,7 +108,7 @@ class LibraryController extends ActiveController
             } else {
                 $model = $model->orderBy(['id' => SORT_DESC]);
             }
-        }else{
+        } else {
             $model = $model->orderBy(['created_at' => SORT_DESC]);
         }
 
@@ -342,7 +342,7 @@ class LibraryController extends ActiveController
             } else {
                 $model = $model->orderBy(['created_at' => SORT_DESC]);
             }
-        }else{
+        } else {
             $model = $model->orderBy(['created_at' => SORT_DESC]);
         }
 
