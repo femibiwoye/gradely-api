@@ -52,6 +52,7 @@ class TutorController extends ActiveController
         $curriculum = Yii::$app->request->get('curriculum');
         $gender = Yii::$app->request->get('gender');
         $day = Yii::$app->request->get('day');
+        $sort = Yii::$app->request->get('sort');
         $models = TutorProfile::find();
         $models = $models->where(['availability' => SharedConstant::VALUE_ONE])
             ->leftJoin('user', 'user.id = tutor_profile.tutor_id')
@@ -60,14 +61,27 @@ class TutorController extends ActiveController
             ->leftJoin('subjects', 'subjects.id = tutor_subject.subject_id')
             ->leftJoin('exam_type', 'exam_type.id = tutor_subject.curriculum_id')
             ->leftJoin('tutor_availability', 'tutor_availability.user_id = tutor_profile.tutor_id')
-            ->andFilterWhere(['OR',['like', 'user.lastname', '%'.$s.'%',false],
-                ['like', 'user.firstname', '%'.$s.'%',false],
-                ['like', 'user_profile.about', '%'.$s.'%',false]])
-            ->andFilterWhere(['subjects.slug'=>$subject])
-            ->andFilterWhere(['exam_type.slug'=>$curriculum])
-            ->andFilterWhere(['user_profile.gender'=>$gender])
-            ->andFilterWhere(['tutor_availability.day'=>$day])
-            ->groupBy('tutor_profile.tutor_id');
+            ->andFilterWhere(['OR', ['like', 'user.lastname', '%' . $s . '%', false],
+                ['like', 'user.firstname', '%' . $s . '%', false],
+                ['like', 'user_profile.about', '%' . $s . '%', false]])
+            ->andFilterWhere(['subjects.slug' => $subject])
+            ->andFilterWhere(['exam_type.slug' => $curriculum])
+            ->andFilterWhere(['user_profile.gender' => $gender])
+            ->andFilterWhere(['tutor_availability.day' => $day]);
+
+        if ($sort) {
+            if ($sort == 'a-z') {
+                $models = $models->orderBy(['user.firstname' => SORT_ASC]);
+            } elseif ($sort == 'z-a') {
+                $models = $models->orderBy(['user.firstname' => SORT_DESC]);
+            } elseif ($sort == 'low-price') {
+                $models = $models->orderBy(['price' => SORT_ASC]);
+            } elseif ($sort == 'high-price') {
+                $models = $models->orderBy(['price' => SORT_DESC]);
+            }
+        }
+
+        $models = $models->groupBy('tutor_profile.tutor_id');
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
