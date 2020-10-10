@@ -161,12 +161,8 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getReference()
     {
-        if ($this->type == SharedConstant::FEED_TYPES[2]) {
+        if ($this->type == SharedConstant::FEED_TYPES[2] || $this->type == SharedConstant::FEED_TYPES[3]) {
             return $this->hasOne(Homeworks::className(), ['id' => 'reference_id']);
-        }
-
-        if ($this->type == SharedConstant::FEED_TYPES[3]) {
-            return $this->hasOne(TutorSession::className(), ['id' => 'reference_id']);
         }
 
         if ($this->type == SharedConstant::FEED_TYPES[1]) {
