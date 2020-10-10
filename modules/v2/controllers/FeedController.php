@@ -127,7 +127,7 @@ class FeedController extends ActiveController
 
         } elseif (Yii::$app->user->identity->type == 'student') {
             $user_id = Yii::$app->user->id;
-            $class = StudentSchool::findOne(['student_id' => $user_id]);
+            $class = StudentSchool::findOne(['student_id' => $user_id,'status'=>1]);
             if ($class) {
                 $class_id = $class->class_id;
             }
