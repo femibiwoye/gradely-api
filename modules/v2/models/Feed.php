@@ -98,6 +98,7 @@ class Feed extends \yii\db\ActiveRecord
             'reference',
             'subject',
             'class',
+            'isOwner',
             'global_class_id' => 'globalClass',
             'comment' => 'miniComment',
             'attachments' => 'attachments',
@@ -211,6 +212,13 @@ class Feed extends \yii\db\ActiveRecord
     public function getFeedCommentCount()
     {
         return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type' => 'feed'])->count();
+    }
+
+    public function getIsOwner()
+    {
+        if ($this->user_id == Yii::$app->user->id)
+            return 1;
+        return 0;
     }
 
     public function getMiniComment()
