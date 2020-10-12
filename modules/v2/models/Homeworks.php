@@ -113,6 +113,7 @@ class Homeworks extends \yii\db\ActiveRecord
         return [
             'id',
             'title',
+            'description',
             'subject',
             'teacher',
             'class_id',
@@ -173,7 +174,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         $completed = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->count();
 
-        return $this->getQuizSummaryRecord()->count() > 0 ? ($completed / $this->getStudentExpectedCount()) * 100 : 0;
+        return $this->getStudentExpectedCount() > 0 ? ($completed / $this->getStudentExpectedCount()) * 100 : 0;
     }
 
     public function getStudentExpectedCount()

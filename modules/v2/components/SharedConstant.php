@@ -28,7 +28,7 @@ class SharedConstant
     const FEED_TYPE = 'feed';
     const COMMENT_TYPE = 'comment';
     const TYPE_VIDEO = 'video';
-    const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image'];
+    const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image', 'live_class'];
     const HOMEWORK_TYPES = ['homework', 'lesson', 'recommendation'];
     const HOMEWORK_TAG = ['homework', 'exam', 'quiz'];
     const TEACHER_VIEW_BY = ['all', 'class', 'student'];

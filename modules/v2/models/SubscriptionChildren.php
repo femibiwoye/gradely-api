@@ -41,6 +41,15 @@ class SubscriptionChildren extends \yii\db\ActiveRecord
         ];
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        $fields['childName'] = 'childName';
+
+        return $fields;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -75,5 +84,11 @@ class SubscriptionChildren extends \yii\db\ActiveRecord
     public function getStudent()
     {
         return $this->hasOne(User::className(), ['id' => 'student_id']);
+    }
+
+    public function getChildName()
+    {
+        $student = $this->student;
+        return isset($student) ? $student->firstname . ' ' . $student->lastname : null;
     }
 }

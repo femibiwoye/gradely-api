@@ -127,7 +127,7 @@ class FeedController extends ActiveController
 
         } elseif (Yii::$app->user->identity->type == 'student') {
             $user_id = Yii::$app->user->id;
-            $class = StudentSchool::findOne(['student_id' => $user_id]);
+            $class = StudentSchool::findOne(['student_id' => $user_id,'status'=>1]);
             if ($class) {
                 $class_id = $class->class_id;
             }
@@ -154,12 +154,10 @@ class FeedController extends ActiveController
             $models = $models
                 ->innerJoin('user', 'user.id = feed.user_id')
                 ->andWhere([
-//                    'feed.user_id' => $student_id, //To be returned
-//                    'feed.class_id' => $class_id, //To be returned
-//                    'user.type' => 'student' //To be returned
-                    'feed.type' => 'post' // to be removed;
-                ])
-                ->orderBy('rand()');// to be removed;
+                    'feed.user_id' => $student_id,
+                    'feed.class_id' => $class_id,
+                    'user.type' => 'student'
+                ]);
         }
 
         if ($type)
@@ -310,17 +308,18 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
-        $school_id = Utility::getSchoolID(Yii::$app->user->id);
+        $school_id = Utility::getTeacherSchoolID(Yii::$app->user->id);
         if (!$school_id) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');
         }
 
         $tutor_session = TutorSession::find()
-                            ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
-                            ->where(['school_teachers.school_id' => $school_id,'is_school'=>1])
-                            ->andWhere('YEARWEEK(tutor_session.created_at) = YEARWEEK(NOW())')
-                            ->andWhere(['OR',["tutor_session.meta != 'recommendation'"],["tutor_session.participant_type = 'single'"]])
-                            ->count();
+            ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
+            ->where(['school_teachers.school_id' => $school_id, 'is_school' => 1, 'school_teachers.teacher_id' => Yii::$app->user->id])
+            ->andWhere('YEARWEEK(tutor_session.created_at) = YEARWEEK(NOW())')
+            ->andFilterWhere(['OR', "IF(tutor_session.meta = 'recommendation', IF(tutor_session.participant_type = 'single', 1, 0), 0) = 0"])
+            ->count();
+
         if ($tutor_session >= Yii::$app->params['live_class_limit']) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "You've had the maximum eligible live class limit");
         }
@@ -364,7 +363,7 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
     }
 
-    public function actionDelete($id)
+    public function actionDeleteLiveClass($id)
     {
         $model = TutorSession::findOne(['id' => $id, 'requester_id' => Yii::$app->user->id]);
         if (!$model) {
