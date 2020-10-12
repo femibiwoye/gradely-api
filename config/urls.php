@@ -40,10 +40,12 @@ return [
     'GET v2/feed' => 'v2/feed/index', //
     'GET v2/feed/<class_id:\d+>' => 'v2/feed/index', //
     //'GET v2/feed/upcoming' => 'v2/feed/upcoming',
+    'DELETE v2/feed/delete-feed/<feed_id:\d+>' => 'v2/feed/delete-feed', //
+
     'POST v2/live-class' => 'v2/feed/new-live-class', //
-    'DELETE v2/live-class/<id:\d+>' => 'v2/feed/delete',
-    'PUT v2/live-class-availability/<id:\d+>' => 'v2/feed/update-live-class-availability',
-    'PUT v2/live-class-details/<id:\d+>' => 'v2/feed/update-live-class-details',
+    'PUT v2/live-class-availability/<id:\d+>' => 'v2/feed/update-live-class-availability', //
+    'PUT v2/live-class-details/<id:\d+>' => 'v2/feed/update-live-class-details', //
+    'DELETE v2/live-class/<id:\d+>' => 'v2/feed/delete-live-class', //
 
     //Reports
     'GET v2/library/summary/<class_id:\d+>' => 'v2/library/summary', //

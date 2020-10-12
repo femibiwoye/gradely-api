@@ -363,7 +363,7 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
     }
 
-    public function actionDelete($id)
+    public function actionDeleteLiveClass($id)
     {
         $model = TutorSession::findOne(['id' => $id, 'requester_id' => Yii::$app->user->id]);
         if (!$model) {
