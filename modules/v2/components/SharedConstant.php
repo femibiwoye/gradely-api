@@ -45,7 +45,7 @@ class SharedConstant
     const QUESTION_ACCEPTED_OPTIONS = ['A', 'B', 'C', 'D', 1, 0];
     const PRACTICE_MATERIAL_TYPES = ['video', 'document', 'link', 'image'];
     const RECOMMENDATION_TYPE = ['weekly', 'daily'];
-    const CURRENT_DAY = 'Sunday';
+    const WEEKLY_GENERATE_DAY = 'Monday';//'Sunday';
     const REFERENCE_TYPE = ['homework', 'catchup', 'recommendation', 'practice', 'class'];
     const PROCTOR_FEEDBACK_TYPE = ['reject_submission', 'admin_report', 'report_error'];
     const PROCTOR_FILE_TYPE = ['image', 'audio', 'video'];
