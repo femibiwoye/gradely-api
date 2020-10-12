@@ -1050,7 +1050,6 @@ class CatchupController extends ActiveController
             $quizSummary->skipped = $quizSummary->total_questions - ($correctCount + $failedCount);
             $quizSummary->submit = SharedConstant::VALUE_ONE;
             $quizSummary->submit_at = date('Y-m-d H:i:s');
-
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
 
