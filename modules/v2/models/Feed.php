@@ -227,7 +227,7 @@ class Feed extends \yii\db\ActiveRecord
             ['feed_id' => 'id'])
             ->where(['type' => 'feed'])
             ->limit(2)
-            ->orderBy('id');
+            ->orderBy('id DESC');
     }
 
     public function FeedDisliked()
