@@ -307,7 +307,7 @@ class Utility extends ActiveRecord
 
     public static function getTeacherSchoolID($teacher_id)
     {
-        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id,'status'=>1]);
+        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);
         if (!$model) {
             return false;
         }
@@ -355,10 +355,12 @@ class Utility extends ActiveRecord
 
         }
         if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1])) {
+            $classId = $classes->class_id;
             $className = $classes->class->class_name;
             $schoolName = $classes->school->name;
             $hasSchool = true;
         } else {
+            $classId = null;
             $className = null;
             $schoolName = null;
             $hasSchool = false;
@@ -366,6 +368,7 @@ class Utility extends ActiveRecord
 
         return $return = [
             'profileClass' => $user->class,
+            'class_id' => $classId,
             'class_name' => $className,
             'school_name' => $schoolName,
             'has_school' => $hasSchool

@@ -225,7 +225,7 @@ class Feed extends \yii\db\ActiveRecord
     {
         return $this->hasMany(FeedComment::className(),
             ['feed_id' => 'id'])
-            ->where(['type' => 'feed'])
+            ->andWhere(['type' => 'feed'])
             ->limit(2)
             ->orderBy('id DESC');
     }
