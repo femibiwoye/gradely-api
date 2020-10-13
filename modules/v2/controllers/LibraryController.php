@@ -205,7 +205,7 @@ class LibraryController extends ActiveController
 
         $model = new PracticeMaterial();
         $model->attributes = Yii::$app->request->post();
-        $model->user_id = $teacher_id;
+        $model->user_id = Yii::$app->user->id;
         $model->filetype = 'document';
         $model->type = 'feed';
         if (!$model->validate()) {

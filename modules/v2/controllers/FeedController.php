@@ -212,6 +212,7 @@ class FeedController extends ActiveController
         $model->user_id = Yii::$app->user->id;
         $model->comment = Yii::$app->request->post('comment');
         $model->feed_id = $post_id;
+        $model->type = 'comment';
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
