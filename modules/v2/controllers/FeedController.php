@@ -212,7 +212,6 @@ class FeedController extends ActiveController
         $model->user_id = Yii::$app->user->id;
         $model->comment = Yii::$app->request->post('comment');
         $model->feed_id = $post_id;
-        $model->type = 'comment';
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
@@ -252,7 +251,7 @@ class FeedController extends ActiveController
 
     public function actionCommentLike($comment_id)
     {
-        $model = FeedComment::findOne(['id' => $comment_id, 'type' => 'comment']);
+        $model = FeedComment::findOne(['id' => $comment_id, 'type' => 'feed']);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment is not found!');
         }
