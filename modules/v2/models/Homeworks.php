@@ -391,7 +391,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
         $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework']])
             ->andWhere(['>', 'close_date', date("Y-m-d")])
-            ->orderBy(['open_date' => SORT_ASC])
+            ->orderBy(['close_date' => SORT_ASC])
             ->all();
 
         foreach ($homeworks as $homework) {
@@ -403,7 +403,7 @@ class Homeworks extends \yii\db\ActiveRecord
                     'id' => $homework->id,
                     'type' => $homework->type,
                     'title' => $homework->title,
-                    'date_time' => $homework->open_date,
+                    'date_time' => $homework->close_date,
                 ]);
             }
         }
