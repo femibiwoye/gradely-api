@@ -3,6 +3,8 @@
 namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\InputNotification;
+use app\modules\v2\models\Parents;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
@@ -281,12 +283,45 @@ class HomeworkController extends ActiveController
 
         if ($model->publish_status == 0) {
             $model->publish_status = 1;
-            if ($model->save())
+            if ($model->save()) {
+                $this->HomeworkNotification($model);
+                //Call success notification
                 return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework successfully published');
+            }
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Something went wrong.');
     }
+
+    private function HomeworkNotification($model)
+    {
+//        if($model->publish_status == SharedConstant::VALUE_ZERO){
+//
+//            $notification = new InputNotification();
+//            if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->id]]))
+//                return false;
+//        }
+
+        $notification = new InputNotification();
+        if (!$notification->NewNotification('teacher_create_homework', [['homework_id', $model->id]]))
+            return false;
+
+
+        //Get all the students in that class
+        $classStudent = StudentSchool::find()->where(['class_id' => $model->class_id, 'status' => 1])->exists();
+
+        //foreach ($classStudents as $classStudent){
+
+        if ($classStudent) {
+            $notification = new InputNotification();
+            $notification->NewNotification('teacher_create_homework_student', [['homework_id', $model->id]]);
+            $notification->NewNotification('teacher_create_homework_parent', [['homework_id', $model->id]]);
+        }
+
+
+        // }
+    }
+
 
     public function actionSubject($class_id)
     {
