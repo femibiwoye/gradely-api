@@ -152,6 +152,7 @@ class Schools extends \yii\db\ActiveRecord
             'phone2',
             'school_email',
             'school_type',
+            'boarding_type',
             'timezone',
             'created_at',
             'curriculum' => 'schoolCurriculumDetails',
