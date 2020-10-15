@@ -153,7 +153,7 @@ class Schools extends \yii\db\ActiveRecord
             'school_email',
             'timezone',
             'created_at',
-            'curriculum' => 'schoolCurriculums',
+            'curriculum' => 'schoolCurriculumDetails',
             'demographics' => 'demographics',
         ];
     }
@@ -199,15 +199,15 @@ class Schools extends \yii\db\ActiveRecord
         return $this->hasMany(SchoolCalendar::className(), ['school_id' => 'id']);
     }
 
-    /**
-     * Gets query for [[SchoolClassCurriculums]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getSchoolClassCurriculums()
-    {
-        return $this->hasMany(SchoolClassCurriculum::className(), ['school_id' => 'id']);
-    }
+//    /**
+//     * Gets query for [[SchoolClassCurriculums]].
+//     *
+//     * @return \yii\db\ActiveQuery
+//     */
+//    public function getSchoolClassCurriculums()
+//    {
+//        return $this->hasMany(SchoolClassCurriculum::className(), ['school_id' => 'id']);
+//    }
 
     /**
      * Gets query for [[SchoolCurriculums]].
@@ -217,6 +217,11 @@ class Schools extends \yii\db\ActiveRecord
     public function getSchoolCurriculums()
     {
         return $this->hasMany(SchoolCurriculum::className(), ['school_id' => 'id']);
+    }
+
+    public function getSchoolCurriculumDetails()
+    {
+        return $this->hasMany(ExamType::className(), ['id' => 'curriculum_id'])->select(['id','slug','name','title','description'])->via('schoolCurriculums');
     }
 
     /**
