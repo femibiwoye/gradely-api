@@ -4,8 +4,9 @@ namespace app\modules\v2\models;
 
 use Yii;
 use yii\base\Model;
+use yii\helpers\ArrayHelper;
 
-class StudentMastery extends User
+class StudentMastery extends Model
 {
 
     public $student_id;
@@ -17,37 +18,138 @@ class StudentMastery extends User
     {
         return [
             [['student_id'], 'required', 'when' => function($model) {
-                return Yii::$app->user->identity->type == 'teacher';
+                return Yii::$app->user->identity->type == 'parent';
             }],
             [['student_id', 'class_id', 'subject_id'], 'integer'],
             [['student_id'], 'exist', 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
             [['subject_id'], 'exist', 'targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']],
             [['class_id'], 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
+            [['student_id'], 'exist', 'targetClass' => Parents::className(), 'targetAttribute' => ['student_id' => 'student_id', 'parent_id' => Yii::$app->user->id], 'when' => function($model) {
+                return Yii::$app->user->identity->type == 'parent';
+            }],
         ];
     }
 
-    public function fields()
+    public function getData()
     {
         return [
-            'id',
-            'name' => 'name',
-            'image',
-            'subjects',
+            'id' => $this->getUser()->id,
+            'name' => $this->getName(),
+            'image' => $this->getUser()->image,
+            'subjects' => $this->getSubjects(),
+            'current_subject' => $this->getCurrentSubject(),
+            'classes' => $this->getClasses(),
+            'current_class' => $this->getCurrentClass(),
+            'report' => $this->getReport()
         ];
     }
 
     private function getName()
     {
-        return $this->firstname . ' ' . $this->lastname;
-    }
-
-    public static function find()
-    {
-        return parent::find()->andWhere(['type' => 'student']);
+        return $this->getUser()->firstname . ' ' . $this->getUser()->lastname;
     }
 
     private function getSubjects()
     {
+        return Subjects::findAll(['id' => $this->getParticipatedSubjectsList()]);
+    }
+
+    private function getParticipatedSubjectsList()
+    {
+        return ArrayHelper::getColumn(
+            QuizSummary::find()->where(['student_id' => $this->student_id])->groupBy('subject_id')->all(),
+            'subject_id'
+        );
+    }
+
+    private function getUser()
+    {
+        return User::findOne(['id' => $this->student_id]);
+    }
+
+    private function getCurrentSubject()
+    {
+        if ($this->subject_id) {
+            return Subjects::findOne(['id' => $this->subject_id]);
+        }
+
+        return $this->getSubjects()[0];
+    }
+
+    private function getClasses()
+    {
+        $student_classes = ArrayHelper::getColumn(
+            StudentSchool::findAll(['student_id' => $this->student_id]),
+            'class_id'
+        );
+
+        return Classes::findAll(['id' => $student_classes]);
+    }
+
+    private function getCurrentClass()
+    {
+        if ($this->class_id) {
+            return Classes::findOne(['id' => $this->class_id]);
+        }
+
+        return $this->getClasses()[0];
+    }
+
+    private function getTopics()
+    {
+        return QuizSummary::find()
+        ->where(['student_id' => $this->student_id])
+        ->groupBy('topic_id');
+    }
+
+    private function getFirstTermReport()
+    {
+        $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'first'])->all(), 'topic_id');
+        $first_term_topics = SubjectTopics::find()
+                                    ->select(['subject_topics.id AS topic_id', 'subject_topics.topic AS topic_name', 'subject_topics.image AS topic_image'])
+                                    ->where(['id' => $topics])
+                                    ->asArray()
+                                    ->all();
+
         
+        return [$first_term_topics, 'learning_area' => $this->getLearningArea($topics)];      
+    }
+
+    private function getSecondTermReport()
+    {
+        $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'second'])->all(), 'topic_id');
+        $second_term_topics = SubjectTopics::find()
+                                    ->select(['id', 'topic', 'image'])
+                                    ->where(['id' => $topics])
+                                    ->all();
+
+        
+        return [$second_term_topics, 'learning_area' => $this->getLearningArea($topics)];      
+    }
+
+    private function getThirdTermReport()
+    {
+        $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'third'])->all(), 'topic_id');
+        $third_term_topics = SubjectTopics::find()
+                                    ->select(['id', 'topic', 'image'])
+                                    ->where(['id' => $topics])
+                                    ->all();
+
+        
+        return [$third_term_topics, 'learning_area' => $this->getLearningArea($topics)];      
+    }
+
+    private function getLearningArea($topics)
+    {
+        return LearningArea::findAll(['topic_id' => $topics]);
+    }
+
+    private function getReport()
+    {
+        return [
+            'first' => $this->getFirstTermReport(),
+            'second' => $this->getSecondTermReport(),
+            'third' => $this->getThirdTermReport()
+        ];
     }
 }
