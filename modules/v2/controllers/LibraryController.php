@@ -401,15 +401,15 @@ class LibraryController extends ActiveController
 
         if ($sort) {
             if ($sort == 'newest') {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['open_date' => SORT_DESC]);
             } elseif ($sort == 'oldest') {
-                $model = $model->orderBy(['created_at' => SORT_ASC]);
+                $model = $model->orderBy(['open_date' => SORT_ASC]);
             } elseif ($sort == 'a-z') {
                 $model = $model->orderBy(['title' => SORT_ASC]);
             } elseif ($sort == 'z-a') {
                 $model = $model->orderBy(['title' => SORT_DESC]);
             } else {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['open_date' => SORT_DESC]);
             }
         }
 
