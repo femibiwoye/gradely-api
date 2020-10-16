@@ -3,7 +3,7 @@
 namespace app\modules\v2\models;
 
 
-use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\{InputNotification, SharedConstant};
 use Yii;
 use yii\base\Model;
 
@@ -116,6 +116,7 @@ class SignupForm extends Model
         if ($user->type == 'school') {
             $this->createSchool($user);
         }
+
         return $model->save();
     }
 
@@ -152,6 +153,19 @@ class SignupForm extends Model
         $school->country = $this->country;
         $school->save();
         $this->createCalendar($school);
+        $this->createCurriculum($school->id);
+    }
+
+    private function createCurriculum($school_id)
+    {
+        $model = new SchoolCurriculum;
+        $model->school_id = $school_id;
+        $model->curriculum_id = SharedConstant::DEFAULT_CURRICULUM;
+        if (!$model->save()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
