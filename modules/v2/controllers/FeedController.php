@@ -72,7 +72,7 @@ class FeedController extends ActiveController
             $validate
                 ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id', 'status']]);
             if (!$validate->validate()) {
-                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
             }
 
             $models = $this->modelClass::find()
@@ -85,7 +85,7 @@ class FeedController extends ActiveController
             $validate
                 ->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id']]);
             if (!$validate->validate()) {
-                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
             }
 
             if (empty($class_id))
@@ -213,7 +213,7 @@ class FeedController extends ActiveController
         $model->comment = Yii::$app->request->post('comment');
         $model->feed_id = $post_id;
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model->save()) {
@@ -294,7 +294,7 @@ class FeedController extends ActiveController
             $model->view_by = Yii::$app->request->post('view_by');
         $model->attributes = Yii::$app->request->post();
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $header = $model->type == 'post' ? 'Discussion' : 'Announcement';
@@ -330,7 +330,7 @@ class FeedController extends ActiveController
         $model->category = 'class';
         $model->is_school = 1;
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
         $model->class = $model->class_id;
 
@@ -357,7 +357,7 @@ class FeedController extends ActiveController
 
         $model->availability = $availability;
         if (!$model->save()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not updated');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
@@ -371,7 +371,7 @@ class FeedController extends ActiveController
         }
 
         if (!$model->delete()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not deleted');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not deleted');
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted successfully!');
@@ -384,7 +384,7 @@ class FeedController extends ActiveController
         $validate = new \yii\base\DynamicModel(compact('subject_id', 'title'));
         $validate->addRule(['subject_id', 'title'], 'required');
         if (!$validate->validate()) {
-            return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model = TutorSession::find()
@@ -398,7 +398,7 @@ class FeedController extends ActiveController
         $model->subject_id = $subject_id;
         $model->title = $title;
         if (!$model->save()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not updated');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated successfully');

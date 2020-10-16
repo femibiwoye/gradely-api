@@ -66,7 +66,7 @@ class ProfileController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->user = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model->attributes = $form->attributes;
@@ -88,7 +88,7 @@ class ProfileController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->user = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$form->updatePassword()) {
@@ -109,7 +109,7 @@ class ProfileController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->user = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->updateTeacher()) {

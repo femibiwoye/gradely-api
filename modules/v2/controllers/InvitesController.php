@@ -64,7 +64,7 @@ class InvitesController extends ActiveController
 
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -88,7 +88,7 @@ class InvitesController extends ActiveController
         $form->sender_id = $student->id;
         $form->sender_type = $student->type;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->studentInviteParent()) {
@@ -109,7 +109,7 @@ class InvitesController extends ActiveController
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $form->sender_id = $school->id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->schoolInviteTeacher()) {
@@ -129,7 +129,7 @@ class InvitesController extends ActiveController
 
         $form->sender_id = Yii::$app->user->id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->teacherInviteSchool()) {

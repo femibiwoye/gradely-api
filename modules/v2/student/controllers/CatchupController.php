@@ -157,7 +157,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $video = VideoContent::findOne(['token' => $video_token]);
@@ -190,7 +190,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = VideoContent::findOne(['token' => $video_token, 'content_type' => 'video']);
@@ -330,7 +330,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $video = VideoContent::find()->where(['token' => $video_token])
@@ -376,7 +376,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
 
         $video = VideoContent::findOne(['token' => $video_token]);
@@ -426,7 +426,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_id'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
 
         $video = VideoAssign::findOne(['content_id' => $video_id]);
@@ -903,7 +903,7 @@ class CatchupController extends ActiveController
         $form->addRule(['practice_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['student_id', 'practice_id' => 'id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (Homeworks::find()
@@ -912,7 +912,7 @@ class CatchupController extends ActiveController
             ->innerJoin('quiz_summary qs', 'qs.homework_id = hm.id AND qs.submit=1')
             ->exists()) {
             $form->addError('practice_id', 'Practice already taken');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (!Homeworks::find()
@@ -921,7 +921,7 @@ class CatchupController extends ActiveController
             ->innerJoin('practice_topics pt', 'pt.practice_id = hm.id')
             ->exists()) {
             $form->addError('practice_id', 'Topics not available, try again.');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $homework = Homeworks::findOne([['student_id' => $student_id, 'id' => $practice_id]]);

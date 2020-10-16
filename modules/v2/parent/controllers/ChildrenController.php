@@ -116,14 +116,14 @@ class ChildrenController extends ActiveController
 
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 
         $user = User::findOne($child_id);
 
         $parent = Parents::findOne(['student_id' => $child_id, 'status' => SharedConstant::VALUE_ONE]);
         if (!Yii::$app->security->validatePassword($password, Yii::$app->user->identity->password_hash)) {
             $form->addError('password', 'Current password is incorrect!');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$parent)
@@ -165,7 +165,7 @@ class ChildrenController extends ActiveController
         $form->addRule(['student_code'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_code' => 'code', 'type']]);
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 
 
         $user = User::findOne(['code' => $student_code, 'type' => $type]);
@@ -210,7 +210,7 @@ class ChildrenController extends ActiveController
         $form->addRule(['code'], 'required');
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 
         $user = User::findOne(['code' => $code]);
 
@@ -243,7 +243,7 @@ class ChildrenController extends ActiveController
 
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
 
         $user = User::findOne(['code' => $code]);
@@ -295,7 +295,7 @@ class ChildrenController extends ActiveController
 
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
         $model = new SignupForm(['scenario' => 'parent-student-signup']);
         $model->attributes = Yii::$app->request->post();

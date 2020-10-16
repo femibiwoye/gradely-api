@@ -132,7 +132,7 @@ class ClassesController extends ActiveController
         $form = new ClassForm(['scenario' => ClassForm::SCENERIO_CREATE_CLASS]);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->newClass($school)) {
@@ -147,7 +147,7 @@ class ClassesController extends ActiveController
         $form = new ClassForm(['scenario' => ClassForm::SCENERIO_UPDATE_CLASS]);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -174,7 +174,7 @@ class ClassesController extends ActiveController
         $form->attributes = Yii::$app->request->post();
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$form->generateClasses($school)) {

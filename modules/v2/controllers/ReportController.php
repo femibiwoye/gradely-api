@@ -155,7 +155,7 @@ class ReportController extends ActiveController
         $form->addRule(['remark'], 'required');
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (!$this->checkUserAccess($type, $id)) {

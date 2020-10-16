@@ -79,7 +79,7 @@ class HomeworkController extends ActiveController
 
         if (empty($form->class_id)) {
             $form->addError('class_id', 'Provide class_id');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Provide class ID');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Provide class ID');
         }
 
         $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
@@ -88,7 +88,7 @@ class HomeworkController extends ActiveController
         $form->teacher_id = Yii::$app->user->id;
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $typeName = ucfirst($type);
@@ -111,7 +111,7 @@ class HomeworkController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         //$form->homework_model = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
         //$form->attributes = $model->attributes;
         //$form->removeAttachments();
@@ -131,7 +131,7 @@ class HomeworkController extends ActiveController
 //        $form->attachments = Yii::$app->request->post('lesson_notes');
 //        $form->feed_attachments = Yii::$app->request->post('feed_attachments');
 //        if (!$form->validate()) {
-//            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 //        }
 //
 //        if (!$model = $form->createHomework('lesson')) {
@@ -342,7 +342,7 @@ class HomeworkController extends ActiveController
         $form->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = Questions::find()
@@ -363,7 +363,7 @@ class HomeworkController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->homework_id = $homework_id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record validation failed');
         }
 
         if (!$form->saveHomeworkQuestion()) {

@@ -67,7 +67,7 @@ class PaymentController extends ActiveController
         $form->addRule(['coupon'], 'exist', ['targetClass' => Coupon::className(), 'targetAttribute' => ['coupon' => 'code']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = Coupon::find()
@@ -91,7 +91,7 @@ class PaymentController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('type'));
         $form->addRule(['type'], 'in', ['range' => ['catchup', 'tutor']]);
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = PaymentPlan::find()->where(['type' => $type])->all();
@@ -132,7 +132,7 @@ class PaymentController extends ActiveController
         }
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (!$model = $form->addPaymentSubscription()) {
@@ -153,7 +153,7 @@ class PaymentController extends ActiveController
         ]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
 

@@ -114,7 +114,7 @@ class Feed extends \yii\db\ActiveRecord
         $form->attachments = Yii::$app->request->post('lesson_notes');
         $form->feed_attachments = Yii::$app->request->post('feed_attachments');
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->createHomework()) {

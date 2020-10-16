@@ -91,7 +91,7 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'curriculum-request']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -116,7 +116,7 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'update-curriculum']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -186,7 +186,7 @@ class PreferencesController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $classes = Yii::$app->request->post('classes');
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -265,7 +265,7 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'update-user-role']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
@@ -288,7 +288,7 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'update-user']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id, 'status' => 1]);
@@ -311,7 +311,7 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'update-user']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id, 'status' => 0]);
@@ -334,7 +334,7 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'update-user']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model = SchoolAdmin::find()->where(['school_id' => $school->id, 'user_id' => $form->user_id]);
@@ -355,12 +355,12 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'update-timezone']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!Timezone::find()->where(['name' => $form->timezone])->exists()) {
             $form->addError('timezone', 'Unknown timezone is provided');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
         $school->timezone = $form->timezone;
         $school->save();
@@ -375,7 +375,7 @@ class PreferencesController extends ActiveController
         $form = new PreferencesForm(['scenario' => 'update-slug']);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $school->slug = $form->slug;
@@ -407,7 +407,7 @@ class PreferencesController extends ActiveController
         $form = new SchoolCalendar(['scenario' => SchoolCalendar::SCENARIO_EDIT_SCHOOL_CALENDAR]);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model = SchoolCalendar::findOne(['school_id' => $school->id]);
