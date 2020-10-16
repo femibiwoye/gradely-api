@@ -135,7 +135,7 @@ class TutorController extends ActiveController
         $form->addRule(['sender_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['sender_id' => 'student_id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = new Review;
@@ -173,7 +173,7 @@ class TutorController extends ActiveController
         $form->addRule(['topic_taught'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_taught' => 'id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = new Review;

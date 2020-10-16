@@ -3,6 +3,7 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\models\ApiResponse;
+use Aws\S3\S3Client;
 use Yii;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
@@ -45,6 +46,12 @@ class ServicesController extends Controller
         ];
 
         return (new ApiResponse)->success($response);
+    }
+
+    public function actionVerifyFile()
+    {
+        $model = new S3Client(['gradelyng']);
+        $model->doesObjectExist('gradelyng','AKIAIDY4XPIYLJBZ22DA');
     }
 }
 

@@ -106,7 +106,7 @@ class LiveClassController extends Controller
             ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['requester_id', 'session_id' => 'id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
 
@@ -138,7 +138,7 @@ class LiveClassController extends Controller
         $form->addRule(['session_id'], 'required')
             ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (Yii::$app->user->identity->type != 'student')
@@ -181,7 +181,7 @@ class LiveClassController extends Controller
         $form->addRule(['session_id'], 'required')
             ->addRule(['session_id'], 'exist', ['targetClass' => ClassAttendance::className(), 'targetAttribute' => ['session_id', 'user_id']]);
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $tutor_session = TutorSession::findOne(['id' => $session_id]);

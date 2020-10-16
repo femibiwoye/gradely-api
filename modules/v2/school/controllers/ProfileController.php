@@ -81,7 +81,7 @@ class ProfileController extends ActiveController
 		$form->attributes = Yii::$app->request->post();
 		$form->user = $model;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 		}
 
 		$model->email = $form->email;
@@ -100,7 +100,7 @@ class ProfileController extends ActiveController
 		$form->attributes = Yii::$app->request->post();
 		$form->user = $model;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 		}
 
 		if (!$form->updatePassword()) {
@@ -118,7 +118,7 @@ class ProfileController extends ActiveController
 		$form->attributes = Yii::$app->request->post();
 		$form->user = $model;
 		if (!$form->validate()) {
-			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 		}
 
 		if (!$model = $form->updateTeacher()) {
@@ -181,7 +181,7 @@ class ProfileController extends ActiveController
 		}
 
 		if (!$form->validate()) {
-			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 		}
 		//$model->attributes = $form->attributes;
 		if (!$form->updateSchool($model)) {
@@ -228,12 +228,12 @@ class ProfileController extends ActiveController
 		$form = new PreferencesForm(['scenario' => 'verify-password']);
 		$form->attributes = Yii::$app->request->post();
 		if (!$form->validate()) {
-			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 		}
 
 		if (!Yii::$app->security->validatePassword($form->password, Yii::$app->user->identity->password_hash)) {
 			$form->addError('password', 'Current password is incorrect!');
-			return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+			return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 		}
 
 		$school = Schools::find()->where(['user_id' => $user_id]);

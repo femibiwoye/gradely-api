@@ -189,7 +189,7 @@ class ClassController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->teacher_id = Yii::$app->user->id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'school_id' => $form->school_id, 'class_id' => $form->class_id])->exists())
@@ -208,7 +208,7 @@ class ClassController extends ActiveController
         $form->class_id = $class_id;
         $form->teacher_id = Yii::$app->user->id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$data = $form->getStudents()) {
@@ -225,7 +225,7 @@ class ClassController extends ActiveController
         $form->student_id = $student_id;
         $form->class_id = $class_id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$form->deleteStudent()) {
@@ -240,11 +240,11 @@ class ClassController extends ActiveController
         $form = new AddStudentForm;
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$user = $form->addStudents(SharedConstant::TYPE_STUDENT)) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not added');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not added');
         }
 
         return (new ApiResponse)->success($user, null, 'You have successfully added students');
@@ -271,7 +271,7 @@ class ClassController extends ActiveController
         $form->addRule(['remark'], 'required');
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $detail = StudentDetails::findOne(['id' => $id]);
@@ -311,7 +311,7 @@ class ClassController extends ActiveController
         $form->addRule(['class_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if ($term == 1) {
@@ -346,7 +346,7 @@ class ClassController extends ActiveController
         $form->addRule(['class_id', 'subject_id', 'topic'], 'required');
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = SubjectTopics::find()

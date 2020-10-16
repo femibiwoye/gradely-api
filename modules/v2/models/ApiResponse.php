@@ -35,7 +35,7 @@ class ApiResponse
     const MULTIPLE_CHOICES = 300;
     const MOVED_PERMANENTLY = 301;
     const FOUND = 302;
-    const SEE_OTHER = 303;
+    const VALIDATION_ERROR = 303;
     const NOT_MODIFIED = 304;
     const USE_PROXY = 306;
     const TEMPORARY_REDIRECT = 307;
@@ -93,6 +93,7 @@ class ApiResponse
         self::NON_AUTHORITATIVE => "No authority for this request",
         self::NO_CONTENT => "No record found",
         self::UNKNOWN_ERROR => "Something unknown went wrong",
+        self::VALIDATION_ERROR => "There is validation error",
     ];
 
     function message($name = null, $message = null, $code = null, $models = null, $pagination = null)
