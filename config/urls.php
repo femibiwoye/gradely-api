@@ -61,6 +61,7 @@ return [
     'GET v2/report/homework' => 'v2/report/homework-summary', //
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
+    'GET v2/report/student-mastery' => 'v2/report/mastery-report',
 
 
     //Payment
