@@ -50,7 +50,7 @@ class Questions extends \yii\db\ActiveRecord
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration', 'option_a', 'option_b', 'option_c', 'option_d'], 'required', 'on' => 'create-multiple'],
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration'], 'required', 'on' => 'create-bool'],
             [['answer'], 'integer', 'on' => 'create-bool'],
-            [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category', 'image'], 'string'],
+            [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category','image'], 'string'],
             [['created_at'], 'safe'],
             //[['answer'], 'string', 'max' => 1],
             [['comprehension_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comprehension::className(), 'targetAttribute' => ['comprehension_id' => 'id']],
@@ -95,49 +95,24 @@ class Questions extends \yii\db\ActiveRecord
     {
         return [
             'id',
-            'question'=>'tempImageQ',
-            'option_a'=>'tempImageA',
-            'option_b'=>'tempImageC',
-            'option_c'=>'tempImageB',
-            'option_d'=>'tempImageC',
+            'question',
+            'option_a',
+            'option_b',
+            'option_c',
+            'option_d',
             'option_e',
             'answer',
-            'image' => 'tempImage',
+            'image',
             'duration',
             'difficulty',
             'type',
             'topic_id',
-            'topic' => 'questionTopic',
-            'owner' => 'questionOwner',
+            'topic'=>'questionTopic',
+            'owner'=>'questionOwner',
             'correct_students' => 'correctQuizSummaryDetails',
             'wrong_students' => 'wrongQuizSummaryDetails'
         ];
     }
-
-    public function getTempImage()
-    {
-        return 'https://source.unsplash.com/random/200x200?sig=incrementingIdentifier';
-    }
-
-    public function getTempImageQ()
-    {
-        return $this->question . ' <br> <img src="https://source.unsplash.com/random/200x200?sig=incrementingIdentifier">';
-    }
-    public function getTempImageA()
-    {
-        return $this->option_a . '  <br> <img src="https://picsum.photos/200/300">';
-    }
-
-    public function getTempImageB()
-    {
-        return $this->option_b . ' <br>  <img src="https://picsum.photos/200/300">';
-    }
-
-    public function getTempImageC()
-    {
-        return $this->option_c . ' <br>  <img src="https://picsum.photos/200/300">';
-    }
-
 
     public function getCorrectQuizSummaryDetails()
     {
@@ -164,13 +139,13 @@ class Questions extends \yii\db\ActiveRecord
 
     public function getQuestionOwner()
     {
-        return $this->teacher_id == Yii::$app->user->id ? 1 : 0;
+        return $this->teacher_id == Yii::$app->user->id?1:0;
     }
 
     public function getQuestionTopic()
     {
-        $topic = SubjectTopics::findOne(['id' => $this->topic_id]);
-        return !empty($topic) ? $topic->topic : null;
+        $topic = SubjectTopics::findOne(['id'=>$this->topic_id]);
+        return !empty($topic)?$topic->topic:null;
     }
 
     public static function find()
