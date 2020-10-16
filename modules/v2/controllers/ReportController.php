@@ -17,7 +17,7 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery};
 use app\modules\v2\components\SharedConstant;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -214,5 +214,22 @@ class ReportController extends ActiveController
         }
 
         return false;
+    }
+
+    public function actionMasteryReport()
+    {
+        if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $model = new StudentMastery;
+        $model->student_id = Yii::$app->user->identity->type == 'student' ? Yii::$app->user->id : Yii::$app->request->get('student_id');
+        $model->class_id = Yii::$app->request->get('class_id');
+        $model->subject_id = Yii::$app->request->get('subject_id');
+        if (!$model->getData()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model->getData(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 }
