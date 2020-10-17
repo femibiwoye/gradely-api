@@ -52,7 +52,7 @@ class UserProfile extends \yii\db\ActiveRecord
     {
         $fields = parent::fields();
         $fields['birth_date'] = function ($model){
-          return date('d-m-Y',strtotime("{$model->dob}-{$model->mob}-{$model->yob}"));
+          return null;//date('d-m-Y',strtotime("{$model->dob}-{$model->mob}-{$model->yob}"));
         };
         unset($fields['dob'],$fields['mob'],$fields['yob']);
 
