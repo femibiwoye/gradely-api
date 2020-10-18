@@ -32,7 +32,7 @@ class AddStudentForm extends Model {
 	{
 		foreach ($this->students as $student) {
 			$name_array = explode(' ', $student['name'], 2);
-			$model = User::findAll(['firstname' => $name_array[0], 'lastname' => isset($name_array[1]) ? $name_array[1]: $name_array[0], 'email' => $student['email']]);
+			$model = User::findAll(['firstname' => $name_array[0], 'lastname' => isset($name_array[1]) ? $name_array[1]: null, 'email' => $student['email']]);
 
 			if ($model) {
 				$this->addError($student['name'] . " is already added");

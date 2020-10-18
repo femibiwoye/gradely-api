@@ -218,11 +218,12 @@ class HomeworkController extends ActiveController
         $model->status = SharedConstant::STATUS_DELETED;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$model->save(false)) {
+            $homework_id = $model->id;
+            if (!$model->delete()) {
                 return false;
             }
 
-            if (!$this->deleteHomeworkFeed($model->id)) {
+            if (!$this->deleteHomeworkFeed($homework_id)) {
                 return false;
             }
 
@@ -243,7 +244,7 @@ class HomeworkController extends ActiveController
         }
 
         $model->status = SharedConstant::STATUS_DELETED;
-        if (!$model->save(false)) {
+        if (!$model->delete()) {
             return false;
         }
 
