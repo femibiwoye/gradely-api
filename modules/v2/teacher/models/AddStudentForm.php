@@ -24,7 +24,22 @@ class AddStudentForm extends Model {
 			['class_id', 'integer'],
 			['password', 'string', 'min' => 6],
 			[['class_id'], 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
+			[['students'], 'validateStudents'], 
 		];
+	}
+
+	public function validateStudents()
+	{
+		foreach ($this->students as $student) {
+			$name_array = explode(' ', $student['name'], 2);
+			$model = User::findAll(['firstname' => $name_array[0], 'lastname' => isset($name_array[1]) ? $name_array[1]: null, 'email' => $student['email']]);
+
+			if ($model) {
+				$this->addError($student['name'] . " is already added");
+			}
+
+			return true;
+		}
 	}
 
 	public function addStudent($type, $student)

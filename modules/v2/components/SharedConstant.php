@@ -58,4 +58,5 @@ class SharedConstant
     const PAID = 'paid';
     const UN_PAID = 'unpaid';
     const VALUE_TWELVE = 12;
+    const DEFAULT_CURRICULUM = 1;
 }

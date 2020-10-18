@@ -8,7 +8,7 @@ use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions, Feed};
 use app\modules\v2\components\SharedConstant;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
@@ -216,11 +216,39 @@ class HomeworkController extends ActiveController
         }
 
         $model->status = SharedConstant::STATUS_DELETED;
-        if (!$model->save(false)) {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            $homework_id = $model->id;
+            if (!$model->delete()) {
+                return false;
+            }
+
+            if (!$this->deleteHomeworkFeed($homework_id)) {
+                return false;
+            }
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not deleted');
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Homework record deleted');
+    }
+
+    private function deleteHomeworkFeed($homework_id)
+    {
+        $model = Feed::findOne(['reference_id' => $homework_id, 'type' => 'homework']);
+        if (!$model) {
+            return true;
+        }
+
+        $model->status = SharedConstant::STATUS_DELETED;
+        if (!$model->delete()) {
+            return false;
+        }
+
+        return true;
     }
 
     public function actionExtendDate($homework_id)
