@@ -99,8 +99,4 @@ return [
         'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
 
-
-    // AWS S3
-    'GET v2/services/verify-file' => 'v2/services/verify-file',//
-
 ];
