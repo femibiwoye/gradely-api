@@ -321,12 +321,14 @@ class ClassController extends ActiveController
                 $model[] = ['term' => $term, 'topics' => SubjectTopics::find()
                     ->where(['subject_id' => $subject_id, 'class_id' => $class_id, 'term' => $term])
                     ->orderBy(['week_number' => SORT_ASC])
+                    ->limit(2)
                     ->all()];
             }
         } else {
             $model = SubjectTopics::find()
                 ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
                 ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
+                ->limit(6)
                 ->all();
         }
 
