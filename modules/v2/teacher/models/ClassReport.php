@@ -204,6 +204,7 @@ class ClassReport extends Model
                 ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
                 ->select([
                     new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                    new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = '.Yii::$app->user->id.') then 1 else 0 end) as is_recommended'),
                     'qsd.topic_id',
                     'st.topic',
                     'st.subject_id'
@@ -250,7 +251,8 @@ class ClassReport extends Model
         $video = VideoContent::find()
             ->select([
                 'video_content.*',
-                new Expression("'video' as type")
+                new Expression("'video' as type"),
+                new Expression('(case when (select file_id from file_log where file_id = video_content.id AND type = "video") then 1 else 0 end) as is_recommended'),
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->where(['video_assign.topic_id' => $topic_id])
