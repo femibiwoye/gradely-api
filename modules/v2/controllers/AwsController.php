@@ -18,6 +18,7 @@ use yii\filters\auth\HttpBearerAuth;
 class AwsController extends Controller
 {
     public $config = [];
+    public $bucketName = 'gradly';
 
     public function behaviors()
     {
@@ -68,17 +69,16 @@ class AwsController extends Controller
         }
     }
 
-    public function actionCreateBucket()
+    public function actionCreateBucket($name)
     {
         $s3Client = new S3Client($this->config);
 
-        return $this->createBucket($s3Client, 'new-bucket-femi');
+        return $this->createBucket($s3Client, $name);
     }
 
 
-    public function actionUploadFile()
+    public function actionUploadFile($folder)
     {
-
         $fileTmpPath = $_FILES['file']['tmp_name'];
         $fileName = $_FILES['file']['name'];
         $fileSize = $_FILES['file']['size'];
@@ -102,10 +102,9 @@ class AwsController extends Controller
         }
 
 
-        //return $file = $_FILES['file'];
-        $bucket = 'new-bucket-femi';
+        $bucket = $this->bucketName;
         $file_Path = $fileTmpPath;
-        $key = basename(GenerateString::widget(['length' => 50]) . '.' . $fileExtension);
+        $key = $folder . '/' . GenerateString::widget(['length' => 50]) . '.' . $fileExtension;
 
         try {
             //Create a S3Client
@@ -125,7 +124,7 @@ class AwsController extends Controller
         $key = explode("/", $url, 4);
         $name = $key[3]; //This get the folder/filename.ext
         $s3 = new S3Client($this->config);
-        return $s3->doesObjectExist('new-bucket-femi', $name);
+        return $s3->doesObjectExist($this->bucketName, $name);
     }
 
     public function actionDeleteFile($url)
@@ -133,7 +132,7 @@ class AwsController extends Controller
         $key = explode("/", $url, 4);
         $name = $key[3]; //This get the folder/filename.ext
         $s3 = new S3Client($this->config);
-        return $s3->deleteObject(['Bucket' => 'new-bucket-femi', 'Key' => $name]);
+        return $s3->deleteObject(['Bucket' => $this->bucketName, 'Key' => $name]);
     }
 }
 
