@@ -356,6 +356,7 @@ class FeedController extends ActiveController
         }
 
         $model->availability = $availability;
+        $model->scenario = 'update-class';
         if (!$model->save()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not updated');
         }
