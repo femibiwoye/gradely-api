@@ -66,7 +66,7 @@ class CalenderController extends ActiveController
             $school_id = $school->id;
         } else {
             $teacher = SchoolTeachers::findOne(['teacher_id' => Yii::$app->user->id]);
-            $school_id = $teacher ? $teacher->school_id : '';
+            $school_id = $teacher ? $teacher->school_id : null;
             $teacher_id = $teacher ? $teacher->teacher_id : Yii::$app->user->id;
         }
 

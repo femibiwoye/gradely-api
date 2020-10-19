@@ -325,7 +325,7 @@ class HomeworkController extends ActiveController
     {
         $model = Feed::findOne(['reference_id' => $homework_id, 'status' => SharedConstant::VALUE_ZERO]);
         $model->status = SharedConstant::VALUE_ONE;
-        $model->created_at = date('Y-m-d h:m:i');
+        $model->created_at = date('Y-m-d H:i:s');
         if (!$model->save()) {
             return false;
         }

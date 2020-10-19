@@ -72,7 +72,7 @@ class Homeworks extends \yii\db\ActiveRecord
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id'], 'integer'],
-            [['description', 'access_status', 'type','tag'], 'string'],
+            [['description', 'access_status', 'type', 'tag'], 'string'],
             [['open_date', 'close_date', 'created_at'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
             [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],
@@ -136,7 +136,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'topics',
             'attachments',
             'average',
-            'completion'=>'completedRate',
+            'completion' => 'completedRate',
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
 //            'homework_performance' => 'homeworkPerformance'
@@ -169,7 +169,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getIsTaken()
     {
-        if ($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])) {
+        if (QuizSummary::find()->where(['homework_id' => $this->id, 'student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])->exists()) {
             return 1;
         }
 
@@ -199,7 +199,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getStudentExpectedCount()
     {
-        return StudentSchool::find()->where(['class_id'=>$this->class_id,'school_id'=>$this->school_id])->count();
+        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id])->count();
     }
 
     public function getStudentsSubmitted()
