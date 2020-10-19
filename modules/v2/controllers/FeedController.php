@@ -202,6 +202,7 @@ class FeedController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No record found!');
         }
 
+        $new_annoucments = array_splice($new_announcements, 5);
         array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
         return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements) . ' records found!');
     }
