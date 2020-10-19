@@ -356,7 +356,7 @@ class Homeworks extends \yii\db\ActiveRecord
             return null;
         }
 
-        return $this->quizSummary->score;
+        return round($this->quizSummary->score);
     }
 
     public function getQuestionCount()
