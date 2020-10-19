@@ -69,7 +69,7 @@ class TutorSession extends \yii\db\ActiveRecord
             ['repetition', 'in', 'range' => ['once', 'daily', 'workdays', 'weekly']],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
             ['availability', 'datetime', 'format' => 'php:Y-m-d H:i', 'on' => ['new-class', 'update-class']],
-            ['availability', 'compare', 'compareValue' => date('Y-m-d H:i'), 'operator' => '>'],
+            //['availability', 'compare', 'compareValue' => date('Y-m-d H:i'), 'operator' => '>'],
 
             [['description'],'string']
         ];
