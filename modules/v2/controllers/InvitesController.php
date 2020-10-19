@@ -469,27 +469,4 @@ class InvitesController extends ActiveController
             ->send();
         return;
     }
-
-    public function actionDeleteSchoolInvitedUser($id)
-    {
-        if (Yii::$app->user->identity->type != 'school') {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
-        }
-
-        $model = User::find()
-                    ->innerJoin('invite_log', 'invite_log.receiver_email = user.email')
-                    ->where(['user.type' => 'teacher', 'user.id' => $id, 'user.status' => 1])
-                    ->one();
-
-        if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School invited user not found');
-        }
-
-        $model->status = SharedConstant::STATUS_DELETED;
-        if (!$model->save()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School invited user not removed');
-        }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'School invited user removed');
-    }
 }

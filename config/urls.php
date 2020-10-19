@@ -86,7 +86,7 @@ return [
         'PUT resend/<id:\d+>' => 'resend', //
         'DELETE remove/<id:\d+>' => 'remove', //
         'PUT verified' => 'verified', //
-        'DELETE remove-school-invited-user/<id:\d+>' => 'delete-school-invited-user',
+        'DELETE remove-school-invited-user/<invite_id:\d+>' => 'delete-school-invited-user',
     ]],
 
 
@@ -99,9 +99,5 @@ return [
         'GET generate-weekly-recommendation' => 'generate-weekly-recommendation', // Generate weekly recommendation
         'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
-
-
-    // AWS S3
-    'GET v2/services/verify-file' => 'v2/services/verify-file',//
 
 ];

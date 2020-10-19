@@ -3,8 +3,6 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\models\ApiResponse;
-use Aws\Credentials\Credentials;
-use Aws\S3\S3Client;
 use Yii;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
@@ -47,20 +45,6 @@ class ServicesController extends Controller
         ];
 
         return (new ApiResponse)->success($response);
-    }
-
-    public function actionVerifyFile()
-    {
-        $credentials = new Credentials('AKIAIDY4XPIYLJBZ22DA','XAD60Ebp/nR99OEMx6Psr5zMejUs45SN12c306SN');
-
-
-        $s3 = new S3Client([
-            'version'     => 'latest',
-            'region'      => 'eu-west-2',
-            'credentials' => $credentials
-        ]);
-
-        return $s3->doesObjectExist('gradelyng','https://gradelyng.s3.us-east-2.amazonaws.com/avatars/avatar10_q0ocne.png');
     }
 }
 

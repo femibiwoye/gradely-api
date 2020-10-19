@@ -163,7 +163,7 @@ class Feed extends \yii\db\ActiveRecord
     public function getReference()
     {
         if ($this->type == SharedConstant::FEED_TYPES[2] || $this->type == SharedConstant::FEED_TYPES[3]) {
-            return $this->hasOne(Homeworks::className(), ['id' => 'reference_id'])->andWhere(['status'=>1, 'publish_status'=>1]);
+            return $this->hasOne(Homeworks::className(), ['id' => 'reference_id'])->andWhere(['status' => 1, 'publish_status' => 1]);
         }
 
         if ($this->type == SharedConstant::FEED_TYPES[1]) {
@@ -223,11 +223,12 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getMiniComment()
     {
-        return $this->hasMany(FeedComment::className(),
-            ['feed_id' => 'id'])
-            ->andWhere(['type' => 'feed'])
-            ->limit(2)
-            ->orderBy('created_at ASC');
+        $id = $this->id;
+        $connection = Yii::$app->getDb();
+        $command = $connection->createCommand("select * from (
+    select * from feed_comment where type = 'feed' AND feed_id = $id order by id desc limit 3
+) fc order by fc.id asc");
+        return $result = $command->queryAll();
     }
 
     public function FeedDisliked()
