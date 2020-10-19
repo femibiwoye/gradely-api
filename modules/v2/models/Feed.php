@@ -99,6 +99,8 @@ class Feed extends \yii\db\ActiveRecord
             'subject',
             'class',
             'isOwner',
+            'is_taken' => 'isTaken',
+            'is_closed' => 'isClosed',
             'global_class_id' => 'globalClass',
             'comment' => 'miniComment',
             'attachments' => 'attachments',
@@ -158,6 +160,16 @@ class Feed extends \yii\db\ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    public function getIsTaken()
+    {
+        return $this->reference ? $this->reference->isTaken : '';
+    }
+
+    public function getIsClosed()
+    {
+        return $this->reference ? $this->reference->isClosed : 1;
     }
 
     public function getReference()
