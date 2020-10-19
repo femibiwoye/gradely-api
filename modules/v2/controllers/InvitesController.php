@@ -226,6 +226,27 @@ class InvitesController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not process your request');
     }
 
+    public function actionDeleteSchoolInvitedUser($invite_id)
+    {
+        if (Yii::$app->user->identity->type != 'school') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $model = InviteLog::findOne(['id' => $invite_id, 'receiver_type' => 'school', 'sender_type' => 'school', 'sender_id' => $school->id]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        if (!$model->delete()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User not removed.');
+        }
+
+        return (new ApiResponse)->success( null, ApiResponse::SUCCESSFUL, 'School invited user removed');
+    }
+
 
     /**
      * Login action.
@@ -469,4 +490,6 @@ class InvitesController extends ActiveController
             ->send();
         return;
     }
+
+
 }
