@@ -72,7 +72,7 @@ class Homeworks extends \yii\db\ActiveRecord
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id'], 'integer'],
-            [['description', 'access_status', 'type','tag'], 'string'],
+            [['description', 'access_status', 'type', 'tag'], 'string'],
             [['open_date', 'close_date', 'created_at'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
             [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],
@@ -122,6 +122,8 @@ class Homeworks extends \yii\db\ActiveRecord
             'slug',
             'open_date',
             'close_date',
+            'is_taken' => 'isTaken',
+            'is_closed' => 'isClosed',
             'questionCount',
             'duration',
             'questionsDuration',
@@ -134,7 +136,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'topics',
             'attachments',
             'average',
-            'completion'=>'completedRate',
+            'completion' => 'completedRate',
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
 //            'homework_performance' => 'homeworkPerformance'
@@ -165,6 +167,24 @@ class Homeworks extends \yii\db\ActiveRecord
         ];
     }
 
+    public function getIsTaken()
+    {
+        if (QuizSummary::find()->where(['homework_id' => $this->id, 'student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])->exists()) {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    public function getIsClosed()
+    {
+        if ($this->getExpiryStatus() == 'closed') {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
     public function getQuestionsDuration()
     {
         return HomeworkQuestions::find()->where(['homework_id' => $this->id])->sum('duration');
@@ -179,7 +199,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getStudentExpectedCount()
     {
-        return StudentSchool::find()->where(['class_id'=>$this->class_id,'school_id'=>$this->school_id])->count();
+        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id])->count();
     }
 
     public function getStudentsSubmitted()
@@ -325,7 +345,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         return QuizSummary::find()->where(['student_id' => $this->student_id])
             ->orWhere(['teacher_id' => Yii::$app->user->id])
-            ->andWhere(['subject_id' => $this->subject->id])
+            //->andWhere(['subject_id' => $this->subject->id])
             ->andWhere(['homework_id' => $this->id])->one();
 
     }
@@ -336,7 +356,7 @@ class Homeworks extends \yii\db\ActiveRecord
             return null;
         }
 
-        return $this->quizSummary->score;
+        return round($this->quizSummary->score);
     }
 
     public function getQuestionCount()

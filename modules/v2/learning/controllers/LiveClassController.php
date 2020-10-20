@@ -119,9 +119,9 @@ class LiveClassController extends Controller
         $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
         $this->classAttendance($session_id, $requester_id, SharedConstant::LIVE_CLASS_USER_TYPE[0], $token);
         $tutor_session->meeting_token = $token;
-        if(!$tutor_session->save())
+        if (!$tutor_session->save())
             return (new ApiResponse)->error($tutor_session->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your session');
-         (new ApiResponse)->success($token, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success(Yii::$app->params['live_class_url'] . $token, ApiResponse::SUCCESSFUL);
     }
 
     /**
@@ -161,7 +161,7 @@ class LiveClassController extends Controller
             $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
             $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
             $this->classAttendance($session_id, $user_id, SharedConstant::LIVE_CLASS_USER_TYPE[1], $token);
-            return (new ApiResponse)->success($token, ApiResponse::SUCCESSFUL);
+            return (new ApiResponse)->success(Yii::$app->params['live_class_url'] . $token, ApiResponse::SUCCESSFUL);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid class status');
         }

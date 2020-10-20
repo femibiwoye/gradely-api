@@ -311,7 +311,7 @@ class HomeworkController extends ActiveController
 
         if ($model->publish_status == 0) {
             $model->publish_status = 1;
-            if ($model->save()) {
+            if ($model->save() && $this->publishHomeworkFeed($model->id)) {
                 $this->HomeworkNotification($model);
                 //Call success notification
                 return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework successfully published');
@@ -319,6 +319,18 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Something went wrong.');
+    }
+
+    private function publishHomeworkFeed($homework_id)
+    {
+        $model = Feed::findOne(['reference_id' => $homework_id, 'status' => SharedConstant::VALUE_ZERO]);
+        $model->status = SharedConstant::VALUE_ONE;
+        $model->created_at = date('Y-m-d H:i:s');
+        if (!$model->save()) {
+            return false;
+        }
+
+        return true;
     }
 
     private function HomeworkNotification($model)
