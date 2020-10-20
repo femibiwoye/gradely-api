@@ -200,17 +200,15 @@ class StudentDetails extends User
 
     public function getTopicBreakdown()
     {
-        $topics = QuizSummaryDetails::find()
-            ->alias('s')
-            ->select(['s.topic_id'])
-            ->where(['s.student_id' => $this->id]);
+        
+        $topics = SubjectTopics::find();
 
         if (Yii::$app->request->get('subject'))
-            $topics = $topics->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
+            $topics = $topics->andWhere(['subject_topics.subject_id' => Yii::$app->request->get('subject')]);
         if (Yii::$app->request->get('term'))
-            $topics = $topics->andWhere(['q.term' => Yii::$app->request->get('term')]);
+            $topics = $topics->andWhere(['subject_topics.term' => Yii::$app->request->get('term')]);
 
-        $topics = $topics->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
+        $topics = $topics->innerJoin('quiz_summary q', 'q.id = subject_topics.id AND q.submit = 1')
             ->groupBy('topic_id')
             ->asArray()
             ->all();
@@ -223,7 +221,7 @@ class StudentDetails extends User
             $totalAttempt = $summary->count();
             $correctAttempt = $summary->andWhere(['=', 'selected', new Expression('`answer`')])->count();
             $this->getQuestionsDifficulty($summary, $topic);
-            $topicScore = ($correctAttempt / $totalAttempt) * 100;
+            $topicScore = ($correctAttempt / ($totalAttempt == 0 ? 1 : $totalAttempt)) * 100;
 
             $statistics = ['score' => $topicScore, 'attempted' => $totalAttempt, 'correct' => $correctAttempt, 'improvement' => null, 'direction' => null]; //Direction is up|down
             $topic_progress = ['hard' => $this->hard_questions, 'medium' => $this->medium_questions, 'easy' => $this->easy_questions, 'score' => $this->score, 'improvement' => $this->improvement, 'direction' => $this->direction];
