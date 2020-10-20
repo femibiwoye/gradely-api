@@ -481,7 +481,7 @@ class CatchupController extends ActiveController
 
         $studentID = Yii::$app->user->id;
         $model = Subjects::find()
-            ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.submit = 1 AND student_id = $studentID")
+            ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.submit = 1 AND student_id = $studentID")
             ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
             ->andWhere(['is', 'qs.subject_id', null])
             ->groupBy('id')
