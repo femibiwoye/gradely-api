@@ -221,7 +221,7 @@ class Feed extends \yii\db\ActiveRecord
         return 0;
     }
 
-    public function getMiniComment()
+    /*public function getMiniComment()
     {
         $id = $this->id;
         $connection = Yii::$app->getDb();
@@ -229,6 +229,15 @@ class Feed extends \yii\db\ActiveRecord
     select * from feed_comment where type = 'feed' AND feed_id = $id order by id desc limit 3
 ) fc order by fc.id asc");
         return $result = $command->queryAll();
+    }*/
+
+    public function getMiniComment()
+    {
+        return $this->hasMany(FeedComment::className(),
+            ['feed_id' => 'id'])
+            ->andWhere(['type' => 'feed'])
+            ->limit(3)
+            ->orderBy('id DESC');
     }
 
     public function FeedDisliked()
