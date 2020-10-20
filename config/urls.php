@@ -85,7 +85,7 @@ return [
         'GET verify' => 'verify', //
         'PUT resend/<id:\d+>' => 'resend', //
         'DELETE remove/<id:\d+>' => 'remove', //
-        'PUT verified' => 'verified', //
+        'GET verified' => 'verified', //
         'DELETE remove-school-invited-user/<invite_id:\d+>' => 'delete-school-invited-user',
     ]],
 
