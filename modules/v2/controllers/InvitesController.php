@@ -162,27 +162,27 @@ class InvitesController extends ActiveController
             $school_admin->user_id = Yii::$app->user->id;
             $school_admin->level = $model->extra_data;
             $school_admin->status = 1;
-            if (!$school_admin->save()) {
-                return false;
-            }
+//            if (!$school_admin->save()) {
+//                return false;
+//            }
 
         } elseif ($model->sender_type == 'school' && $model->receiver_type == 'teacher') {
             $school_teacher = new SchoolTeachers;
             $school_teacher->teacher_id = Yii::$app->user->id;
             $school_teacher->school_id = $model->sender_id;
             $school_teacher->status = 1;
-            if (!$school_teacher->save()) {
-                return false;
-            }
+//            if (!$school_teacher->save()) {
+//                return false;
+//            }
 
             $teacher_class = new TeacherClass;
             $teacher_class->teacher_id = Yii::$app->user->id;
             $teacher_class->school_id = $model->sender_id;
             $teacher_class->class_id = $model->receiver_class;
             $teacher_class->status = 1;
-            if (!$teacher_class->save()) {
-                return false;
-            }
+//            if (!$teacher_class->save()) {
+//                return false;
+//            }
 
         } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
 
@@ -192,15 +192,15 @@ class InvitesController extends ActiveController
             $parent_model->parent_id = Yii::$app->user->id;
             $parent_model->student_id = $model->sender_id;
             $parent_model->status = 1;
-            if (!$parent_model->save()) {
-                return false;
-            }
+//            if (!$parent_model->save()) {
+//                return false;
+//            }
         }
 
         $model->status = SharedConstant::VALUE_ONE;
-        if (!$model->save()) {
-            return false;
-        }
+//        if (!$model->save()) {
+//            return false;
+//        }
 
         return (new ApiResponse)->success($model);
     }
