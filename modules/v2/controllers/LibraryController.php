@@ -62,6 +62,7 @@ class LibraryController extends ActiveController
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
         $search = Yii::$app->request->get('search');
+
         if (Yii::$app->user->identity->type == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
@@ -89,6 +90,7 @@ class LibraryController extends ActiveController
         }
 
         if ($format) {
+            $format = explode(',', $format);
             $model = $model->andWhere(['extension' => $format]);
         }
 
