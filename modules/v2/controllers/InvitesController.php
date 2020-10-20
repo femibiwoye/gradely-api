@@ -34,7 +34,7 @@ class InvitesController extends ActiveController
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::className(),
-            'except' => ['validate-invite-token'],
+            'except' => ['validate-invite-token','verify'],
             'authMethods' => [
                 HttpBearerAuth::className(),
             ],
