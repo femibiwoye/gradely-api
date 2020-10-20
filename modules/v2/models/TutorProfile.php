@@ -162,10 +162,11 @@ class TutorProfile extends \yii\db\ActiveRecord
 
     public function getRatings()
     {
+        $user = $this->tutor_id;
         $connection = Yii::$app->getDb();
         $command = $connection->createCommand("SELECT rate, 
 ROUND((COUNT(*) / (SELECT COUNT(*) FROM review)),1) * 100 AS percentage
-FROM review
+FROM review where receiver_id = $user
 GROUP BY rate;");
         return $result = $command->queryAll();
     }
