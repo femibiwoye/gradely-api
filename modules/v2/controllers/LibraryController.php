@@ -71,6 +71,15 @@ class LibraryController extends ActiveController
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
             }
+        } elseif (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $teacher_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $model->addRule(['class_id'], 'integer');
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
         }
 
 
@@ -117,7 +126,7 @@ class LibraryController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 3,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -275,7 +284,7 @@ class LibraryController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 3,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -299,16 +308,27 @@ class LibraryController extends ActiveController
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
         $search = Yii::$app->request->get('search');
-        $teacher_id = Yii::$app->user->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
-        $model
-            ->addRule(['class_id'], 'required')
-            ->addRule(['class_id', 'teacher_id'], 'integer')
-            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
 
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+        if (Yii::$app->user->identity->type == 'teacher') {
+            $teacher_id = Yii::$app->user->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $model->addRule(['class_id', 'teacher_id'], 'integer')
+                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
+        } elseif (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $teacher_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $model->addRule(['class_id'], 'integer');
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
         }
+
 
         $model = $this->modelClass::find()
             ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
@@ -418,7 +438,7 @@ class LibraryController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 3,
                 'validatePage' => false,
             ],
             'sort' => [
