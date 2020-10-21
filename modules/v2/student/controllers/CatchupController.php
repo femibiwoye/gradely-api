@@ -1053,6 +1053,10 @@ class CatchupController extends ActiveController
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
 
+            if ($homework->type == 'catchup' && !(new Utility)->generateRecommendation($practice_id)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendation not added');
+            }
+
             $dbtransaction->commit();
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Practice processing completed');
         } catch (\Exception $ex) {

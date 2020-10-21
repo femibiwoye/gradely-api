@@ -4,7 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v1\models\StudentSchool;
 use app\modules\v2\components\SessionTermOnly;
-use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\{SharedConstant, Utility};
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\HomeworkQuestions;
@@ -209,6 +209,10 @@ class PracticeController extends Controller
 
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
+
+            if (!(new Utility)->generateRecommendation($quiz_id)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendation not added');
+            }
 
             $dbtransaction->commit();
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Homework processing completed');
