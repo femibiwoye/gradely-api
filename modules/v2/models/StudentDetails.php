@@ -123,7 +123,7 @@ class StudentDetails extends User
             $model = $model->andWhere(['f.subject_id' => Yii::$app->request->get('subject')]);
 
         return $model->orderBy('id DESC')
-        ->limit(5)
+            ->limit(5)
             ->groupBy('f.id')
             ->asArray()->all();
     }
@@ -200,21 +200,24 @@ class StudentDetails extends User
 
     public function getTopicBreakdown()
     {
-        
-        $topics = SubjectTopics::find();
+        $classID = Utility::getStudentClass(1, $this->id);;
+
+        $topics = SubjectTopics::find()
+            ->andWhere(['class_id' => $classID]);
 
         if (Yii::$app->request->get('subject'))
-            $topics = $topics->andWhere(['subject_topics.subject_id' => Yii::$app->request->get('subject')]);
+            $topics = $topics->andWhere(['subject_id' => Yii::$app->request->get('subject')]);
         if (Yii::$app->request->get('term'))
-            $topics = $topics->andWhere(['subject_topics.term' => Yii::$app->request->get('term')]);
+            $topics = $topics->andWhere(['term' => Yii::$app->request->get('term')]);
 
-        $topics = $topics->innerJoin('quiz_summary q', 'q.id = subject_topics.id AND q.submit = 1')
-            ->groupBy('topic_id')
+        $topics = $topics
+            ->groupBy('id')
             ->asArray()
             ->all();
 
         $groupPerformance = [];
         foreach ($topics as $topic) {
+            $topic = $topic['id'];
             $summary = QuizSummaryDetails::find()
                 ->where(['topic_id' => $topic, 'student_id' => $this->id]);
 
@@ -223,11 +226,11 @@ class StudentDetails extends User
             $this->getQuestionsDifficulty($summary, $topic);
             $topicScore = ($correctAttempt / ($totalAttempt == 0 ? 1 : $totalAttempt)) * 100;
 
-            $statistics = ['score' => $topicScore, 'attempted' => $totalAttempt, 'correct' => $correctAttempt, 'improvement' => null, 'direction' => null]; //Direction is up|down
-            $topic_progress = ['hard' => $this->hard_questions, 'medium' => $this->medium_questions, 'easy' => $this->easy_questions, 'score' => $this->score, 'improvement' => $this->improvement, 'direction' => $this->direction];
+            $statistics = ['score' => round($topicScore), 'attempted' => $totalAttempt, 'correct' => $correctAttempt, 'improvement' => null, 'direction' => null]; //Direction is up|down
+            $topic_progress = ['hard' => $this->hard_questions, 'medium' => $this->medium_questions, 'easy' => $this->easy_questions, 'score' => round($this->score), 'improvement' => $this->improvement, 'direction' => $this->direction];
             $topicDetails = SubjectTopics::findOne(['id' => $topic]);
 
-            $groupPerformance[] = array_merge(ArrayHelper::toArray($topicDetails), ['stastistics' => $statistics, 'topic_progress' => $topic_progress]);
+            $groupPerformance[] = array_merge(ArrayHelper::toArray($topicDetails), ['statistics' => $statistics, 'topic_progress' => $topic_progress]);
         }
         return $groupPerformance;
     }
@@ -401,7 +404,7 @@ class StudentDetails extends User
                 //'s.description',
                 //'s.image',
             ])
-            ->innerJoin('student_school ss', "ss.student_id = $studentID")
+            ->innerJoin('student_school ss', "ss.student_id = $studentID AND ss.status = 1")
             ->innerJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id')
             ->where(['s.status' => 1, 'cs.status' => 1])
             ->all();
