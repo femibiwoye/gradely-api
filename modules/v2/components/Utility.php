@@ -384,7 +384,7 @@ class Utility extends ActiveRecord
 
         $quizSummary = QuizSummary::find()->where([
             'id' => $quiz_id, 'submit' => 1,
-            //'student_id' => Yii::$app->user->id
+            'student_id' => Yii::$app->user->id
         ])->one();
         if (!$quizSummary)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
@@ -398,7 +398,7 @@ class Utility extends ActiveRecord
                 'qsd.topic_id',
             ])
             ->where([
-                //'qsd.student_id' => Yii::$app->user->id,
+                'qsd.student_id' => Yii::$app->user->id,
                 'homework_id' => $quizSummary->homework_id
             ])
             ->orderBy(['score' => SORT_ASC])
@@ -424,7 +424,7 @@ class Utility extends ActiveRecord
                 new Expression("'video' as type")
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            //->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
+            ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
             ->limit(SharedConstant::VALUE_ONE)
             ->asArray()
             ->all();

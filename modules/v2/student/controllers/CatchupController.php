@@ -960,6 +960,17 @@ class CatchupController extends ActiveController
      * This process diagnostic and practice attempts
      * @return ApiResponse
      */
+
+    public function actionAssessmentRecommendation($id)
+    {
+        $model = Recommendations::find()->where(['id' => $id])->one();
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendation not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Recommendation found');
+    }
+
     public function actionSubmitPractice()
     {
 
