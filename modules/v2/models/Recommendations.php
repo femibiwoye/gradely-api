@@ -30,7 +30,7 @@ class Recommendations extends \yii\db\ActiveRecord
     {
         return [
             [['student_id'], 'required'],
-            [['id', 'student_id'], 'integer'],
+            [['id', 'student_id', 'is_taken'], 'integer'],
             [['category'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['id'], 'unique'],
@@ -46,6 +46,7 @@ class Recommendations extends \yii\db\ActiveRecord
             'id' => 'ID',
             'student_id' => 'Student ID',
             'category' => 'Category',
+            'is_taken' => 'Is taken',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
@@ -57,6 +58,7 @@ class Recommendations extends \yii\db\ActiveRecord
             'id',
             'student_id',
             'category',
+            'is_taken',
             'recommendationTopics',
             'created_at',
             'updated_at'
