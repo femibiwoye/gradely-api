@@ -8,6 +8,7 @@ use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\Subjects;
 use app\modules\v2\models\{TeacherClass,
     Classes,
     StudentSchool,
@@ -428,8 +429,10 @@ class Utility extends ActiveRecord
                 ->asArray()
                 ->all();
 
+            $this->addRecommendations($topic_objects, $quizSummary->childHomework, $quizSummary->subject_id);
+
             //retrieves assign videos to the topic
-            $video = VideoContent::find()
+            $video_objects = VideoContent::find()
                 ->select([
                     'video_content.*',
                     new Expression("'video' as type")
@@ -440,13 +443,11 @@ class Utility extends ActiveRecord
                 ->asArray()
                 ->all();
 
-            if (!$topic_objects) {
+            if (!$topic_objects and !$video_objects) {
                 return false;
             }
 
-
-            $topics = array_merge($topic_objects, $video);
-            $this->addRecommendations($topics, $quizSummary->childHomework);
+            $this->addRecommendations($video_objects, $quizSummary->childHomework, $quizSummary->subject_id);
 
             return true;
         } catch (\Exception $ex) {
@@ -454,20 +455,21 @@ class Utility extends ActiveRecord
         }
     }
 
-    private function addRecommendations($recommendations, $homework)
+    private function addRecommendations($recommendations, $homework, $subject)
     {
         $model = new Recommendations;
         $model->student_id = Yii::$app->user->id;
         $model->category = $homework->type;
-        $model->reference_id = $homework->reference_id;
+        $model->reference_id = $homework->id;
         $model->reference_type = $homework->reference_type;
+
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
                 return false;
             }
 
-            if (!$this->addRecommendationTopics($recommendations, $model->id)) {
+            if (!$this->addRecommendationTopics($recommendations, $model->id, $subject)) {
                 return false;
             }
 
@@ -478,16 +480,21 @@ class Utility extends ActiveRecord
         }
     }
 
-    private function addRecommendationTopics($topics, $recommendation_id)
+    private function addRecommendationTopics($topics, $recommendation_id, $subject)
     {
         foreach ($topics as $topic) {
-            $model = new RecommendationTopics;
+            $model = new RecommendationTopics();
             $model->recommendation_id = $recommendation_id;
-            $model->subject_id = $topic['subject_id'];
             $model->student_id = Yii::$app->user->id;
             $model->object_id = $topic['id'];
             $model->object_type = $topic['type'];
-            if (!$model->save(false)) {
+            if ($topic['type'] == 'video') {
+                $model->subject_id = $subject;
+            } else {
+                $model->subject_id = $topic['subject_id'];
+
+            }
+            if (!$model->save()) {
                 return false;
             }
         }
