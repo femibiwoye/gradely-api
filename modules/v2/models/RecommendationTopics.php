@@ -4,6 +4,7 @@ namespace app\modules\v2\models;
 
 use Yii;
 use app\modules\v2\components\SharedConstant;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "recommendation_topics".
@@ -65,35 +66,36 @@ class RecommendationTopics extends \yii\db\ActiveRecord
     public function fields()
     {
         return [
-            'id',
-            'recommendation_id',
-            'subject',
-            'student',
-            'object_id',
-            'taken_status' => 'status',
-            'recommendation',
-            'homework',
+            'object' => function () {
+                if ($this->object_type == 'video') {
+                    $return = $this->getObject()
+                                ->select([
+                                    'video_content.*',
+                                    new Expression("'video' as type"),
+                                ])
+                                ;
+
+                    print_r($return->createCommand()->getRawSql());
+                    die();
+                } else {
+                    return $this->getObject()
+                                ->select([
+                                    'subject_topics.*',
+                                    new Expression("'practice' as type"),
+                                ])
+                                ->one();
+                }
+            },
         ];
     }
 
-    /**
-     * Gets query for [[Recommendation]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getRecommendation()
+    public function getObject()
     {
-        return $this->hasOne(Recommendations::className(), ['id' => 'recommendation_id']);
-    }
-
-    /**
-     * Gets query for [[Subject]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getSubject()
-    {
-        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+        if ($this->object_type == 'video') {
+            return $this->hasOne(VideoContent::className(), ['id' => 'object_id']);
+        } else {
+            return $this->hasOne(SubjectTopics::className(), ['id' => 'object_id']);
+        }
     }
 
     /**
