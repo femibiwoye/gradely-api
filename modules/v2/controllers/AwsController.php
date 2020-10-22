@@ -54,7 +54,7 @@ class AwsController extends Controller
     {
         $s3Client = new S3Client($this->config);
         $buckets = $s3Client->listBuckets();
-        return $buckets['Buckets'];
+        return (new ApiResponse)->success($buckets['Buckets'], ApiResponse::SUCCESSFUL);
     }
 
     public function createBucket($s3Client, $bucketName)
@@ -63,17 +63,17 @@ class AwsController extends Controller
             $result = $s3Client->createBucket([
                 'Bucket' => $bucketName,
             ]);
-            return $result;
+            return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
         } catch (AwsException $e) {
-            return 'Error: ' . $e->getAwsErrorMessage();
+            return (new ApiResponse)->error($e->getAwsErrorMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
         }
     }
 
     public function actionCreateBucket($name)
     {
         $s3Client = new S3Client($this->config);
-
-        return $this->createBucket($s3Client, $name);
+        return (new ApiResponse)->success($this->createBucket($s3Client, $name), ApiResponse::SUCCESSFUL);
     }
 
 
@@ -104,7 +104,7 @@ class AwsController extends Controller
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file extension');
             }
 
-            $mbLimit = 10;
+            $mbLimit = 20;
             $limit = $mbLimit * 1048576;
             if ($fileSize > $limit) {
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, "Size cannot be more than {$mbLimit} MB");
@@ -121,13 +121,16 @@ class AwsController extends Controller
         try {
             //Create a S3Client
             $s3Client = new S3Client($this->config);
-            return $result = $s3Client->putObject([
+            $result = $s3Client->putObject([
                 'Bucket' => $bucket,
                 'Key' => $key,
                 'SourceFile' => $file_Path,
             ]);
+
+            return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
         } catch (S3Exception $e) {
-            return $e->getMessage() . "\n";
+            return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
         }
     }
 
@@ -137,7 +140,7 @@ class AwsController extends Controller
         $key = explode("/", $url, 4);
         $name = $key[3]; //This get the folder/filename.ext
         $s3 = new S3Client($this->config);
-        return $s3->doesObjectExist($this->bucketName, $name);
+        return (new ApiResponse)->success($s3->doesObjectExist($this->bucketName, $name), ApiResponse::SUCCESSFUL);
     }
 
     public
@@ -146,7 +149,7 @@ class AwsController extends Controller
         $key = explode("/", $url, 4);
         $name = $key[3]; //This get the folder/filename.ext
         $s3 = new S3Client($this->config);
-        return $s3->deleteObject(['Bucket' => $this->bucketName, 'Key' => $name]);
+        return (new ApiResponse)->success($s3->deleteObject(['Bucket' => $this->bucketName, 'Key' => $name]), ApiResponse::SUCCESSFUL);
     }
 
     public
