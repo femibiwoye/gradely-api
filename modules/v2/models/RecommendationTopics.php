@@ -73,10 +73,7 @@ class RecommendationTopics extends \yii\db\ActiveRecord
                                     'video_content.*',
                                     new Expression("'video' as type"),
                                 ])
-                                ;
-
-                    print_r($return->createCommand()->getRawSql());
-                    die();
+                                ->one();
                 } else {
                     return $this->getObject()
                                 ->select([
