@@ -961,9 +961,21 @@ class CatchupController extends ActiveController
      * @return ApiResponse
      */
 
-    public function actionAssessmentRecommendation($id)
+    public function actionAssessmentRecommendation($id = null)
     {
-        $model = Recommendations::find()->where(['id' => $id])->one();
+        $model = RecommendationTopics::find()
+                    ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id');
+
+        if (!empty($id)) {
+            $model = $model->where(['recommendation_topics.recommendation_id' => $id])->all();
+        } else {
+            $model = $model
+                        ->andWhere(['recommendations.student_id' => Yii::$app->user->id])
+                        ->limit(6)
+                        ->orderBy(['created_at' => SORT_DESC])
+                        ->all();
+        }
+
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendation not found');
         }

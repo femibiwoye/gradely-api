@@ -47,6 +47,8 @@ class Recommendations extends \yii\db\ActiveRecord
             'student_id' => 'Student ID',
             'category' => 'Category',
             'is_taken' => 'Is taken',
+            'reference_type' => 'Reference Type',
+            'reference_id' => 'Reference Id',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
@@ -59,6 +61,8 @@ class Recommendations extends \yii\db\ActiveRecord
             'student_id',
             'category',
             'is_taken',
+            'reference_type',
+            'reference_id',
             'recommendationTopics',
             'created_at',
             'updated_at'

@@ -396,6 +396,7 @@ class Utility extends ActiveRecord
                 'id' => $quiz_id, 'submit' => 1,
                 'student_id' => Yii::$app->user->id
             ])->one();
+
             if (!$quizSummary)
                 return false;
 
@@ -445,7 +446,7 @@ class Utility extends ActiveRecord
 
 
             $topics = array_merge($topic_objects, $video);
-            $this->addRecommendations($topics);
+            $this->addRecommendations($topics, $quizSummary->childHomework);
 
             return true;
         } catch (\Exception $ex) {
@@ -453,12 +454,13 @@ class Utility extends ActiveRecord
         }
     }
 
-    private function addRecommendations($recommendations)
+    private function addRecommendations($recommendations, $homework)
     {
         $model = new Recommendations;
         $model->student_id = Yii::$app->user->id;
-        $model->category = 'homework';
-        $model->is_taken = 1;
+        $model->category = $homework->type;
+        $model->reference_id = $homework->reference_id;
+        $model->reference_type = $homework->reference_type;
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {

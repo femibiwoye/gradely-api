@@ -67,10 +67,12 @@ class RecommendationTopics extends \yii\db\ActiveRecord
         return [
             'id',
             'recommendation_id',
-            'subject_id',
-            'student_id',
+            'subject',
+            'student',
             'object_id',
             'taken_status' => 'status',
+            'recommendation',
+            'homework',
         ];
     }
 
