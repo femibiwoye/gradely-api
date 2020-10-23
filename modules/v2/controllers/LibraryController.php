@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\UserModel;
@@ -237,6 +237,10 @@ class LibraryController extends ActiveController
      */
     public function actionDiscussion()
     {
+        if (Pricing::checkSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Free subscription is expired');
+        }
+
         $class_id = Yii::$app->request->get('class_id');
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');

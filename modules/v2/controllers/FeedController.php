@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
@@ -278,6 +278,10 @@ class FeedController extends ActiveController
 
     public function actionCreate()
     {
+        if (Pricing::checkSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Free subscription is expired');
+        }
+
         $userType = Yii::$app->user->identity->type;
         if ($userType == 'student' || $userType == 'parent')
             $scenario = 'student-parent';
@@ -309,6 +313,10 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
+        if (Pricing::checkSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Free subscription is expired');
+        }
+
         $school_id = Utility::getTeacherSchoolID(Yii::$app->user->id);
         if (!$school_id) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');

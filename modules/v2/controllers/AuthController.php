@@ -3,7 +3,7 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SignupForm;
 use Yii;
