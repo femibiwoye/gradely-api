@@ -156,10 +156,6 @@ class AwsController extends Controller
     function Base64Decode($base64_image_string, $output_file_without_extension)
     {
 
-        //usage:  if( substr( $img_src, 0, 5 ) === "data:" ) {  $filename=save_base64_image($base64_image_string, $output_file_without_extentnion, getcwd() . "/application/assets/pins/$user_id/"); }
-        //
-        //data is like:    data:image/png;base64,asdfasdfasdf
-
         $splited = explode(',', substr($base64_image_string, 5), 2);
         $mime = $splited[0];
         $data = $splited[1];
@@ -170,8 +166,6 @@ class AwsController extends Controller
             $extension = $mime_split[1];
             if ($extension == 'jpeg')
                 $extension = 'jpg';
-            //if($extension=='javascript')$extension='js';
-            //if($extension=='text')$extension='txt';
             $output_file_with_extension = $output_file_without_extension . '.' . $extension;
         }
         file_put_contents($output_file_with_extension, base64_decode($data));

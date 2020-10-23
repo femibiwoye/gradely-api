@@ -64,7 +64,7 @@ return [
     'POST v2/student/catchup/start-practice' => 'v2/student/catchup/start-practice', //
     'POST v2/student/catchup/get-practice-questions' => 'v2/student/catchup/get-practice-questions',
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
-    'GET v2/student/catchup/assess-recommendations/<id:\d+>' => 'v2/student/catchup/assessment-recommendation',
+    'GET v2/student/catchup/assessment-recommendations/<id:\d*>' => 'v2/student/catchup/assessment-recommendation',
 
     // Diagnostic
     'POST v2/student/catchup/initialize-diagnostic' => 'v2/student/catchup/initialize-diagnostic', //

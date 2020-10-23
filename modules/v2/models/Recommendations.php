@@ -47,6 +47,8 @@ class Recommendations extends \yii\db\ActiveRecord
             'student_id' => 'Student ID',
             'category' => 'Category',
             'is_taken' => 'Is taken',
+            'reference_type' => 'Reference Type',
+            'reference_id' => 'Reference Id',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
@@ -58,7 +60,9 @@ class Recommendations extends \yii\db\ActiveRecord
             'id',
             'student_id',
             'category',
-            'is_taken',
+            'is_taken' => 'isTaken',
+            'reference_type',
+            'reference_id',
             'recommendationTopics',
             'created_at',
             'updated_at'
@@ -68,5 +72,20 @@ class Recommendations extends \yii\db\ActiveRecord
     public function getRecommendationTopics()
     {
         return $this->hasMany(RecommendationTopics::className(), ['recommendation_id' => 'id']);
+    }
+
+    public function getIsTaken()
+    {
+
+        $model = Homeworks::find()
+                    ->innerJoin(['quiz_summary', 'quiz_summary.homework_id = homeworks.id'])
+                    ->where(['homeworks.id' => $this->reference_id, 'quiz_summary.submit' => 1]);
+
+        if ($model) {
+            return 1;
+        }
+
+        return 0;
+
     }
 }
