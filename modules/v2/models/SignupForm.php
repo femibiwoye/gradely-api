@@ -3,7 +3,7 @@
 namespace app\modules\v2\models;
 
 
-use app\modules\v2\components\{InputNotification, SharedConstant};
+use app\modules\v2\components\{InputNotification, SharedConstant, Pricing};
 use Yii;
 use yii\base\Model;
 
@@ -154,6 +154,7 @@ class SignupForm extends Model
         $school->save();
         $this->createCalendar($school);
         $this->createCurriculum($school->id);
+        Pricing::ActivateSchoolTrial($school->user_id, 'school');
     }
 
     private function createCurriculum($school_id)

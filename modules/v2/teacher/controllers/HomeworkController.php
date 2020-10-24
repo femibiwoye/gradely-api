@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
-use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\{InputNotification, Pricing};
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
@@ -69,6 +69,9 @@ class HomeworkController extends ActiveController
 
     public function actionCreate($type)
     {
+        if (Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
 
         if (!in_array($type, SharedConstant::HOMEWORK_TYPES)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid type value');

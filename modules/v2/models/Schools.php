@@ -35,6 +35,8 @@ use yii\behaviors\SluggableBehavior;
  * @property string $naming_format SS is primary, junior and senior secondary school naming format. Yeah is for year1 to year12.
  * @property string|null $timezone
  * @property string|null $boarding_type
+ * @property string|null $subscription_expiry
+ * @property string|null $subscription_plan
  * @property string $created_at
  *
  * @property ClassSubjects[] $classSubjects
@@ -81,10 +83,11 @@ class Schools extends \yii\db\ActiveRecord
         return [
             //[['user_id', 'slug', 'abbr'], 'required'],
             [['user_id'], 'integer'],
-            [['about', 'naming_format'], 'string'],
+            [['about', 'naming_format','subscription_plan'], 'string'],
             [['created_at'], 'safe'],
             [['slug', 'name', 'logo', 'banner', 'tagline', 'address'], 'string', 'max' => 255],
             [['abbr'], 'string', 'max' => 10],
+            [['subscription_expiry'], 'datetime'],
             [['city', 'state', 'country', 'website', 'contact_name', 'contact_email', 'contact_image', 'school_email', 'school_type'], 'string', 'max' => 100],
             [['postal_code', 'establish_date'], 'string', 'max' => 20],
             [['contact_role', 'timezone', 'boarding_type'], 'string', 'max' => 50],
@@ -121,6 +124,8 @@ class Schools extends \yii\db\ActiveRecord
             'phone2' => 'Contact Phone',
             'school_email' => 'School Email',
             'school_type' => 'School Type',
+            'subscription_plan' => 'Subscription Plan',
+            'subscription_expiry' => 'Subscription Expiry',
             'created_at' => 'Created At',
         ];
     }
