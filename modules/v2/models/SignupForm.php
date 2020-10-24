@@ -115,6 +115,8 @@ class SignupForm extends Model
         $model->country = $this->country;
         if ($user->type == 'school') {
             $this->createSchool($user);
+        } else {
+            Pricing::ActivateTrial($user->id, $user->type);
         }
 
         return $model->save();
@@ -154,7 +156,7 @@ class SignupForm extends Model
         $school->save();
         $this->createCalendar($school);
         $this->createCurriculum($school->id);
-        Pricing::ActivateSchoolTrial($school->user_id, 'school');
+        Pricing::ActivateTrial($school->id, 'school');
     }
 
     private function createCurriculum($school_id)
