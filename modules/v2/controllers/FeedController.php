@@ -278,8 +278,8 @@ class FeedController extends ActiveController
 
     public function actionCreate()
     {
-        if (Pricing::checkSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Free subscription is expired');
+        if (Pricing::schoolSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
         $userType = Yii::$app->user->identity->type;
@@ -313,8 +313,8 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
-        if (Pricing::checkSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Free subscription is expired');
+        if (Pricing::schoolSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
         $school_id = Utility::getTeacherSchoolID(Yii::$app->user->id);

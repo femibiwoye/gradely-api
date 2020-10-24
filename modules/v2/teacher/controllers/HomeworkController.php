@@ -69,8 +69,8 @@ class HomeworkController extends ActiveController
 
     public function actionCreate($type)
     {
-        if (Pricing::checkSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Free subscription is expired');
+        if (Pricing::schoolSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
         if (!in_array($type, SharedConstant::HOMEWORK_TYPES)) {

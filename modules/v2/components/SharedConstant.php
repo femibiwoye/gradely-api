@@ -59,6 +59,4 @@ class SharedConstant
     const UN_PAID = 'unpaid';
     const VALUE_TWELVE = 12;
     const DEFAULT_CURRICULUM = 1;
-    const SCHOOL_TRAIL_DAYS = 30;
-    const SCHOOL_BASIC_TRAIL = 'school_trial_day';
 }

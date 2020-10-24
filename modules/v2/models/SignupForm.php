@@ -154,7 +154,7 @@ class SignupForm extends Model
         $school->save();
         $this->createCalendar($school);
         $this->createCurriculum($school->id);
-        Pricing::ActivateSchoolTrail($school->id);
+        Pricing::ActivateSchoolTrial($school->user_id, 'school');
     }
 
     private function createCurriculum($school_id)

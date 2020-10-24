@@ -8,13 +8,13 @@ use app\modules\v2\models\{Schools, Options, SchoolTeachers, StudentSchool, Pare
 
 class Pricing extends Widget
 {
-    public static function ActivateSchoolTrail($id, $type)
+    public static function ActivateSchoolTrial($id, $type)
     {
     	if ($type == 'teacher') {
     		$school = SchoolTeachers::findOne(['teacher_id' => $id]);
-    		$model = Schools::findOne(['user_id' => $school_id]);
+    		$model = Schools::findOne(['user_id' => $school->$school_id]);
     	} else if ($type == 'school') {
-    		$model = Schools::findOne(['user_id' => $school_id]);
+    		$model = Schools::findOne(['user_id' => $id]);
     	} else if ($type == 'student') {
     		$school = StudentSchool::findOne(['student_id' => $id]);
     		$model = Schools::findOne(['user_id' => $school->school_id]);
@@ -27,8 +27,8 @@ class Pricing extends Widget
     		$model = Schools::findOne(['user_id' => $school->school_id]);
     	}
     	
-    	$model->subscription_plan = self::getSchoolBasicTrail()->name;
-    	$model->subscription_expiry = date("Y-m-d", strtotime("+1 month", strtotime(date("Y-m-d"))));
+    	$model->subscription_plan = 'trial';
+    	$model->subscription_expiry = date("Y-m-d", strtotime("+" . self::getSchoolBasicTrail()->value . " days"));
     	if (!$model->save(false)) {
     		return false;
     	}
@@ -38,10 +38,10 @@ class Pricing extends Widget
 
     private static function getSchoolBasicTrail()
     {
-    	return Options::findOne(['name' => SharedConstant::SCHOOL_BASIC_TRAIL, 'value' => SharedConstant::SCHOOL_TRAIL_DAYS]);
+    	return Options::findOne(['name' => 'school_trial_day']);
     }
 
-    public static function checkSubscriptionStatus($id)
+    public static function schoolSubscriptionStatus($id)
     {
     	$model = Schools::findOne(['user_id' => $id]);
 
