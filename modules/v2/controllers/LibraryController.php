@@ -237,7 +237,7 @@ class LibraryController extends ActiveController
      */
     public function actionDiscussion()
     {
-        if (Pricing::checkSubscriptionStatus(Yii::$app->user->id, Yii::$app->user->identity->type)) {
+        if (Pricing::SubscriptionStatus()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 

@@ -35,6 +35,8 @@ use yii\behaviors\SluggableBehavior;
  * @property string $naming_format SS is primary, junior and senior secondary school naming format. Yeah is for year1 to year12.
  * @property string|null $timezone
  * @property string|null $boarding_type
+ * @property string|null $subscription_expiry
+ * @property string|null $subscription_plan
  * @property string $created_at
  *
  * @property ClassSubjects[] $classSubjects
@@ -81,7 +83,7 @@ class Schools extends \yii\db\ActiveRecord
         return [
             //[['user_id', 'slug', 'abbr'], 'required'],
             [['user_id'], 'integer'],
-            [['about', 'naming_format'], 'string'],
+            [['about', 'naming_format','subscription_plan'], 'string'],
             [['created_at'], 'safe'],
             [['slug', 'name', 'logo', 'banner', 'tagline', 'address'], 'string', 'max' => 255],
             [['abbr'], 'string', 'max' => 10],

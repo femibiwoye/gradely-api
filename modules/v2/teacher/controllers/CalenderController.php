@@ -55,7 +55,7 @@ class CalenderController extends ActiveController
     }
 
 
-    public function actionTeacherCalender($teacher_id, $date = null, $class_id = null, $homework = 1, $live_class = 1, $exam = 1)
+    public function actionTeacherCalender($teacher_id, $date = null, $class_id = null, $homework = 1, $live_class = 1, $exam = 1, $month = null)
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_SCHOOL && Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
@@ -134,7 +134,8 @@ class CalenderController extends ActiveController
             ->innerJoin('subjects', 'subjects.id = tutor_session.subject_id')
             ->innerJoin('classes', 'classes.id = tutor_session.class')
             ->where([
-                'is_school' => 1
+                'is_school' => 1,
+                'school_teachers.school_id' => $school_id,
             ])->asArray();
 
         if ($date) {
@@ -148,9 +149,18 @@ class CalenderController extends ActiveController
                     'DATE(availability)' => $date,
                 ]);
         } else {
-            $live_classes = $live_classes->andWhere([ 'DATE(availability)'=>new Expression('DATE(CURDATE())')]);
-            $homeworks = $homeworks->andWhere(['DATE(close_date)'=>new Expression('DATE(CURDATE())')]);
+            if ($month) {
+                $dates = explode('-',$month,2);
+                $month =$dates[0];
+                $year =$dates[1];
+                $homeworks = $homeworks->andWhere(['MONTH(close_date)' => $month, 'YEAR(close_date)' => $year]);
+                $live_classes = $live_classes->andWhere(['MONTH(availability)' => $month, 'YEAR(availability)' => $year]);
+            } else {
+                $live_classes = $live_classes->andWhere(['DATE(availability)' => new Expression('DATE(CURDATE())')]);
+                $homeworks = $homeworks->andWhere(['DATE(close_date)' => new Expression('DATE(CURDATE())')]);
+            }
         }
+
 
         if ($class_id) {
             $homeworks = $homeworks
