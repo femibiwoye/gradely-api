@@ -15,6 +15,7 @@ use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\States;
 use app\modules\v2\models\Subjects;
+use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\Timezone;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
@@ -44,7 +45,7 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['country', 'state', 'timezone', 'global-classes','curriculum','subject']
+            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject']
         ];
 
         return $behaviors;
@@ -97,7 +98,7 @@ class GeneralController extends Controller
         elseif ($user->type == 'teacher')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getTeacherAdditionalData($user->id));
         elseif ($user->type == 'student')
-            $user = array_merge(ArrayHelper::toArray($user), ['school_class_id'=>Utility::getStudentClass()]);
+            $user = array_merge(ArrayHelper::toArray($user), ['school_class_id' => Utility::getStudentClass()]);
 
         return (new ApiResponse)->success($user);
     }
@@ -232,5 +233,15 @@ class GeneralController extends Controller
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
 
     }
+
+    public function actionClassStatus($class_id)
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type == 'teacher' && TeacherClass::find()->where(['class_id' => $class_id, 'teacher_id' => $user->id, 'status' => 1])->exists()) {
+            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
+        }
+        return (new ApiResponse)->success(false, ApiResponse::SUCCESSFUL);
+    }
+
 }
 

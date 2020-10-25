@@ -23,6 +23,7 @@ return [
     'GET v2/general/student-subscription' => '/v2/general/student-subscription', //
     'GET v2/general/curriculum' => '/v2/general/curriculum', //
     'GET v2/general/subject' => '/v2/general/subject', //
+    'GET v2/general/class-status/<class_id:\d+>' => '/v2/general/class-status', //
 
 
     //Current User
