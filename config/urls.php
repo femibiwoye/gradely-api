@@ -74,6 +74,7 @@ return [
     'GET v2/parent/child-subscription' => 'v2/payment/children-subscription',// for parent
     'GET v2/parent/my-subscription' => 'v2/payment/child-subscription',// For student
     'GET v2/payment/billing-history' => 'v2/payment/billing-history',//
+    'GET v2/payment/status' => 'v2/payment/subscription-status',//
 
     //website errors
     'POST v2/error/report-error' => 'v2/error/website-error',

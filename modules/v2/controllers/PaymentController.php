@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Subjects;
@@ -285,5 +286,8 @@ class PaymentController extends ActiveController
         return (new ApiResponse)->success($subscription, ApiResponse::SUCCESSFUL);
     }
 
-
+    public function actionSubscriptionStatus($child = null, $status = 1)
+    {
+        return (new ApiResponse)->success(Pricing::SubscriptionStatus(null, $child, $status == 1 ? true : false), ApiResponse::SUCCESSFUL);
+    }
 }
