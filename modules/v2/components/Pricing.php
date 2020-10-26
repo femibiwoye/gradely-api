@@ -108,8 +108,21 @@ class Pricing extends Widget
 
     private static function StudentLimit($plan)
     {
-        $plan_name = empty($plan) ? 'basic_school_students_limit' : $plan . 'school_students_limit';
+        $plan_name = empty($plan) ? 'trial_school_students_limit' : $plan . 'school_students_limit';
         $model = Options::findOne(['name' => $plan_name]);
         return $model->value;
+    }
+
+    public static function StudentTrial($student_id)
+    {
+        $option_model = self::SubscriptionTrialValue('student');
+        $model = UserModel::findOne(['id' => $student_id]);
+        $model->subscription_plan = 'basic';
+        $model->subscription_expiry = date("Y-m-d", strtotime("+" . $option_model->value . " days"));
+        if (!$model->save(false)) {
+            return false;
+        }
+
+        return true;
     }
 }

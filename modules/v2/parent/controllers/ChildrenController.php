@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\parent\controllers;
 
-use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\{InputNotification, Pricing};
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\GlobalClass;
@@ -274,12 +274,24 @@ class ChildrenController extends ActiveController
         $parent->status = SharedConstant::VALUE_ONE;
         $parent->inviter = 'parent';
 
-        if (!$parent->save())
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$parent->save())
             return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
-        $notification = new InputNotification();
-        if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
+            /*$notification = new InputNotification();
+            if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
+                return false;*/
+
+            if (!Pricing::StudentTrial($user->id)) {
+                return false;
+            }
+            
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
             return false;
+        }
 
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Parent Child saved');
 
