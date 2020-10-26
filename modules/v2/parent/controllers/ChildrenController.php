@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\parent\controllers;
 
-use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\{InputNotification, Pricing};
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\GlobalClass;
@@ -12,6 +12,7 @@ use app\modules\v2\controllers\AuthController;
 use app\modules\v2\models\SignupForm;
 use app\modules\v2\models\SubscriptionChildren;
 use app\modules\v2\models\SubscriptionPaymentDetails;
+use app\modules\v2\models\UserModel;
 use yii\base\DynamicModel;
 use app\modules\v2\models\VideoContent;
 use Yii;
@@ -274,12 +275,22 @@ class ChildrenController extends ActiveController
         $parent->status = SharedConstant::VALUE_ONE;
         $parent->inviter = 'parent';
 
-        if (!$parent->save())
-            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$parent->save())
+                return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
-        $notification = new InputNotification();
-        if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
+            /*$notification = new InputNotification();
+            if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
+                return false;*/
+
+            Pricing::ActivateStudentTrial($user->id);
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
             return false;
+        }
 
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Parent Child saved');
 
@@ -300,6 +311,12 @@ class ChildrenController extends ActiveController
         $model = new SignupForm(['scenario' => 'parent-student-signup']);
         $model->attributes = Yii::$app->request->post();
 
+        $studentModel = UserModel::findOne(['firstname' => $model->first_name, 'lastname' => $model->last_name, 'type' => 'student']);
+        if ($studentModel && Parents::find()->where(['student_id' => $studentModel->id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Child already exist');
+        }
+
+
         if (!$model->validate())
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
@@ -313,7 +330,8 @@ class ChildrenController extends ActiveController
             $parent->status = SharedConstant::VALUE_ONE;
             if (!$parent->save())
                 return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
-            }
+        }
+        Pricing::ActivateStudentTrial($user->id);
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }

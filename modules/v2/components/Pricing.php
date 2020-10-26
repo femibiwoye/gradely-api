@@ -48,8 +48,16 @@ class Pricing extends Widget
                 $plan = $model->subscription_plan;
                 $used_student = StudentSchool::find()->where(['school_id' => $model->id, 'status' => 1])->count();
                 $limit = Options::findOne(['name' => $plan . '_students_limit']);
+                $limit = $limit ? $limit->value : null;
                 $unused_student = $limit - $used_student;
-                $return = ['status' => $status, 'expiry' => $model->subscription_expiry, 'plan' => $plan, 'used_student' => $used_student, 'unused_student' => $unused_student];
+                $return = [
+                    'status' => $status,
+                    'expiry' => $model->subscription_expiry,
+                    'plan' => $plan,
+                    'limit' => $limit,
+                    'used_student' => $used_student,
+                    'unused_student' => $unused_student < 1 ? 0 : $unused_student
+                ];
 
                 return $statusOnly ? $status : $return;
 
@@ -81,5 +89,47 @@ class Pricing extends Widget
             $return = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0];
             return $statusOnly ? false : $return;
         }
+    }
+
+    public static function SchoolLimitStatus($id)
+    {
+        $school = Schools::findOne(['id' => $id]);
+        $enrolled_students = self::StudentsInSchoolCount($id);
+        $students_limit = self::StudentLimit($school->subscription_plan);
+        $students_availability = $students_limit - $enrolled_students;
+        return [
+            'status' => $students_availability < 1 ? false : true,
+            'used' => $enrolled_students,
+            'remaining' => $students_availability
+        ];
+    }
+
+
+    private static function StudentsInSchoolCount($id)
+    {
+        return StudentSchool::find()->where(['school_id' => $id, 'status' => 1])->count();
+    }
+
+    private static function StudentLimit($plan)
+    {
+        $plan_name = empty($plan) ? 'trial_school_students_limit' : $plan . '_school_students_limit';
+        $model = Options::findOne(['name' => $plan_name]);
+        return $model ? $model->value : 0;
+    }
+
+    public static function ActivateStudentTrial($student_id)
+    {
+        $option_model = self::SubscriptionTrialValue('student');
+        $model = UserModel::findOne(['id' => $student_id, 'type' => 'student', 'subscription_plan' => null]);
+        if (!$option_model || !$model) {
+            return false;
+        }
+        $model->subscription_plan = 'trial';
+        $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . $option_model->value . " days"));
+        if (!$model->save()) {
+            return false;
+        }
+
+        return true;
     }
 }
