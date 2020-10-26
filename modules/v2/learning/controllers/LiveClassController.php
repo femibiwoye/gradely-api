@@ -241,4 +241,70 @@ class LiveClassController extends Controller
         }
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Token is invalid');
     }
+
+
+    public function actionReschedule($id)
+    {
+        $availability = Yii::$app->request->post('availability');
+        if (!$availability) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Availability time cannot be blank!');
+        }
+
+        $model = TutorSession::find()
+            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id,'status'=>'pending'])
+            ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->availability = $availability;
+        $model->scenario = 'update-class';
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
+    }
+
+    public function actionDelete($id)
+    {
+        $model = TutorSession::findOne(['id' => $id, 'requester_id' => Yii::$app->user->id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        if (!$model->delete()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not deleted');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted successfully!');
+    }
+
+    public function actionUpdate($id)
+    {
+        $subject_id = Yii::$app->request->post('subject_id');
+        $title = Yii::$app->request->post('title');
+        $validate = new \yii\base\DynamicModel(compact('subject_id', 'title'));
+        $validate->addRule(['subject_id', 'title'], 'required');
+        if (!$validate->validate()) {
+            return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $model = TutorSession::find()
+            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
+            ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->subject_id = $subject_id;
+        $model->title = $title;
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated successfully');
+    }
 }
