@@ -30,7 +30,6 @@ class StudentHomeworkReport extends Homeworks
     private $excellent_students = SharedConstant::VALUE_ZERO;
 
 
-
     public function fields()
     {
         return [
@@ -95,7 +94,7 @@ class StudentHomeworkReport extends Homeworks
 
     public function getQuizSummaryDetails()
     {
-        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id'])->andWhere(['student_id'=>Yii::$app->user->id]);
+        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id'])->andWhere(['student_id' => Yii::$app->user->id]);
     }
 
     public function getHomeworkSummary()

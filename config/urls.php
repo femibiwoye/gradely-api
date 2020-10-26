@@ -43,11 +43,6 @@ return [
     //'GET v2/feed/upcoming' => 'v2/feed/upcoming',
     'DELETE v2/feed/delete-feed/<feed_id:\d+>' => 'v2/feed/delete-feed', //
 
-    'POST v2/live-class' => 'v2/feed/new-live-class', //
-    'PUT v2/live-class/reschedule/<id:\d+>' => 'v2/feed/reschedule-live-class', //
-    'PUT v2/live-class/update/<id:\d+>' => 'v2/feed/update-live-class-details', //
-    'DELETE v2/live-class/<id:\d+>' => 'v2/feed/delete-live-class', //
-
     //Reports
     'GET v2/library/summary/<class_id:\d+>' => 'v2/library/summary', //
     'GET v2/library/documents' => 'v2/library/index', //
