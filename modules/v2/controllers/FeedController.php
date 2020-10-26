@@ -127,7 +127,7 @@ class FeedController extends ActiveController
 
         } elseif (Yii::$app->user->identity->type == 'student') {
             $user_id = Yii::$app->user->id;
-            $class = StudentSchool::findOne(['student_id' => $user_id,'status'=>1]);
+            $class = StudentSchool::findOne(['student_id' => $user_id, 'status' => 1]);
             if ($class) {
                 $class_id = $class->class_id;
             }
@@ -177,6 +177,7 @@ class FeedController extends ActiveController
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }
 
+        $models = $models->andWhere(['status' => 1]);
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }

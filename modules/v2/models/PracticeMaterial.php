@@ -40,7 +40,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'title', 'filename', 'filetype', 'extension'], 'required'],
+            [['user_id', 'title', 'filename', 'filetype', 'filesize', 'extension'], 'required'],
             [['practice_id', 'user_id', 'downloadable', 'download_count'], 'integer'],
             [['filetype', 'description', 'raw', 'tag'], 'string'],
             [['created_at', 'updated_at', 'tag'], 'safe'],
@@ -57,9 +57,11 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'title',
             'extension',
             'created_at',
+            'title',
             'filename',
             'filetype',
             'extension',
+            'filesize',
             'raw',
             'tag',
             'description',

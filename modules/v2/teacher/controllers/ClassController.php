@@ -243,17 +243,21 @@ class ClassController extends ActiveController
 
     public function actionAddStudent()
     {
-        $school_id = $this->SchoolID(Yii::$app->user->id);
-        $school_student_limit = Pricing::SchoolLimitStatus($school_id);
-        if ($school_student_limit['status'] == 0) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'students limit exceeded, no more students');
-        }
 
         $form = new AddStudentForm;
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
+
+        $school_student_limit = Pricing::SubscriptionStatus(null, null, false);
+        if ($school_student_limit['unused_student'] < 1) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Students limit exceeded');
+        }
+        if (count($form->students) > $school_student_limit['unused_student']) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not enough room to add new students');
+        }
+
 
         if (!$user = $form->addStudents(SharedConstant::TYPE_STUDENT)) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not added');
