@@ -51,6 +51,8 @@ class StudentHomeworkReport extends Homeworks
             'attachments',
             'average',
             'completion',
+            'is_taken' => 'isHomeworkTaken',
+            'is_closed' => 'isHomeworkClosed',
             'correctQuestions',
             'failedQuestions',
             'missedQuestions',
@@ -346,6 +348,16 @@ class StudentHomeworkReport extends Homeworks
     public function getAttachments()
     {
         return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id'])->andWhere(['type' => 'practice']);
+    }
+
+    public function getIsHomeworkTaken()
+    {
+        return $this->getIsTaken();
+    }
+
+    public function getIsHomeworkClosed()
+    {
+        return $this->getIsTaken();
     }
 
 }
