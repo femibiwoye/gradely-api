@@ -82,4 +82,34 @@ class Pricing extends Widget
             return $statusOnly ? false : $return;
         }
     }
+
+    public static function SchoolLimitStatus($id)
+    {
+        $school = self::School($id);
+        $enrolled_students = self::StudentsInSchool($id);
+        $students_limit = self::StudentLimit($school->subscription_plan);
+        $students_availability = $students_limit - $enrolled_students;
+        return [
+            'status' => $students_availability == 0 ? false : true,
+            'used' => $enrolled_students,
+            'remaining' => $students_availability
+        ];
+    }
+
+    private static function School($id)
+    {
+        return Schools::findOne(['user_id' => $id]);
+    }
+
+    private static function StudentsInSchool($id)
+    {
+        return StudentSchool::find()->where(['school_id' => $id])->count();
+    }
+
+    private static function StudentLimit($plan)
+    {
+        $plan_name = empty($plan) ? 'basic_school_students_limit' : $plan . 'school_students_limit';
+        $model = Options::findOne(['name' => $plan_name]);
+        return $model->value;
+    }
 }

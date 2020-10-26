@@ -3,7 +3,7 @@
 namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\InputNotification;
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Remarks;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolTeachers;
@@ -235,8 +235,20 @@ class ClassController extends ActiveController
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted');
     }
 
+    private function SchoolID($teacher_id)
+    {
+        $model = SchoolTeachers::find()->select('school_id')->where(['teacher_id' => $teacher_id])->one();
+        return $model->school_id;
+    }
+
     public function actionAddStudent()
     {
+        $school_id = $this->SchoolID(Yii::$app->user->id);
+        $school_student_limit = Pricing::SchoolLimitStatus($school_id);
+        if ($school_student_limit['status'] == 0) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'students limit exceeded, no more students');
+        }
+
         $form = new AddStudentForm;
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
