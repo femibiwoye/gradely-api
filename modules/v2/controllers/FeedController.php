@@ -350,7 +350,7 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
-    public function actionUpdateLiveClassAvailability($id)
+    public function actionRescheduleLiveClass($id)
     {
         $availability = Yii::$app->request->post('availability');
         if (!$availability) {
