@@ -171,8 +171,8 @@ class HomeworkForm extends Model
                 return false;
             }
 
-           if($model->type != 'homework')
-               return false;
+//           if($model->type != 'homework')
+//               return false;
 
             $dbtransaction->commit();
         } catch (Exception $ex) {
@@ -230,7 +230,7 @@ class HomeworkForm extends Model
         $model->user_id = $this->teacher_id;
         $model->reference_id = $homework->id;
         $model->subject_id = $homework->subject_id;
-        $model->status = SharedConstant::VALUE_ZERO;
+        $model->status = $homework->type == 'homework' ? SharedConstant::VALUE_ZERO : 1;
         if (!empty($this->description))
             $model->description = $this->description;
 
