@@ -154,7 +154,7 @@ class LiveClassController extends Controller
 
 
         if ($tutor_session->status == 'pending') {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher has not started');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher has not started the class');
         } elseif ($tutor_session->status == 'completed') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class has ended!');
         } elseif ($tutor_session->status == 'ongoing') {
