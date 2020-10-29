@@ -280,9 +280,15 @@ class ChildrenController extends ActiveController
             if (!$parent->save())
                 return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
-            /*$notification = new InputNotification();
-            if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
-                return false;*/
+            if ($this->scenario == 'parent-student-signup') {
+                //Notification that parent add child
+                $notification = new InputNotification();
+                $notification->NewNotification('parent_adds_student', [['student_id', $user->id]]);
+            }
+
+            // Notification to welcome user
+            $notification = new InputNotification();
+            $notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]);
 
             Pricing::ActivateStudentTrial($user->id);
 

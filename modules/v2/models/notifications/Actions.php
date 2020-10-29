@@ -11,6 +11,7 @@ use Yii;
  * @property string $name a unique name for different types of emails
  * @property string $scenario
  * @property string $receiver_type
+ * @property int|null $status
  * @property string $created_at
  *
  * @property ActionRequirement[] $actionRequirements
@@ -49,6 +50,7 @@ class Actions extends \yii\db\ActiveRecord
             'name' => 'Name',
             'scenario' => 'Scenario',
             'receiver_type' => 'Receiver Type',
+            'status' => 'Status',
             'created_at' => 'Created At',
         ];
     }
