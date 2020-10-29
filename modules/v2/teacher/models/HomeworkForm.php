@@ -171,9 +171,6 @@ class HomeworkForm extends Model
                 return false;
             }
 
-//           if($model->type != 'homework')
-//               return false;
-
             $dbtransaction->commit();
         } catch (Exception $ex) {
             $dbtransaction->rollBack();
