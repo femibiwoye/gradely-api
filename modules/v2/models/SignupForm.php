@@ -84,14 +84,14 @@ class SignupForm extends Model
             }
 
             if ($this->scenario == 'parent-student-signup') {
+                //Notification that parent add child
                 $notification = new InputNotification();
-                if (!$notification->NewNotification('parent_adds_student', [['student_id', $user->id]]))
-                    return false;
+                $notification->NewNotification('parent_adds_student', [['student_id', $user->id]]);
             }
 
+            // Notification to welcome user
             $notification = new InputNotification();
-            if (!$notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]))
-                return false;
+            $notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]);
 
 
             $dbtransaction->commit();

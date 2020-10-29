@@ -346,8 +346,7 @@ class HomeworkController extends ActiveController
 //        }
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('teacher_create_homework', [['homework_id', $model->id]]))
-            return false;
+        $notification->NewNotification('teacher_create_homework_teacher', [['homework_id', $model->id]]);
 
 
         //Get all the students in that class
