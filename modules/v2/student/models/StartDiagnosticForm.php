@@ -42,7 +42,7 @@ class StartDiagnosticForm extends Model
             return $this->addError('subject_id', 'Subject not available for diagnostic');
         }
 
-        if (QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'type' => 'diagnostic', 'submit' => 1])->exists()) {
+        if (QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'type' => 'diagnostic', 'submit' => 1,'subject_id'=>$this->subject_id])->exists()) {
             return $this->addError('subject_id', 'Diagnostic already taken');
         }
 

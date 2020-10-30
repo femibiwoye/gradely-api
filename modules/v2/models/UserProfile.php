@@ -51,10 +51,10 @@ class UserProfile extends \yii\db\ActiveRecord
     public function fields()
     {
         $fields = parent::fields();
-        $fields['birth_date'] = function ($model){
-          return date('d-m-Y',strtotime("{$model->dob}-{$model->mob}-{$model->yob}"));
+        $fields['birth_date'] = function ($model) {
+            return !empty($model->dob) && !empty($model->mob) && !empty($model->yob) ? date('d-m-Y', strtotime("{$model->dob}-{$model->mob}-{$model->yob}")) : null;
         };
-        unset($fields['dob'],$fields['mob'],$fields['yob']);
+        unset($fields['dob'], $fields['mob'], $fields['yob']);
 
         return $fields;
     }
@@ -100,7 +100,7 @@ class UserProfile extends \yii\db\ActiveRecord
 
         $user = User::findOne($this->user->id);
 
-        if($user->image){
+        if ($user->image) {
 
             unlink(\Yii::getAlias('@webroot') . '/images/users/' . $user->image);
 

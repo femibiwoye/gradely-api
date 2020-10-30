@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\{Utility, SharedConstant};
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\SchoolRole;
@@ -34,7 +35,7 @@ class InvitesController extends ActiveController
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::className(),
-            'except' => ['validate-invite-token'],
+            'except' => ['validate-invite-token','verify'],
             'authMethods' => [
                 HttpBearerAuth::className(),
             ],
@@ -64,7 +65,7 @@ class InvitesController extends ActiveController
 
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -88,7 +89,7 @@ class InvitesController extends ActiveController
         $form->sender_id = $student->id;
         $form->sender_type = $student->type;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->studentInviteParent()) {
@@ -109,7 +110,7 @@ class InvitesController extends ActiveController
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $form->sender_id = $school->id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->schoolInviteTeacher()) {
@@ -129,7 +130,7 @@ class InvitesController extends ActiveController
 
         $form->sender_id = Yii::$app->user->id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->teacherInviteSchool()) {
@@ -196,7 +197,7 @@ class InvitesController extends ActiveController
                 return false;
             }
         }
-
+        Pricing::ActivateStudentTrial($model->sender_id);
         $model->status = SharedConstant::VALUE_ONE;
         if (!$model->save()) {
             return false;
@@ -224,6 +225,27 @@ class InvitesController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Invitation has been removed');
         } else
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not process your request');
+    }
+
+    public function actionDeleteSchoolInvitedUser($invite_id)
+    {
+        if (Yii::$app->user->identity->type != 'school') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $model = InviteLog::findOne(['id' => $invite_id, 'receiver_type' => 'school', 'sender_type' => 'school', 'sender_id' => $school->id]);
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        if (!$model->delete()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User not removed.');
+        }
+
+        return (new ApiResponse)->success( null, ApiResponse::SUCCESSFUL, 'School invited user removed');
     }
 
 
@@ -469,4 +491,6 @@ class InvitesController extends ActiveController
             ->send();
         return;
     }
+
+
 }

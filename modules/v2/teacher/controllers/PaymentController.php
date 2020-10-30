@@ -54,7 +54,7 @@ class PaymentController extends ActiveController
         $form->user_id = Yii::$app->user->id;
         $form->payment_plan_id = Yii::$app->request->post('plan_id');
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (!$model = $form->addPaymentSubscription()) {

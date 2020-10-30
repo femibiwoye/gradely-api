@@ -9,6 +9,7 @@ use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\{Subjects, SubjectTopics, QuizSummaryDetails, VideoContent};
 use app\modules\v2\models\TeacherClass;
+use app\modules\v2\models\TutorSession;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
@@ -176,7 +177,7 @@ class ClassReport extends Model
     {
         return [
             'remedial' => $this->getLowestTopicAttempted($student_id),
-            'resources' => $this->getResources($this->getLowestTopicAttempted($student_id)['topic_id']),
+            'resources' => $this->getResources($this->getLowestTopicAttempted($student_id)['topic_id'], $student_id),
         ];
 
     }
@@ -204,6 +205,7 @@ class ClassReport extends Model
                 ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
                 ->select([
                     new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                    //new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = '.Yii::$app->user->id.') then 1 else 0 end) as is_recommended'),
                     'qsd.topic_id',
                     'st.topic',
                     'st.subject_id'
@@ -216,10 +218,10 @@ class ClassReport extends Model
             $topics_attempted = array_merge($topics_attempted, $attempted_topic);
         }
 
-        return $this->getLowestAttemptedTopic($topics_attempted);
+        return $this->getLowestAttemptedTopic($topics_attempted, $student_id);
     }
 
-    private function getLowestAttemptedTopic($attempted_topics)
+    private function getLowestAttemptedTopic($attempted_topics, $studentID)
     {
         $least_attempted_topic = array();
         foreach ($attempted_topics as $attempted_topic) {
@@ -232,17 +234,23 @@ class ClassReport extends Model
             }
         }
 
-        return $least_attempted_topic;
+        $recommended = TutorSession::find()->where(['student_id' => $studentID, 'meta' => 'recommendation', 'requester_id' => Yii::$app->user->id, 'status' => 'pending'])->exists() ? 1 : 0;
+
+        return array_merge($least_attempted_topic, ['is_recommended' => $recommended]);
     }
 
-    private function getResources($topic_id)
+    private function getResources($topic_id, $student_id)
     {
+        $classID = Yii::$app->request->get('class_id');
         $topic_objects = SubjectTopics::find()
+            ->leftJoin('practice_topics pt', 'pt.topic_id = subject_topics.id')
+            ->leftJoin('homeworks h', 'h.id = pt.practice_id')
             ->select([
                 'subject_topics.*',
-                new Expression("'practice' as type")
+                new Expression("'practice' as type"),
+                new Expression('(case when (SELECT student_id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $classID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $student_id . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
             ])
-            ->where(['id' => $topic_id])
+            ->where(['subject_topics.id' => $topic_id])
             ->asArray()
             ->all();
 
@@ -250,7 +258,9 @@ class ClassReport extends Model
         $video = VideoContent::find()
             ->select([
                 'video_content.*',
-                new Expression("'video' as type")
+                new Expression("'video' as type"),
+                //new Expression('(case when (select file_id from file_log where file_id = video_content.id AND type = "video") then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $student_id . ' AND resources_id = video_content.id AND reference_type = "class" AND reference_id = ' . $classID . ') then 1 else 0 end) as is_recommended'),
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->where(['video_assign.topic_id' => $topic_id])

@@ -98,6 +98,7 @@ class Feed extends \yii\db\ActiveRecord
             'reference',
             'subject',
             'class',
+            'isOwner',
             'global_class_id' => 'globalClass',
             'comment' => 'miniComment',
             'attachments' => 'attachments',
@@ -113,7 +114,7 @@ class Feed extends \yii\db\ActiveRecord
         $form->attachments = Yii::$app->request->post('lesson_notes');
         $form->feed_attachments = Yii::$app->request->post('feed_attachments');
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->createHomework()) {
@@ -123,7 +124,6 @@ class Feed extends \yii\db\ActiveRecord
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 
     }
-
 
 
     public function attachmentSave($feed_id)
@@ -163,11 +163,11 @@ class Feed extends \yii\db\ActiveRecord
     public function getReference()
     {
         if ($this->type == SharedConstant::FEED_TYPES[2]) {
-            return $this->hasOne(Homeworks::className(), ['id' => 'reference_id']);
+            return $this->hasOne(Homeworks::className(), ['id' => 'reference_id'])->andWhere(['status' => 1, 'publish_status' => 1]);
         }
 
         if ($this->type == SharedConstant::FEED_TYPES[3]) {
-            return $this->hasOne(TutorSession::className(), ['id' => 'reference_id']);
+            return $this->hasOne(Homeworks::className(), ['id' => 'reference_id'])->andWhere(['status' => 1]);
         }
 
         if ($this->type == SharedConstant::FEED_TYPES[1]) {
@@ -176,6 +176,10 @@ class Feed extends \yii\db\ActiveRecord
 
         if ($this->type == SharedConstant::FEED_TYPES[4] || $this->type == SharedConstant::FEED_TYPES[5]) {
             return $this->hasOne(PracticeMaterial::className(), ['id' => 'reference_id']);
+        }
+
+        if ($this->type == SharedConstant::FEED_TYPES[6]) {
+            return $this->hasOne(TutorSession::className(), ['id' => 'reference_id']);
         }
     }
 
@@ -211,19 +215,33 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getFeedCommentCount()
     {
-        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type'=>'feed'])->count();
+        return $this->hasMany(FeedComment::className(), ['feed_id' => 'id'])->where(['type' => 'feed'])->count();
     }
+
+    public function getIsOwner()
+    {
+        if ($this->user_id == Yii::$app->user->id)
+            return 1;
+        return 0;
+    }
+
+    /*public function getMiniComment()
+    {
+        $id = $this->id;
+        $connection = Yii::$app->getDb();
+        $command = $connection->createCommand("select * from (
+    select * from feed_comment where type = 'feed' AND feed_id = $id order by id desc limit 3
+) fc order by fc.id asc");
+        return $result = $command->queryAll();
+    }*/
 
     public function getMiniComment()
     {
         return $this->hasMany(FeedComment::className(),
-            //['feed_id' => 'id']) //To be returned
-            ['status' => 'status']) //To be removed
-            //->where(['type'=>'feed']) //To be returned
-            ->orWhere(['feed_id'=>1])// To be removed
-            ->limit(2)
-            //->orderBy('id'); /To be returned
-            ->orderBy('rand()'); //To be removed
+            ['feed_id' => 'id'])
+            ->andWhere(['type' => 'feed'])
+            ->limit(3)
+            ->orderBy('id DESC');
     }
 
     public function FeedDisliked()

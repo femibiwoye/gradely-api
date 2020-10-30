@@ -101,7 +101,7 @@ class CommandsController extends Controller
      */
     public function actionGenerateWeeklyRecommendation()
     {
-        if (date('l') != SharedConstant::CURRENT_DAY) {
+        if (date('l') != SharedConstant::WEEKLY_GENERATE_DAY) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'The weekly Recommendation cannot be generated on a ' . date('l'));
         }
 

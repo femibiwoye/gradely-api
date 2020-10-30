@@ -3,6 +3,8 @@
 /yii_test
 /yii_test.bat
 config/var.php
+web/index.php
+web/index-test.php
 composer.lock
 runtime
 .github

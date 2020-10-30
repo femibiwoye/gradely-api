@@ -353,10 +353,11 @@ class UserModel extends User
         return $this->hasMany(QuizSummaryDetails::className(), ['student_id' => 'id'])
             ->alias('qsd')
             ->select([new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(hq.id))*100) as score'), 'qsd.topic_id',
+                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending") then 1 else 0 end) as is_recommended'),
                 'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
                 'COUNT(hq.id) as questionCount',
                 'st.topic as topic',
-                'qsd.homework_id as homework_id'
+                'qsd.homework_id as homework_id',
             ])
             ->innerJoin('homework_questions hq', 'hq.homework_id=qsd.homework_id')
             ->innerJoin('quiz_summary qus', "qus.id = qsd.quiz_id AND qus.type = 'homework'")
@@ -412,19 +413,32 @@ class UserModel extends User
             ->where(['topic_id' => $topic['topic_id']])
             ->limit(5)
             ->select('content_id')->all(), 'content_id');
-
+        $teacher_id = Yii::$app->user->id;
         $classID = Utility::getStudentClass(null, $this->id);
+        $referenceID = Yii::$app->request->get('id');
         return VideoContent::find()
-            ->select(['*', new Expression("'$classID' as class_id")])
+            ->select([
+                '*', new Expression("'$classID' as class_id"),
+                //new Expression('(case when (select file_id from file_log where file_id = video_content.id AND type = "video" AND user_id = ' . $this->id . ' AND is_completed = 0) then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $this->id . ' AND resources_id = video_content.id AND reference_type = "homework" AND reference_id = ' . $referenceID . ') then 1 else 0 end) as is_recommended'),
+//                new Expression("$referenceID as reference_id"),
+//                new Expression("$this->id as receiver_id"),
+//                new Expression("{$teacher_id} as creator_id"),
+            ])
             ->where(['id' => $videos])
-            ->limit(SharedConstant::VALUE_FIVE)->asArray()->all();
+            ->limit(SharedConstant::VALUE_FIVE)
+            ->asArray()
+            ->all();
     }
 
     public function getPractice($least_topic = null)
     {
-        $quizSummary = QuizSummary::find()->where([
-            'homework_id' => Yii::$app->request->get('id'), 'submit' => 1
-        ])->one();
+        $quizSummary = QuizSummary::find()
+            ->where([
+                'homework_id' => Yii::$app->request->get('id'),
+                'submit' => 1
+            ])
+            ->one();
 
         if (!$quizSummary)
             return null;
@@ -435,10 +449,11 @@ class UserModel extends User
             ->alias('qsd')
             ->select([
                 new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                'qsd.topic_id',
+                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending") then 1 else 0 end) as is_recommended'),
+                'qsd.topic_id'
             ])
             ->where([
-                'homework_id' => $quizSummary->homework_id
+                'qsd.homework_id' => $quizSummary->homework_id
             ])
             ->orderBy(['score' => SORT_ASC])
             ->asArray()
@@ -451,7 +466,8 @@ class UserModel extends User
             ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
             ->select([
                 'subject_topics.*',
-                new Expression("'practice' as type")
+                new Expression("'practice' as type"),
+                new Expression('(case when (select id from homeworks where reference_id = ' . $quizSummary->homework_id . ' AND type = "recommendation" AND reference_type = "homework"  AND student_id = ' . $this->id . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
             ])
             ->where(['subject_topics.id' => ArrayHelper::getColumn($topics, 'topic_id')])
             ->asArray()
@@ -461,7 +477,9 @@ class UserModel extends User
         $video = VideoContent::find()
             ->select([
                 'video_content.*',
-                new Expression("'video' as type")
+                new Expression("'video' as type"),
+                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $this->id . ' AND resources_id = video_content.id AND reference_type = "homework" AND reference_id = ' . $quizSummary->homework_id . ') then 1 else 0 end) as is_recommended'),
+                //new Expression('(case when (select * from file_log where file_id = video_content.id AND type = "video" AND user_id = ' . $this->id . ' AND is_completed = 0) then 1 else 0 end) as is_recommended'),
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
@@ -481,8 +499,7 @@ class UserModel extends User
     public function getHomeworkQuizSummary()
     {
         return $this->hasOne(QuizSummary::className(), ['student_id' => 'id'])
-            ->andWhere(['homework_id' => Yii::$app->request->get('id'),'submit'=>1])
-            ;
+            ->andWhere(['homework_id' => Yii::$app->request->get('id'), 'submit' => 1]);
     }
 
 

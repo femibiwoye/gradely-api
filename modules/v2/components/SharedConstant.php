@@ -28,7 +28,7 @@ class SharedConstant
     const FEED_TYPE = 'feed';
     const COMMENT_TYPE = 'comment';
     const TYPE_VIDEO = 'video';
-    const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image'];
+    const FEED_TYPES = ['post', 'announcement', 'homework', 'lesson', 'video', 'image', 'live_class'];
     const HOMEWORK_TYPES = ['homework', 'lesson', 'recommendation'];
     const HOMEWORK_TAG = ['homework', 'exam', 'quiz'];
     const TEACHER_VIEW_BY = ['all', 'class', 'student'];
@@ -45,7 +45,7 @@ class SharedConstant
     const QUESTION_ACCEPTED_OPTIONS = ['A', 'B', 'C', 'D', 1, 0];
     const PRACTICE_MATERIAL_TYPES = ['video', 'document', 'link', 'image'];
     const RECOMMENDATION_TYPE = ['weekly', 'daily'];
-    const CURRENT_DAY = 'Sunday';
+    const WEEKLY_GENERATE_DAY = 'Monday';//'Sunday';
     const REFERENCE_TYPE = ['homework', 'catchup', 'recommendation', 'practice', 'class'];
     const PROCTOR_FEEDBACK_TYPE = ['reject_submission', 'admin_report', 'report_error'];
     const PROCTOR_FILE_TYPE = ['image', 'audio', 'video'];
@@ -58,4 +58,5 @@ class SharedConstant
     const PAID = 'paid';
     const UN_PAID = 'unpaid';
     const VALUE_TWELVE = 12;
+    const DEFAULT_CURRICULUM = 1;
 }

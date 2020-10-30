@@ -34,5 +34,9 @@ return [
     //WizItUp Content Access Key
     'wizItUpKey' => WIZITUP_KEY,
 
-    'live_class_limit'=>20
+    'AwsS3Key' => AWS_S3_KEY,
+    'AwsS3Secret' => AWS_S3_SECRET,
+
+    'live_class_limit' => 20,
+    'live_class_url'=>LIVE_CLASS_URL
 ];

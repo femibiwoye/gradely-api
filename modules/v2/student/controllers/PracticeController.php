@@ -4,7 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v1\models\StudentSchool;
 use app\modules\v2\components\SessionTermOnly;
-use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\{SharedConstant, Utility};
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\HomeworkQuestions;
@@ -122,11 +122,11 @@ class PracticeController extends Controller
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No homework assigned for you');
             }
 
-            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($homework),['questions'=>$homework->homeworkQuestions,'quiz'=>$model]), ApiResponse::SUCCESSFUL, 'Homework questions retrieved');
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($homework), ['questions' => $homework->homeworkQuestions, 'quiz' => $model]), ApiResponse::SUCCESSFUL, 'Homework questions retrieved');
 
             //return message that homework is started
         } elseif ($quizSummary->submit == 0) {
-            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($homework),['questions'=>$homework->homeworkQuestions,'quiz'=>$quizSummary]), ApiResponse::SUCCESSFUL, 'Homework Started');
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($homework), ['questions' => $homework->homeworkQuestions, 'quiz' => $quizSummary]), ApiResponse::SUCCESSFUL, 'Homework Started');
         } else {
             //Quiz is either invalid or already submitted.
             return (new ApiResponse)->success($homework, ApiResponse::SUCCESSFUL, 'Homework Submitted');
@@ -185,10 +185,10 @@ class PracticeController extends Controller
                 $qsd->homework_id = $quizSummary->homework_id;
 
                 if ($question['selected'] != $questionModel->answer)
-                    $failedCount = +1;
+                    $failedCount = $failedCount + 1;
 
                 if ($question['selected'] == $questionModel->answer)
-                    $correctCount = +1;
+                    $correctCount = $correctCount + 1;
 
                 if (!$qsd->save())
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more attempt not saved');
@@ -209,6 +209,8 @@ class PracticeController extends Controller
 
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
+
+            (new Utility)->generateRecommendation($quiz_id);
 
             $dbtransaction->commit();
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Homework processing completed');

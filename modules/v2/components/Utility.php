@@ -3,16 +3,28 @@
 namespace app\modules\v2\components;
 
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\Schools;
-use app\modules\v2\models\{TeacherClass, Classes, StudentSchool, SchoolTeachers};
+use app\modules\v2\models\Subjects;
+use app\modules\v2\models\{TeacherClass,
+    Classes,
+    StudentSchool,
+    SchoolTeachers,
+    QuizSummary,
+    QuizSummaryDetails,
+    SubjectTopics,
+    VideoContent,
+    Recommendations,
+    RecommendationTopics};
 
 use app\modules\v2\models\User;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
+use yii\db\Expression;
 
 
 class Utility extends ActiveRecord
@@ -306,7 +318,7 @@ class Utility extends ActiveRecord
 
     public static function getTeacherSchoolID($teacher_id)
     {
-        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id,'status'=>1]);
+        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);
         if (!$model) {
             return false;
         }
@@ -342,4 +354,151 @@ class Utility extends ActiveRecord
         return "IF($name.image IS NULL or $name.image = '', 'https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/topics.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
     }
 
+    public static function StudentClassDetails($child = null)
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type == 'parent' && $child) {
+            $parent = Parents::findOne(['parent_id' => $user->id, 'student_id' => $child, 'status' => 1]);
+            if ($parent)
+                $user = User::findOne(['id' => $child]);
+            else
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid');
+
+        }
+        if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1])) {
+            $classId = $classes->class_id;
+            $className = $classes->class->class_name;
+            $schoolName = $classes->school->name;
+            $hasSchool = true;
+        } else {
+            $classId = null;
+            $className = null;
+            $schoolName = null;
+            $hasSchool = false;
+        }
+
+        return $return = [
+            'profileClass' => $user->class,
+            'class_id' => $classId,
+            'class_name' => $className,
+            'school_name' => $schoolName,
+            'has_school' => $hasSchool
+        ];
+    }
+
+    public function generateRecommendation($quiz_id)
+    {
+        try {
+            if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
+            }
+
+            $quizSummary = QuizSummary::find()->where([
+                'id' => $quiz_id, 'submit' => 1,
+                'student_id' => Yii::$app->user->id
+            ])->one();
+
+            if (!$quizSummary)
+                return false;
+
+
+            //$topics retrieves low scoring topic_ids
+            $topics = QuizSummaryDetails::find()
+                ->alias('qsd')
+                ->select([
+                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                    'qsd.topic_id',
+                ])
+                ->where([
+                    'qsd.student_id' => Yii::$app->user->id,
+                    'homework_id' => $quizSummary->homework_id
+                ])
+                ->orderBy(['score' => SORT_ASC])
+                ->asArray()
+                ->limit(SharedConstant::VALUE_TWO)
+                ->groupBy('qsd.topic_id')
+                ->all();
+
+            //$topic_objects retrieves topic objects
+            $topic_objects = SubjectTopics::find()
+                ->select([
+                    'subject_topics.*',
+                    new Expression("'practice' as type")
+                ])
+                ->where(['id' => ArrayHelper::getColumn($topics, 'topic_id')])
+                ->asArray()
+                ->all();
+
+            $this->addRecommendations($topic_objects, $quizSummary->childHomework, $quizSummary->subject_id);
+
+            //retrieves assign videos to the topic
+            $video_objects = VideoContent::find()
+                ->select([
+                    'video_content.*',
+                    new Expression("'video' as type")
+                ])
+                ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+                ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
+                ->limit(SharedConstant::VALUE_ONE)
+                ->asArray()
+                ->all();
+
+            if (!$topic_objects and !$video_objects) {
+                return false;
+            }
+
+            $this->addRecommendations($video_objects, $quizSummary->childHomework, $quizSummary->subject_id);
+
+            return true;
+        } catch (\Exception $ex) {
+            return false;
+        }
+    }
+
+    private function addRecommendations($recommendations, $homework, $subject)
+    {
+        $model = new Recommendations;
+        $model->student_id = Yii::$app->user->id;
+        $model->category = $homework->type;
+        $model->reference_id = $homework->id;
+        $model->reference_type = $homework->reference_type;
+
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$model->save()) {
+                return false;
+            }
+
+            if (!$this->addRecommendationTopics($recommendations, $model->id, $subject)) {
+                return false;
+            }
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+    }
+
+    private function addRecommendationTopics($topics, $recommendation_id, $subject)
+    {
+        foreach ($topics as $topic) {
+            $model = new RecommendationTopics();
+            $model->recommendation_id = $recommendation_id;
+            $model->student_id = Yii::$app->user->id;
+            $model->object_id = $topic['id'];
+            $model->object_type = $topic['type'];
+            if ($topic['type'] == 'video') {
+                $model->subject_id = $subject;
+            } else {
+                $model->subject_id = $topic['subject_id'];
+
+            }
+            if (!$model->save()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\UserModel;
@@ -62,11 +62,21 @@ class LibraryController extends ActiveController
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
         $search = Yii::$app->request->get('search');
+
         if (Yii::$app->user->identity->type == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
             $model->addRule(['class_id', 'teacher_id'], 'integer')
                 ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
+        } elseif (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $teacher_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $model->addRule(['class_id'], 'integer');
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
             }
@@ -89,6 +99,7 @@ class LibraryController extends ActiveController
         }
 
         if ($format) {
+            $format = explode(',', $format);
             $model = $model->andWhere(['extension' => $format]);
         }
 
@@ -106,14 +117,16 @@ class LibraryController extends ActiveController
             } elseif ($sort == 'z-a') {
                 $model = $model->orderBy(['title' => SORT_DESC]);
             } else {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['id' => SORT_DESC]);
             }
+        } else {
+            $model = $model->orderBy(['created_at' => SORT_DESC]);
         }
 
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 3,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -136,12 +149,12 @@ class LibraryController extends ActiveController
         $tag = Yii::$app->request->post('tag');
         $teacher_id = Yii::$app->user->id;
 
-        if (Yii::$app->user->identity->type = 'teacher') {
+        if (Yii::$app->user->identity->type == 'teacher') {
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
-        } elseif (Yii::$app->user->identity->type = 'school') {
+        } elseif (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $teacher_id = $school->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
@@ -181,19 +194,19 @@ class LibraryController extends ActiveController
         $class_id = Yii::$app->request->post('class_id');
         $tag = Yii::$app->request->post('tag');
 
-        if (Yii::$app->user->identity->type = 'teacher') {
+        if (Yii::$app->user->identity->type == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
             $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
-        } elseif (Yii::$app->user->identity->type = 'school') {
+        } elseif (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $teacher_id = $school->id;
             $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'tag'));
             $model->addRule(['tag', 'class_id'], 'required')
                 ->addRule(['class_id'], 'integer');
-            //$model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
         }
@@ -203,7 +216,7 @@ class LibraryController extends ActiveController
 
         $model = new PracticeMaterial();
         $model->attributes = Yii::$app->request->post();
-        $model->user_id = $teacher_id;
+        $model->user_id = Yii::$app->user->id;
         $model->filetype = 'document';
         $model->type = 'feed';
         if (!$model->validate()) {
@@ -224,6 +237,10 @@ class LibraryController extends ActiveController
      */
     public function actionDiscussion()
     {
+        if (Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
+
         $class_id = Yii::$app->request->get('class_id');
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
@@ -264,14 +281,14 @@ class LibraryController extends ActiveController
             } elseif ($sort == 'z-a') {
                 $model = $model->orderBy(['description' => SORT_DESC]);
             } else {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['id' => SORT_DESC]);
             }
         }
 
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 3,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -295,16 +312,27 @@ class LibraryController extends ActiveController
         $date = Yii::$app->request->get('date');
         $sort = Yii::$app->request->get('sort');
         $search = Yii::$app->request->get('search');
-        $teacher_id = Yii::$app->user->id;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id', 'type'));
-        $model
-            ->addRule(['class_id'], 'required')
-            ->addRule(['class_id', 'teacher_id'], 'integer')
-            ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
 
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+        if (Yii::$app->user->identity->type == 'teacher') {
+            $teacher_id = Yii::$app->user->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $model->addRule(['class_id', 'teacher_id'], 'integer')
+                ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
+        } elseif (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $teacher_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'teacher_id'));
+            $model->addRule(['class_id'], 'integer');
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'teacher_id' => 'school_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
         }
+
 
         $model = $this->modelClass::find()
             ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
@@ -340,12 +368,14 @@ class LibraryController extends ActiveController
             } else {
                 $model = $model->orderBy(['created_at' => SORT_DESC]);
             }
+        } else {
+            $model = $model->orderBy(['created_at' => SORT_DESC]);
         }
 
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 2,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -397,22 +427,22 @@ class LibraryController extends ActiveController
 
         if ($sort) {
             if ($sort == 'newest') {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['open_date' => SORT_DESC]);
             } elseif ($sort == 'oldest') {
-                $model = $model->orderBy(['created_at' => SORT_ASC]);
+                $model = $model->orderBy(['open_date' => SORT_ASC]);
             } elseif ($sort == 'a-z') {
                 $model = $model->orderBy(['title' => SORT_ASC]);
             } elseif ($sort == 'z-a') {
                 $model = $model->orderBy(['title' => SORT_DESC]);
             } else {
-                $model = $model->orderBy(['created_at' => SORT_DESC]);
+                $model = $model->orderBy(['open_date' => SORT_DESC]);
             }
         }
 
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 30,
+                'pageSize' => 3,
                 'validatePage' => false,
             ],
             'sort' => [

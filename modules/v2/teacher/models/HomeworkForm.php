@@ -54,7 +54,7 @@ class HomeworkForm extends Model
             //validateTopicCurriculum Validates open_date and close_date, tag and topic
             //['topics_id', 'validateTopicCurriculum'],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
-            [['description','lesson_description'], 'string']
+            [['description', 'lesson_description'], 'string']
         ];
     }
 
@@ -171,41 +171,6 @@ class HomeworkForm extends Model
                 return false;
             }
 
-//            if($model->type != 'homework')
-//                return false;
-//
-//            if($model->publish_status == SharedConstant::VALUE_ZERO){
-//
-//                $notification = new InputNotification();
-//                if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->id]]))
-//                    return false;
-//            }
-//
-//            $notification = new InputNotification();
-//            if (!$notification->NewNotification('teacher_create_homework', [['homework_id', $model->id]]))
-//                return false;
-//
-//
-//            //Get all the students in that class
-//            $classStudents = StudentSchool::findAll(['class_id' => $model->class_id]);
-//
-//            foreach ($classStudents as $classStudent){
-//
-//                if($classStudent){
-//                    $notification = new InputNotification();
-//                    if (!$notification->NewNotification('teacher_create_homework_student', [['homework_id', $model->id]]))
-//                        return false;
-//                }
-//
-//                $parent = Parents::findOne(['student_id' => $classStudent->student_id]);
-//
-//                if($parent){
-//                    $notification = new InputNotification();
-//                    if (!$notification->NewNotification('teacher_create_homework_parent', [['homework_id', $model->id]]))
-//                        return false;
-//                }
-//            }
-
             $dbtransaction->commit();
         } catch (Exception $ex) {
             $dbtransaction->rollBack();
@@ -261,6 +226,8 @@ class HomeworkForm extends Model
         $model->view_by = $this->view_by;
         $model->user_id = $this->teacher_id;
         $model->reference_id = $homework->id;
+        $model->subject_id = $homework->subject_id;
+        $model->status = $homework->type == 'homework' ? SharedConstant::VALUE_ZERO : 1;
         if (!empty($this->description))
             $model->description = $this->description;
 

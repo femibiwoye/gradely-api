@@ -105,7 +105,7 @@ class ProfileController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->user = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model->email = $form->email;
@@ -124,7 +124,7 @@ class ProfileController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->user = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$form->updatePassword()) {
@@ -146,7 +146,7 @@ class ProfileController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->user = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model = $form->updateStudent()) {
@@ -156,12 +156,16 @@ class ProfileController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
-    public function actionReport()
+    public function actionReport($remark = 0)
     {
         $studentID = Utility::getParentChildID();
         $model = StudentDetails::findOne(['id' => $studentID]);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student report not found');
+        }
+
+        if ($remark == 1) {
+            $model = $model->remarks;
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student report found');

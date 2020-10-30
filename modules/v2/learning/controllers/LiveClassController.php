@@ -106,7 +106,7 @@ class LiveClassController extends Controller
             ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['requester_id', 'session_id' => 'id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
 
@@ -119,9 +119,9 @@ class LiveClassController extends Controller
         $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
         $this->classAttendance($session_id, $requester_id, SharedConstant::LIVE_CLASS_USER_TYPE[0], $token);
         $tutor_session->meeting_token = $token;
-        if(!$tutor_session->save())
+        if (!$tutor_session->save())
             return (new ApiResponse)->error($tutor_session->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your session');
-         (new ApiResponse)->success($token, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success(Yii::$app->params['live_class_url'] .$tutor_session->meeting_room. '?jwt='.$token, ApiResponse::SUCCESSFUL);
     }
 
     /**
@@ -138,7 +138,7 @@ class LiveClassController extends Controller
         $form->addRule(['session_id'], 'required')
             ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (Yii::$app->user->identity->type != 'student')
@@ -154,14 +154,14 @@ class LiveClassController extends Controller
 
 
         if ($tutor_session->status == 'pending') {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher has not started');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher has not started the class');
         } elseif ($tutor_session->status == 'completed') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class has ended!');
         } elseif ($tutor_session->status == 'ongoing') {
             $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
             $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
             $this->classAttendance($session_id, $user_id, SharedConstant::LIVE_CLASS_USER_TYPE[1], $token);
-            return (new ApiResponse)->success($token, ApiResponse::SUCCESSFUL);
+            return (new ApiResponse)->success(Yii::$app->params['live_class_url'] .$tutor_session->meeting_room. '?jwt='.$token, ApiResponse::SUCCESSFUL);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid class status');
         }
@@ -181,7 +181,7 @@ class LiveClassController extends Controller
         $form->addRule(['session_id'], 'required')
             ->addRule(['session_id'], 'exist', ['targetClass' => ClassAttendance::className(), 'targetAttribute' => ['session_id', 'user_id']]);
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $tutor_session = TutorSession::findOne(['id' => $session_id]);
@@ -240,5 +240,71 @@ class LiveClassController extends Controller
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
         }
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Token is invalid');
+    }
+
+
+    public function actionReschedule($id)
+    {
+        $availability = Yii::$app->request->post('availability');
+        if (!$availability) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Availability time cannot be blank!');
+        }
+
+        $model = TutorSession::find()
+            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id,'status'=>'pending'])
+            ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->availability = $availability;
+        $model->scenario = 'update-class';
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
+    }
+
+    public function actionDelete($id)
+    {
+        $model = TutorSession::findOne(['id' => $id, 'requester_id' => Yii::$app->user->id]);
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        if (!$model->delete()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not deleted');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted successfully!');
+    }
+
+    public function actionUpdate($id)
+    {
+        $subject_id = Yii::$app->request->post('subject_id');
+        $title = Yii::$app->request->post('title');
+        $validate = new \yii\base\DynamicModel(compact('subject_id', 'title'));
+        $validate->addRule(['subject_id', 'title'], 'required');
+        if (!$validate->validate()) {
+            return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $model = TutorSession::find()
+            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
+            ->one();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $model->subject_id = $subject_id;
+        $model->title = $title;
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record not updated');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated successfully');
     }
 }

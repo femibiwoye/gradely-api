@@ -30,7 +30,6 @@ class StudentHomeworkReport extends Homeworks
     private $excellent_students = SharedConstant::VALUE_ZERO;
 
 
-
     public function fields()
     {
         return [
@@ -51,6 +50,8 @@ class StudentHomeworkReport extends Homeworks
             'attachments',
             'average',
             'completion',
+            'is_taken' => 'isHomeworkTaken',
+            'is_closed' => 'isHomeworkClosed',
             'correctQuestions',
             'failedQuestions',
             'missedQuestions',
@@ -93,7 +94,7 @@ class StudentHomeworkReport extends Homeworks
 
     public function getQuizSummaryDetails()
     {
-        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id'])->andWhere(['student_id'=>Yii::$app->user->id]);
+        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id'])->andWhere(['student_id' => Yii::$app->user->id]);
     }
 
     public function getHomeworkSummary()
@@ -346,6 +347,16 @@ class StudentHomeworkReport extends Homeworks
     public function getAttachments()
     {
         return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id'])->andWhere(['type' => 'practice']);
+    }
+
+    public function getIsHomeworkTaken()
+    {
+        return $this->getIsTaken();
+    }
+
+    public function getIsHomeworkClosed()
+    {
+        return $this->getIsTaken();
     }
 
 }

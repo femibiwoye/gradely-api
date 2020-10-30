@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
@@ -72,7 +72,7 @@ class FeedController extends ActiveController
             $validate
                 ->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id', 'teacher_id', 'status']]);
             if (!$validate->validate()) {
-                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
             }
 
             $models = $this->modelClass::find()
@@ -85,7 +85,7 @@ class FeedController extends ActiveController
             $validate
                 ->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id']]);
             if (!$validate->validate()) {
-                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
             }
 
             if (empty($class_id))
@@ -127,7 +127,7 @@ class FeedController extends ActiveController
 
         } elseif (Yii::$app->user->identity->type == 'student') {
             $user_id = Yii::$app->user->id;
-            $class = StudentSchool::findOne(['student_id' => $user_id]);
+            $class = StudentSchool::findOne(['student_id' => $user_id, 'status' => 1]);
             if ($class) {
                 $class_id = $class->class_id;
             }
@@ -154,12 +154,10 @@ class FeedController extends ActiveController
             $models = $models
                 ->innerJoin('user', 'user.id = feed.user_id')
                 ->andWhere([
-//                    'feed.user_id' => $student_id, //To be returned
-//                    'feed.class_id' => $class_id, //To be returned
-//                    'user.type' => 'student' //To be returned
-                    'feed.type' => 'post' // to be removed;
-                ])
-                ->orderBy('rand()');// to be removed;
+                    'feed.user_id' => $student_id,
+                    'feed.class_id' => $class_id,
+                    'user.type' => 'student'
+                ]);
         }
 
         if ($type)
@@ -179,6 +177,7 @@ class FeedController extends ActiveController
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }
 
+        $models = $models->andWhere(['status' => 1]);
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
@@ -204,6 +203,7 @@ class FeedController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No record found!');
         }
 
+        array_splice($new_announcements, 3);
         array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
         return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements) . ' records found!');
     }
@@ -215,7 +215,7 @@ class FeedController extends ActiveController
         $model->comment = Yii::$app->request->post('comment');
         $model->feed_id = $post_id;
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$model->save()) {
@@ -253,7 +253,7 @@ class FeedController extends ActiveController
 
     public function actionCommentLike($comment_id)
     {
-        $model = FeedComment::findOne(['id' => $comment_id, 'type' => 'comment']);
+        $model = FeedComment::findOne(['id' => $comment_id, 'type' => 'feed']);
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment is not found!');
         }
@@ -279,6 +279,10 @@ class FeedController extends ActiveController
 
     public function actionCreate()
     {
+        if (Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
+
         $userType = Yii::$app->user->identity->type;
         if ($userType == 'student' || $userType == 'parent')
             $scenario = 'student-parent';
@@ -296,7 +300,7 @@ class FeedController extends ActiveController
             $model->view_by = Yii::$app->request->post('view_by');
         $model->attributes = Yii::$app->request->post();
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $header = $model->type == 'post' ? 'Discussion' : 'Announcement';
@@ -310,6 +314,10 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
+        if (Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
+
         $school_id = Utility::getTeacherSchoolID(Yii::$app->user->id);
         if (!$school_id) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission failed');
@@ -332,7 +340,7 @@ class FeedController extends ActiveController
         $model->category = 'class';
         $model->is_school = 1;
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
         $model->class = $model->class_id;
 
@@ -340,70 +348,6 @@ class FeedController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not created!');
         }
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
-    }
-
-    public function actionUpdateLiveClassAvailability($id)
-    {
-        $availability = Yii::$app->request->post('availability');
-        if (!$availability) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Availability time cannot be blank!');
-        }
-
-        $model = TutorSession::find()
-            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
-            ->one();
-
-        if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-        }
-
-        $model->availability = $availability;
-        if (!$model->save()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
-        }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated');
-    }
-
-    public function actionDelete($id)
-    {
-        $model = TutorSession::findOne(['id' => $id, 'requester_id' => Yii::$app->user->id]);
-        if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-        }
-
-        if (!$model->delete()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not deleted');
-        }
-
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted successfully!');
-    }
-
-    public function actionUpdateLiveClassDetails($id)
-    {
-        $subject_id = Yii::$app->request->post('subject_id');
-        $title = Yii::$app->request->post('title');
-        $validate = new \yii\base\DynamicModel(compact('subject_id', 'title'));
-        $validate->addRule(['subject_id', 'title'], 'required');
-        if (!$validate->validate()) {
-            return (new ApiResponse)->error($validate->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        $model = TutorSession::find()
-            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id])
-            ->one();
-
-        if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-        }
-
-        $model->subject_id = $subject_id;
-        $model->title = $title;
-        if (!$model->save()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not updated');
-        }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated successfully');
     }
 
     /**

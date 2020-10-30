@@ -77,7 +77,7 @@ class StudentController extends ActiveController
         $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
 
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $classes = Classes::find()
@@ -118,7 +118,7 @@ class StudentController extends ActiveController
         $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id' => 'student_id', 'school_id' => 'school_id']]);
 
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This student does not belong to your school');
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR, 'This student does not belong to your school');
         }
 
         $detail = StudentDetails::findOne(['id' => $student_id]);
@@ -161,7 +161,7 @@ class StudentController extends ActiveController
         $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'class_id' => 'id']]);
 
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id]);

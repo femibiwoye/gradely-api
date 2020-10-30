@@ -157,7 +157,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $video = VideoContent::findOne(['token' => $video_token]);
@@ -190,7 +190,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = VideoContent::findOne(['token' => $video_token, 'content_type' => 'video']);
@@ -330,7 +330,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $video = VideoContent::find()->where(['token' => $video_token])
@@ -376,7 +376,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
 
         $video = VideoContent::findOne(['token' => $video_token]);
@@ -426,7 +426,7 @@ class CatchupController extends ActiveController
         $form->addRule(['video_id'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
 
         $video = VideoAssign::findOne(['content_id' => $video_id]);
@@ -481,7 +481,7 @@ class CatchupController extends ActiveController
 
         $studentID = Yii::$app->user->id;
         $model = Subjects::find()
-            ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.submit = 1 AND student_id = $studentID")
+            ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.submit = 1 AND student_id = $studentID")
             ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
             ->andWhere(['is', 'qs.subject_id', null])
             ->groupBy('id')
@@ -903,7 +903,7 @@ class CatchupController extends ActiveController
         $form->addRule(['practice_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['student_id', 'practice_id' => 'id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (Homeworks::find()
@@ -912,7 +912,7 @@ class CatchupController extends ActiveController
             ->innerJoin('quiz_summary qs', 'qs.homework_id = hm.id AND qs.submit=1')
             ->exists()) {
             $form->addError('practice_id', 'Practice already taken');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (!Homeworks::find()
@@ -921,7 +921,7 @@ class CatchupController extends ActiveController
             ->innerJoin('practice_topics pt', 'pt.practice_id = hm.id')
             ->exists()) {
             $form->addError('practice_id', 'Topics not available, try again.');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $homework = Homeworks::findOne([['student_id' => $student_id, 'id' => $practice_id]]);
@@ -931,7 +931,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Temp not started!');
         }
 
-        return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice Temp started!');
+        return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');
     }
 
     /**
@@ -960,6 +960,29 @@ class CatchupController extends ActiveController
      * This process diagnostic and practice attempts
      * @return ApiResponse
      */
+
+    public function actionAssessmentRecommendation($id = null)
+    {
+        $model = RecommendationTopics::find()
+                    ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id');
+
+        if (!empty($id)) {
+            $model = $model->where(['recommendation_topics.recommendation_id' => $id])->all();
+        } else {
+            $model = $model
+                        ->andWhere(['recommendations.student_id' => Yii::$app->user->id])
+                        ->limit(6)
+                        ->orderBy(['created_at' => SORT_DESC])
+                        ->all();
+        }
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Recommendation not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Recommendation found');
+    }
+
     public function actionSubmitPractice()
     {
 
@@ -1050,9 +1073,12 @@ class CatchupController extends ActiveController
             $quizSummary->skipped = $quizSummary->total_questions - ($correctCount + $failedCount);
             $quizSummary->submit = SharedConstant::VALUE_ONE;
             $quizSummary->submit_at = date('Y-m-d H:i:s');
-
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
+
+            if ($homework->type == 'diagnostic') {
+                (new Utility)->generateRecommendation($quizSummary->id);
+            }
 
             $dbtransaction->commit();
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Practice processing completed');

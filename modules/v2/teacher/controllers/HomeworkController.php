@@ -2,11 +2,13 @@
 
 namespace app\modules\v2\teacher\controllers;
 
-use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\{InputNotification, Pricing};
+use app\modules\v2\models\Parents;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions, Feed};
 use app\modules\v2\components\SharedConstant;
 use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
@@ -67,6 +69,9 @@ class HomeworkController extends ActiveController
 
     public function actionCreate($type)
     {
+        if (Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
 
         if (!in_array($type, SharedConstant::HOMEWORK_TYPES)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid type value');
@@ -77,7 +82,7 @@ class HomeworkController extends ActiveController
 
         if (empty($form->class_id)) {
             $form->addError('class_id', 'Provide class_id');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Provide class ID');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Provide class ID');
         }
 
         $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
@@ -86,7 +91,7 @@ class HomeworkController extends ActiveController
         $form->teacher_id = Yii::$app->user->id;
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         $typeName = ucfirst($type);
@@ -109,7 +114,7 @@ class HomeworkController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         //$form->homework_model = $model;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
         //$form->attributes = $model->attributes;
         //$form->removeAttachments();
@@ -129,7 +134,7 @@ class HomeworkController extends ActiveController
 //        $form->attachments = Yii::$app->request->post('lesson_notes');
 //        $form->feed_attachments = Yii::$app->request->post('feed_attachments');
 //        if (!$form->validate()) {
-//            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 //        }
 //
 //        if (!$model = $form->createHomework('lesson')) {
@@ -214,11 +219,39 @@ class HomeworkController extends ActiveController
         }
 
         $model->status = SharedConstant::STATUS_DELETED;
-        if (!$model->save(false)) {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            $homework_id = $model->id;
+            if (!$model->delete()) {
+                return false;
+            }
+
+            if (!$this->deleteHomeworkFeed($homework_id)) {
+                return false;
+            }
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not deleted');
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Homework record deleted');
+    }
+
+    private function deleteHomeworkFeed($homework_id)
+    {
+        $model = Feed::findOne(['reference_id' => $homework_id, 'type' => 'homework']);
+        if (!$model) {
+            return true;
+        }
+
+        $model->status = SharedConstant::STATUS_DELETED;
+        if (!$model->delete()) {
+            return false;
+        }
+
+        return true;
     }
 
     public function actionExtendDate($homework_id)
@@ -281,12 +314,56 @@ class HomeworkController extends ActiveController
 
         if ($model->publish_status == 0) {
             $model->publish_status = 1;
-            if ($model->save())
+            if ($model->save() && $this->publishHomeworkFeed($model->id)) {
+                $this->HomeworkNotification($model);
+                //Call success notification
                 return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework successfully published');
+            }
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Something went wrong.');
     }
+
+    private function publishHomeworkFeed($homework_id)
+    {
+        $model = Feed::findOne(['reference_id' => $homework_id, 'status' => SharedConstant::VALUE_ZERO]);
+        $model->status = SharedConstant::VALUE_ONE;
+        $model->created_at = date('Y-m-d H:i:s');
+        if (!$model->save()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function HomeworkNotification($model)
+    {
+//        if($model->publish_status == SharedConstant::VALUE_ZERO){
+//
+//            $notification = new InputNotification();
+//            if (!$notification->NewNotification('homework_draft_teacher', [['homework_id', $model->id]]))
+//                return false;
+//        }
+
+        $notification = new InputNotification();
+        $notification->NewNotification('teacher_create_homework_teacher', [['homework_id', $model->id]]);
+
+
+        //Get all the students in that class
+        $classStudent = StudentSchool::find()->where(['class_id' => $model->class_id, 'status' => 1])->exists();
+
+        //foreach ($classStudents as $classStudent){
+
+        if ($classStudent) {
+            $notification = new InputNotification();
+            $notification->NewNotification('teacher_create_homework_student', [['homework_id', $model->id]]);
+            $notification->NewNotification('teacher_create_homework_parent', [['homework_id', $model->id]]);
+        }
+
+
+        // }
+    }
+
 
     public function actionSubject($class_id)
     {
@@ -307,7 +384,7 @@ class HomeworkController extends ActiveController
         $form->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = Questions::find()
@@ -328,7 +405,7 @@ class HomeworkController extends ActiveController
         $form->attributes = Yii::$app->request->post();
         $form->homework_id = $homework_id;
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Record validation failed');
         }
 
         if (!$form->saveHomeworkQuestion()) {

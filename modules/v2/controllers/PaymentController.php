@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Subjects;
@@ -67,7 +68,7 @@ class PaymentController extends ActiveController
         $form->addRule(['coupon'], 'exist', ['targetClass' => Coupon::className(), 'targetAttribute' => ['coupon' => 'code']]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = Coupon::find()
@@ -91,7 +92,7 @@ class PaymentController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('type'));
         $form->addRule(['type'], 'in', ['range' => ['catchup', 'tutor']]);
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         $model = PaymentPlan::find()->where(['type' => $type])->all();
@@ -132,7 +133,7 @@ class PaymentController extends ActiveController
         }
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
         if (!$model = $form->addPaymentSubscription()) {
@@ -153,7 +154,7 @@ class PaymentController extends ActiveController
         ]);
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
 
@@ -224,6 +225,7 @@ class PaymentController extends ActiveController
 
             $children[$key] = array_merge(
                 $children[$key],
+                ['class' => Utility::StudentClassDetails($child['id'])],
                 ['catchup' =>
                     ['status' => Utility::getSubscriptionStatus(User::findOne($child['id'])),
                         //'amount' => 1500,
@@ -233,8 +235,6 @@ class PaymentController extends ActiveController
                         'duration' => isset($childSub->subscription) ? $childSub->subscription->duration : null,
                         'duration_count' => isset($childSub->subscription) ? $childSub->subscription->duration_count : null,
                         'plan' => isset($childSub->subscription) ? $childSub->subscription->plan : null,
-
-
                     ]
                 ],
                 ['tutor' => null]
@@ -279,10 +279,15 @@ class PaymentController extends ActiveController
     public function actionBillingHistory()
     {
         $subscription = Subscriptions::find()
-            ->where(['user_id' => Yii::$app->user->id])->all();
+            ->where(['user_id' => Yii::$app->user->id])
+            ->orderBy('id DESC')
+            ->all();
 
         return (new ApiResponse)->success($subscription, ApiResponse::SUCCESSFUL);
     }
 
-
+    public function actionSubscriptionStatus($child = null, $status = 1)
+    {
+        return (new ApiResponse)->success(Pricing::SubscriptionStatus(null, $child, $status == 1 ? true : false), ApiResponse::SUCCESSFUL);
+    }
 }

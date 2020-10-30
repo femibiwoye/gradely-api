@@ -3,7 +3,7 @@
 namespace app\modules\v2\models;
 
 
-use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\{InputNotification, SharedConstant, Pricing};
 use Yii;
 use yii\base\Model;
 
@@ -84,14 +84,14 @@ class SignupForm extends Model
             }
 
             if ($this->scenario == 'parent-student-signup') {
+                //Notification that parent add child
                 $notification = new InputNotification();
-                if (!$notification->NewNotification('parent_adds_student', [['student_id', $user->id]]))
-                    return false;
+                $notification->NewNotification('parent_adds_student', [['student_id', $user->id]]);
             }
 
+            // Notification to welcome user
             $notification = new InputNotification();
-            if (!$notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]))
-                return false;
+            $notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]);
 
 
             $dbtransaction->commit();
@@ -115,7 +115,10 @@ class SignupForm extends Model
         $model->country = $this->country;
         if ($user->type == 'school') {
             $this->createSchool($user);
+        } else {
+            Pricing::ActivateTrial($user->id, $user->type);
         }
+
         return $model->save();
     }
 
@@ -152,6 +155,20 @@ class SignupForm extends Model
         $school->country = $this->country;
         $school->save();
         $this->createCalendar($school);
+        $this->createCurriculum($school->id);
+        Pricing::ActivateTrial($school->id, 'school');
+    }
+
+    private function createCurriculum($school_id)
+    {
+        $model = new SchoolCurriculum;
+        $model->school_id = $school_id;
+        $model->curriculum_id = SharedConstant::DEFAULT_CURRICULUM;
+        if (!$model->save()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

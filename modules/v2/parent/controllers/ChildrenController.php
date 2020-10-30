@@ -2,7 +2,7 @@
 
 namespace app\modules\v2\parent\controllers;
 
-use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\{InputNotification, Pricing};
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\GlobalClass;
@@ -12,6 +12,7 @@ use app\modules\v2\controllers\AuthController;
 use app\modules\v2\models\SignupForm;
 use app\modules\v2\models\SubscriptionChildren;
 use app\modules\v2\models\SubscriptionPaymentDetails;
+use app\modules\v2\models\UserModel;
 use yii\base\DynamicModel;
 use app\modules\v2\models\VideoContent;
 use Yii;
@@ -116,14 +117,14 @@ class ChildrenController extends ActiveController
 
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 
         $user = User::findOne($child_id);
 
         $parent = Parents::findOne(['student_id' => $child_id, 'status' => SharedConstant::VALUE_ONE]);
         if (!Yii::$app->security->validatePassword($password, Yii::$app->user->identity->password_hash)) {
             $form->addError('password', 'Current password is incorrect!');
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$parent)
@@ -165,7 +166,7 @@ class ChildrenController extends ActiveController
         $form->addRule(['student_code'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_code' => 'code', 'type']]);
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 
 
         $user = User::findOne(['code' => $student_code, 'type' => $type]);
@@ -210,7 +211,7 @@ class ChildrenController extends ActiveController
         $form->addRule(['code'], 'required');
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
 
         $user = User::findOne(['code' => $code]);
 
@@ -243,7 +244,7 @@ class ChildrenController extends ActiveController
 
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
 
         $user = User::findOne(['code' => $code]);
@@ -274,12 +275,28 @@ class ChildrenController extends ActiveController
         $parent->status = SharedConstant::VALUE_ONE;
         $parent->inviter = 'parent';
 
-        if (!$parent->save())
-            return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$parent->save())
+                return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
-        $notification = new InputNotification();
-        if (!$notification->NewNotification('parent_connects_student', [['parent_id', Yii::$app->user->id]]))
+            if ($this->scenario == 'parent-student-signup') {
+                //Notification that parent add child
+                $notification = new InputNotification();
+                $notification->NewNotification('parent_adds_student', [['student_id', $user->id]]);
+            }
+
+            // Notification to welcome user
+            $notification = new InputNotification();
+            $notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]);
+
+            Pricing::ActivateStudentTrial($user->id);
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
             return false;
+        }
 
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Parent Child saved');
 
@@ -295,10 +312,16 @@ class ChildrenController extends ActiveController
 
 
         if (!$form->validate())
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
         $model = new SignupForm(['scenario' => 'parent-student-signup']);
         $model->attributes = Yii::$app->request->post();
+
+        $studentModel = UserModel::findOne(['firstname' => $model->first_name, 'lastname' => $model->last_name, 'type' => 'student']);
+        if ($studentModel && Parents::find()->where(['student_id' => $studentModel->id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Child already exist');
+        }
+
 
         if (!$model->validate())
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
@@ -313,7 +336,8 @@ class ChildrenController extends ActiveController
             $parent->status = SharedConstant::VALUE_ONE;
             if (!$parent->save())
                 return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
-            }
+        }
+        Pricing::ActivateStudentTrial($user->id);
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }

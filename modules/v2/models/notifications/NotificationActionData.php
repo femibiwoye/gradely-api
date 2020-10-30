@@ -36,6 +36,7 @@ class NotificationActionData extends \yii\db\ActiveRecord
             [['field_value'], 'string'],
             [['field_name'], 'string', 'max' => 100],
             [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => Actions::className(), 'targetAttribute' => ['action_id' => 'id']],
+            [['notification_id'], 'exist', 'targetClass' => Notifications::className(), 'targetAttribute' => ['notification_id' => 'id']],
         ];
     }
 

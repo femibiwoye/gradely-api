@@ -30,7 +30,7 @@ class Recommendations extends \yii\db\ActiveRecord
     {
         return [
             [['student_id'], 'required'],
-            [['id', 'student_id'], 'integer'],
+            [['id', 'student_id', 'is_taken'], 'integer'],
             [['category'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['id'], 'unique'],
@@ -46,6 +46,9 @@ class Recommendations extends \yii\db\ActiveRecord
             'id' => 'ID',
             'student_id' => 'Student ID',
             'category' => 'Category',
+            'is_taken' => 'Is taken',
+            'reference_type' => 'Reference Type',
+            'reference_id' => 'Reference Id',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
         ];
@@ -57,6 +60,9 @@ class Recommendations extends \yii\db\ActiveRecord
             'id',
             'student_id',
             'category',
+            'is_taken' => 'isTaken',
+            'reference_type',
+            'reference_id',
             'recommendationTopics',
             'created_at',
             'updated_at'
@@ -66,5 +72,20 @@ class Recommendations extends \yii\db\ActiveRecord
     public function getRecommendationTopics()
     {
         return $this->hasMany(RecommendationTopics::className(), ['recommendation_id' => 'id']);
+    }
+
+    public function getIsTaken()
+    {
+
+        $model = Homeworks::find()
+                    ->innerJoin(['quiz_summary', 'quiz_summary.homework_id = homeworks.id'])
+                    ->where(['homeworks.id' => $this->reference_id, 'quiz_summary.submit' => 1]);
+
+        if ($model) {
+            return 1;
+        }
+
+        return 0;
+
     }
 }

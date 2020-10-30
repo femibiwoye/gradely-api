@@ -4,6 +4,7 @@ namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\models\ClassSubjects;
 use app\modules\v2\models\Subjects;
 use Yii;
@@ -82,6 +83,11 @@ class ClassController extends ActiveController
         $class = Classes::findOne(['class_code' => Yii::$app->request->post('code')]);
         if (!$class) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        $school_student_limit = Pricing::SchoolLimitStatus($class->school_id);
+        if ($school_student_limit['status']) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'students limit exceeded, no more students');
         }
 
         $model = new StudentSchool;

@@ -7,17 +7,21 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Avatar;
 use app\modules\v2\models\Country;
+use app\modules\v2\models\ExamType;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\notifications\InappNotification;
 use app\modules\v2\models\notifications\NotificationOutLogging;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\States;
+use app\modules\v2\models\Subjects;
+use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\Timezone;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
@@ -41,7 +45,7 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['country', 'state', 'timezone', 'global-classes']
+            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject']
         ];
 
         return $behaviors;
@@ -94,7 +98,7 @@ class GeneralController extends Controller
         elseif ($user->type == 'teacher')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getTeacherAdditionalData($user->id));
         elseif ($user->type == 'student')
-            $user = array_merge(ArrayHelper::toArray($user), ['school_class_id'=>Utility::getStudentClass()]);
+            $user = array_merge(ArrayHelper::toArray($user), ['school_class_id' => Utility::getStudentClass()]);
 
         return (new ApiResponse)->success($user);
     }
@@ -200,5 +204,47 @@ class GeneralController extends Controller
         $model = ['status' => Utility::getSubscriptionStatus($user), 'plan' => $user->subscription_plan, 'expiry' => $user->subscription_expiry];
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
+
+    public function actionCurriculum()
+    {
+        $examType = ExamType::find()
+            ->alias('e')
+            ->select([
+                'id',
+                'slug',
+                'title'
+            ])
+            ->where(['e.school_id' => null]);
+
+        return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionSubject()
+    {
+
+        $examType = Subjects::find()
+            ->select([
+                'id',
+                'slug',
+                'name'
+            ])
+            ->where(['school_id' => null]);
+
+        return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
+
+    }
+
+    public function actionClassStatus($class_id)
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type == 'teacher' && TeacherClass::find()->where(['class_id' => $class_id, 'teacher_id' => $user->id, 'status' => 1])->exists()) {
+            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
+        }
+        return (new ApiResponse)->success(false, ApiResponse::SUCCESSFUL);
+    }
+
+    
+
+
 }
 

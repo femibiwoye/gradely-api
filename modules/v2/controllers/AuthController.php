@@ -3,7 +3,7 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\components\Utility;
+use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SignupForm;
 use Yii;
@@ -78,11 +78,11 @@ class AuthController extends Controller
         $form = new SignupForm(['scenario' => "$type-signup"]);
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$user = $form->signup($type)) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User is not created successfully');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'User is not created successfully');
         }
 
         $user->updateAccessToken();
@@ -119,7 +119,7 @@ class AuthController extends Controller
         $form = new PasswordResetRequestForm();
         $form->attributes = Yii::$app->request->post();
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$form->sendEmail()) {
@@ -139,7 +139,7 @@ class AuthController extends Controller
         $form->attributes = Yii::$app->request->post();
 
         if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
         if (!$form->resetPassword()) {
