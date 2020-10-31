@@ -57,7 +57,7 @@ class TutorSession extends \yii\db\ActiveRecord
         return [
             [['requester_id', 'category'], 'required'],
             [['requester_id', 'student_id', 'class', 'subject_id', 'session_count', 'curriculum_id', 'is_school'], 'integer'],
-            [['repetition', 'preferred_client', 'meeting_token', 'meta', 'status','participant_type'], 'string'],
+            [['repetition', 'preferred_client', 'meeting_token', 'meta', 'status', 'participant_type'], 'string'],
             [['availability', 'created_at'], 'safe'],
             [['title'], 'string', 'max' => 200],
             [['category'], 'string', 'max' => 50],
@@ -71,7 +71,7 @@ class TutorSession extends \yii\db\ActiveRecord
             ['availability', 'datetime', 'format' => 'php:Y-m-d H:i', 'on' => ['new-class', 'update-class']],
             //['availability', 'compare', 'compareValue' => date('Y-m-d H:i'), 'operator' => '>'],
 
-            [['description'],'string']
+            [['description'], 'string']
         ];
     }
 
@@ -191,22 +191,18 @@ class TutorSession extends \yii\db\ActiveRecord
 
             $condition = ['class' => $classes, 'status' => 'pending'];
         } elseif (Yii::$app->user->identity->type == 'student') {
-
             if ($studentModel = StudentSchool::find()
                 ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one())
-                $student_class = ArrayHelper::getColumn($studentModel, 'class_id');
+                $student_class = $studentModel->class_id;
             else
                 $student_class = null;
 
             $condition = ['class' => $student_class];
         } elseif (Yii::$app->user->identity->type == 'parent') {
-
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
-
             $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
             if (isset($_GET['class_id']))
                 $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
-
 
             $studentClass = $studentClass->andWhere(['status' => SharedConstant::VALUE_ONE])->all();
             $student_class = ArrayHelper::getColumn($studentClass, 'class_id');
