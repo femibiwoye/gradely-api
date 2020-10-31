@@ -105,7 +105,7 @@ class GeneralController extends Controller
 
     public function actionCountry()
     {
-        return (new ApiResponse)->success(Country::find()->all());
+        return (new ApiResponse)->success(Country::find()->all(),ApiResponse::SUCCESSFUL,'Country loaded');
     }
 
     public function actionState($country)

@@ -65,8 +65,7 @@ class AddStudentForm extends Model {
 		}
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('teacher_add_student_student', [['student_id', $user->id]]))
-            return false;
+        $notification->NewNotification('teacher_add_student_student', [['student_id', $user->id]]);
 
 
 		$this->addToClass($user);
@@ -132,8 +131,7 @@ class AddStudentForm extends Model {
 			}
 
             $notification = new InputNotification();
-            if (!$notification->NewNotification('teacher_add_student_parent', [['parent_id', $parent->id]]))
-                return false;
+            $notification->NewNotification('teacher_add_student_parent', [['parent_id', $parent->id]]);
 
 		} else {
 			$model = new InviteLog;
