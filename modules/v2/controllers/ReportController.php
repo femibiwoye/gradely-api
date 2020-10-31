@@ -70,7 +70,7 @@ class ReportController extends ActiveController
 
         $proceedStatus = false;
         $homework = Homeworks::find();
-        if (Yii::$app->user->identity->type == 'school' && $homework->where(['id' => $id, 'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])])->exists()) {
+        if (Yii::$app->user->identity->type == 'school' && $homework->where(['id' => $id, 'school_id' => Utility::getSchoolAccess()])->exists()) {
             $proceedStatus = true;
         } elseif (Yii::$app->user->identity->type == 'teacher' && $homework->where([
                 'id' => $id,
