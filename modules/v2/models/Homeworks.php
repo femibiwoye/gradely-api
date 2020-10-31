@@ -424,6 +424,7 @@ class Homeworks extends \yii\db\ActiveRecord
                     'type' => $homework->type,
                     'title' => $homework->title,
                     'date_time' => $homework->close_date,
+                    'reference'=>$homework
                 ]);
             }
         }

@@ -224,6 +224,7 @@ class TutorSession extends \yii\db\ActiveRecord
                     'type' => 'live_class',
                     'title' => $session->title,
                     'date_time' => $session->availability,
+                    'reference' => $session
                 ]);
             }
         }
