@@ -101,10 +101,13 @@ class ReportController extends ActiveController
             $model = HomeworkReport::find()->where(['id' => $id])->one();
         } else {
             $model = Questions::find()
-                ->innerJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
-                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type = 'homework'")
+                ->leftJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
+                ->leftJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type = 'homework'")
                 ->innerJoin('homeworks h', "h.id = quiz_summary_details.homework_id")
-                ->where(['quiz_summary_details.homework_id' => $id])
+                ->innerJoin('homework_questions', 'homework_questions.question_id = questions.id')
+                ->where(['homework_questions.homework_id' => $id])
+                //->where(['quiz_summary_details.homework_id' => $id])
+                ->groupBy('questions.id')
                 ->all();
         }
 
