@@ -121,7 +121,7 @@ class LiveClassController extends Controller
         $tutor_session->meeting_token = $token;
         if (!$tutor_session->save())
             return (new ApiResponse)->error($tutor_session->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your session');
-        return (new ApiResponse)->success(Yii::$app->params['live_class_url'] .$tutor_session->meeting_room. '?jwt='.$token, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success(Yii::$app->params['live_class_url'] . $tutor_session->meeting_room . '?jwt=' . $token, ApiResponse::SUCCESSFUL);
     }
 
     /**
@@ -161,7 +161,7 @@ class LiveClassController extends Controller
             $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
             $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
             $this->classAttendance($session_id, $user_id, SharedConstant::LIVE_CLASS_USER_TYPE[1], $token);
-            return (new ApiResponse)->success(Yii::$app->params['live_class_url'] .$tutor_session->meeting_room. '?jwt='.$token, ApiResponse::SUCCESSFUL);
+            return (new ApiResponse)->success(Yii::$app->params['live_class_url'] . $tutor_session->meeting_room . '?jwt=' . $token, ApiResponse::SUCCESSFUL);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid class status');
         }
@@ -175,36 +175,53 @@ class LiveClassController extends Controller
      */
     public function actionEndClass()
     {
-        $session_id = Yii::$app->request->post('session_id');
         $user_id = Yii::$app->user->id;
-        $form = new \yii\base\DynamicModel(compact('session_id', 'user_id'));
-        $form->addRule(['session_id'], 'required')
-            ->addRule(['session_id'], 'exist', ['targetClass' => ClassAttendance::className(), 'targetAttribute' => ['session_id', 'user_id']]);
-        if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+        $is_owner = false;
+        $is_completed = false;
+        if (!empty($session_id)) {
+            $form = new \yii\base\DynamicModel(compact('session_id', 'user_id'));
+            $form->addRule(['session_id'], 'required')
+                ->addRule(['session_id'], 'exist', ['targetClass' => ClassAttendance::className(), 'targetAttribute' => ['session_id', 'user_id']]);
+            if (!$form->validate()) {
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+            }
+            $tutor_session = TutorSession::findOne(['id' => $session_id]);
+
+            if (!$tutor_session)
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid session');
+            $attendance = ClassAttendance::find()->where(['user_id' => $user_id, 'session_id' => $session_id])->one();
+            if (!empty($attendance->ended_at))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Meeting already ended');
+
+
+            if ($tutor_session->requester_id == $user_id) {
+                $tutor_session->status = 'completed';
+                $tutor_session->save();
+                $is_owner = true;
+            }
+
+
+            if ($attendance) {
+                $attendance->ended_at = date('Y-m-d H:i:s');
+                $attendance->save();
+                $is_completed = true;
+            }
+
+        } else {
+            if (TutorSession::find()->where(['requester_id' => $user_id, 'status' => 'ongoing'])->exists()) {
+                TutorSession::updateAll(['status' => 'completed'], ['requester_id' => $user_id, 'status' => 'ongoing']);
+                $is_owner = true;
+                $is_completed = true;
+            }
+
+            if (ClassAttendance::find()->where(['AND', ['user_id' => $user_id], ['not', ['ended_at' => null]]])->exists()) {
+                ClassAttendance::updateAll(['ended_at' => date('Y-m-d H:i:s')], ['AND', ['user_id' => $user_id], ['not', ['ended_at' => null]]]);
+                $is_completed = true;
+            }
         }
 
-        $tutor_session = TutorSession::findOne(['id' => $session_id]);
 
-        if (!$tutor_session)
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid session');
-
-        $attendance = ClassAttendance::find()->where(['user_id' => $user_id, 'session_id' => $session_id])->one();
-        if (!empty($attendance->ended_at))
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Meeting already ended');
-
-
-        if ($tutor_session->requester_id == $user_id) {
-            $tutor_session->status = 'completed';
-            $tutor_session->save();
-        }
-
-
-        if ($attendance) {
-            $attendance->ended_at = date('Y-m-d H:i:s');
-            $attendance->save();
-        }
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Class ended');
+        return (new ApiResponse)->success(['status' => $is_completed, 'is_owner' => $is_owner], ApiResponse::SUCCESSFUL, 'Class ended');
     }
 
 
@@ -251,7 +268,7 @@ class LiveClassController extends Controller
         }
 
         $model = TutorSession::find()
-            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id,'status'=>'pending'])
+            ->where(['id' => $id, 'requester_id' => Yii::$app->user->id, 'status' => 'pending'])
             ->one();
 
         if (!$model) {
