@@ -52,8 +52,7 @@ class ResetPasswordForm extends Model {
 		}
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('password_changed', [['user_id', $user->id]]))
-            return false;
+        $notification->NewNotification('password_changed', [['user_id', $user->id]]);
 
 		//TODO:: will send an email here
 		

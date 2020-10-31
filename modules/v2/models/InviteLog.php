@@ -127,8 +127,7 @@ class InviteLog extends \yii\db\ActiveRecord
         }
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('student_invite_parent', [['invitation_id', $model->id]]))
-            return false;
+        $notification->NewNotification('student_invite_parent', [['invitation_id', $model->id]]);
 
         return $model;
     }
@@ -168,8 +167,7 @@ class InviteLog extends \yii\db\ActiveRecord
         if ($model->save()) {
 
             $notification = new InputNotification();
-            if (!$notification->NewNotification('school_invite_teacher', [['invitation_id', $model->id]]))
-                return false;
+            $notification->NewNotification('school_invite_teacher', [['invitation_id', $model->id]]);
 
             return $model;
         }
@@ -189,8 +187,7 @@ class InviteLog extends \yii\db\ActiveRecord
         if ($model->save()) {
 
             $notification = new InputNotification();
-            if (!$notification->NewNotification('teacher_invite_school', [['invitation_id', $model->id]]))
-                return false;
+            $notification->NewNotification('teacher_invite_school', [['invitation_id', $model->id]]);
 
             return $model;
         }

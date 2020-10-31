@@ -167,8 +167,8 @@ class ClassController extends ActiveController
         }
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('teacher_assigned_class', [['teacher_id', Yii::$app->user->id]]))
-            return false;
+        $notification->NewNotification('teacher_assigned_class', [['teacher_id', Yii::$app->user->id]]);
+
 
         return (new ApiResponse)->success($teacher->classes, ApiResponse::SUCCESSFUL, 'Classes found');
     }

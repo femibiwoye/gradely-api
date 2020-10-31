@@ -50,8 +50,7 @@ class PasswordResetRequestForm extends Model {
 		}
 
         $notification = new InputNotification();
-        if (!$notification->NewNotification('forgot_password', [['user_id', $user->id]]))
-            return false;
+        $notification->NewNotification('forgot_password', [['user_id', $user->id]]);
 		//TODO:: will send an email here.
 
 		return true;
