@@ -346,8 +346,9 @@ class ChildrenController extends ActiveController
     {
         if ($parent = Parents::find()->where(['student_id' => $child_id, 'status' => 1, 'parent_id' => Yii::$app->user->id])->exists()) {
             $user = User::findOne(['id' => $child_id, 'type' => 'student']);
-            $token = !empty($user->token) ? $user->token : $user->updateAccessToken();
-            return (new ApiResponse)->success($token);
+            if (empty($user->token))
+                $user->updateAccessToken();
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['token' => $user->token]));
         }
 
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
