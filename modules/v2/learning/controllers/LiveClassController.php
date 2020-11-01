@@ -263,7 +263,7 @@ class LiveClassController extends Controller
     public function actionReschedule($id)
     {
         $availability = Yii::$app->request->post('availability');
-        if (!$availability) {
+        if (empty($availability)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Availability time cannot be blank!');
         }
 
