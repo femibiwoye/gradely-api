@@ -279,7 +279,7 @@ class FeedController extends ActiveController
 
     public function actionCreate()
     {
-        if (Pricing::SubscriptionStatus()) {
+        if (!Pricing::SubscriptionStatus()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
@@ -314,7 +314,7 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
-        if (Pricing::SubscriptionStatus()) {
+        if (!Pricing::SubscriptionStatus()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 

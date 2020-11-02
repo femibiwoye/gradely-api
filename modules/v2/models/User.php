@@ -216,7 +216,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             return false;
         }
 
-        $model->token = Yii::$app->security->generateRandomString();
+        $model->token = Yii::$app->security->generateRandomString(200);
         if (!$model->save(false)) {
             return false;
         }

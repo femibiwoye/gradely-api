@@ -341,4 +341,16 @@ class ChildrenController extends ActiveController
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }
+
+    public function actionSwitchChild($child_id)
+    {
+        if ($parent = Parents::find()->where(['student_id' => $child_id, 'status' => 1, 'parent_id' => Yii::$app->user->id])->exists()) {
+            $user = User::findOne(['id' => $child_id, 'type' => 'student']);
+            if (empty($user->token))
+                $user->updateAccessToken();
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['token' => $user->token]));
+        }
+
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+    }
 }

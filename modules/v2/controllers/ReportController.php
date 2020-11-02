@@ -70,7 +70,7 @@ class ReportController extends ActiveController
 
         $proceedStatus = false;
         $homework = Homeworks::find();
-        if (Yii::$app->user->identity->type == 'school' && $homework->where(['id' => $id, 'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])])->exists()) {
+        if (Yii::$app->user->identity->type == 'school' && $homework->where(['id' => $id, 'school_id' => Utility::getSchoolAccess()])->exists()) {
             $proceedStatus = true;
         } elseif (Yii::$app->user->identity->type == 'teacher' && $homework->where([
                 'id' => $id,
@@ -101,10 +101,13 @@ class ReportController extends ActiveController
             $model = HomeworkReport::find()->where(['id' => $id])->one();
         } else {
             $model = Questions::find()
-                ->innerJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
-                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type = 'homework'")
-                ->innerJoin('homeworks h', "h.id = quiz_summary_details.homework_id")
-                ->where(['quiz_summary_details.homework_id' => $id])
+                ->leftJoin('quiz_summary_details', 'quiz_summary_details.question_id = questions.id')
+                ->leftJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type = 'homework'")
+                ->innerJoin('homework_questions', 'homework_questions.question_id = questions.id')
+                ->innerJoin('homeworks h', "h.id = homework_questions.homework_id")
+                ->where(['h.id' => $id])
+                //->where(['quiz_summary_details.homework_id' => $id])
+                ->groupBy('questions.id')
                 ->all();
         }
 

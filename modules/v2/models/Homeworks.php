@@ -385,17 +385,17 @@ class Homeworks extends \yii\db\ActiveRecord
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
             $condition = ['class_id' => $classes];
         } elseif (Yii::$app->user->identity->type == 'student') {
-
+            $studentIDs = Yii::$app->user->id;
             if ($studentModel = StudentSchool::find()
                 ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one())
-                $student_class = ArrayHelper::getColumn($studentModel, 'class_id');
+                $student_class = $studentModel->class_id;
             else
                 $student_class = null;
 
             $condition = ['class_id' => $student_class];
             $studentCheck = true;
         } elseif (Yii::$app->user->identity->type == 'parent') {
-            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id,'status'=>1])->all(), 'student_id');
 
             $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
             if (isset($_GET['class_id']))
@@ -424,6 +424,7 @@ class Homeworks extends \yii\db\ActiveRecord
                     'type' => $homework->type,
                     'title' => $homework->title,
                     'date_time' => $homework->close_date,
+                    'reference'=>$homework
                 ]);
             }
         }

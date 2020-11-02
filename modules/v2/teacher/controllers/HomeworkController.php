@@ -69,7 +69,7 @@ class HomeworkController extends ActiveController
 
     public function actionCreate($type)
     {
-        if (Pricing::SubscriptionStatus()) {
+        if (!Pricing::SubscriptionStatus()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
