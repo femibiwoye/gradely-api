@@ -2,7 +2,6 @@
 
 namespace app\modules\v2\models;
 
-use app\modules\v1\models\QuizSummary;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\helpers\ArrayHelper;
