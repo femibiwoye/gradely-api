@@ -141,6 +141,7 @@ class LiveClassController extends Controller
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
+        // TODO Allow school and parent to be able to join
         if (Yii::$app->user->identity->type != 'student')
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
 
@@ -148,8 +149,9 @@ class LiveClassController extends Controller
 
         $tutor_session = TutorSession::findOne(['id' => $session_id]);
         $schoolStudent = StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE, 'class_id' => $tutor_session->class])->exists();
+        $teacherID = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE, 'class_id' => $tutor_session->class])->exists();
 
-        if (!$student && !$schoolStudent)
+        if (!$student && !$schoolStudent && $teacherID)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You are either not in class or not a participant');
 
 

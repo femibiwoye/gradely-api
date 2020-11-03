@@ -83,7 +83,7 @@ class Utility extends ActiveRecord
      */
     public static function getTeacherClassesID($teacherID)
     {
-        $classes = ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => $teacherID])->all(), 'class_id');
+        $classes = ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => $teacherID,'status'=>1])->all(), 'class_id');
         return $classes;
     }
 

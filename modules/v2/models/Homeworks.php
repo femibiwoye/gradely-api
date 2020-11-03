@@ -169,7 +169,11 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getIsTaken()
     {
-        if (QuizSummary::find()->where(['homework_id' => $this->id, 'student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])->exists()) {
+        if (Yii::$app->user->identity->type == 'parent')
+            $childID = Yii::$app->request->get('class_id'); // class_id is used for child_id in feed
+        else
+            $childID = Yii::$app->user->id;
+        if (QuizSummary::find()->where(['homework_id' => $this->id, 'student_id' => $childID, 'submit' => SharedConstant::VALUE_ONE])->exists()) {
             return 1;
         }
 
@@ -211,7 +215,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
+            $marks = ($model->correct / $model->total_questions) * 100;
             if ($marks < 50) {
                 $this->struggling_students = $this->struggling_students + 1;
             }
@@ -224,8 +228,8 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
-            if ($marks > 50 && $marks < 75) {
+            $marks = ($model->correct / $model->total_questions) * 100;
+            if ($marks >= 50 && $marks <= 75) {
                 $this->average_students = $this->average_students + 1;
             }
         }
@@ -237,7 +241,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
+            $marks = ($model->correct / $model->total_questions) * 100;
             if ($marks > 75) {
                 $this->excellent_students = $this->excellent_students + 1;
             }
@@ -395,7 +399,7 @@ class Homeworks extends \yii\db\ActiveRecord
             $condition = ['class_id' => $student_class];
             $studentCheck = true;
         } elseif (Yii::$app->user->identity->type == 'parent') {
-            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id,'status'=>1])->all(), 'student_id');
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1])->all(), 'student_id');
 
             $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
             if (isset($_GET['class_id']))
@@ -424,7 +428,7 @@ class Homeworks extends \yii\db\ActiveRecord
                     'type' => $homework->type,
                     'title' => $homework->title,
                     'date_time' => $homework->close_date,
-                    'reference'=>$homework
+                    'reference' => $homework
                 ]);
             }
         }
