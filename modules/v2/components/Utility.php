@@ -173,7 +173,7 @@ class Utility extends ActiveRecord
     {
         if (Yii::$app->user->identity->type == 'parent') {
             if (!isset($_GET['child_id']) || empty($_GET['child_id']))
-                return null;
+                return 0;
             $child_id = $_GET['child_id'];
             if (Parents::find()->where(['parent_id' => Yii::$app->user->id, 'student_id' => $child_id, 'status' => 1])->exists())
                 return $child_id;

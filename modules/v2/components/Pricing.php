@@ -47,7 +47,7 @@ class Pricing extends Widget
                 $status = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                 $plan = $model->subscription_plan;
                 $used_student = StudentSchool::find()->where(['school_id' => $model->id, 'status' => 1])->count();
-                $limit = Options::findOne(['name' => $plan . '_students_limit']);
+                $limit = Options::findOne(['name' => $plan . '_school_students_limit']);
                 $limit = $limit ? $limit->value : null;
                 $unused_student = $limit - $used_student;
                 $return = [

@@ -43,6 +43,7 @@ class StudentDetails extends User
             'topics' => 'topicBreakdown',
             'homework',
             'subjects' => 'classSubjects',
+            'selectedSubject' => 'selectedSubject',
             'completion_rate' => 'totalHomeworks',
             'positions' => 'statistics',
             'performance' => 'performance',
@@ -207,6 +208,8 @@ class StudentDetails extends User
 
         if (Yii::$app->request->get('subject'))
             $topics = $topics->andWhere(['subject_id' => Yii::$app->request->get('subject')]);
+        else
+            $topics = $topics->andWhere(['subject_id' => $this->getSelectedSubject()]);
         if (Yii::$app->request->get('term'))
             $topics = $topics->andWhere(['term' => Yii::$app->request->get('term')]);
 
@@ -408,6 +411,11 @@ class StudentDetails extends User
             ->innerJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id')
             ->where(['s.status' => 1, 'cs.status' => 1])
             ->all();
+    }
+
+    public function getSelectedSubject()
+    {
+       return isset($this->getClassSubjects()[0])?$this->getClassSubjects()[0]:null;
     }
 
     private function topicPerformanceMini($data)
