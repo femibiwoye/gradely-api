@@ -56,7 +56,8 @@ class Pricing extends Widget
                     'plan' => $plan,
                     'limit' => $limit,
                     'used_student' => $used_student,
-                    'unused_student' => $unused_student < 1 ? 0 : $unused_student
+                    'unused_student' => $unused_student < 1 ? 0 : $unused_student,
+                    'days_left'=>self::subscriptionDaysLeft($model->subscription_expiry)
                 ];
 
                 return $statusOnly ? $status : $return;
@@ -81,14 +82,29 @@ class Pricing extends Widget
                     if ($schoolSubStatus || $userStatus) {
                         $status = true;
                     }
-                    $return = ['status' => $status, 'expiry' => $user->subscription_expiry, 'plan' => $user->subscription_plan, 'is_school_sub' => $is_school];
+                    $return = [
+                        'status' => $status,
+                        'expiry' => $user->subscription_expiry,
+                        'plan' => $user->subscription_plan,
+                        'is_school_sub' => $is_school,
+                        'days_left'=>self::subscriptionDaysLeft($model->subscription_expiry)
+                        ];
                     return $statusOnly ? $status : $return;
                 }
             }
         } catch (\Exception $e) {
-            $return = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0];
+            $return = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0, 'days_left' => 0];
             return $statusOnly ? false : $return;
         }
+    }
+
+    public static function subscriptionDaysLeft($endDate)
+    {
+        $now = time();
+        $endDate = strtotime($endDate);
+        $datediff =  $endDate-$now;
+
+        return round($datediff / (60 * 60 * 24));
     }
 
     public static function SchoolLimitStatus($id)
