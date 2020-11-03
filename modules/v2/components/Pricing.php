@@ -16,11 +16,11 @@ class Pricing extends Widget
         if ($type == 'school') {
             $model = Schools::findOne(['id' => $id]);
             $model->subscription_plan = 'trial';
-            $model->subscription_expiry = date("Y-m-d", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
+            $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
         } else if ($type == 'student') {
             $model = UserModel::findOne(['id' => $id]);
             $model->subscription_plan = 'trial';
-            $model->subscription_expiry = date("Y-m-d", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
+            $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
         }
 
         if (isset($model) && $model->save()) {
