@@ -280,7 +280,7 @@ class ChildrenController extends ActiveController
             if (!$parent->save())
                 return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error found');
 
-            if ($this->scenario == 'parent-student-signup') {
+            if ($parent->scenario == 'parent-student-signup') {
                 //Notification that parent add child
                 $notification = new InputNotification();
                 $notification->NewNotification('parent_adds_student', [['student_id', $user->id]]);
