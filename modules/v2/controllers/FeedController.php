@@ -76,7 +76,7 @@ class FeedController extends ActiveController
             }
 
             $models = $this->modelClass::find()
-                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
+                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class','teacher']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
 
         } else if (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);

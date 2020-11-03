@@ -57,7 +57,7 @@ class Pricing extends Widget
                     'limit' => $limit,
                     'used_student' => $used_student,
                     'unused_student' => $unused_student < 1 ? 0 : $unused_student,
-                    'days_left'=>self::subscriptionDaysLeft($model->subscription_expiry)
+                    'days_left' => self::subscriptionDaysLeft($model->subscription_expiry)
                 ];
 
                 return $statusOnly ? $status : $return;
@@ -74,8 +74,8 @@ class Pricing extends Widget
                     $schoolSubStatus = false;
                     $status = true;
                     $is_school = 0;
-                    if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $childID])->one()) {
-                        $model = Schools::findOne(['id' => $schoolID]);
+                    if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID])->one()) {
+                        $model = Schools::findOne(['id' => $model->school_id]);
                         $schoolSubStatus = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                         $is_school = $schoolSubStatus ? 1 : 0;
                     }
@@ -87,8 +87,8 @@ class Pricing extends Widget
                         'expiry' => $user->subscription_expiry,
                         'plan' => $user->subscription_plan,
                         'is_school_sub' => $is_school,
-                        'days_left'=>self::subscriptionDaysLeft($model->subscription_expiry)
-                        ];
+                        'days_left' => self::subscriptionDaysLeft($model->subscription_expiry)
+                    ];
                     return $statusOnly ? $status : $return;
                 }
             }
@@ -102,7 +102,7 @@ class Pricing extends Widget
     {
         $now = time();
         $endDate = strtotime($endDate);
-        $datediff =  $endDate-$now;
+        $datediff = $endDate < $now ? 0 : $endDate - $now;
 
         return round($datediff / (60 * 60 * 24));
     }

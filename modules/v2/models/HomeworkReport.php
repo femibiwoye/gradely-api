@@ -87,7 +87,7 @@ class HomeworkReport extends Homeworks
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
+            $marks = ($model->correct / $model->total_questions)* 100;
             if ($marks < 50) {
                 $this->struggling_students = $this->struggling_students + 1;
             }
@@ -100,8 +100,8 @@ class HomeworkReport extends Homeworks
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
-            if ($marks > 50 && $marks < 75) {
+            $marks = ($model->correct / $model->total_questions) * 100;
+            if ($marks >= 50 && $marks < 75) {
                 $this->average_students = $this->average_students + 1;
             }
         }
@@ -113,8 +113,8 @@ class HomeworkReport extends Homeworks
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
-            if ($marks > 75) {
+            $marks = ($model->correct * $model->total_questions) * 100;
+            if ($marks >= 75) {
                 $this->excellent_students = $this->excellent_students + 1;
             }
         }
