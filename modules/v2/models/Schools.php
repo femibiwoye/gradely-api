@@ -87,7 +87,7 @@ class Schools extends \yii\db\ActiveRecord
             [['created_at'], 'safe'],
             [['slug', 'name', 'logo', 'banner', 'tagline', 'address'], 'string', 'max' => 255],
             [['abbr'], 'string', 'max' => 10],
-            [['subscription_expiry'], 'datetime'],
+            [['subscription_expiry'], 'datetime', 'format' => 'php:Y-m-d H:i:s'],
             [['city', 'state', 'country', 'website', 'contact_name', 'contact_email', 'contact_image', 'school_email', 'school_type'], 'string', 'max' => 100],
             [['postal_code', 'establish_date'], 'string', 'max' => 20],
             [['contact_role', 'timezone', 'boarding_type'], 'string', 'max' => 50],
