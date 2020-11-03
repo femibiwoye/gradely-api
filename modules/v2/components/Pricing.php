@@ -40,7 +40,7 @@ class Pricing extends Widget
             $type = Yii::$app->user->identity->type;
             if ($type == 'school' || $type == 'teacher') {
                 if ($type == 'teacher')
-                    $schoolID = SchoolTeachers::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1])->id;
+                    $schoolID = SchoolTeachers::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1])->school_id;
                 elseif ($type == 'school')
                     $schoolID = Utility::getSchoolAccess();
                 $model = Schools::findOne(['id' => $schoolID]);
