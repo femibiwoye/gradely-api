@@ -44,6 +44,13 @@ class StudentMastery extends Model
         ];
     }
 
+    public function getGlobalData()
+    {
+        return [
+
+        ];
+    }
+
     private function getName()
     {
         return $this->getUser()->firstname . ' ' . $this->getUser()->lastname;

@@ -219,7 +219,7 @@ class ReportController extends ActiveController
         return false;
     }
 
-    public function actionMasteryReport()
+    public function actionSingleMasteryReport()
     {
         if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
@@ -234,5 +234,22 @@ class ReportController extends ActiveController
         }
 
         return (new ApiResponse)->success($model->getData(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionMasteryReport()
+    {
+        if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $model = new StudentMastery;
+        $model->student_id = Yii::$app->user->identity->type == 'student' ? Yii::$app->user->id : Yii::$app->request->get('student_id');
+        $model->class_id = Yii::$app->request->get('class_id');
+        $model->subject_id = Yii::$app->request->get('subject_id');
+        if (!$model->getGlobalData()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model->getGlobalData(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 }
