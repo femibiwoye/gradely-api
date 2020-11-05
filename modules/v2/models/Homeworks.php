@@ -130,12 +130,14 @@ class Homeworks extends \yii\db\ActiveRecord
             'score',
             'status',
             'tag',
-            'activeStatus' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
+            'activeStatus' => 'statusMessage', //this is used for student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
             'publish_status' => 'publishStatus',
             'topics',
             'attachments',
             'average',
+            'expected_students' =>'studentExpectedCount',
+            'submitted_students' => 'studentsSubmitted',
             'completion' => 'completedRate',
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
@@ -203,7 +205,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getStudentExpectedCount()
     {
-        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id])->count();
+        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id,'status'=>1])->count();
     }
 
     public function getStudentsSubmitted()
@@ -401,7 +403,7 @@ class Homeworks extends \yii\db\ActiveRecord
         } elseif (Yii::$app->user->identity->type == 'parent') {
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1])->all(), 'student_id');
 
-            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
+            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs,'status'=>1]);
             if (isset($_GET['class_id']))
                 $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
 

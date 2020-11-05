@@ -370,10 +370,11 @@ class UserModel extends User
 
     public function getRecommendation()
     {
+        $resources = array_merge($this->getVideos($this->remedial), $this->getPractice($this->remedial));
+        shuffle($resources);
         return [
             'remedial' => $this->remedial,
-            'videos' => $this->getVideos($this->remedial),
-            'resources' => $this->getPractice($this->remedial),
+            'resources' => $resources,
         ];
     }
 
@@ -413,17 +414,13 @@ class UserModel extends User
             ->where(['topic_id' => $topic['topic_id']])
             ->limit(5)
             ->select('content_id')->all(), 'content_id');
-        $teacher_id = Yii::$app->user->id;
         $classID = Utility::getStudentClass(null, $this->id);
         $referenceID = Yii::$app->request->get('id');
         return VideoContent::find()
             ->select([
                 '*', new Expression("'$classID' as class_id"),
-                //new Expression('(case when (select file_id from file_log where file_id = video_content.id AND type = "video" AND user_id = ' . $this->id . ' AND is_completed = 0) then 1 else 0 end) as is_recommended'),
+                new Expression("'video' as type"),
                 new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $this->id . ' AND resources_id = video_content.id AND reference_type = "homework" AND reference_id = ' . $referenceID . ') then 1 else 0 end) as is_recommended'),
-//                new Expression("$referenceID as reference_id"),
-//                new Expression("$this->id as receiver_id"),
-//                new Expression("{$teacher_id} as creator_id"),
             ])
             ->where(['id' => $videos])
             ->limit(SharedConstant::VALUE_FIVE)
