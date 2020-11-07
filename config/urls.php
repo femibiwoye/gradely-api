@@ -74,6 +74,9 @@ return [
     //website errors
     'POST v2/error/report-error' => 'v2/error/website-error',
 
+    //Students Additional Topics
+    'POST v2/student-additional-topics' => 'v2/student-additional-topics/create',
+
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin', //
