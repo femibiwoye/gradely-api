@@ -259,10 +259,13 @@ class ClassReport extends Model
             ->select([
                 'video_content.*',
                 new Expression("'video' as type"),
-                //new Expression('(case when (select file_id from file_log where file_id = video_content.id AND type = "video") then 1 else 0 end) as is_recommended'),
                 new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $student_id . ' AND resources_id = video_content.id AND reference_type = "class" AND reference_id = ' . $classID . ') then 1 else 0 end) as is_recommended'),
+                'gc.id class_id',
+                'gc.description class_name',
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
+            ->innerJoin('global_class gc', 'gc.id = st.class_id')
             ->where(['video_assign.topic_id' => $topic_id])
             ->limit(SharedConstant::VALUE_THREE)
             ->asArray()
@@ -272,7 +275,8 @@ class ClassReport extends Model
             return SharedConstant::VALUE_NULL;
         }
 
+        $topicOrders = Utility::generateSingleMixPractices($topic_objects);
 
-        return array_merge($topic_objects, $video);
+        return array_merge($topicOrders, $video);
     }
 }

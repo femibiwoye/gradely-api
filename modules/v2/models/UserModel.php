@@ -489,6 +489,8 @@ class UserModel extends User
         }
 
 
+
+
         return $topics = array_merge($topic_objects, $video);
     }
 
