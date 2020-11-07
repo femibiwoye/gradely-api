@@ -211,7 +211,7 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getStudentsSubmitted()
     {
         return QuizSummary::find()
-            ->innerJoin('student_school','student_school.student_id = quiz_summary.student_id AND student_school.status = 1')
+            ->innerJoin('student_school','student_school.student_id = quiz_summary.student_id AND student_school.class_id = '.$this->class_id.' AND student_school.status = 1')
             ->where(['homework_id'=>$this->id,'submit' => SharedConstant::VALUE_ONE, 'quiz_summary.class_id' => $this->class_id])->count();
     }
 
