@@ -6,7 +6,9 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\ClassAttendance;
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\GenerateString;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
@@ -121,7 +123,12 @@ class LiveClassController extends Controller
         $tutor_session->meeting_token = $token;
         if (!$tutor_session->save())
             return (new ApiResponse)->error($tutor_session->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your session');
-        return (new ApiResponse)->success(Yii::$app->params['live_class_url'] . $tutor_session->meeting_room . '?jwt=' . $token, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success($this->classUrl($tutor_session, $token), ApiResponse::SUCCESSFUL);
+    }
+
+    private function classUrl(TutorSession $session, $token)
+    {
+        return Yii::$app->params['live_class_url'] . $session->meeting_room . '?jwt=' . $token . '#config.subject=%22' . $session->title . '%22';
     }
 
     /**
@@ -129,11 +136,12 @@ class LiveClassController extends Controller
      *
      * @return ApiResponse
      */
-    public function actionJoinClass()
+    public function actionJoinClass($child = null)
     {
 
         $session_id = Yii::$app->request->post('session_id');
         $user_id = Yii::$app->user->id;
+        $type = Yii::$app->user->identity->type;
         $form = new \yii\base\DynamicModel(compact('session_id'));
         $form->addRule(['session_id'], 'required')
             ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
@@ -142,16 +150,18 @@ class LiveClassController extends Controller
         }
 
         // TODO Allow school and parent to be able to join
-        if (Yii::$app->user->identity->type != 'student')
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
+//        if (Yii::$app->user->identity->type != 'student')
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user');
 
         $student = TutorSessionParticipant::find()->where(['session_id' => $session_id, 'participant_id' => $user_id])->exists();
 
         $tutor_session = TutorSession::findOne(['id' => $session_id]);
-        $schoolStudent = StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE, 'class_id' => $tutor_session->class])->exists();
-        $teacherID = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE, 'class_id' => $tutor_session->class])->exists();
+        $schoolStudent = $type == 'student' && StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE, 'class_id' => $tutor_session->class])->exists() ? true : false;
+        $teacherID = $type == 'teacher' && TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE, 'class_id' => $tutor_session->class])->exists() ? true : false;
+        $parentStatus = $type == 'parent' && Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE, 'student_id' => $child])->exists() ? true : false;
+        $schoolStatus = $type == 'school' && Classes::find()->where(['school_id' => Utility::getSchoolAccess(), 'id' => $tutor_session->class])->exists() ? true : false;
 
-        if (!$student && !$schoolStudent && $teacherID)
+        if (!$student && !$schoolStudent && !$teacherID && !$parentStatus && !$schoolStatus)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You are either not in class or not a participant');
 
 
@@ -163,7 +173,7 @@ class LiveClassController extends Controller
             $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
             $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
             $this->classAttendance($session_id, $user_id, SharedConstant::LIVE_CLASS_USER_TYPE[1], $token);
-            return (new ApiResponse)->success(Yii::$app->params['live_class_url'] . $tutor_session->meeting_room . '?jwt=' . $token, ApiResponse::SUCCESSFUL);
+            return (new ApiResponse)->success($this->classUrl($tutor_session, $token), ApiResponse::SUCCESSFUL);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid class status');
         }
