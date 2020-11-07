@@ -361,7 +361,7 @@ class UserModel extends User
             ])
             ->innerJoin('homework_questions hq', 'hq.homework_id=qsd.homework_id')
             ->innerJoin('quiz_summary qus', "qus.id = qsd.quiz_id AND qus.type = 'homework'")
-            ->leftJoin('subject_topics st', 'st.id=qsd.topic_id')
+            ->innerJoin('subject_topics st', 'st.id=qsd.topic_id')
             ->where(['qsd.homework_id' => Yii::$app->request->get('id')])
             ->groupBy(['qsd.topic_id'])
             ->orderBy('score ASC')
@@ -446,7 +446,7 @@ class UserModel extends User
             ->alias('qsd')
             ->select([
                 new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending") then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending" AND subject_id = ' . $quizSummary->subject_id . ' group by student_id) then 1 else 0 end) as is_recommended'),
                 'qsd.topic_id'
             ])
             ->where([
