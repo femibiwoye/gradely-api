@@ -237,9 +237,9 @@ class ReportController extends ActiveController
 
     public function actionMasteryReport()
     {
-        if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
+        /*if (Yii::$app->user->identity->type != 'parent' || Yii::$app->user->identity->type != 'student') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
-        }
+        }*/
 
         $model = new StudentMastery;
         $model->student_id = Yii::$app->user->identity->type == 'student' ? Yii::$app->user->id : Yii::$app->request->get('student_id');

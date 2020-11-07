@@ -639,32 +639,8 @@ class CatchupController extends ActiveController
                 ->limit(10)
                 ->all();
 
-            $topicOrders = [];
-            foreach ($topicModels as $key => $inner) {
-                if ($key <= 3) {
-                    $topicOrders[] = ['type' => 'single', 'topic' => $inner];
-                }
+            $topicOrders = Utility::generateSingleMixPractices($topicModels);
 
-                if ($key > 3 && $key <= 6) {
-                    if (isset($topicModels[4])) {
-                        $temp = array_splice($topicModels, 4, 3);
-                        if (count($temp) == 1)
-                            $topicOrders[] = ['type' => 'single', 'topic' => $inner];
-                        else
-                            $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
-                    }
-                }
-
-                if ($key > 6 && $key <= 9) {
-                    if (isset($topicModels[7])) {
-                        $temp = array_splice($topicModels, 8, 3);
-                        if (count($temp) == 1)
-                            $topicOrders[] = ['type' => 'single', 'topic' => $inner];
-                        else
-                            $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
-                    }
-                }
-            }
 
             //}
 
@@ -964,16 +940,16 @@ class CatchupController extends ActiveController
     public function actionAssessmentRecommendation($id = null)
     {
         $model = RecommendationTopics::find()
-                    ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id');
+            ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id');
 
         if (!empty($id)) {
             $model = $model->where(['recommendation_topics.recommendation_id' => $id])->all();
         } else {
             $model = $model
-                        ->andWhere(['recommendations.student_id' => Yii::$app->user->id])
-                        ->limit(6)
-                        ->orderBy(['created_at' => SORT_DESC])
-                        ->all();
+                ->andWhere(['recommendations.student_id' => Yii::$app->user->id])
+                ->limit(6)
+                ->orderBy(['created_at' => SORT_DESC])
+                ->all();
         }
 
         if (!$model) {

@@ -501,4 +501,40 @@ class Utility extends ActiveRecord
 
         return true;
     }
+
+    public static function generateSingleMixPractices($topicModels)
+    {
+        $topicOrders = [];
+        foreach ($topicModels as $key => $inner) {
+            if ($key == 0) {
+                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+            }
+
+            if ($key >= 1 && $key <= 4) {
+                if (isset($topicModels[1])) {
+                    $temp = array_splice($topicModels, 1, 4);
+                    if (count($temp) == 1)
+                        $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                    else
+                        $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
+                }
+            }
+
+            if ($key > 4 && $key <= 7) {
+                if (isset($topicModels[5])) {
+                    $temp = array_splice($topicModels, 6, 3);
+                    if (count($temp) == 1)
+                        $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                    else
+                        $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
+                }
+            }
+
+            if ($key > 7 && $key <= 10) {
+                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+            }
+        }
+
+        return $topicOrders;
+    }
 }

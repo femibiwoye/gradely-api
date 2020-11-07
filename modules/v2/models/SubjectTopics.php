@@ -58,28 +58,15 @@ class SubjectTopics extends \yii\db\ActiveRecord
     }
 
     public function fields()
-    {
-        return [
-            'id',
-            'subject_id',
-            'creator_id',
-            'class_id',
-            'school_id',
-            'slug',
-            'topic',
-            'description',
-            'week_number',
-            'term',
-            'exam_type_id',
-            'catchup_status' => 'catchupStatus',
-            'image' => function ($model) {
-                return Utility::AbsoluteImage($model->image,'topics');
-            },
-            'learning_area' => 'learningArea',
-            'status',
-            'created_at',
-        ];
-    }
+{
+    $fields = parent::fields();
+    $fields['image'] = function ($model) {
+        return Utility::AbsoluteImage($model->image,'topics');
+    };
+    $fields['catchup_status'] = 'catchupStatus';
+    $fields['learning_area'] = 'learningArea';
+    return $fields;
+}
 
     /**
      * {@inheritdoc}
@@ -114,6 +101,27 @@ class SubjectTopics extends \yii\db\ActiveRecord
         return $this->hasMany(LearningArea::className(), ['topic_id' => 'id']);
     }
 
+    public function getCatchupStatus()
+    {
+        if ($this->additionalTopic) {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    public function getAdditionalTopic()
+    {
+        return StudentAdditiionalTopics::find()
+                    ->where([
+                        'class_id' => 'class_id',
+                        'subject_id' =>'subject_id',
+                        'status' => 1,
+                        'topic_id' => 'topic_id'
+                    ])
+                    ->one();
+    }
+
     public function getPerformance()
     {
         return [
@@ -128,11 +136,6 @@ class SubjectTopics extends \yii\db\ActiveRecord
             'average' => $this->averageStudents,
             'excellence' => $this->excellenceStudents,
         ];
-    }
-
-    public function getCatchupStatus()
-    {
-        return SharedConstant::VALUE_ONE;
     }
 
     public function getStrugglingStudents()
