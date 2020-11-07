@@ -136,7 +136,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'topics',
             'attachments',
             'average',
-            'expected_students' =>'studentExpectedCount',
+            'expected_students' => 'studentExpectedCount',
             'submitted_students' => 'studentsSubmitted',
             'completion' => 'completedRate',
             //'has_question' => 'homeworkHasQuestion'
@@ -205,12 +205,12 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getStudentExpectedCount()
     {
-        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id,'status'=>1])->count();
+        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1])->count();
     }
 
     public function getStudentsSubmitted()
     {
-        return (int)$this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->count();
+        return (int)$this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE, 'class_id' => $this->class_id])->count();
     }
 
     public function getStrugglingStudents()
@@ -403,7 +403,7 @@ class Homeworks extends \yii\db\ActiveRecord
         } elseif (Yii::$app->user->identity->type == 'parent') {
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1])->all(), 'student_id');
 
-            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs,'status'=>1]);
+            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs, 'status' => 1]);
             if (isset($_GET['class_id']))
                 $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
 
