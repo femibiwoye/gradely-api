@@ -47,7 +47,13 @@ class StudentMastery extends Model
     public function getGlobalData()
     {
         return [
-
+            'id' => $this->getUser()->id,
+            'name' => $this->getName(),
+            'image' => $this->getUser()->image,
+            'subjects' => $this->getSubjects(),
+            'current_subject' => $this->getCurrentSubject(),
+            'classes' => $this->getGlobalClasses(),
+            'current_class' => $this->getCurrentClass(),
         ];
     }
 
@@ -91,6 +97,64 @@ class StudentMastery extends Model
         );
 
         return Classes::findAll(['id' => $student_classes]);
+    }
+
+    private function getGlobalClasses()
+    {
+        return [
+            'terms' => $this->getClassTerms(),
+        ];
+    }
+
+    private function getClassTerms()
+    {
+        return [
+            'first' => $this->getClassTermData('first'),
+            'second' => $this->getClassTermData('second'),
+            'third' => $this->getClassTermData('third'),
+        ];
+    }
+
+    private function getClassTermData($term)
+    {
+        $start_index = $term. '_term_start';
+        $end_index = $term. '_term_end';
+        return [
+            'start_date' => Yii::$app->params[$start_index],
+            'end_date' => Yii::$app->params[$end_index],
+            'topics' => $this->getTopicsInTerm($term),
+        ];
+    }
+
+    private function getTopicsInTerm($term)
+    {
+        $topics = SubjectTopics::find()
+                    ->where([
+                        'subject_topics.subject_id' => $this->getCurrentSubject(),
+                        'subject_topics.class_id' => $this->getCurrentClass(),
+                        'subject_topics.term' => $term,
+                    ])
+                    ->all();
+
+        $previous_class_topics = $this->getPreviousClassTopics();
+        
+        return array_merge($topics, $previous_class_topics);
+    }
+
+    private function getPreviousClassTopics()
+    {
+        $previous_class_topics = ArrayHelper::getColumn(
+            StudentAdditiionalTopics::find()
+                    ->where([
+                        'student_id' => $this->student_id,
+                        'class_id' => $this->getCurrentClass(),
+                        'status' => 1
+                    ])
+                    ->all(),
+                    'topic_id'
+            );
+
+        return SubjectTopics::find()->where(['id' => $previous_class_topics])->all();
     }
 
     private function getCurrentClass()
