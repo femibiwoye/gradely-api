@@ -353,7 +353,7 @@ class UserModel extends User
         return $this->hasMany(QuizSummaryDetails::className(), ['student_id' => 'id'])
             ->alias('qsd')
             ->select([new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(hq.id))*100) as score'), 'qsd.topic_id',
-                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending") then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending" AND subject_id = qus.subject_id group by student_id) then 1 else 0 end) as is_recommended'),
                 'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
                 'COUNT(hq.id) as questionCount',
                 'st.topic as topic',
