@@ -51,9 +51,9 @@ class Subjects extends \yii\db\ActiveRecord
     public function fields()
     {
         $fields = parent::fields();
-        $fields['image'] = function ($model) {
+        /*$fields['image'] = function ($model) {
             return Utility::AbsoluteImage($model->image,'subjects');
-        };
+        };*/
         return $fields;
     }
 

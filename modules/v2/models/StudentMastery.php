@@ -5,6 +5,7 @@ namespace app\modules\v2\models;
 use Yii;
 use yii\base\Model;
 use yii\helpers\ArrayHelper;
+use app\modules\v2\components\Utility;
 
 class StudentMastery extends Model
 {
@@ -50,8 +51,9 @@ class StudentMastery extends Model
             'id' => $this->getUser()->id,
             'name' => $this->getName(),
             'image' => $this->getUser()->image,
-            'subjects' => $this->getSubjects(),
-            'current_subject' => $this->getCurrentSubject(),
+            'subjects' => $this->getClassSubjects(),
+            'current_subject' => $this->getCurrentClassSubject(),
+            'terms' => $this->getClassTerms(),
             'classes' => $this->getGlobalClasses(),
             'current_class' => $this->getCurrentClass(),
         ];
@@ -60,6 +62,22 @@ class StudentMastery extends Model
     private function getName()
     {
         return $this->getUser()->firstname . ' ' . $this->getUser()->lastname;
+    }
+
+    private function getClassSubjects()
+    {
+        return Subjects::findAll(['category' => Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id)]);
+    }
+
+    private function getCurrentClassSubject()
+    {
+        if ($this->subject_id) {
+            return Subjects::findOne([
+                'category' => Utility::getStudentClassCategory($this->getCurrentClass()->global_class_id)
+            ]);
+        }
+
+        return $this->getClassSubjects()[0];
     }
 
     private function getSubjects()
@@ -101,9 +119,7 @@ class StudentMastery extends Model
 
     private function getGlobalClasses()
     {
-        return [
-            'terms' => $this->getClassTerms(),
-        ];
+        return GlobalClass::find()->all();
     }
 
     private function getClassTerms()
@@ -131,7 +147,6 @@ class StudentMastery extends Model
         $topics = SubjectTopics::find()
                     ->where([
                         'subject_topics.subject_id' => $this->getCurrentSubject(),
-                        'subject_topics.class_id' => $this->getCurrentClass(),
                         'subject_topics.term' => $term,
                     ])
                     ->all();
@@ -160,10 +175,10 @@ class StudentMastery extends Model
     private function getCurrentClass()
     {
         if ($this->class_id) {
-            return Classes::findOne(['id' => $this->class_id]);
+            return Classes::findOne(['global_class_id' => $this->class_id]);
         }
 
-        return $this->getClasses()[0];
+        return $this->getGlobalClasses()[0];
     }
 
     private function getTopics()
