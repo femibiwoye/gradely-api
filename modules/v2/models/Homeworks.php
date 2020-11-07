@@ -212,7 +212,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         return (int)$this->getQuizSummaryRecord()
             ->innerJoin('student_school','student_school.student_id = quiz_summary.student_id AND student_school.status = 1')
-            ->where(['submit' => SharedConstant::VALUE_ONE, 'class_id' => $this->class_id])->count();
+            ->where(['submit' => SharedConstant::VALUE_ONE, 'quiz_summary.class_id' => $this->class_id])->count();
     }
 
     public function getStrugglingStudents()
