@@ -59,11 +59,26 @@ class SubjectTopics extends \yii\db\ActiveRecord
 
     public function fields()
     {
-        $fields = parent::fields();
-        $fields['image'] = function ($model) {
-            return Utility::AbsoluteImage($model->image,'topics');
-        };
-        return $fields;
+        return [
+            'id',
+            'subject_id',
+            'creator_id',
+            'class_id',
+            'school_id',
+            'slug',
+            'topic',
+            'description',
+            'week_number',
+            'term',
+            'exam_type_id',
+            'catchup_status' => 'catchupStatus',
+            'image' => function ($model) {
+                return Utility::AbsoluteImage($model->image,'topics');
+            },
+            'learning_area' => 'learningArea',
+            'status',
+            'created_at',
+        ];
     }
 
     /**
@@ -94,6 +109,11 @@ class SubjectTopics extends \yii\db\ActiveRecord
         return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
     }
 
+    public function getLearningArea()
+    {
+        return $this->hasMany(LearningArea::className(), ['topic_id' => 'id']);
+    }
+
     public function getPerformance()
     {
         return [
@@ -108,6 +128,11 @@ class SubjectTopics extends \yii\db\ActiveRecord
             'average' => $this->averageStudents,
             'excellence' => $this->excellenceStudents,
         ];
+    }
+
+    public function getCatchupStatus()
+    {
+        return SharedConstant::VALUE_ONE;
     }
 
     public function getStrugglingStudents()
