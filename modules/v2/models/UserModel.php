@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 
+use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\db\Expression;
@@ -458,40 +459,14 @@ class UserModel extends User
             ->groupBy('qsd.topic_id')
             ->all();
 
-        //$topic_objects retrieves topic objects
-        $topic_objects = SubjectTopics::find()
-            ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
-            ->select([
-                'subject_topics.*',
-                new Expression("'practice' as type"),
-                new Expression('(case when (select id from homeworks where reference_id = ' . $quizSummary->homework_id . ' AND type = "recommendation" AND reference_type = "homework"  AND student_id = ' . $this->id . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
-            ])
-            ->where(['subject_topics.id' => ArrayHelper::getColumn($topics, 'topic_id')])
-            ->asArray()
-            ->all();
+        $topic_id = ArrayHelper::getColumn($topics, 'topic_id');
+        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $this->id, 'homework', $quizSummary->homework_id);
 
-        //retrieves assign videos to the topic
-        $video = VideoContent::find()
-            ->select([
-                'video_content.*',
-                new Expression("'video' as type"),
-                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $this->id . ' AND resources_id = video_content.id AND reference_type = "homework" AND reference_id = ' . $quizSummary->homework_id . ') then 1 else 0 end) as is_recommended'),
-                //new Expression('(case when (select * from file_log where file_id = video_content.id AND type = "video" AND user_id = ' . $this->id . ' AND is_completed = 0) then 1 else 0 end) as is_recommended'),
-            ])
-            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
-            ->limit(SharedConstant::VALUE_TWO)
-            ->asArray()
-            ->all();
-
-        if (!$topic_objects) {
+        if (!$practiceVideosRecommendations) {
             return null;
         }
 
-
-
-
-        return $topics = array_merge($topic_objects, $video);
+        return $practiceVideosRecommendations;
     }
 
 
