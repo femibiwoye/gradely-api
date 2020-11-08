@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\student\controllers;
 
+use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
 use app\modules\v2\models\Classes;
@@ -639,7 +640,7 @@ class CatchupController extends ActiveController
                 ->limit(10)
                 ->all();
 
-            $topicOrders = Utility::generateSingleMixPractices($topicModels);
+            $topicOrders = Adaptivity::generateSingleMixPractices($topicModels);
 
 
             //}
@@ -756,6 +757,7 @@ class CatchupController extends ActiveController
             $practices[] = [
                 'type' => 'practice',
                 'practice_id' => $practice->id,
+                'question_duration' => count($practice->topics) == 1 ? SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT : count($practice->topics) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT,
                 'topics' => $practice->topics,
             ];
         }

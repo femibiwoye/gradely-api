@@ -59,4 +59,7 @@ class SharedConstant
     const UN_PAID = 'unpaid';
     const VALUE_TWELVE = 12;
     const DEFAULT_CURRICULUM = 1;
+
+    const SINGLE_PRACTICE_QUESTION_COUNT = 5;
+    const MIX_PRACTICE_QUESTION_COUNT = 3;
 }

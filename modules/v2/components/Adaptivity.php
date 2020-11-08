@@ -14,21 +14,28 @@ use yii\db\Expression;
 class Adaptivity extends ActiveRecord
 {
 
+
+    public static function SingleMixTopic($type, $inner)
+    {
+        $questionCount = $type == 'single' ? SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT : count($inner) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT;
+        return ['type' => $type, 'question_count' => $questionCount, 'topic' => $inner];
+    }
+
     public static function GenerateSingleMixPractices($topicModels)
     {
         $topicOrders = [];
         foreach ($topicModels as $key => $inner) {
             if ($key == 0) {
-                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                $topicOrders[] = self::SingleMixTopic('single', $inner);
             }
 
             if ($key >= 1 && $key <= 4) {
                 if (isset($topicModels[1])) {
                     $temp = array_splice($topicModels, 1, 4);
                     if (count($temp) == 1)
-                        $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                        $topicOrders[] = self::SingleMixTopic('single', $inner);
                     else
-                        $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
+                        $topicOrders[] = self::SingleMixTopic('mix', $temp);
                 }
             }
 
@@ -36,21 +43,21 @@ class Adaptivity extends ActiveRecord
                 if (isset($topicModels[5])) {
                     $temp = array_splice($topicModels, 6, 3);
                     if (count($temp) == 1)
-                        $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                        $topicOrders[] = self::SingleMixTopic('single', $inner);
                     else
-                        $topicOrders[] = ['type' => 'mix', 'topic' => $temp];
+                        $topicOrders[] = self::SingleMixTopic('mix', $temp);
                 }
             }
 
             if ($key > 7 && $key <= 10) {
-                $topicOrders[] = ['type' => 'single', 'topic' => $inner];
+                $topicOrders[] = self::SingleMixTopic('single', $inner);
             }
         }
 
         return $topicOrders;
     }
 
-    public static function PracticeVideoRecommendation($topic_id, $receiverID,$referenceType, $referenceID)
+    public static function PracticeVideoRecommendation($topic_id, $receiverID, $referenceType, $referenceID)
     {
 
         $topic_objects = SubjectTopics::find()
@@ -70,14 +77,14 @@ class Adaptivity extends ActiveRecord
             ->select([
                 'video_content.*',
                 new Expression("'video' as type"),
-                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $receiverID . ' AND resources_id = video_content.id AND reference_type = "'.$referenceType.'" AND reference_id = ' . $referenceID . ') then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $receiverID . ' AND resources_id = video_content.id AND reference_type = "' . $referenceType . '" AND reference_id = ' . $referenceID . ') then 1 else 0 end) as is_recommended'),
                 'gc.id class_id',
                 'gc.description class_name',
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
             ->innerJoin('global_class gc', 'gc.id = st.class_id')
-            ->where(['video_assign.topic_id' => $topic_id])
+            //->where(['video_assign.topic_id' => $topic_id])
             ->limit(SharedConstant::VALUE_THREE)
             ->asArray()
             ->all();
