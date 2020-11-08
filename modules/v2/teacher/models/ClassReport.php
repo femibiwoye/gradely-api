@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\models;
 
+use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
@@ -242,41 +243,12 @@ class ClassReport extends Model
     private function getResources($topic_id, $student_id)
     {
         $classID = Yii::$app->request->get('class_id');
-        $topic_objects = SubjectTopics::find()
-            ->leftJoin('practice_topics pt', 'pt.topic_id = subject_topics.id')
-            ->leftJoin('homeworks h', 'h.id = pt.practice_id')
-            ->select([
-                'subject_topics.*',
-                new Expression("'practice' as type"),
-                new Expression('(case when (SELECT student_id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $classID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $student_id . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
-            ])
-            ->where(['subject_topics.id' => $topic_id])
-            ->asArray()
-            ->all();
+        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $student_id, 'class', $classID);
 
-        //retrieves assign videos to the topic
-        $video = VideoContent::find()
-            ->select([
-                'video_content.*',
-                new Expression("'video' as type"),
-                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $student_id . ' AND resources_id = video_content.id AND reference_type = "class" AND reference_id = ' . $classID . ') then 1 else 0 end) as is_recommended'),
-                'gc.id class_id',
-                'gc.description class_name',
-            ])
-            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
-            ->innerJoin('global_class gc', 'gc.id = st.class_id')
-            ->where(['video_assign.topic_id' => $topic_id])
-            ->limit(SharedConstant::VALUE_THREE)
-            ->asArray()
-            ->all();
-
-        if (!$topic_objects) {
+        if (!$practiceVideosRecommendations) {
             return SharedConstant::VALUE_NULL;
         }
 
-        $topicOrders = Utility::generateSingleMixPractices($topic_objects);
-
-        return array_merge($topicOrders, $video);
+        return $practiceVideosRecommendations;
     }
 }
