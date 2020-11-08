@@ -25,6 +25,7 @@ class StudentMastery extends Model
             [['student_id'], 'exist', 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
             [['subject_id'], 'exist', 'targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']],
             [['class_id'], 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
+            [['class_id'], 'exist', 'targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'student_id' => 'student_id']],
             [['student_id'], 'exist', 'targetClass' => Parents::className(), 'targetAttribute' => ['student_id' => 'student_id', 'parent_id' => Yii::$app->user->id], 'when' => function($model) {
                 return Yii::$app->user->identity->type == 'parent';
             }],
@@ -66,14 +67,14 @@ class StudentMastery extends Model
 
     private function getClassSubjects()
     {
-        return Subjects::findAll(['category' => Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id)]);
+        return Subjects::findAll(['category' => [Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id), 'all']]);
     }
 
     private function getCurrentClassSubject()
     {
         if ($this->subject_id) {
             return Subjects::findOne([
-                'category' => Utility::getStudentClassCategory($this->getCurrentClass()->global_class_id)
+                'category' => Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id)
             ]);
         }
 
@@ -152,7 +153,7 @@ class StudentMastery extends Model
                     ->all();
 
         $previous_class_topics = $this->getPreviousClassTopics();
-        
+
         return array_merge($topics, $previous_class_topics);
     }
 
