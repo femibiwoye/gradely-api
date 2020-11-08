@@ -58,6 +58,7 @@ return [
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
     'GET v2/report/student-mastery' => 'v2/report/mastery-report',
+    'POST v2/report/student-additional-topics' => 'v2/student-additional-topics/create',
 
 
     //Payment
@@ -73,9 +74,6 @@ return [
 
     //website errors
     'POST v2/error/report-error' => 'v2/error/website-error',
-
-    //Students Additional Topics
-    'POST v2/student-additional-topics' => 'v2/student-additional-topics/create',
 
     //Invites
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [

@@ -63,8 +63,19 @@ class SubjectTopics extends \yii\db\ActiveRecord
     $fields['image'] = function ($model) {
         return Utility::AbsoluteImage($model->image,'topics');
     };
-    $fields['catchup_status'] = 'catchupStatus';
-    $fields['learning_area'] = 'learningArea';
+
+    $fields['catchup_status'] = function() {
+        if ($this->additiionalTopic) {
+            return $this->additiionalTopic->status;
+        } else {
+            return 1; //default status is supposed to be 1
+        }
+    };
+
+    if ($this->learningArea) {
+        $fields['learning_area'] = 'learningArea';
+    }
+
     return $fields;
 }
 
@@ -101,25 +112,14 @@ class SubjectTopics extends \yii\db\ActiveRecord
         return $this->hasMany(LearningArea::className(), ['topic_id' => 'id']);
     }
 
-    public function getCatchupStatus()
+    public function getAdditiionalTopic()
     {
-        if ($this->additionalTopic) {
-            return 1;
-        }
-
-        return 0;
-    }
-
-    public function getAdditionalTopic()
-    {
-        return StudentAdditiionalTopics::find()
-                    ->where([
-                        'class_id' => 'class_id',
-                        'subject_id' =>'subject_id',
-                        'status' => 1,
-                        'topic_id' => 'topic_id'
-                    ])
-                    ->one();
+        return $this->hasOne(StudentAdditiionalTopics::className(), ['topic_id' => 'id'])
+                ->where([
+                    'class_id' => $this->class_id,
+                    'subject_id' => $this->subject_id,
+                    'status' => 1,
+            ]);
     }
 
     public function getPerformance()

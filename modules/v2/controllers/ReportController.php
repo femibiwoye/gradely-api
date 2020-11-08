@@ -17,7 +17,7 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery, StudentAdditiionalTopics};
 use app\modules\v2\components\SharedConstant;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -237,18 +237,42 @@ class ReportController extends ActiveController
 
     public function actionMasteryReport()
     {
-        /*if (Yii::$app->user->identity->type != 'parent' || Yii::$app->user->identity->type != 'student') {
+        if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
-        }*/
+        }
 
         $model = new StudentMastery;
         $model->student_id = Yii::$app->user->identity->type == 'student' ? Yii::$app->user->id : Yii::$app->request->get('student_id');
         $model->class_id = Yii::$app->request->get('class_id');
         $model->subject_id = Yii::$app->request->get('subject_id');
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
         if (!$model->getGlobalData()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
         return (new ApiResponse)->success($model->getGlobalData(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionAddStudentAdditionalTopics()
+    {
+        if (Yii::$app->user->identity->type != 'parent') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $model = new StudentAdditiionalTopics;
+        $model->attributes = Yii::$app->request->post();
+        $model->updated_by = Yii::$app->user->id;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed!');
+        }
+
+        if (!$model->save(false)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 }
