@@ -72,6 +72,7 @@ class Adaptivity extends ActiveRecord
             ->leftJoin('homeworks h', 'h.id = pt.practice_id')
             ->select([
                 'subject_topics.*',
+                Utility::ImageQuery('subject_topics'),
                 new Expression("'practice' as type"),
                 new Expression('(case when (SELECT student_id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
             ])
