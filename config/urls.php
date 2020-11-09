@@ -58,8 +58,6 @@ return [
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
     'GET v2/report/student-mastery' => 'v2/report/mastery-report',
-    'POST v2/report/student-additional-topics' => 'v2/student-additional-topics/create',
-
 
     //Payment
     'POST v2/payment/verify-coupon' => 'v2/payment/verify-coupon', //
