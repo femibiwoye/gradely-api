@@ -17,8 +17,15 @@ class Adaptivity extends ActiveRecord
 
     public static function SingleMixTopic($type, $inner)
     {
-        $questionCount = $type == 'single' ? SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT : count($inner) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT;
-        return ['type' => $type, 'question_count' => $questionCount, 'topic' => $inner];
+        if ($type == 'single') {
+            $questionCount = SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT;
+            $is_recommended = $inner['is_recommended'];
+        } else {
+            $questionCount = count($inner) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT;
+            $is_recommended = $inner[0]['is_recommended'];
+        }
+
+        return ['type' => $type, 'question_count' => $questionCount, 'is_recommended' => $is_recommended, 'topic' => $inner];
     }
 
     public static function GenerateSingleMixPractices($topicModels)
@@ -84,7 +91,7 @@ class Adaptivity extends ActiveRecord
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
             ->innerJoin('global_class gc', 'gc.id = st.class_id')
-            //->where(['video_assign.topic_id' => $topic_id])
+            ->where(['video_assign.topic_id' => $topic_id])
             ->limit(SharedConstant::VALUE_THREE)
             ->asArray()
             ->all();

@@ -13,6 +13,7 @@ use app\modules\v2\models\SchoolRole;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
+use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\Timezone;
 use app\modules\v2\school\models\PreferencesForm;
 use Yii;
@@ -208,6 +209,39 @@ class PreferencesController extends ActiveController
         $model->one()->delete();
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Subject has been removed!');
+    }
+
+
+    public function actionSubjectCurriculum($subject = null)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+        $types = $school->school_type == 'all' ? ['all', 'primary', 'secondary'] : [$school->school_type, 'all'];
+        $subjects = Subjects::find()->where(['status' => 1, 'category' => $types])
+            ->andWhere(['OR', ['school_id' => null], ['approved' => 1]])
+            ->all();
+
+        $classes = Utility::getMyGlobalClassesID($school->school_type);
+        if (!empty($subject)) {
+            $currentSubject = Subjects::findOne(['slug' => $subject, 'status' => 1]);
+        } else {
+            $currentSubject = $subjects[0];
+        }
+
+        $terms = [];
+        foreach ($classes as $class) {
+            $terms[] = array_merge(ArrayHelper::toArray($class), [
+                'first' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1,'subject_id'=>$currentSubject->id]),
+                'second' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1,'subject_id'=>$currentSubject->id]),
+                'third' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1,'subject_id'=>$currentSubject->id])
+            ]);
+        }
+        $result = [
+            'subjects' => $subjects,
+            'current_subject' => $currentSubject,
+            'classes' => $terms
+        ];
+        return $result;
     }
 
     public function actionUsers()
