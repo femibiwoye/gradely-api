@@ -256,24 +256,4 @@ class ReportController extends ActiveController
 
         return (new ApiResponse)->success($model->getGlobalData(), ApiResponse::SUCCESSFUL, 'Record found');
     }
-
-    public function actionAddStudentAdditionalTopics()
-    {
-        if (Yii::$app->user->identity->type != 'parent') {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
-        }
-
-        $model = new StudentAdditiionalTopics;
-        $model->attributes = Yii::$app->request->post();
-        $model->updated_by = Yii::$app->user->id;
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed!');
-        }
-
-        if (!$model->save(false)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
-        }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
-    }
 }
