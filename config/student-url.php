@@ -42,6 +42,8 @@ return [
 
     //student report
     'GET v2/student/report' => 'v2/student/profile/report', //
+    'POST v2/report/student-additional-topic' => 'v2/student/report/create-additional-topic',
+    'DELETE v2/report/student-additional-topic' => 'v2/student/report/remove-additional-topic',
 
     //student catchup
     'GET v2/student/catchup/recent-practice' => 'v2/student/catchup/recent-practice', //

@@ -18,7 +18,7 @@ class StudentMastery extends Model
     public function rules()
     {
         return [
-            [['student_id'], 'required', 'when' => function($model) {
+            [['student_id'], 'required', 'when' => function ($model) {
                 return Yii::$app->user->identity->type == 'parent';
             }],
             [['student_id', 'class_id', 'subject_id'], 'integer'],
@@ -26,7 +26,7 @@ class StudentMastery extends Model
             [['subject_id'], 'exist', 'targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']],
             [['class_id'], 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
             [['class_id'], 'exist', 'targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'student_id' => 'student_id']],
-            [['student_id'], 'exist', 'targetClass' => Parents::className(), 'targetAttribute' => ['student_id' => 'student_id', 'parent_id' => Yii::$app->user->id], 'when' => function($model) {
+            [['student_id'], 'exist', 'targetClass' => Parents::className(), 'targetAttribute' => ['student_id' => 'student_id', 'parent_id' => Yii::$app->user->id], 'when' => function ($model) {
                 return Yii::$app->user->identity->type == 'parent';
             }],
         ];
@@ -120,7 +120,7 @@ class StudentMastery extends Model
 
     private function getGlobalClasses()
     {
-        return GlobalClass::find()->all();
+        return GlobalClass::find()->where(['status' => 1])->all();
     }
 
     private function getClassTerms()
@@ -134,8 +134,8 @@ class StudentMastery extends Model
 
     private function getClassTermData($term)
     {
-        $start_index = $term. '_term_start';
-        $end_index = $term. '_term_end';
+        $start_index = $term . '_term_start';
+        $end_index = $term . '_term_end';
         return [
             'start_date' => Yii::$app->params[$start_index],
             'end_date' => Yii::$app->params[$end_index],
@@ -146,11 +146,11 @@ class StudentMastery extends Model
     private function getTopicsInTerm($term)
     {
         $topics = SubjectTopics::find()
-                    ->where([
-                        'subject_topics.subject_id' => $this->getCurrentSubject(),
-                        'subject_topics.term' => $term,
-                    ])
-                    ->all();
+            ->where([
+                'subject_topics.subject_id' => $this->getCurrentSubject(),
+                'subject_topics.term' => $term,
+            ])
+            ->all();
 
         $previous_class_topics = $this->getPreviousClassTopics();
 
@@ -161,14 +161,14 @@ class StudentMastery extends Model
     {
         $previous_class_topics = ArrayHelper::getColumn(
             StudentAdditiionalTopics::find()
-                    ->where([
-                        'student_id' => $this->student_id,
-                        'class_id' => $this->getCurrentClass(),
-                        'status' => 1
-                    ])
-                    ->all(),
-                    'topic_id'
-            );
+                ->where([
+                    'student_id' => $this->student_id,
+                    'class_id' => $this->getCurrentClass(),
+                    'status' => 1
+                ])
+                ->all(),
+            'topic_id'
+        );
 
         return SubjectTopics::find()->where(['id' => $previous_class_topics])->all();
     }
@@ -185,45 +185,45 @@ class StudentMastery extends Model
     private function getTopics()
     {
         return QuizSummary::find()
-        ->where(['student_id' => $this->student_id])
-        ->groupBy('topic_id');
+            ->where(['student_id' => $this->student_id])
+            ->groupBy('topic_id');
     }
 
     private function getFirstTermReport()
     {
         $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'first'])->all(), 'topic_id');
         $first_term_topics = SubjectTopics::find()
-                                    ->select(['subject_topics.id AS topic_id', 'subject_topics.topic AS topic_name', 'subject_topics.image AS topic_image'])
-                                    ->where(['id' => $topics])
-                                    ->asArray()
-                                    ->all();
+            ->select(['subject_topics.id AS topic_id', 'subject_topics.topic AS topic_name', 'subject_topics.image AS topic_image'])
+            ->where(['id' => $topics])
+            ->asArray()
+            ->all();
 
-        
-        return [$first_term_topics, 'learning_area' => $this->getLearningArea($topics)];      
+
+        return [$first_term_topics, 'learning_area' => $this->getLearningArea($topics)];
     }
 
     private function getSecondTermReport()
     {
         $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'second'])->all(), 'topic_id');
         $second_term_topics = SubjectTopics::find()
-                                    ->select(['id', 'topic', 'image'])
-                                    ->where(['id' => $topics])
-                                    ->all();
+            ->select(['id', 'topic', 'image'])
+            ->where(['id' => $topics])
+            ->all();
 
-        
-        return [$second_term_topics, 'learning_area' => $this->getLearningArea($topics)];      
+
+        return [$second_term_topics, 'learning_area' => $this->getLearningArea($topics)];
     }
 
     private function getThirdTermReport()
     {
         $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'third'])->all(), 'topic_id');
         $third_term_topics = SubjectTopics::find()
-                                    ->select(['id', 'topic', 'image'])
-                                    ->where(['id' => $topics])
-                                    ->all();
+            ->select(['id', 'topic', 'image'])
+            ->where(['id' => $topics])
+            ->all();
 
-        
-        return [$third_term_topics, 'learning_area' => $this->getLearningArea($topics)];      
+
+        return [$third_term_topics, 'learning_area' => $this->getLearningArea($topics)];
     }
 
     private function getLearningArea($topics)
