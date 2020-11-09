@@ -91,6 +91,7 @@ class ReportController extends ActiveController
             $model = UserModel::find()
                 ->with(['proctor'])
                 ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
+                ->innerJoin('student_school ss', 'ss.class_id = qs.class_id AND ss.student_id = qs.student_id')
                 ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
                 ->andWhere([
                     'qs.homework_id' => $id,
