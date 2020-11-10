@@ -336,6 +336,10 @@ class ChildrenController extends ActiveController
             $parent->status = SharedConstant::VALUE_ONE;
             if (!$parent->save())
                 return (new ApiResponse)->error($parent->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'An error occurred');
+
+            //Notification that parent add child
+            $notification = new InputNotification();
+            $notification->NewNotification('parent_adds_student', [['student_id', $user->id], ['parent_id' => $parent->parent_id], ['password' => $model->password]]);
         }
         Pricing::ActivateStudentTrial($user->id);
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
