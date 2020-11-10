@@ -45,7 +45,7 @@ class ReportController extends ActiveController
 
     public function actionCreateAdditionalTopic()
     {
-        if (Yii::$app->user->identity->type != 'parent') {
+        if (Yii::$app->user->identity->type != 'parent' || Yii::$app->user->identity->type != 'student') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
@@ -65,7 +65,7 @@ class ReportController extends ActiveController
 
     public function actionRemoveAdditionalTopic()
     {
-        if (Yii::$app->user->identity->type != 'parent') {
+        if (Yii::$app->user->identity->type != 'parent' || Yii::$app->user->identity->type != 'student') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
