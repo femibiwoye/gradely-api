@@ -8,6 +8,7 @@ return [
     'POST v2/forgot-password' => 'v2/auth/forgot-password', //
     'POST v2/reset-password' => 'v2/auth/reset-password', //
     'POST v2/validate' => 'v2/auth/validate-token', //
+    'GET v2/verify-email'=>'v2/auth/verify-email', //
 
     //Onboarding/General endpoints
     'PUT v2/general/update-boarding' => 'v2/general/update-boarding', //

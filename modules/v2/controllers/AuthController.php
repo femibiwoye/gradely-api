@@ -157,5 +157,15 @@ class AuthController extends Controller
         $token = Yii::$app->request->post('token');
         return User::find()->where(['token' => $token])->exists() ? true : false;
     }
+
+    public function actionVerifyEmail($token)
+    {
+        if ($user = User::find()->where(['verification_token' => $token, 'status' => 9])->one()) {
+            $user->status = 10;
+            $user->update();
+            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
+        }
+        return (new ApiResponse)->error(false, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+    }
 }
 

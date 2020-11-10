@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\Pricing;
 use app\modules\v2\components\{Utility, SharedConstant};
 use app\modules\v2\models\ApiResponse;
@@ -35,7 +36,7 @@ class InvitesController extends ActiveController
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::className(),
-            'except' => ['validate-invite-token','verify'],
+            'except' => ['validate-invite-token', 'verify'],
             'authMethods' => [
                 HttpBearerAuth::className(),
             ],
@@ -185,6 +186,11 @@ class InvitesController extends ActiveController
                 return false;
             }
 
+            //TODO Add teacher subjects to them.
+
+            $notification = new InputNotification();
+            $notification->NewNotification('teacher_accept_school_invitation_school', [['invitation_id', $model->id], ['teacher_id' => Yii::$app->user->id]]);
+
         } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
 
 
@@ -245,7 +251,7 @@ class InvitesController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'User not removed.');
         }
 
-        return (new ApiResponse)->success( null, ApiResponse::SUCCESSFUL, 'School invited user removed');
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'School invited user removed');
     }
 
 
