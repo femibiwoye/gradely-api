@@ -481,15 +481,5 @@ class UserModel extends User
     {
         return $this->hasOne(ProctorReport::className(), ['student_id' => 'id'])
             ->andWhere(['assessment_id' => Yii::$app->request->get('id')]);
-//
-//        $model = ProctorReport::find()
-//            ->where(['student_id' => $this->id])
-//            ->one();
-//
-//        if (!$model) {
-//            return null;
-//        }
-//
-//        return $model;
     }
 }

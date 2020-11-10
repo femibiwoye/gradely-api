@@ -273,7 +273,8 @@ class HomeworkReport extends Homeworks
 
     public function getQuizSummaryRecord()
     {
-        return $this->hasMany(QuizSummary::className(), ['homework_id' => 'id']);
+        return $this->hasMany(QuizSummary::className(), ['homework_id' => 'id'])
+            ->innerJoin('student_school ss', 'ss.class_id = quiz_summary.class_id AND ss.student_id = quiz_summary.student_id');
     }
 
     public function getRestartHomework()
