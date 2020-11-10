@@ -52,9 +52,7 @@ class ResetPasswordForm extends Model {
 		}
 
         $notification = new InputNotification();
-        $notification->NewNotification('password_changed', [['user_id', $user->id]]);
-
-		//TODO:: will send an email here
+        $notification->NewNotification('forgot_password', [['user_id', $user->id]]);
 		
 		return true;
 	}
