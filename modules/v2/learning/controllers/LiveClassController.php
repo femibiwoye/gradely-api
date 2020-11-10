@@ -13,8 +13,11 @@ use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
+use Aws\Credentials\Credentials;
+use Aws\S3\S3Client;
 use SebastianBergmann\CodeCoverage\Util;
 use yii\filters\auth\HttpBearerAuth;
+use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
 use app\modules\v2\models\TutorSessionParticipant;
 
@@ -253,6 +256,8 @@ class LiveClassController extends Controller
         }
         $meeting_room = strtok($filename, '_');
 
+        $fileUrl = Yii::$app->params['live_class_recorded_url'] . "$meeting_room/$filename";
+
         if (TutorSession::find()->where(['meeting_room' => $meeting_room])->exists() && !PracticeMaterial::find()->where(['filename' => $filename])->exists()) {
             $tutorSession = TutorSession::find()->where(['meeting_room' => $meeting_room])->one();
             $model = new PracticeMaterial();
@@ -261,8 +266,9 @@ class LiveClassController extends Controller
             $model->tag = 'live_class';
             $model->filetype = SharedConstant::TYPE_VIDEO;
             $model->title = $tutorSession->title;
-            $model->filename = $filename;
+            $model->filename = $fileUrl;
             $model->extension = 'mp4';
+            $model->filesize = isset($this->actionFileDetail($fileUrl)['fileSize']) ? $this->actionFileDetail($fileUrl)['fileSize'] : "0";
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
             }
@@ -335,5 +341,27 @@ class LiveClassController extends Controller
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record updated successfully');
+    }
+
+    public function actionFileDetail($url)
+    {
+        $key = explode("/", $url, 5);
+        $name = $key[4]; //This get the folder/filename.ext
+
+        $credentials = new Credentials(Yii::$app->params['AwsS3Key'], Yii::$app->params['AwsS3Secret']);
+        $config = [
+            'version' => 'latest',
+            'region' => 'eu-west-2',
+            'credentials' => $credentials
+        ];
+        $s3Client = new S3Client($config);
+        $result = $s3Client->getObject([
+            'Bucket' => 'recordings.gradely.ng',
+            'Key' => $name,
+            //'SaveAs' => $name
+        ]);
+        $fileSize = Utility::FormatBytesSize($result['ContentLength']);
+        $response = array_merge(ArrayHelper::toArray($result), ['fileSize' => $fileSize]);
+        return $response;
     }
 }

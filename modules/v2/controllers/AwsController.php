@@ -2,12 +2,14 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\GenerateString;
 use Aws\Credentials\Credentials;
 use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -151,6 +153,25 @@ class AwsController extends Controller
         $s3 = new S3Client($this->config);
         return (new ApiResponse)->success($s3->deleteObject(['Bucket' => $this->bucketName, 'Key' => $name]), ApiResponse::SUCCESSFUL);
     }
+
+    public function actionFileDetail($url, $internal = 0)
+    {
+        $key = explode("/", $url, 4);
+        $name = $key[3]; //This get the folder/filename.ext
+        $s3Client = new S3Client($this->config);
+        $result = $s3Client->getObject([
+            'Bucket' => $this->bucketName,
+            'Key' => $name,
+            //'SaveAs' => $name
+        ]);
+        $fileSize = Utility::FormatBytesSize($result['ContentLength']);
+        $response = array_merge(ArrayHelper::toArray($result), ['fileSize' => $fileSize]);
+        if ($internal == 1)
+            return $response;
+        else
+            return (new ApiResponse)->success($response);
+    }
+
 
     public
     function Base64Decode($base64_image_string, $output_file_without_extension)

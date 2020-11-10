@@ -38,5 +38,6 @@ return [
     'AwsS3Secret' => AWS_S3_SECRET,
 
     'live_class_limit' => 20,
-    'live_class_url'=>LIVE_CLASS_URL
+    'live_class_url'=>LIVE_CLASS_URL,
+    'live_class_recorded_url'=>LIVE_CLASS_RECORDED_URL
 ];
