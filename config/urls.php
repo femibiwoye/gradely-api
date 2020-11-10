@@ -97,4 +97,6 @@ return [
         'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
 
+    //'GET v2/notification/test' => 'v2/notification/test'
+
 ];

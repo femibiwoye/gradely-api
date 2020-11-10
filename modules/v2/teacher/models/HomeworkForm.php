@@ -41,7 +41,7 @@ class HomeworkForm extends Model
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'open_date', 'close_date', 'tag', 'view_by'], 'required', 'on' => 'create-homework'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'description'], 'required', 'on' => 'create-lesson'],
             [['title', 'tag'], 'required', 'on' => 'update-homework'],
-            [['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd'],
+            //[['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd '],
             [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
             [['open_date', 'close_date'], 'safe'],
             [['title'], 'string', 'max' => 255],

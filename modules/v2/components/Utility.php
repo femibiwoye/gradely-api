@@ -501,4 +501,10 @@ class Utility extends ActiveRecord
 
         return true;
     }
+
+    public static function UserLocation()
+    {
+        $ip = '41.217.70.122';//$_SERVER['REMOTE_ADDR']; // get client's IP
+        return $details = json_decode(file_get_contents("http://ipinfo.io/{$ip}/json"));
+    }
 }
