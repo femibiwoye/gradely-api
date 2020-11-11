@@ -269,7 +269,12 @@ class LiveClassController extends Controller
             $model->filename = $fileUrl;
             $model->extension = 'mp4';
             //fileSize actionFileDetail is throwing error due to AWS GetObject class
-            //$model->filesize = isset($this->actionFileDetail($fileUrl)['fileSize']) ? $this->actionFileDetail($fileUrl)['fileSize'] : "0";
+            try {
+                $model->filesize = isset($this->actionFileDetail($fileUrl)['fileSize']) ? $this->actionFileDetail($fileUrl)['fileSize'] : "0";
+            } catch (\Exception $exception) {
+                \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => 'Live class error', 'raw' => $exception]);
+            }
+
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
             }
