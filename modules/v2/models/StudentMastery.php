@@ -81,6 +81,30 @@ class StudentMastery extends Model
         return $this->getClassSubjects()[0];
     }
 
+    private function getDefaultClass()
+    {
+        if ($this->student_id) {
+            $class_id = $this->getSchoolStudentClass($this->student_id);
+        } else {
+            $class_id = $this->getSchoolStudentClass(Yii::$app->user->id);
+        }
+
+        if (!$class_id) {
+            return User::find()
+                        ->select(['class'])
+                        ->where(['id' => $this->student_id ? $this->student_id : Yii::$app->user->id])
+                        ->one();
+        }
+    }
+
+    private function getSchoolStudentClass($student_id)
+    {
+        return StudentSchool::find()
+                    ->select(['class_id'])
+                    ->where(['student_id' => $student_id])
+                    ->one();
+    }
+
     private function getSubjects()
     {
         return Subjects::findAll(['id' => $this->getParticipatedSubjectsList()]);
@@ -179,7 +203,7 @@ class StudentMastery extends Model
             return Classes::findOne(['global_class_id' => $this->class_id]);
         }
 
-        return $this->getGlobalClasses()[0];
+        return $this->getDefaultClass();
     }
 
     private function getTopics()
