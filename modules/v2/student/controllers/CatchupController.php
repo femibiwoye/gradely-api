@@ -477,7 +477,7 @@ class CatchupController extends ActiveController
     public function actionDiagnostic($child = null)
     {
         if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
-            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child);
         } else
             $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
         if (!$class_id) {
