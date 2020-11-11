@@ -66,7 +66,6 @@ class Adaptivity extends ActiveRecord
 
     public static function PracticeVideoRecommendation($topic_id, $receiverID, $referenceType, $referenceID)
     {
-
         $topic_objects = SubjectTopics::find()
             ->leftJoin('practice_topics pt', 'pt.topic_id = subject_topics.id')
             ->leftJoin('homeworks h', 'h.id = pt.practice_id')
@@ -74,7 +73,8 @@ class Adaptivity extends ActiveRecord
                 'subject_topics.*',
                 Utility::ImageQuery('subject_topics'),
                 new Expression("'practice' as type"),
-                new Expression('(case when (SELECT student_id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
+                $referenceType == 'class' ? new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended') :
+                    new Expression('(case when (select id from homeworks where reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "homework"  AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
             ])
             ->where(['subject_topics.id' => $topic_id])
             ->asArray()

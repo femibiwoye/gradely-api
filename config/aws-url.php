@@ -8,6 +8,7 @@ return [
         'POST upload-file/<folder:[a-z/]+>' => 'upload-file', //
         'GET verify-file' => 'verify-file', //
         'DELETE delete-file' => 'delete-file', //
+        'GET file-detail' => 'file-detail', //
 
     ]],
 
