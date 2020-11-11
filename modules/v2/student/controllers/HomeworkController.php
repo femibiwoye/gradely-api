@@ -64,14 +64,17 @@ class HomeworkController extends ActiveController
         $student_id = Utility::getParentChildID();
         $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
-            ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE])->all();
+            ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
+            ->orderBy('quiz_summary.submit_at DESC')
+            ->all();
 
         $missedModels = StudentHomeworkReport::find()
             ->innerJoin('student_school', "student_school.class_id = homeworks.class_id AND student_school.student_id=$student_id")
             ->leftJoin('quiz_summary qs', "qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1")
             ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
             ->andWhere(['<', 'UNIX_TIMESTAMP(close_date)', time()])
-            ->andWhere(['IS', 'qs.homework_id', null])->all();
+            ->andWhere(['IS', 'qs.homework_id', null])
+            ->all();
 
 //return $models;
 
