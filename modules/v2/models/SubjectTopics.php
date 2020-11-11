@@ -199,19 +199,19 @@ class SubjectTopics extends \yii\db\ActiveRecord
                 ->all();
     }
 
-    public function getResult($student_id, $topic_id)
+    public function getResult($student_id, $topic_id=null)
     {
         $query = QuizSummaryDetails::find()
                     ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
                     ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
-                    ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => 18]);
+                    ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id]);
         
         if (!$query->all()) {
             return SharedConstant::VALUE_ZERO;
         }
 
-        $total_attempts = count($query->all());
-        $total_correct = count($query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->all());
+        $total_attempts = $query->count();
+        $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count();
 
         return ($total_correct / $total_attempts) * 100;
 

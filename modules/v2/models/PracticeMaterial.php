@@ -21,6 +21,7 @@ use Yii;
  * @property string $type The file could either belong to practice assessment or feed.
  * @property string|null $raw This contains the object received from the cloud client. It is json encoded in database.
  * @property string $tag
+ * @property string $thumbnail
  * @property string $token
  * @property string $created_at
  * @property string|null $updated_at
@@ -42,7 +43,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         return [
             [['user_id', 'title', 'filename', 'filetype', 'filesize', 'extension'], 'required'],
             [['practice_id', 'user_id', 'downloadable', 'download_count'], 'integer'],
-            [['filetype', 'description', 'raw', 'tag'], 'string'],
+            [['filetype', 'description', 'raw', 'tag','thumbnail'], 'string'],
             [['created_at', 'updated_at', 'tag'], 'safe'],
             [['title', 'token'], 'string', 'max' => 100],
             [['filesize', 'extension', 'tag'], 'string', 'max' => 45],
@@ -69,6 +70,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'downloadable',
             'download_count',
             'isOwner',
+            'thumbnail',
             'token',
             'updated_at',
             'user',
