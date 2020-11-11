@@ -112,7 +112,7 @@ class PracticeController extends Controller
             $model->subject_id = $homework->subject_id;
             $model->term = strtolower($currentTerm);
             $model->total_questions = count($homework_questions);
-            $model->type = $homework->type;
+            $model->type = 'homework';
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not validated');
             }

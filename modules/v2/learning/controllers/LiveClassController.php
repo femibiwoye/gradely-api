@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\learning\controllers;
 
+use app\modules\v2\components\LogError;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
@@ -247,7 +248,6 @@ class LiveClassController extends Controller
      */
     public function actionUpdateLiveClassVideo($filename)
     {
-
         $model = new \yii\base\DynamicModel(compact('filename'));
         $model->addRule(['filename'], 'required');
         //->addRule(['filename'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['filename' => 'meeting_room']]);
@@ -260,7 +260,7 @@ class LiveClassController extends Controller
 
         if (TutorSession::find()->where(['meeting_room' => $meeting_room])->exists() && !PracticeMaterial::find()->where(['filename' => $filename])->exists()) {
             $tutorSession = TutorSession::find()->where(['meeting_room' => $meeting_room])->one();
-            $model = new PracticeMaterial();
+            $model = new PracticeMaterial(['scenario' => 'live-class-material']);
             $model->user_id = $tutorSession->requester_id;
             $model->type = SharedConstant::FEED_TYPE;
             $model->tag = 'live_class';
@@ -268,7 +268,8 @@ class LiveClassController extends Controller
             $model->title = $tutorSession->title;
             $model->filename = $fileUrl;
             $model->extension = 'mp4';
-            $model->filesize = isset($this->actionFileDetail($fileUrl)['fileSize']) ? $this->actionFileDetail($fileUrl)['fileSize'] : "0";
+            //fileSize actionFileDetail is throwing error due to AWS GetObject class
+            //$model->filesize = isset($this->actionFileDetail($fileUrl)['fileSize']) ? $this->actionFileDetail($fileUrl)['fileSize'] : "0";
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
             }
