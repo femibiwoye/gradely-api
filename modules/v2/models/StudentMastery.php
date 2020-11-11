@@ -67,7 +67,8 @@ class StudentMastery extends Model
 
     private function getClassSubjects()
     {
-        return Subjects::findAll(['category' => [Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id), 'all']]);
+        $subjects = Subjects::findAll(['category' => [Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id), 'all']]);
+        return  $subjects ? $subjects : '';
     }
 
     private function getCurrentClassSubject()
@@ -78,7 +79,7 @@ class StudentMastery extends Model
             ]);
         }
 
-        return $this->getClassSubjects()[0];
+        return $this->getClassSubjects()[0] ? $this->getClassSubjects()[0] : '';
     }
 
     private function getDefaultClass()
