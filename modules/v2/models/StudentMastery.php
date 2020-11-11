@@ -109,7 +109,7 @@ class StudentMastery extends Model
     {
         return StudentSchool::find()
                     ->select(['class_id'])
-                    ->where(['student_id' => $student_id])
+                    ->where(['student_id' => $student_id,'status'=>1])
                     ->one();
     }
 
