@@ -10,6 +10,7 @@ use app\modules\v2\models\Feed;
 use app\modules\v2\models\FeedLike;
 use app\modules\v2\models\FileLog;
 use app\modules\v2\models\HomeworkQuestions;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeTopics;
 use app\modules\v2\models\Questions;
 use app\modules\v2\models\StudentSchool;
@@ -473,9 +474,12 @@ class CatchupController extends ActiveController
      * This returns all the subjects that are available for diagnostics.
      * @return ApiResponse
      */
-    public function actionDiagnostic()
+    public function actionDiagnostic($child = null)
     {
-        $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+        if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+        } else
+            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
         if (!$class_id) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
         }
