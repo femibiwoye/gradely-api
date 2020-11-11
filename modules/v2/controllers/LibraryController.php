@@ -168,7 +168,7 @@ class LibraryController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $model = new PracticeMaterial();
+        $model = new PracticeMaterial(['scenario' => 'feed-material']);
         $model->attributes = Yii::$app->request->post();
         $model->user_id = $teacher_id;
         $model->filetype = 'video';
@@ -214,7 +214,7 @@ class LibraryController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $model = new PracticeMaterial();
+        $model = new PracticeMaterial(['scenario' => 'feed-material']);
         $model->attributes = Yii::$app->request->post();
         $model->user_id = Yii::$app->user->id;
         $model->filetype = 'document';
@@ -288,7 +288,7 @@ class LibraryController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 3,
+                'pageSize' => 20,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -375,7 +375,7 @@ class LibraryController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 2,
+                'pageSize' => 12,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -442,7 +442,7 @@ class LibraryController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 3,
+                'pageSize' => 20,
                 'validatePage' => false,
             ],
             'sort' => [

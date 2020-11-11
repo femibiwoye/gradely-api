@@ -133,7 +133,7 @@ class Feed extends \yii\db\ActiveRecord
             return false;
         }
 
-        $model = new PracticeMaterial;
+        $model = new PracticeMaterial(['scenario' => 'feed-material']);
         $model->attributes = $file;
         $model->filetype = SharedConstant::FEED_TYPES[4];
         $model->type = SharedConstant::PRACTICE_TYPES[0];
