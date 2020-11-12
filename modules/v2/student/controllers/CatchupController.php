@@ -303,9 +303,9 @@ class CatchupController extends ActiveController
         $file_log = FileLog::find()
             ->where([
                 'is_completed' => SharedConstant::VALUE_ONE,
-                'user_id' => Yii::$app->user->id,
+                //'user_id' => Yii::$app->user->id, //to be returned
                 'type' => SharedConstant::TYPE_VIDEO,
-                'class_id' => $class_id
+                //'class_id' => $class_id //to be returned
             ])
             ->groupBy('file_id')
             ->limit(6)
