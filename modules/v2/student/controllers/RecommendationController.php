@@ -150,11 +150,10 @@ class RecommendationController extends ActiveController
     }
 
 
-
     public function actionDailyRecommendation()
     {
         $submitted_recommendations = ArrayHelper::getColumn(
-            Homeworks::find()->select('reference_id')->where(['reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO]]),
+            Homeworks::find()->select('reference_id')->where(['reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO], 'student_id' => Yii::$app->user->id])->all(),
             'reference_id'
         );
 
