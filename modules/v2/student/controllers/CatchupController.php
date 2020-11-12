@@ -607,8 +607,11 @@ class CatchupController extends ActiveController
             ->select('subject_id')
             ->where(['student_id' => $student_id])
             ->andWhere(['<>', 'type', 'recommendation'])
-            ->groupBy('subject_id')
-            ->asArray()
+            ->groupBy('subject_id');
+        if (!empty($subject)) {
+            $models = $models->andWhere(['subject_id' => $subject]);
+        }
+        $models = $models->asArray()
             ->all();
 
         $finalResult = [];
@@ -649,34 +652,49 @@ class CatchupController extends ActiveController
 
             //}
 
+///This is working, i had to temporarily disable it.
+//            $tutor_sessions = TutorSession::find()
+//                ->select([
+//                    'tutor_session.*',
+//                    new Expression("'live_class' as type"),
+//                ])
+//                ->where([
+//                    'student_id' => $student_id,
+//                    'subject_id' => $model['subject_id'],
+//                    'meta' => SharedConstant::RECOMMENDATION,
+//                    'status' => SharedConstant::PENDING_STATUS,
+//                    'is_school' => 1
+//                ])
+//                //Student only sees live_class/remedial that supposed to hold within the next 72hours
+//                ->andWhere('availability > DATE_SUB(NOW(), INTERVAL 72 HOUR)')
+//                ->asArray()->all();
 
-            $tutor_sessions = TutorSession::find()
-                ->select([
-                    'tutor_session.*',
-                    new Expression("'live_class' as type"),
-                ])
-                ->where([
-                    'student_id' => $student_id,
-                    'subject_id' => $model['subject_id'],
-                    'meta' => SharedConstant::RECOMMENDATION,
-                    'status' => SharedConstant::PENDING_STATUS,
-                    'is_school' => 1
-                ])
-                //Student only sees live_class/remedial that supposed to hold within the next 72hours
-                ->andWhere('availability > DATE_SUB(NOW(), INTERVAL 72 HOUR)')
-                ->asArray()->all();
+            if (!empty($subject)) {
+                $recommendedVideos = $this->getRecommendedVideos($student_id, $model);
+                $practices = $this->getRecommendedPractices($student_id, $model, $subject);// recommendations made by teachers
+                $topicOrders = Adaptivity::generateSingleMixPractices($topicModels);
+                $topicOrders = array_merge($practices, $topicOrders);
 
-            $recommendedVideos = $this->getRecommendedVideos($student_id, $model);
-            $practices = $this->getRecommendedPractices($student_id, $model);// recommendations made by teachers
-            $topicOrders = Adaptivity::generateSingleMixPractices($topicModels);
-            $topicOrders = array_merge($practices, $topicOrders, $recommendedVideos, $tutor_sessions);
+                $topicOrders = array_splice($topicOrders, 0, 6);
+                $finalResult = array_merge(
+                    $oneSubject,
+                    [
+                        'practices' => $topicOrders,
+                        'videos' => $recommendedVideos
+                    ]);
 
-            $topicOrders = array_splice($topicOrders, 0, 6);
-            $finalResult[] = array_merge(
-                $oneSubject,
-                [
-                    'topics' => $topicOrders,
-                ]);
+            } else {
+                $practices = $this->getRecommendedPractices($student_id, $model, $subject);// recommendations made by teachers
+                $topicOrders = Adaptivity::generateSingleMixPractices($topicModels);
+                $topicOrders = array_merge($practices, $topicOrders);
+
+                $topicOrders = array_splice($topicOrders, 0, 6);
+                $finalResult[] = array_merge(
+                    $oneSubject,
+                    [
+                        'topics' => $topicOrders,
+                    ]);
+            }
 
         }
 
@@ -685,18 +703,9 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Topics not found');
         }
 
-        if (empty($subject)) {
+
             return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, null);
-        } else {
-            $provider = new ArrayDataProvider([
-                'allModels' => $finalResult,
-                'pagination' => [
-                    'pageSize' => 20,
-                    'validatePage' => false,
-                ],
-            ]);
-            return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
-        }
+
     }
 
     protected function getRecommendedVideos($student_id, $model)
@@ -737,7 +746,7 @@ class CatchupController extends ActiveController
      * @param $model
      * @return array
      */
-    protected function getRecommendedPractices($student_id, $model)
+    protected function getRecommendedPractices($student_id, $model, $subject)
     {
         $practicesList = Homeworks::find()
             ->select([
@@ -760,20 +769,25 @@ class CatchupController extends ActiveController
                     FROM    quiz_summary qs
                     WHERE   qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1
                     )
-                ")
-            ->all();
+                ");
+        if (empty($subject))
+            $practicesList = $practicesList->limit(4);
+        $practicesList = $practicesList->all();
 
         $practices = [];
         foreach ($practicesList as $practice) {
-            if (count($practice->topics) == 1)
+            if (count($practice->topics) == 1) {
                 $duration = SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT;
-            else
+                $tag = 'single';
+            } else {
                 $duration = count($practice->topics) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT;
+                $tag = 'mix';
+            }
             $practices[] = [
                 'type' => 'practice',
                 'practice_id' => $practice->id,
                 'question_duration' => $duration,
-                'tag' => $duration > 1 ? 'mix' : 'single',
+                'tag' => $tag,
                 'teacher' => $practice->teacher->firstname . ' ' . $practice->teacher->lastname,
                 'topics' => $practice->topics
                 //'is_done' => $this->practiceStatus($practice),
