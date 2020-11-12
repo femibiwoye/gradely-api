@@ -31,12 +31,12 @@ class LogError extends Widget
         if (!WebsiteError::find()->where(['error' => $this->name, 'current' => $currentUrl, 'user' => $user])->exists()) {
             $err = new WebsiteError();
             $err->error = $this->name;
-            $err->user = $user;
+            //$err->user = $user;
             $err->current = $currentUrl;
             $err->previous = $prev;
             $err->raw = $this->raw;
             $err->source = $this->source;
-            $err->save();
+            echo $err->save();
         }
     }
 }
