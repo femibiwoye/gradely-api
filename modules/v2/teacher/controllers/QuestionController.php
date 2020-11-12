@@ -63,7 +63,7 @@ class QuestionController extends ActiveController
 
         $model = Questions::find()
             ->innerJoin('homework_questions', "homework_questions.question_id = questions.id")
-            ->where(['homework_questions.homework_id' => $homework_id,'homework_questions.teacher_id'=>$teacher_id])
+            ->where(['homework_questions.homework_id' => $homework_id, 'homework_questions.teacher_id' => $teacher_id])
             ->all();
 
         if (!$model) {
@@ -111,32 +111,39 @@ class QuestionController extends ActiveController
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            $model = new Questions(['scenario' => 'create-' . $type]);
+            $model->attributes = Yii::$app->request->post();
+            $model->teacher_id = $teacher_id;
 
-        $model = new Questions(['scenario' => 'create-' . $type]);
-        $model->attributes = Yii::$app->request->post();
-        $model->teacher_id = $teacher_id;
+            $model->type = $type;
+            $model->category = 'homework';
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
+            }
+            $topic = SubjectTopics::findOne(['id' => $topic_id]);
+            $model->exam_type_id = $topic->exam_type_id;
+            $model->homework_id = $homework_id;
+            $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
+            if (!$model->save()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
+            }
 
-        $model->type = $type;
-        $model->category = 'homework';
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
+            $assignQuestion = new HomeworkQuestions();
+            $assignQuestion->teacher_id = $teacher_id;
+            $assignQuestion->homework_id = $homework_id;
+            $assignQuestion->question_id = $model->id;
+            $assignQuestion->duration = $model->duration;
+            $assignQuestion->difficulty = $model->difficulty;
+            if (!$assignQuestion->save()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
+            }
+            $dbtransaction->commit();
+        } catch (\Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
         }
-        $topic = SubjectTopics::findOne(['id' => $topic_id]);
-        $model->exam_type_id = $topic->exam_type_id;
-        $model->homework_id = $homework_id;
-        $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
-        if (!$model->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
-        }
-
-        $assignQuestion = new HomeworkQuestions();
-        $assignQuestion->teacher_id = $teacher_id;
-        $assignQuestion->homework_id = $homework_id;
-        $assignQuestion->question_id = $model->id;
-        $assignQuestion->duration = $model->duration;
-        $assignQuestion->difficulty = $model->difficulty;
-        $assignQuestion->save();
-
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question saved');
     }

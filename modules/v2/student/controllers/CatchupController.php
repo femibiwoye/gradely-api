@@ -480,6 +480,7 @@ class CatchupController extends ActiveController
             $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child);
         } else
             $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+
         if (!$class_id) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
         }
