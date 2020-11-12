@@ -615,7 +615,7 @@ class CatchupController extends ActiveController
         foreach ($models as $model) {
             $topics = QuizSummaryDetails::find()
                 ->select('quiz_summary_details.topic_id')
-                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.type != 'recommendation'")
+                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id") // AND quiz_summary.type != 'recommendation'
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
                 ->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => Yii::$app->user->id])
                 ->groupBy('quiz_summary_details.topic_id')
@@ -635,7 +635,8 @@ class CatchupController extends ActiveController
                     'st.topic',
                     'st.id',
                     'st.subject_id',
-                    Utility::ImageQuery('st')
+                    Utility::ImageQuery('st'),
+                    new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended')
                 ])
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
@@ -1072,6 +1073,12 @@ class CatchupController extends ActiveController
         }
     }
 
+    /**
+     * Explore for student
+     * @param null $child
+     * @param int $all
+     * @return ApiResponse
+     */
     public function actionExplore($child = null, $all = 0)
     {
         $classID = Utility::ParentStudentChildClass($child);
@@ -1085,6 +1092,7 @@ class CatchupController extends ActiveController
                 'pm.extension',
                 'pm.filetype',
                 'pm.filesize',
+                'pm.filename as url',
                 'pm.downloadable',
                 'pm.thumbnail',
                 'pm.token',
@@ -1104,6 +1112,7 @@ class CatchupController extends ActiveController
                 new Expression("'mp4' as extension"),
                 new Expression('vc.content_type COLLATE utf8mb4_unicode_ci as filetype'),
                 new Expression('vc.content_length COLLATE utf8mb4_unicode_ci as filesize'),
+                new Expression('null as url'),
                 new Expression("0 as downloadable"),
                 new Expression('vc.image COLLATE utf8mb4_unicode_ci as thumbnail'),
                 new Expression('vc.token COLLATE utf8mb4_unicode_ci'),
@@ -1116,7 +1125,7 @@ class CatchupController extends ActiveController
             ->where(['st.class_id' => $classID]);
 
 
-// Union table A and B
+        // Union table A and B
         $query1->union($query2);
 
 
