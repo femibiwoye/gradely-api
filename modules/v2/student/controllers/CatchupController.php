@@ -1121,6 +1121,7 @@ class CatchupController extends ActiveController
                 "CONCAT(user.firstname,' ',user.lastname) AS creator_name",
                 "user.image as creator_image",
                 "user.id as creator_id",
+                "pm.created_at",
             ])
             ->leftJoin('user', "user.id = pm.user_id")
             ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
@@ -1141,6 +1142,7 @@ class CatchupController extends ActiveController
                 new Expression("'WizItUp' AS creator_name"),
                 new Expression("null as creator_image"),
                 new Expression("null as creator_id"),
+                "vc.created_at"
             ])
             ->innerJoin('video_assign va', 'va.content_id = vc.id')
             ->innerJoin('subject_topics st', 'st.id = va.topic_id')
