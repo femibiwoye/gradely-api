@@ -83,7 +83,7 @@ class Utility extends ActiveRecord
      */
     public static function getTeacherClassesID($teacherID)
     {
-        $classes = ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => $teacherID,'status'=>1])->all(), 'class_id');
+        $classes = ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => $teacherID, 'status' => 1])->all(), 'class_id');
         return $classes;
     }
 
@@ -520,8 +520,16 @@ class Utility extends ActiveRecord
         // $bytes /= pow(1024, $pow);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision)  . $units[$pow];
+        return round($bytes, $precision) . $units[$pow];
     }
 
+    public static function ParentStudentChildClass($child_id=null)
+    {
+        if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child_id);
+        } else
+            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
 
+        return $class_id;
+    }
 }
