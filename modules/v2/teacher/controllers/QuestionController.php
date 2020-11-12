@@ -130,14 +130,16 @@ class QuestionController extends ActiveController
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
             }
 
-            $assignQuestion = new HomeworkQuestions();
-            $assignQuestion->teacher_id = $teacher_id;
-            $assignQuestion->homework_id = $homework_id;
-            $assignQuestion->question_id = $model->id;
-            $assignQuestion->duration = $model->duration;
-            $assignQuestion->difficulty = $model->difficulty;
-            if (!$assignQuestion->save()) {
-                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
+            if (!empty($homework_id)) {
+                $assignQuestion = new HomeworkQuestions();
+                $assignQuestion->teacher_id = $teacher_id;
+                $assignQuestion->homework_id = $homework_id;
+                $assignQuestion->question_id = $model->id;
+                $assignQuestion->duration = $model->duration;
+                $assignQuestion->difficulty = $model->difficulty;
+                if (!$assignQuestion->save()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
+                }
             }
             $dbtransaction->commit();
         } catch (\Exception $e) {

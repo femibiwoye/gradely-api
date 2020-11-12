@@ -18,6 +18,7 @@ use app\modules\v2\models\VideoAssign;
 use app\modules\v2\models\VideoContent;
 use app\modules\v2\student\models\StartDiagnosticForm;
 use Yii;
+use yii\data\ArrayDataProvider;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -1069,6 +1070,70 @@ class CatchupController extends ActiveController
             $dbtransaction->rollBack();
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
         }
+    }
 
+    public function actionExplore($child = null, $all = 0)
+    {
+        $classID = Utility::ParentStudentChildClass($child);
+
+        $query1 = (new \yii\db\Query())
+            ->from('practice_material pm')
+            //->alias('pm')
+            ->select([
+                'pm.id',
+                'pm.title',
+                'pm.extension',
+                'pm.filetype',
+                'pm.filesize',
+                'pm.downloadable',
+                'pm.thumbnail',
+                'pm.token',
+                "CONCAT(user.firstname,' ',user.lastname) AS creator_name",
+                "user.image as creator_image",
+                "user.id as creator_id",
+            ])
+            ->leftJoin('user', "user.id = pm.user_id")
+            ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
+            ->where(['feed.global_class_id' => $classID]);
+
+        $query2 = (new \yii\db\Query())
+            ->from('video_content vc')
+            ->select([
+                'vc.id',
+                new Expression('vc.new_title COLLATE utf8mb4_unicode_ci as title'),
+                new Expression("'mp4' as extension"),
+                new Expression('vc.content_type COLLATE utf8mb4_unicode_ci as filetype'),
+                new Expression('vc.content_length COLLATE utf8mb4_unicode_ci as filesize'),
+                new Expression("0 as downloadable"),
+                new Expression('vc.image COLLATE utf8mb4_unicode_ci as thumbnail'),
+                new Expression('vc.token COLLATE utf8mb4_unicode_ci'),
+                new Expression("'WizItUp' AS creator_name"),
+                new Expression("null as creator_image"),
+                new Expression("null as creator_id"),
+            ])
+            ->innerJoin('video_assign va', 'va.content_id = vc.id')
+            ->innerJoin('subject_topics st', 'st.id = va.topic_id')
+            ->where(['st.class_id' => $classID]);
+
+
+// Union table A and B
+        $query1->union($query2);
+
+
+        $query = PracticeMaterial::find()->select('*')->from(['random_name' => $query1]);
+
+        if ($all == 0) {
+            $query = $query->limit(12);
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $query->asArray()->orderBy('rand()'),
+            'pagination' => [
+                'pageSize' => $all == 0?12:20,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
     }
 }
