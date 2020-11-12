@@ -316,7 +316,8 @@ class StudentDetails extends User
     public function getStatistics()
     {
         $studentAnalytics = new StudentAnalytics();
-        return $result = $studentAnalytics->Analytics($this);
+        $subject_id = $this->getSelectedSubject()->id;
+        return $result = $studentAnalytics->Analytics($this, $subject_id, $_GET['term']);
     }
 
     public function checkStudentInTeacherClass()
@@ -345,18 +346,17 @@ class StudentDetails extends User
             ->alias('qsd')
             ->where(['qsd.student_id' => $this->id]);
 
-
         if (isset($_GET['term'])) {
             $term = $_GET['term'];
             $activeTopics = $activeTopics->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.term ='$term'");
         }
+
         $activeTopics = ArrayHelper::getColumn($activeTopics->groupBy('qsd.topic_id')->all(), 'topic_id');
 
         if (!empty($activeTopics)) {
-
             if (isset($_GET['subject'])) {
                 $selectedSubject = Subjects::find()->where(['status' => 1]);
-                $selectedSubject = $selectedSubject->andWhere(['slug' => $_GET['subject']]);
+                $selectedSubject = $selectedSubject->andWhere(['id' => $_GET['subject']]);
                 $selectedSubject = ArrayHelper::getColumn($selectedSubject->all(), 'id');
             } else {
                 $attemptedSubjects = QuizSummary::find()->where(['student_id' => $this->id])->groupBy('subject_id')->all();
@@ -372,11 +372,11 @@ class StudentDetails extends User
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
-                    if ($data->getTopicPerformanceByID($data->id, $this->id) >= 75) {
+                    if ($data->getResult($this->id,$data->id) >= 75) {
                         $excellence[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getTopicPerformanceByID($data->id, $this->id) >= 50 && $data->getTopicPerformanceByID($data->id, $this->id) < 75) {
+                    } elseif ($data->getResult($this->id,$data->id) >= 50 && $data->getResult($this->id,$data->id) < 75) {
                         $averages[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getTopicPerformanceByID($data->id, $this->id) < 50) {
+                    } elseif ($data->getResult($this->id,$data->id) < 50) {
                         $struggling[] = $this->topicPerformanceMini($data);
                     }
                 }
@@ -395,10 +395,10 @@ class StudentDetails extends User
 
     }
 
-    public function getClassSubjects()
+    public function getClassSubjects($subject_id = null)
     {
         $studentID = $this->id;
-        return Subjects::find()
+        $subjects = Subjects::find()
             ->alias('s')
             ->select([
                 's.id',
@@ -409,13 +409,24 @@ class StudentDetails extends User
             ])
             ->innerJoin('student_school ss', "ss.student_id = $studentID AND ss.status = 1")
             ->innerJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id')
-            ->where(['s.status' => 1, 'cs.status' => 1])
-            ->all();
+            ->where(['s.status' => 1, 'cs.status' => 1]);
+
+        if (!empty($subject_id))
+            $subjects = $subjects->andWhere(['s.id' => $subject_id]);
+
+        $subjects = $subjects->all();
+
+        return $subjects;
     }
 
     public function getSelectedSubject()
     {
-       return isset($this->getClassSubjects()[0])?$this->getClassSubjects()[0]:null;
+        if ($subject_id = Yii::$app->request->get('subject')) {
+            $subject = $this->getClassSubjects($subject_id)[0];
+        } else {
+            $subject = isset($this->getClassSubjects()[0]) ? $this->getClassSubjects()[0] : null;
+        }
+        return $subject;
     }
 
     private function topicPerformanceMini($data)

@@ -39,7 +39,7 @@ class HomeworkForm extends Model
     {
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'open_date', 'close_date', 'tag', 'view_by'], 'required', 'on' => 'create-homework'],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title', 'description'], 'required', 'on' => 'create-lesson'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title'], 'required', 'on' => 'create-lesson'],
             [['title', 'tag'], 'required', 'on' => 'update-homework'],
             //[['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd '],
             [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
@@ -116,7 +116,7 @@ class HomeworkForm extends Model
             if (isset($attachment['id'])) {
                 $model = PracticeMaterial::findOne(['id' => $attachment['id']]);
             } else {
-                $model = new PracticeMaterial;
+                $model = new PracticeMaterial(['scenario' => 'feed-material']);
                 $model->user_id = $homework->teacher_id;
                 $model->practice_id = $homework->id;
                 $model->type = 'practice';
@@ -183,7 +183,7 @@ class HomeworkForm extends Model
     public function addFeedAttachment($feed_id)
     {
         foreach ($this->attachments as $feed_attachment) {
-            $model = new PracticeMaterial;
+            $model = new PracticeMaterial(['scenario' => 'feed-material']);
             $model->attributes = $feed_attachment;
             $model->user_id = $this->teacher_id;
             $model->practice_id = $feed_id;
@@ -205,7 +205,7 @@ class HomeworkForm extends Model
         foreach ($this->practice_attachments as $attachment) {
 
 
-            $model = new PracticeMaterial;
+            $model = new PracticeMaterial(['scenario' => 'feed-material']);
             $model->attributes = $attachment;
             $model->user_id = $this->teacher_id;
             $model->practice_id = $homework_id;
@@ -251,7 +251,7 @@ class HomeworkForm extends Model
             if (isset($attachment['id'])) {
                 $model = PracticeMaterial::findOne(['id' => $attachment['id']]);
             } else {
-                $model = new PracticeMaterial;
+                $model = new PracticeMaterial(['scenario' => 'feed-material']);
                 $model->user_id = Yii::$app->user->id;
             }
 

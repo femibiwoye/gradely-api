@@ -75,7 +75,9 @@ class HomeworkReport extends Homeworks
 
     public function getStudentExpected()
     {
-        return count($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all());
+        return StudentSchool::find()
+            ->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1])->count();
+        //return count($this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all());
     }
 
     public function getStudentsSubmitted()

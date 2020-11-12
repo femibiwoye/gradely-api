@@ -360,8 +360,8 @@ class CommandsController extends Controller
             $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
 
-        //weekly_recommended_topics is to store the topics that are already exist in weekly_recommendation
-        $weekly_recommended_topics = ArrayHelper::getColumn(
+        //Daily_recommended_topics is to store the topics that are already exist in daily_recommendation
+        $daily_recommended_topics = ArrayHelper::getColumn(
             RecommendationTopics::find()
                 ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id')
                 ->where('WEEKDAY(recommendations.created_at) = ' . SharedConstant::VALUE_SIX)
@@ -369,6 +369,7 @@ class CommandsController extends Controller
                 ->all(),
             'object_id'
         );
+
 
         $subjects = ArrayHelper::getColumn(QuizSummary::find()
             ->select('subject_id')
@@ -396,7 +397,7 @@ class CommandsController extends Controller
                     'subject_topics.subject_id' => $subject,
                     'subject_topics.class_id' => $classID
                 ])
-                ->andWhere(['NOT IN', 'subject_topics.id', $weekly_recommended_topics])
+                ->andWhere(['NOT IN', 'subject_topics.id', $daily_recommended_topics])
                 ->asArray()
                 ->limit(SharedConstant::VALUE_ONE)
                 ->all();
@@ -422,7 +423,7 @@ class CommandsController extends Controller
             ->all();
 
         if (count($this->daily_recommended_topics) < SharedConstant::VALUE_THREE) {
-            $this->randomDailyRecommendationTopics($this->daily_recommended_topics, $subjects, $weekly_recommended_topics, 'daily');
+            $this->randomDailyRecommendationTopics($this->daily_recommended_topics, $subjects, $daily_recommended_topics, 'daily');
         }
 
         $this->topics = array_merge($this->daily_recommended_topics, $daily_recommended_videos);

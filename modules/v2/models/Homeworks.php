@@ -205,7 +205,8 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getStudentExpectedCount()
     {
-        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1])->count();
+        return StudentSchool::find()
+            ->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1])->count();
     }
 
     public function getStudentsSubmitted()

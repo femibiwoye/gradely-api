@@ -85,7 +85,7 @@ class PostForm extends Model
     public function addAttachments($feed)
     {
         foreach ($this->attachments as $file) {
-            $model = new PracticeMaterial();
+            $model = new PracticeMaterial(['scenario' => 'feed-material']);
             $model->attributes = $file;
             $model->practice_id = $feed->id;
             $model->user_id = $feed->user_id;
@@ -109,7 +109,7 @@ class PostForm extends Model
             if (isset($attachment['id'])) {
                 $model = PracticeMaterial::findOne(['id' => $attachment['id']]);
             } else {
-                $model = new PracticeMaterial;
+                $model = new PracticeMaterial(['scenario' => 'feed-material']);
                 $model->user_id = Yii::$app->user->id;
             }
 
