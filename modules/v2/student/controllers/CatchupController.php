@@ -509,17 +509,35 @@ class CatchupController extends ActiveController
      * The practices that was recently taken by a child
      * @return ApiResponse
      */
-    public function actionRecentPractices()
+    public function actionRecentPractices($child = null, $all = 0)
     {
-        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[2] && Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
+        $student_id = Utility::getParentChildID();
         $models = QuizSummary::find()
-            ->where(['student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])
-            ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+            ->alias('qs')
+            ->select([
+                'qs.id',
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(hq.id))*100) as score'), 'qsd.topic_id',
+                'qs.homework_id',
+                'qs.subject_id',
+                'qs.student_id',
+                'qs.correct',
+                'qs.failed',
+                'qs.total_questions',
+                new Expression('DATE(qs.created_at) as date'),
+            ])
+            ->innerJoin('quiz_summary_details qsd', "qsd.student_id = qs.student_id AND qsd.quiz_id = qs.id")
+            ->innerJoin('homework_questions hq', 'hq.homework_id = qs.homework_id')
+            ->where([
+                //'student_id' => $student_id, //to be returned
+                'submit' => SharedConstant::VALUE_ONE])
+            //->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]]) //to be returned
             ->orderBy(['submit_at' => SORT_DESC])
-            ->limit(6)
+            //->limit(6)
+            ->groupBy(['qs.id'])
             ->asArray()
             ->all();
 
@@ -529,12 +547,28 @@ class CatchupController extends ActiveController
 
         $final = [];
         foreach ($models as $model) {
-            $topics = ArrayHelper::getColumn(PracticeTopics::find()->where(['practice_id' => $model['homework_id']])->all(), 'topic_id');
-
-            $final = array_merge($model, ['topics' => SubjectTopics::find()->where(['id' => $topics])->asArray()->all()]);
+            $topics = SubjectTopics::find()
+                ->innerJoin('practice_topics pt', "pt.practice_id = {$model['homework_id']} AND pt.topic_id = subject_topics.id")
+                ->all();
+            $final[] = array_merge($model, ['tag' => count($topics) > 1 ? 'mix' : 'single', 'topics' => $topics]);
         }
 
-        return (new ApiResponse)->success($final, ApiResponse::SUCCESSFUL, 'Practice found');
+        if ($all == 1) {
+            $bothFinal = [];
+            foreach ($final as $element) {
+                $bothFinal[$element['date']][] = $element;
+            }
+            $final = $bothFinal;
+        }
+        $provider = new ArrayDataProvider([
+            'allModels' => $final,
+            'pagination' => [
+                'pageSize' => $all == 0 ? 6 : 12,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Recent practices found', $provider);
     }
 
     /**
