@@ -296,27 +296,33 @@ class CatchupController extends ActiveController
      * This return last six videos watched by a student
      * @return ApiResponse
      */
-    public function actionVideosWatched()
+    public function actionVideosWatched($child = null, $all = 0)
     {
-
-        $class_id = Utility::getStudentClass();
+        $class_id = Utility::ParentStudentChildClass($child);
+        $studentID = Utility::getParentChildID();
         $file_log = FileLog::find()
             ->where([
                 'is_completed' => SharedConstant::VALUE_ONE,
-                //'user_id' => Yii::$app->user->id, //to be returned
+                //'user_id' => $student_id, //to be returned
                 'type' => SharedConstant::TYPE_VIDEO,
                 //'class_id' => $class_id //to be returned
             ])
             ->groupBy('file_id')
-            ->limit(6)
-            ->orderBy('id DESC')
-            ->all();
+            ->orderBy('id DESC');
 
         if (!$file_log) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
         }
 
-        return (new ApiResponse)->success($file_log, ApiResponse::SUCCESSFUL, 'Videos Found');
+        $provider = new ActiveDataProvider([
+            'query' => $file_log,
+            'pagination' => [
+                'pageSize' => $all == 0 ? 6 : 9,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
 
     }
 
@@ -535,14 +541,16 @@ class CatchupController extends ActiveController
      * This returns videos not completely watched by student in a class
      * @return ApiResponse
      */
-    public function actionIncompleteVideos()
+    public function actionIncompleteVideos($child = null, $all = 0)
     {
-        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3] && Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[2]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
-        $model = FileLog::findAll([
-            'user_id' => Yii::$app->user->id,
+        $student_id = $studentID = Utility::getParentChildID();
+
+        $model = FileLog::find()->where([
+            //'user_id' => $student_id, //to be returned
             'is_completed' => SharedConstant::VALUE_ZERO
         ]);
 
@@ -550,7 +558,15 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Videos not found');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Videos found');
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => $all == 0 ? 6 : 12,
+                'validatePage' => false,
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Videos found', $provider);
     }
 
     /**
@@ -602,7 +618,7 @@ class CatchupController extends ActiveController
 
         $models = QuizSummary::find()
             ->select('subject_id')
-            ->where(['student_id' => $student_id])
+            //->where(['student_id' => $student_id]) //to be returned
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id');
         if (!empty($subject)) {
@@ -1145,7 +1161,9 @@ class CatchupController extends ActiveController
             ])
             ->leftJoin('user', "user.id = pm.user_id")
             ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
-            ->where(['feed.global_class_id' => $classID, 'pm.filetype' => 'document']);
+            ->where([
+                //'feed.global_class_id' => $classID, //to be returned
+                'pm.filetype' => 'document']);
 
         $query2 = (new \yii\db\Query())
             ->from('video_content vc')
