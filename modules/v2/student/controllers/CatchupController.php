@@ -1094,7 +1094,7 @@ class CatchupController extends ActiveController
             ])
             ->leftJoin('user', "user.id = pm.user_id")
             ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
-            ->where(['feed.global_class_id' => $classID]);
+            ->where(['feed.global_class_id' => $classID, 'pm.filetype' => 'document']);
 
         $query2 = (new \yii\db\Query())
             ->from('video_content vc')
@@ -1129,7 +1129,7 @@ class CatchupController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $query->asArray()->orderBy('rand()'),
             'pagination' => [
-                'pageSize' => $all == 0?12:20,
+                'pageSize' => $all == 0 ? 12 : 20,
                 'validatePage' => false,
             ],
         ]);
