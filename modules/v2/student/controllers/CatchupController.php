@@ -550,7 +550,8 @@ class CatchupController extends ActiveController
             $topics = SubjectTopics::find()
                 ->innerJoin('practice_topics pt', "pt.practice_id = {$model['homework_id']} AND pt.topic_id = subject_topics.id")
                 ->all();
-            $final[] = array_merge($model, ['tag' => count($topics) > 1 ? 'mix' : 'single', 'topics' => $topics]);
+            if (count($topics) > 0)
+                $final[] = array_merge($model, ['tag' => count($topics) > 1 ? 'mix' : 'single', 'topics' => $topics]);
         }
 
         if ($all == 1) {
