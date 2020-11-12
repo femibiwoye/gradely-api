@@ -475,7 +475,7 @@ class CatchupController extends ActiveController
      * This returns all the subjects that are available for diagnostics.
      * @return ApiResponse
      */
-    public function actionDiagnostic($child = null)
+    public function actionDiagnostic()
     {
         if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
             $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child);
@@ -486,7 +486,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
         }
 
-        $studentID = Yii::$app->user->id;
+        $studentID = Utility::getParentChildID();
         $model = Subjects::find()
             ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.submit = 1 AND student_id = $studentID")
             ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
@@ -594,15 +594,15 @@ class CatchupController extends ActiveController
      * This action generates recommended topic for catchup.
      * @return ApiResponse
      */
-    public function actionPracticeRecommendations()
+    public function actionPracticeRecommendations($child = null, $subject = null)
     {
-        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
+        if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3] && Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[2]) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
+        $class_id = Utility::ParentStudentChildClass($child);
+        $student_id = $studentID = Utility::getParentChildID();
 
-        $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
-        $student_id = Yii::$app->user->id;
         $models = QuizSummary::find()
             ->select('subject_id')
             ->where(['student_id' => $student_id])
@@ -615,13 +615,13 @@ class CatchupController extends ActiveController
         foreach ($models as $model) {
             $topics = QuizSummaryDetails::find()
                 ->select('quiz_summary_details.topic_id')
-                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id") // AND quiz_summary.type != 'recommendation'
+                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id")// AND quiz_summary.type != 'recommendation'
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
-                ->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => Yii::$app->user->id])
+                ->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => $student_id])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->all();
 
-            $subject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])
+            $oneSubject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])
                 ->where(['id' => $model['subject_id']])->asArray()->one();
 
             // $topicOrders = [];
@@ -636,19 +636,15 @@ class CatchupController extends ActiveController
                     'st.id',
                     'st.subject_id',
                     Utility::ImageQuery('st'),
-
-                    //new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended')
                 ])
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
-                ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'), 'student_id' => Yii::$app->user->id, 'st.subject_id' => $model['subject_id']])
+                ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'), 'student_id' => $student_id, 'st.subject_id' => $model['subject_id']])
                 ->orderBy('score')
                 ->asArray()
                 ->groupBy('qsd.topic_id')
                 ->limit(10)
                 ->all();
-
-            $topicOrders = Adaptivity::generateSingleMixPractices($topicModels);
 
 
             //}
@@ -670,17 +666,18 @@ class CatchupController extends ActiveController
                 ->andWhere('availability > DATE_SUB(NOW(), INTERVAL 72 HOUR)')
                 ->asArray()->all();
 
-
             $recommendedVideos = $this->getRecommendedVideos($student_id, $model);
-            $practices = $this->getRecommendedPractices($student_id, $model);
+            $practices = $this->getRecommendedPractices($student_id, $model);// recommendations made by teachers
+            $topicOrders = Adaptivity::generateSingleMixPractices($topicModels);
+            $topicOrders = array_merge($practices, $topicOrders, $recommendedVideos, $tutor_sessions);
 
-            $topicOrders = array_merge($topicOrders, $recommendedVideos, $tutor_sessions, $practices);
-
+            $topicOrders = array_splice($topicOrders, 0, 6);
             $finalResult[] = array_merge(
-                $subject,
+                $oneSubject,
                 [
                     'topics' => $topicOrders,
                 ]);
+
         }
 
 
@@ -688,7 +685,18 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Topics not found');
         }
 
-        return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, 'Practice Topics found');
+        if (empty($subject)) {
+            return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, null);
+        } else {
+            $provider = new ArrayDataProvider([
+                'allModels' => $finalResult,
+                'pagination' => [
+                    'pageSize' => 20,
+                    'validatePage' => false,
+                ],
+            ]);
+            return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
+        }
     }
 
     protected function getRecommendedVideos($student_id, $model)
@@ -723,13 +731,21 @@ class CatchupController extends ActiveController
         return $recommendedVideos;
     }
 
+    /**
+     * This is recommendation made by teacher to a student
+     * @param $student_id
+     * @param $model
+     * @return array
+     */
     protected function getRecommendedPractices($student_id, $model)
     {
         $practicesList = Homeworks::find()
             ->select([
                 'homeworks.*',
                 new Expression("'practice' as type"),
+                //new Expression("CONCAT(user.firstname,' ',user.lastname)")
             ])
+            ->innerJoin('user', 'user.id = homeworks.teacher_id')
             ->where([
                 'student_id' => $student_id,
                 'subject_id' => $model['subject_id'],
@@ -745,29 +761,22 @@ class CatchupController extends ActiveController
                     WHERE   qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1
                     )
                 ")
-//                ->andWhere([
-//                    'NOT IN',
-//                    'id',
-//                    ArrayHelper::getColumn(
-//                        QuizSummary::find()
-//                            ->where([
-//                                'subject_id' => $model['subject_id'],
-//                                'student_id' => Yii::$app->user->id
-//                            ])
-//                            ->all(),
-//                        'homework_id'
-//                    )
-//                ])
             ->all();
 
         $practices = [];
         foreach ($practicesList as $practice) {
+            if (count($practice->topics) == 1)
+                $duration = SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT;
+            else
+                $duration = count($practice->topics) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT;
             $practices[] = [
                 'type' => 'practice',
                 'practice_id' => $practice->id,
-                'question_duration' => count($practice->topics) == 1 ? SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT : count($practice->topics) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT,
-                'topics' => $practice->topics,
-                'is_done' => $this->practiceStatus($practice),
+                'question_duration' => $duration,
+                'tag' => $duration > 1 ? 'mix' : 'single',
+                'teacher' => $practice->teacher->firstname . ' ' . $practice->teacher->lastname,
+                'topics' => $practice->topics
+                //'is_done' => $this->practiceStatus($practice),
             ];
         }
 
@@ -777,15 +786,15 @@ class CatchupController extends ActiveController
     private function practiceStatus($practice)
     {
         $model = QuizSummary::find()
-                    ->where([
-                        'homework_id' => $practice->id,
-                        'subject_id' => $practice->subject_id,
-                        'class_id' => $practice->class_id,
-                        'submit' => 1,
-                        'type' => 'homework'
-                    ])
-                    ->one();
-        
+            ->where([
+                'homework_id' => $practice->id,
+                'subject_id' => $practice->subject_id,
+                'class_id' => $practice->class_id,
+                'submit' => 1,
+                'type' => 'homework'
+            ])
+            ->one();
+
         if ($model) {
             return 1;
         }
