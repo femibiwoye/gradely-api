@@ -636,7 +636,8 @@ class CatchupController extends ActiveController
                     'st.id',
                     'st.subject_id',
                     Utility::ImageQuery('st'),
-                    new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended')
+
+                    //new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended')
                 ])
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
@@ -766,9 +767,30 @@ class CatchupController extends ActiveController
                 'practice_id' => $practice->id,
                 'question_duration' => count($practice->topics) == 1 ? SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT : count($practice->topics) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT,
                 'topics' => $practice->topics,
+                'is_done' => $this->practiceStatus($practice),
             ];
         }
+
         return $practices;
+    }
+
+    private function practiceStatus($practice)
+    {
+        $model = QuizSummary::find()
+                    ->where([
+                        'homework_id' => $practice->id,
+                        'subject_id' => $practice->subject_id,
+                        'class_id' => $practice->class_id,
+                        'submit' => 1,
+                        'type' => 'homework'
+                    ])
+                    ->one();
+        
+        if ($model) {
+            return 1;
+        }
+
+        return 0;
     }
 
     /**
