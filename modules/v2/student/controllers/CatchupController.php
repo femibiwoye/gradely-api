@@ -475,12 +475,9 @@ class CatchupController extends ActiveController
      * This returns all the subjects that are available for diagnostics.
      * @return ApiResponse
      */
-    public function actionDiagnostic()
+    public function actionDiagnostic($child = null)
     {
-        if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
-            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child);
-        } else
-            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+        $class_id = Utility::ParentStudentChildClass($child);
 
         if (!$class_id) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not found');
@@ -704,7 +701,7 @@ class CatchupController extends ActiveController
         }
 
 
-            return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, null);
+        return (new ApiResponse)->success($finalResult, ApiResponse::SUCCESSFUL, null);
 
     }
 
