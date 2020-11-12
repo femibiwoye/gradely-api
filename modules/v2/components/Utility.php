@@ -172,9 +172,9 @@ class Utility extends ActiveRecord
     public static function getParentChildID()
     {
         if (Yii::$app->user->identity->type == 'parent') {
-            if (!isset($_GET['child_id']) || empty($_GET['child_id']))
+            if ((!isset($_GET['child_id']) || empty($_GET['child_id'])) && empty($_GET['child']))
                 return 0;
-            $child_id = $_GET['child_id'];
+            $child_id = isset($_GET['child_id'])?$_GET['child_id']:$_GET['child'];
             if (Parents::find()->where(['parent_id' => Yii::$app->user->id, 'student_id' => $child_id, 'status' => 1])->exists())
                 return $child_id;
         } elseif (Yii::$app->user->identity->type == 'student')
@@ -523,7 +523,7 @@ class Utility extends ActiveRecord
         return round($bytes, $precision) . $units[$pow];
     }
 
-    public static function ParentStudentChildClass($child_id=null)
+    public static function ParentStudentChildClass($child_id = null)
     {
         if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
             $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child_id);

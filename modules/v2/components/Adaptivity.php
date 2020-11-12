@@ -19,13 +19,15 @@ class Adaptivity extends ActiveRecord
     {
         if ($type == 'single') {
             $questionCount = SharedConstant::SINGLE_PRACTICE_QUESTION_COUNT;
-            $is_recommended = $inner['is_recommended'];
+            if (isset($inner['is_recommended']))
+                $is_recommended = $inner['is_recommended'];
         } else {
             $questionCount = count($inner) * SharedConstant::MIX_PRACTICE_QUESTION_COUNT;
-            $is_recommended = $inner[0]['is_recommended'];
+            if (isset($inner[0]['is_recommended']))
+                $is_recommended = $inner[0]['is_recommended'];
         }
 
-        return ['type' => $type, 'question_count' => $questionCount, 'is_recommended' => $is_recommended, 'topic' => $inner];
+        return isset($is_recommended) ? ['type' => $type, 'question_count' => $questionCount, 'is_recommended' => $is_recommended, 'topic' => $inner] : ['type' => $type, 'question_count' => $questionCount, 'topic' => $inner];
     }
 
     public static function GenerateSingleMixPractices($topicModels)
