@@ -36,8 +36,7 @@ $config = [
                 $response = $event->sender;
                 //if ($response->statusCode > 400 && is_array($response->data)) {
                     //Save the error to db so that it will be logged
-
-                    \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => $response->data['name'], 'raw' => json_encode($response->data)]);
+                    \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => 'something', 'raw' => json_encode($response->data)]);
                 //}
             },
         ],
