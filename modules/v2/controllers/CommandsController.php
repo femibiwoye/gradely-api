@@ -346,7 +346,22 @@ class CommandsController extends Controller
         return (new ApiResponse)->success($this->topics, ApiResponse::SUCCESSFUL, 'Daily recommendations found');
     }
 
-    private function dailyRecommendation($student)
+    private function dailyRecommendation($student = 32)
+    {
+        $school_id = StudentSchool::find()
+            ->select(['school_id', 'class_id', 'student_id'])
+            ->where(['student_id' => $student])
+            ->asArray()
+            ->one();
+
+        if (!$school_id) {
+            $classID = User::findOne(['id' => $student])->class;
+        } else {
+            $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
+        }
+    }
+
+    private function dailyRecommendationInitial($student = 32)
     {
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id', 'student_id'])
@@ -366,10 +381,10 @@ class CommandsController extends Controller
                 ->innerJoin('recommendations', 'recommendations.id = recommendation_topics.recommendation_id')
                 ->where('WEEKDAY(recommendations.created_at) = ' . SharedConstant::VALUE_SIX)
                 ->andWhere(['recommendation_topics.student_id' => $student])
+                ->groupBy('recommendation_topics.object_id')
                 ->all(),
             'object_id'
         );
-
 
         $subjects = ArrayHelper::getColumn(QuizSummary::find()
             ->select('subject_id')
@@ -422,12 +437,12 @@ class CommandsController extends Controller
             ->limit(SharedConstant::VALUE_TWO)
             ->all();
 
-        if (count($this->daily_recommended_topics) < SharedConstant::VALUE_THREE) {
-            $this->randomDailyRecommendationTopics($this->daily_recommended_topics, $subjects, $daily_recommended_topics, 'daily');
-        }
+//        if (count($this->daily_recommended_topics) < SharedConstant::VALUE_THREE) {
+//            $this->randomDailyRecommendationTopics($this->daily_recommended_topics, $subjects, $daily_recommended_topics, 'daily');
+//        }
 
-        $this->topics = array_merge($this->daily_recommended_topics, $daily_recommended_videos);
-        $this->createRecommendations($this->topics, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE]);
+        return $this->topics = array_merge($this->daily_recommended_topics, $daily_recommended_videos);
+        //$this->createRecommendations($this->topics, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE]);
     }
 
     private function startRecommendationsAgain($subjects, $classID)
