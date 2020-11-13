@@ -329,14 +329,14 @@ class CommandsController extends Controller
 
 
         foreach ($student_ids as $student) {
-            try {
+           // try {
                 $this->daily_recommended_topics = [];
                 $this->subjects = [];
                 $this->topics = [];
                 $this->dailyRecommendation($student);
-            } catch (\Exception $e) {
-                continue;
-            }
+//            } catch (\Exception $e) {
+//                continue;
+//            }
         }
 
 //        if (empty($this->topics)) {
@@ -346,8 +346,9 @@ class CommandsController extends Controller
         return (new ApiResponse)->success($this->topics, ApiResponse::SUCCESSFUL, 'Daily recommendations found');
     }
 
-    private function dailyRecommendation($student = 32)
+    private function dailyRecommendation($student)
     {
+        $student = 32;
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id', 'student_id'])
             ->where(['student_id' => $student])
