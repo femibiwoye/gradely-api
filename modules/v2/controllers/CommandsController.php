@@ -3,13 +3,16 @@
 namespace app\modules\v2\controllers;
 
 
+use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\GenerateString;
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\QuizSummary;
+use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Recommendations;
 use app\modules\v2\models\RecommendationTopics;
 use app\modules\v2\models\SchoolCalendar;
@@ -329,11 +332,11 @@ class CommandsController extends Controller
 
 
         foreach ($student_ids as $student) {
-           // try {
-                $this->daily_recommended_topics = [];
-                $this->subjects = [];
-                $this->topics = [];
-                $this->dailyRecommendation($student);
+            // try {
+            $this->daily_recommended_topics = [];
+            $this->subjects = [];
+            $this->topics = [];
+            return $this->dailyRecommendation($student);
 //            } catch (\Exception $e) {
 //                continue;
 //            }
@@ -361,17 +364,170 @@ class CommandsController extends Controller
             $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
 
-        $subjects = ArrayHelper::getColumn(QuizSummary::find()
-            ->select('subject_id')
-            ->where(['student_id' => $student])
-            ->groupBy('subject_id')
-            ->asArray()
-            ->all(),
-            'subject_id'
-        );
+//        $subjects = ArrayHelper::getColumn(QuizSummary::find()
+//            ->select('subject_id')
+//            ->where(['student_id' => $student])
+//            ->groupBy('subject_id')
+//            ->asArray()
+//            ->all(),
+//            'subject_id'
+//        );
 
-        print_r($subjects);
-        die;
+        $topics_attempted = array();
+        $topics = QuizSummaryDetails::find()
+            ->alias('s')
+            ->select(['s.topic_id'])
+            ->where(['s.student_id' => $student])
+            ->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
+            ->innerJoin('subject_topics st', 'st.id = s.topic_id AND st.class_id = ' . $classID)
+            ->groupBy('s.topic_id')
+            ->asArray()
+            ->all();
+
+
+        return $this->PracticeVideoRecommendation($topics, $student);
+
+
+//        foreach ($topics as $topic) {
+//            $attempted_topic = QuizSummaryDetails::find()
+//                ->alias('qsd')
+//                ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
+//                ->select([
+//                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+//                    'qsd.topic_id',
+//                    'st.topic',
+//                    'st.subject_id'
+//                ])
+//                ->where([
+//                    'topic_id' => $topic,
+//                    'student_id' => $student
+//                ])
+//                ->asArray()
+//                ->all();
+//
+//            $topics_attempted = array_merge($topics_attempted, $attempted_topic);
+//        }
+
+        $currentWeekTerm = Utility::getStudentTermWeek(null, $student);
+        $currentSubject = SubjectTopics::find()
+            ->where(['AND', ['term' => $currentWeekTerm['term']], ['>=', 'week_number', $currentWeekTerm['week']]])->one();
+        ///When i need to get next topic when if current does not exit
+//        if (!$currentSubject) {
+//            //$currentSubject = SubjectTopics::find()->where(['term' => Utility::GetNextPreviousTerm($currentWeekTerm['term'])])->one();
+//        }
+        //usort($topics_attempted, "cmp");
+
+        array_multisort(array_column($topics_attempted, 'score'), $topics_attempted);
+        return $topics_attempted;
+        //print_r($this->getLowestAttemptedTopic($topics_attempted, $student));
+        //die;
+    }
+
+    public static function PracticeVideoRecommendation($topic_id, $student)
+    {
+
+//        $topic_objects = SubjectTopics::find()
+//            ->leftJoin('practice_topics pt', 'pt.topic_id = subject_topics.id')
+//            ->leftJoin('homeworks h', 'h.id = pt.practice_id')
+//            ->select([
+//                'subject_topics.*',
+//                Utility::ImageQuery('subject_topics'),
+//                new Expression("'practice' as type"),
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+//            ])
+//            ->where(['subject_topics.id' => $topic_id])
+//            ->asArray()
+//            ->all();
+
+        $topic_id = ArrayHelper::getColumn($topic_id, 'topic_id');
+
+        //Method 2
+        $attempted_topic = QuizSummaryDetails::find()
+            ->alias('qsd')
+            ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
+            ->select([
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                'qsd.topic_id',
+                Utility::ImageQuery('st'),
+                'st.topic',
+                'st.subject_id'
+            ])
+            ->where([
+                'topic_id' => $topic_id,
+                'student_id' => $student
+            ])
+            ->groupBy('st.id')
+            ->asArray()
+            ->limit(8)
+            ->all();
+        array_multisort(array_column($attempted_topic, 'score'), $attempted_topic);
+
+//return $attempted_topic;
+        $video = VideoContent::find()
+            ->select([
+                'video_content.*',
+                new Expression("'video' as type"),
+                'gc.id class_id',
+                'gc.description class_name',
+            ])
+            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
+            ->innerJoin('global_class gc', 'gc.id = st.class_id')
+           // ->where(['video_assign.topic_id' => $topic_id])
+            //->orderBy('')
+            ->orderBy([new \yii\db\Expression('FIELD (video_assign.topic_id, 32,260,264,30)')])
+            //->limit(SharedConstant::VALUE_TWO)
+            //->asArray()
+            ->all();
+        return $video;
+
+        foreach ($attempted_topic as $key => $item) {
+
+
+        }
+
+        return ($attempted_topic);
+
+        //retrieves assign videos to the topic
+        $video = VideoContent::find()
+            ->select([
+                'video_content.*',
+                new Expression("'video' as type"),
+                'gc.id class_id',
+                'gc.description class_name',
+            ])
+            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
+            ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
+            ->innerJoin('global_class gc', 'gc.id = st.class_id')
+            ->where(['video_assign.topic_id' => $topic_id])
+            ->limit(SharedConstant::VALUE_THREE)
+            ->asArray()
+            ->all();
+
+        if (!$topic_objects) {
+            return SharedConstant::VALUE_NULL;
+        }
+
+        $topicOrders = Adaptivity::generateSingleMixPractices($topic_objects);
+
+        return array_merge($topicOrders, $video);
+    }
+
+
+    private function getLowestAttemptedTopic($attempted_topics, $studentID)
+    {
+        $least_attempted_topic = array();
+        foreach ($attempted_topics as $attempted_topic) {
+            if (empty($least_attempted_topic)) {
+                $least_attempted_topic = $attempted_topic;
+            }
+
+            if ($least_attempted_topic['score'] >= $attempted_topic['score']) {
+                $least_attempted_topic = $attempted_topic;
+            }
+        }
+
+        return $least_attempted_topic;
     }
 
     private function dailyRecommendationInitial($student = 32)
