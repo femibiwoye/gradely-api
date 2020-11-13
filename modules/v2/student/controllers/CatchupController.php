@@ -529,6 +529,7 @@ class CatchupController extends ActiveController
                 'qs.total_questions',
                 new Expression('DATE(qs.created_at) as date'),
             ])
+            ->innerJoin('practice_topics pt', "pt.practice_id = qs.homework_id")
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = qs.student_id AND qsd.quiz_id = qs.id")
             ->innerJoin('homework_questions hq', 'hq.homework_id = qs.homework_id')
             ->where([
@@ -536,7 +537,6 @@ class CatchupController extends ActiveController
                 'submit' => SharedConstant::VALUE_ONE])
             //->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]]) //to be returned
             ->orderBy(['submit_at' => SORT_DESC])
-            //->limit(6)
             ->groupBy(['qs.id'])
             ->asArray()
             ->all();
@@ -550,7 +550,6 @@ class CatchupController extends ActiveController
             $topics = SubjectTopics::find()
                 ->innerJoin('practice_topics pt', "pt.practice_id = {$model['homework_id']} AND pt.topic_id = subject_topics.id")
                 ->all();
-            if (count($topics) > 0)
                 $final[] = array_merge($model, ['tag' => count($topics) > 1 ? 'mix' : 'single', 'topics' => $topics]);
         }
 
