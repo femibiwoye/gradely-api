@@ -359,6 +359,15 @@ class CommandsController extends Controller
         } else {
             $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
+
+        $subjects = ArrayHelper::getColumn(QuizSummary::find()
+            ->select('subject_id')
+            ->where(['student_id' => $student])
+            ->groupBy('subject_id')
+            ->asArray()
+            ->all(),
+            'subject_id'
+        );
     }
 
     private function dailyRecommendationInitial($student = 32)

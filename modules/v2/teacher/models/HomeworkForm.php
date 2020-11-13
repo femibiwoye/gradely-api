@@ -78,12 +78,12 @@ class HomeworkForm extends Model
 //                return false;
 //            }
 
-            $notification = new InputNotification();
-            $teacher = $notification->NewNotification('teacher_set_homework_teacher', [['homework_id', $model->id]]);
-            $student = $notification->NewNotification('teacher_set_homework_student', [['homework_id', $model->id]]);
-            $parent = $notification->NewNotification('teacher_set_homework_parent', [['homework_id', $model->id]]);
-            if (!$student || !$teacher || !$parent)
-                return false;
+//            $notification = new InputNotification();
+//            $teacher = $notification->NewNotification('teacher_set_homework_teacher', [['homework_id', $model->id]]);
+//            $student = $notification->NewNotification('teacher_set_homework_student', [['homework_id', $model->id]]);
+//            $parent = $notification->NewNotification('teacher_set_homework_parent', [['homework_id', $model->id]]);
+//            if (!$student || !$teacher || !$parent)
+//                return false;
 
             $dbtransaction->commit();
         } catch (Exception $ex) {
