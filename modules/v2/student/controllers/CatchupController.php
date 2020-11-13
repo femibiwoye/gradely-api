@@ -550,7 +550,7 @@ class CatchupController extends ActiveController
             $topics = SubjectTopics::find()
                 ->innerJoin('practice_topics pt', "pt.practice_id = {$model['homework_id']} AND pt.topic_id = subject_topics.id")
                 ->all();
-                $final[] = array_merge($model, ['tag' => count($topics) > 1 ? 'mix' : 'single', 'topics' => $topics]);
+            $final[] = array_merge($model, ['tag' => count($topics) > 1 ? 'mix' : 'single', 'topics' => $topics]);
         }
 
         if ($all == 1) {
@@ -652,7 +652,7 @@ class CatchupController extends ActiveController
 
         $models = QuizSummary::find()
             ->select('subject_id')
-            //->where(['student_id' => $student_id]) //to be returned
+            //->where(['student_id' => $student_id,'submit'=>1]) //to be returned
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id');
         if (!empty($subject)) {
@@ -667,8 +667,12 @@ class CatchupController extends ActiveController
                 ->select('quiz_summary_details.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id")// AND quiz_summary.type != 'recommendation'
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
-                ->where(['quiz_summary.subject_id' => $model['subject_id'], 'quiz_summary_details.student_id' => $student_id])
+                ->where([
+                    'quiz_summary.subject_id' => $model['subject_id'],
+                    //'quiz_summary_details.student_id' => $student_id //to be returned
+                ])
                 ->groupBy('quiz_summary_details.topic_id')
+                ->orderBy('quiz_summary_details.id DESC')
                 ->all();
 
             $oneSubject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])
@@ -689,7 +693,9 @@ class CatchupController extends ActiveController
                 ])
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
-                ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'), 'student_id' => $student_id, 'st.subject_id' => $model['subject_id']])
+                ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'),
+                    //'student_id' => $student_id, //to be returned
+                    'st.subject_id' => $model['subject_id']])
                 ->orderBy('score')
                 ->asArray()
                 ->groupBy('qsd.topic_id')
