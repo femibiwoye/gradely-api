@@ -652,7 +652,9 @@ class CatchupController extends ActiveController
 
         $models = QuizSummary::find()
             ->select('subject_id')
-            //->where(['student_id' => $student_id,'submit'=>1]) //to be returned
+            ->where(['submit'=>1,
+                //'student_id' => $student_id
+            ]) //to be returned
             ->andWhere(['<>', 'type', 'recommendation'])
             ->groupBy('subject_id');
         if (!empty($subject)) {
