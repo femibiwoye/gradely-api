@@ -66,6 +66,51 @@ class Adaptivity extends ActiveRecord
         return $topicOrders;
     }
 
+    public static function GenerateStudentSingleMixVideoRecommendations($topicModels, $video)
+    {
+
+        $topicOrders = [];
+        if (isset($topicModels[0])) {
+            $topicOrders[] = self::SingleMixTopic('single', $topicModels[0]);
+        }
+
+        if (isset($topicModels[1]) || isset($topicModels[3])) {
+            if (isset($topicModels[1])) {
+                $innerTopics = $topicModels;
+                $temp = array_splice($innerTopics, 1, 3);
+                if (count($temp) == 1)
+                    $topicOrders[] = self::SingleMixTopic('single', $topicModels[1]);
+                else
+                    $topicOrders[] = self::SingleMixTopic('mix', $temp);
+            }
+        }
+
+        if (isset($video[0])) {
+            $topicOrders[] = $video[0];
+        }
+
+        if (isset($topicModels[4])) {
+            $topicOrders[] = self::SingleMixTopic('single', $topicModels[4]);
+        }
+
+        if (isset($topicModels[5]) || isset($topicModels[5])) {
+            if (isset($topicModels[5])) {
+                $innerTopics = $topicModels;
+                $temp = array_splice($innerTopics, 5, 3);
+                if (count($temp) == 1)
+                    $topicOrders[] = self::SingleMixTopic('single', $topicModels[5]);
+                else
+                    $topicOrders[] = self::SingleMixTopic('mix', $temp);
+            }
+        }
+
+        if (isset($video[1])) {
+            $topicOrders[] = $video[1];
+        }
+
+        return $topicOrders;
+    }
+
     public static function PracticeVideoRecommendation($topic_id, $receiverID, $referenceType, $referenceID)
     {
         $topic_objects = SubjectTopics::find()

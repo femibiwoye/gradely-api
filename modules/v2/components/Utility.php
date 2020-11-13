@@ -259,7 +259,7 @@ class Utility extends ActiveRecord
      * @return array
      * @throws \Exception
      */
-    public static function getStudentTermWeek($only = null, $studentID)
+    public static function getStudentTermWeek($only = null, $studentID = null)
     {
         if (empty($studentID))
             $studentID = Yii::$app->user->id;
