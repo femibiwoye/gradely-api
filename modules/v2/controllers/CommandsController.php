@@ -20,6 +20,7 @@ use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TutorSession;
 use app\modules\v2\models\User;
+use app\modules\v2\models\VideoAssign;
 use app\modules\v2\models\VideoContent;
 use Yii;
 use yii\db\Expression;
@@ -257,14 +258,14 @@ class CommandsController extends Controller
         }
     }
 
-    private function createRecommendations($recommendations, $student, $recommendation_type)
+    private function createRecommendations($recommendations, $student, $category = 'daily')
     {
         if (!empty($recommendations)) {
             $dbtransaction = Yii::$app->db->beginTransaction();
             try {
                 $model = new Recommendations;
                 $model->student_id = $student;
-                $model->category = $recommendation_type;
+                $model->category = $category;
                 if (!$model->save()) {
                     return false;
                 }
@@ -272,7 +273,6 @@ class CommandsController extends Controller
                 if (!$this->createRecommendedTopics($recommendations, $model)) {
                     return false;
                 }
-
                 $dbtransaction->commit();
             } catch (Exception $e) {
                 $dbtransaction->rollBack();
@@ -286,13 +286,16 @@ class CommandsController extends Controller
     private function createRecommendedTopics($objects, $recommendation)
     {
         foreach ($objects as $object) {
+            if ($object['type'] == 'video') {
+                $video = VideoAssign::findOne(['content_id' => $object['id']]);
+            }
             $model = new RecommendationTopics;
             $model->recommendation_id = $recommendation->id;
-            $model->subject_id = $object['subject_id'];
+            $model->subject_id = $object['type'] == 'video' ? $video->topic->subject_id : $object['subject_id'];
             $model->student_id = $recommendation->student_id;
             $model->object_id = $object['id'];
-            $model->object_type = isset($object['type']) ? $object['type'] : 'video';
-            if (!$model->save(false)) {
+            $model->object_type = $object['type'];
+            if (!$model->save()) {
                 return false;
             }
         }
@@ -364,16 +367,6 @@ class CommandsController extends Controller
             $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
 
-//        $subjects = ArrayHelper::getColumn(QuizSummary::find()
-//            ->select('subject_id')
-//            ->where(['student_id' => $student])
-//            ->groupBy('subject_id')
-//            ->asArray()
-//            ->all(),
-//            'subject_id'
-//        );
-
-        $topics_attempted = array();
         $topics = QuizSummaryDetails::find()
             ->alias('s')
             ->select(['s.topic_id'])
@@ -388,42 +381,9 @@ class CommandsController extends Controller
         return $this->PracticeVideoRecommendation($topics, $student);
 
 
-//        foreach ($topics as $topic) {
-//            $attempted_topic = QuizSummaryDetails::find()
-//                ->alias('qsd')
-//                ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
-//                ->select([
-//                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-//                    'qsd.topic_id',
-//                    'st.topic',
-//                    'st.subject_id'
-//                ])
-//                ->where([
-//                    'topic_id' => $topic,
-//                    'student_id' => $student
-//                ])
-//                ->asArray()
-//                ->all();
-//
-//            $topics_attempted = array_merge($topics_attempted, $attempted_topic);
-//        }
-
-        $currentWeekTerm = Utility::getStudentTermWeek(null, $student);
-        $currentSubject = SubjectTopics::find()
-            ->where(['AND', ['term' => $currentWeekTerm['term']], ['>=', 'week_number', $currentWeekTerm['week']]])->one();
-        ///When i need to get next topic when if current does not exit
-//        if (!$currentSubject) {
-//            //$currentSubject = SubjectTopics::find()->where(['term' => Utility::GetNextPreviousTerm($currentWeekTerm['term'])])->one();
-//        }
-        //usort($topics_attempted, "cmp");
-
-        array_multisort(array_column($topics_attempted, 'score'), $topics_attempted);
-        return $topics_attempted;
-        //print_r($this->getLowestAttemptedTopic($topics_attempted, $student));
-        //die;
     }
 
-    public static function PracticeVideoRecommendation($topic_id, $student)
+    public function PracticeVideoRecommendation($topic_id, $student)
     {
 
 //        $topic_objects = SubjectTopics::find()
@@ -439,7 +399,21 @@ class CommandsController extends Controller
 //            ->asArray()
 //            ->all();
 
+
+        $currentWeekTerm = Utility::getStudentTermWeek(null, $student);
+        $currentSubject = SubjectTopics::find()->select('id')
+            ->where(['AND', ['term' => $currentWeekTerm['term']], ['>=', 'week_number', $currentWeekTerm['week']]])->asArray()->one();
+
         $topic_id = ArrayHelper::getColumn($topic_id, 'topic_id');
+        $topic_id = isset($currentSubject['id']) ? array_merge($topic_id, [$currentSubject['id']]) : $topic_id;
+
+
+        $totalTopicsCount = 8;
+        $notDonePractice = RecommendationTopics::find()->where(['object_id' => $topic_id, 'object_type' => 'practice', 'is_done' => 0])
+            ->limit(8)
+            ->groupBy('object_id')
+            ->count();
+        $limit = $totalTopicsCount - $notDonePractice;
 
         //Method 2
         $attempted_topic = QuizSummaryDetails::find()
@@ -447,10 +421,11 @@ class CommandsController extends Controller
             ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
             ->select([
                 new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                'qsd.topic_id',
+                'qsd.topic_id as id',
                 Utility::ImageQuery('st'),
                 'st.topic',
-                'st.subject_id'
+                'st.subject_id',
+                new Expression("'practice' as type"),
             ])
             ->where([
                 'topic_id' => $topic_id,
@@ -458,37 +433,13 @@ class CommandsController extends Controller
             ])
             ->groupBy('st.id')
             ->asArray()
-            ->limit(8)
+            ->limit($limit)
             ->all();
+
         array_multisort(array_column($attempted_topic, 'score'), $attempted_topic);
 
-//return $attempted_topic;
-        $video = VideoContent::find()
-            ->select([
-                'video_content.*',
-                new Expression("'video' as type"),
-                'gc.id class_id',
-                'gc.description class_name',
-            ])
-            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
-            ->innerJoin('global_class gc', 'gc.id = st.class_id')
-           // ->where(['video_assign.topic_id' => $topic_id])
-            //->orderBy('')
-            ->orderBy([new \yii\db\Expression('FIELD (video_assign.topic_id, 32,260,264,30)')])
-            //->limit(SharedConstant::VALUE_TWO)
-            //->asArray()
-            ->all();
-        return $video;
-
-        foreach ($attempted_topic as $key => $item) {
-
-
-        }
-
-        return ($attempted_topic);
-
-        //retrieves assign videos to the topic
+        $topicsOnly = ArrayHelper::getColumn($attempted_topic, 'id');
+        $videoIDs = implode(', ', ($topicsOnly));
         $video = VideoContent::find()
             ->select([
                 'video_content.*',
@@ -500,18 +451,56 @@ class CommandsController extends Controller
             ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
             ->innerJoin('global_class gc', 'gc.id = st.class_id')
             ->where(['video_assign.topic_id' => $topic_id])
-            ->limit(SharedConstant::VALUE_THREE)
+            ->orderBy([new \yii\db\Expression("FIELD (video_assign.topic_id, $videoIDs)")])
+            ->limit(SharedConstant::VALUE_TWO)
             ->asArray()
             ->all();
 
-        if (!$topic_objects) {
-            return SharedConstant::VALUE_NULL;
-        }
 
-        $topicOrders = Adaptivity::generateSingleMixPractices($topic_objects);
+        //return $todayRecommendation = Adaptivity::GenerateStudentSingleMixVideoRecommendations($attempted_topic, $video);
+        $todayRecommendation = array_merge($attempted_topic, $video);
 
-        return array_merge($topicOrders, $video);
+        return $this->createRecommendations($todayRecommendation, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE]);
+
+        //return $todayRecommendation;
     }
+
+
+//    public function GenerateStudentSingleMixVideoPractices($topicModels)
+//    {
+//        $topicOrders = [];
+//        foreach ($topicModels as $key => $inner) {
+//            if ($key == 0) {
+//                $topicOrders[] = Utility::SingleMixTopic('single', $inner);
+//            }
+//
+//            if ($key >= 1 && $key <= 4) {
+//                if (isset($topicModels[1])) {
+//                    $temp = array_splice($topicModels, 1, 4);
+//                    if (count($temp) == 1)
+//                        $topicOrders[] = Utility::SingleMixTopic('single', $inner);
+//                    else
+//                        $topicOrders[] = Utility::SingleMixTopic('mix', $temp);
+//                }
+//            }
+//
+//            if ($key > 4 && $key <= 7) {
+//                if (isset($topicModels[5])) {
+//                    $temp = array_splice($topicModels, 6, 3);
+//                    if (count($temp) == 1)
+//                        $topicOrders[] = Utility::SingleMixTopic('single', $inner);
+//                    else
+//                        $topicOrders[] = Utility::SingleMixTopic('mix', $temp);
+//                }
+//            }
+//
+//            if ($key > 7 && $key <= 10) {
+//                $topicOrders[] = Utility::SingleMixTopic('single', $inner);
+//            }
+//        }
+//
+//        return $topicOrders;
+//    }
 
 
     private function getLowestAttemptedTopic($attempted_topics, $studentID)
