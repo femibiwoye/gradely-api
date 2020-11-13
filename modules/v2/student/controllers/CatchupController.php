@@ -655,8 +655,8 @@ class CatchupController extends ActiveController
             ->where(['submit' => 1,
                 //'student_id' => $student_id
             ])//to be returned
-            ->andWhere(['AND',['<>', 'type', 'recommendation'],['<>', 'type', 'catchup']])
-            ->innerJoin('quiz_summary_details qsd','qsd.quiz_id = quiz_summary.id')
+            ->andWhere(['AND', ['<>', 'type', 'recommendation'], ['<>', 'type', 'catchup']])
+            ->innerJoin('quiz_summary_details qsd', 'qsd.quiz_id = quiz_summary.id')
             ->groupBy('subject_id');
         if (!empty($subject)) {
             $models = $models->andWhere(['subject_id' => $subject]);
@@ -744,11 +744,13 @@ class CatchupController extends ActiveController
                 $topicOrders = array_merge($practices, $topicOrders);
 
                 $topicOrders = array_splice($topicOrders, 0, 6);
-                $finalResult[] = array_merge(
-                    $oneSubject,
-                    [
-                        'topics' => $topicOrders,
-                    ]);
+                if (!empty($topicOrders)) {
+                    $finalResult[] = array_merge(
+                        $oneSubject,
+                        [
+                            'topics' => $topicOrders,
+                        ]);
+                }
             }
 
         }

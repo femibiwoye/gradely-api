@@ -368,6 +368,9 @@ class CommandsController extends Controller
             ->all(),
             'subject_id'
         );
+
+        print_r($subjects);
+        die;
     }
 
     private function dailyRecommendationInitial($student = 32)
