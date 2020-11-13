@@ -681,8 +681,6 @@ class CatchupController extends ActiveController
             $oneSubject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])
                 ->where(['id' => $model['subject_id']])->asArray()->one();
 
-            // $topicOrders = [];
-            //foreach ($topics as $index => $topic) {
             $topicModels = QuizSummaryDetails::find()
                 ->alias('qsd')
                 ->select([
@@ -706,8 +704,6 @@ class CatchupController extends ActiveController
                 ->all();
 
 
-            //}
-
 ///This is working, i had to temporarily disable it.
 //            $tutor_sessions = TutorSession::find()
 //                ->select([
@@ -726,10 +722,10 @@ class CatchupController extends ActiveController
 //                ->asArray()->all();
 
             if (!empty($subject)) {
-                $recommendedVideos = $this->getRecommendedVideos($student_id, $model);
                 $practices = $this->getRecommendedPractices($student_id, $model, $subject);// recommendations made by teachers
                 $topicOrders = Adaptivity::generateSingleMixPractices($topicModels);
                 $topicOrders = array_merge($practices, $topicOrders);
+                $recommendedVideos = $this->getRecommendedVideos($student_id, $model, $topicModels);
 
                 $topicOrders = array_splice($topicOrders, 0, 6);
                 $finalResult = array_merge(
@@ -765,7 +761,7 @@ class CatchupController extends ActiveController
 
     }
 
-    protected function getRecommendedVideos($student_id, $model)
+    protected function getRecommendedVideos($student_id, $model, $practices)
     {
         //Get all videos watched by student in specified subject
         $alreadyWatchedVideos = ArrayHelper::getColumn(FileLog::find()->select('file_id')
@@ -778,7 +774,7 @@ class CatchupController extends ActiveController
 //                    new Expression("'resource' as type"),
 //                ])
             ->where([
-                'receiver_id' => Yii::$app->user->id,
+                'receiver_id' => $student_id,
                 'resources_type' => SharedConstant::TYPE_VIDEO
             ])
             ->andWhere([
@@ -791,8 +787,13 @@ class CatchupController extends ActiveController
         // Get actual video object
         $recommendedVideos = VideoContent::find()
             ->select(['*', new Expression("'video' as type"),])
-            ->where(['id' => ArrayHelper::getColumn($recommended_videos, 'resources_id')])
-            ->asArray()->all();
+            //->where(['id' => ArrayHelper::getColumn($recommended_videos, 'resources_id')]) //to be returned
+            ->leftJoin('video_assign va', 'va.content_id = video_content.id')
+            ->andWhere(['va.topic_id' => ArrayHelper::getColumn($practices, 'id')])
+            ->asArray()
+            ->orderBy('rand()')//to be removed
+            ->limit(12)
+            ->all();
 
         return $recommendedVideos;
     }

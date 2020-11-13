@@ -174,7 +174,7 @@ class Utility extends ActiveRecord
         if (Yii::$app->user->identity->type == 'parent') {
             if ((!isset($_GET['child_id']) || empty($_GET['child_id'])) && empty($_GET['child']))
                 return 0;
-            $child_id = isset($_GET['child_id'])?$_GET['child_id']:$_GET['child'];
+            $child_id = isset($_GET['child_id']) ? $_GET['child_id'] : $_GET['child'];
             if (Parents::find()->where(['parent_id' => Yii::$app->user->id, 'student_id' => $child_id, 'status' => 1])->exists())
                 return $child_id;
         } elseif (Yii::$app->user->identity->type == 'student')
@@ -259,11 +259,13 @@ class Utility extends ActiveRecord
      * @return array
      * @throws \Exception
      */
-    public static function getStudentTermWeek($only = null)
+    public static function getStudentTermWeek($only = null, $studentID)
     {
+        if (empty($studentID))
+            $studentID = Yii::$app->user->id;
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id'])
-            ->where(['student_id' => Yii::$app->user->id])
+            ->where(['student_id' => $studentID])
             ->asArray()
             ->one();
 
@@ -531,5 +533,24 @@ class Utility extends ActiveRecord
             $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
 
         return $class_id;
+    }
+
+    public static function GetNextPreviousTerm($term)
+    {
+        switch ($term) {
+            case 'first':
+                return 'second';
+                break;
+            case 'second':
+                return 'third';
+                break;
+            case 'third';
+                return 'first';
+                break;
+            default:
+                return 'first';
+        }
+
+
     }
 }
