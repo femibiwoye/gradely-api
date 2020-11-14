@@ -335,14 +335,14 @@ class CommandsController extends Controller
 
 
         foreach ($student_ids as $student) {
-            // try {
+             try {
             $this->daily_recommended_topics = [];
             $this->subjects = [];
             $this->topics = [];
             return $this->dailyRecommendation($student);
-//            } catch (\Exception $e) {
-//                continue;
-//            }
+            } catch (\Exception $e) {
+                continue;
+            }
         }
 
 //        if (empty($this->topics)) {
@@ -354,7 +354,7 @@ class CommandsController extends Controller
 
     private function dailyRecommendation($student)
     {
-        $student = 32;
+
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id', 'student_id'])
             ->where(['student_id' => $student])

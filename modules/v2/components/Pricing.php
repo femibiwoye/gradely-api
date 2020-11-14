@@ -87,7 +87,7 @@ class Pricing extends Widget
                         'expiry' => $user->subscription_expiry,
                         'plan' => $user->subscription_plan,
                         'is_school_sub' => $is_school,
-                        'days_left' => self::subscriptionDaysLeft($model->subscription_expiry)
+                        'days_left' => self::subscriptionDaysLeft(isset($model->subscription_expiry) && strtotime($model->subscription_expiry) > strtotime($user->subscription_expiry) ? $model->subscription_expiry : $user->subscription_expiry)
                     ];
                     return $statusOnly ? $status : $return;
                 }
