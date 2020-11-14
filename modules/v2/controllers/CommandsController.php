@@ -335,14 +335,14 @@ class CommandsController extends Controller
 
 
         foreach ($student_ids as $student) {
-             try {
+            // try {
             $this->daily_recommended_topics = [];
             $this->subjects = [];
             $this->topics = [];
-            return $this->dailyRecommendation($student);
-            } catch (\Exception $e) {
-                continue;
-            }
+             $this->dailyRecommendation($student);
+//            } catch (\Exception $e) {
+//                continue;
+//            }
         }
 
 //        if (empty($this->topics)) {
@@ -367,18 +367,19 @@ class CommandsController extends Controller
             $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
 
-        $topics = QuizSummaryDetails::find()
-            ->alias('s')
-            ->select(['s.topic_id'])
-            ->where(['s.student_id' => $student])
-            ->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
-            ->innerJoin('subject_topics st', 'st.id = s.topic_id AND st.class_id = ' . $classID)
-            ->groupBy('s.topic_id')
-            ->asArray()
-            ->all();
+        if($classID) {
+            $topics = QuizSummaryDetails::find()
+                ->alias('s')
+                ->select(['s.topic_id'])
+                ->where(['s.student_id' => $student])
+                ->innerJoin('quiz_summary q', 'q.id = s.quiz_id AND q.submit = 1')
+                ->innerJoin('subject_topics st', 'st.id = s.topic_id AND st.class_id = ' . $classID)
+                ->groupBy('s.topic_id')
+                ->asArray()
+                ->all();
+            return $this->PracticeVideoRecommendation($topics, $student);
+        }
 
-
-        return $this->PracticeVideoRecommendation($topics, $student);
 
 
     }
@@ -408,12 +409,12 @@ class CommandsController extends Controller
         $topic_id = isset($currentSubject['id']) ? array_merge($topic_id, [$currentSubject['id']]) : $topic_id;
 
 
-        $totalTopicsCount = 8;
-        $notDonePractice = RecommendationTopics::find()->where(['object_id' => $topic_id, 'object_type' => 'practice', 'is_done' => 0])
-            ->limit(8)
-            ->groupBy('object_id')
-            ->count();
-        $limit = $totalTopicsCount - $notDonePractice;
+//        $totalTopicsCount = 8;
+//        $notDonePractice = RecommendationTopics::find()->where(['object_id' => $topic_id, 'object_type' => 'practice', 'is_done' => 0])
+//            ->limit(8)
+//            ->groupBy('object_id')
+//            ->count();
+//        $limit = $totalTopicsCount - $notDonePractice;
 
         //Method 2
         $attempted_topic = QuizSummaryDetails::find()
@@ -433,13 +434,13 @@ class CommandsController extends Controller
             ])
             ->groupBy('st.id')
             ->asArray()
-            ->limit($limit)
+            ->limit(8)
             ->all();
 
         array_multisort(array_column($attempted_topic, 'score'), $attempted_topic);
 
         $topicsOnly = ArrayHelper::getColumn($attempted_topic, 'id');
-        $videoIDs = implode(', ', ($topicsOnly));
+
         $video = VideoContent::find()
             ->select([
                 'video_content.*',
@@ -450,9 +451,12 @@ class CommandsController extends Controller
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
             ->innerJoin('global_class gc', 'gc.id = st.class_id')
-            ->where(['video_assign.topic_id' => $topic_id])
-            ->orderBy([new \yii\db\Expression("FIELD (video_assign.topic_id, $videoIDs)")])
-            ->limit(SharedConstant::VALUE_TWO)
+            ->where(['video_assign.topic_id' => $topic_id]);
+        if (!empty($topicsOnly)) {
+            $videoIDs = implode(', ', ($topicsOnly));
+            $video = $video->orderBy([new \yii\db\Expression("FIELD (video_assign.topic_id, $videoIDs)")]);
+        }
+        $video = $video->limit(SharedConstant::VALUE_TWO)
             ->asArray()
             ->all();
 
