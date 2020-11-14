@@ -461,7 +461,7 @@ class CommandsController extends Controller
             ->all();
 
 
-        //return $todayRecommendation = Adaptivity::GenerateStudentSingleMixVideoRecommendations($attempted_topic, $video);
+        return $todayRecommendation = Adaptivity::GenerateStudentSingleMixVideoRecommendations($attempted_topic, $video);
         $todayRecommendation = array_merge($attempted_topic, $video);
 
         return $this->createRecommendations($todayRecommendation, $student, SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE]);

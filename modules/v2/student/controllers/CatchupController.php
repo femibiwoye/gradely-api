@@ -554,9 +554,17 @@ class CatchupController extends ActiveController
         }
 
         if ($all == 1) {
+            $uniqueData = ArrayHelper::getColumn($final, 'date');
+            $dates = array_unique($uniqueData);
             $bothFinal = [];
-            foreach ($final as $element) {
-                $bothFinal[$element['date']][] = $element;
+            foreach ($dates as $k => $date) {
+                $tempData = [];
+                foreach ($final as $y => $element) {
+                    if ($date == $element['date']) {
+                        $tempData[] = $element;
+                    }
+                }
+                $bothFinal[] = ['date' => $date, 'data' => $tempData];
             }
             $final = $bothFinal;
         }
