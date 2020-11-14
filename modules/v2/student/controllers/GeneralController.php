@@ -100,8 +100,9 @@ class GeneralController extends ActiveController
         $takePractice = QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'submit' => 1])->exists();
         $inviteSchool = InviteLog::find()->where(['sender_id' => Yii::$app->user->id, 'receiver_type' => 'school'])->exists();
         $inviteParent = InviteLog::find()->where(['sender_id' => Yii::$app->user->id, 'sender_type' => 'student', 'receiver_type' => 'parent'])->exists();
+        $connectedToSchool = StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'status' => 1])->exists();
 
-        return (new ApiResponse)->success(['takePractice' => $takePractice, 'inviteSchool' => $inviteSchool, 'inviteParent' => $inviteParent], ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success(['takePractice' => $takePractice, 'inviteSchool' => $inviteSchool, 'inviteParent' => $inviteParent, 'connectedToSchool' => $connectedToSchool], ApiResponse::SUCCESSFUL);
     }
 
     /**
