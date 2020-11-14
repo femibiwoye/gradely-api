@@ -575,7 +575,6 @@ class CatchupController extends ActiveController
                 'validatePage' => false,
             ],
         ]);
-
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Recent practices found', $provider);
     }
 
@@ -1205,7 +1204,8 @@ class CatchupController extends ActiveController
                 'pm.filesize',
                 'pm.filename as url',
                 'pm.downloadable',
-                'pm.thumbnail',
+                //'pm.thumbnail',
+                Utility::ThumbnailQuery('pm','document'),
                 'pm.token',
                 "CONCAT(user.firstname,' ',user.lastname) AS creator_name",
                 "user.image as creator_image",
