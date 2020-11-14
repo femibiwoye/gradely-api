@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\Utility;
 use Yii;
 
 /**
@@ -71,7 +72,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'downloadable',
             'download_count',
             'isOwner',
-            'thumbnail',
+            'thumbnail'=>'materialThumbnail',
             'token',
             'updated_at',
             'user',
@@ -140,6 +141,11 @@ class PracticeMaterial extends \yii\db\ActiveRecord
     public function getUser()
     {
         return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
+
+    public function getMaterialThumbnail()
+    {
+        return Utility::AbsoluteImage($this->thumbnail,$this->type);
     }
 
     public function getFeedLike()

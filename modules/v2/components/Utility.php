@@ -296,7 +296,7 @@ class Utility extends ActiveRecord
     public static function AbsoluteImage($image, $folder)
     {
         if (empty($image) && !empty($folder))
-            $image = "https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/$folder.png";
+            $image = "https://gradly.s3.eu-west-2.amazonaws.com/placeholders/$folder.png";
         elseif (strpos($image, 'http') !== false)
             $image = $image;
         else {
@@ -353,7 +353,12 @@ class Utility extends ActiveRecord
 
     public static function ImageQuery($name)
     {
-        return "IF($name.image IS NULL or $name.image = '', 'https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/topics.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
+        return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
+    }
+
+    public static function ThumbnailQuery($name, $type)
+    {
+        return "IF($name.thumbnail IS NULL or $name.thumbnail = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/$type.png',$name.thumbnail) as thumbnail";
     }
 
     public static function StudentClassDetails($child = null)
