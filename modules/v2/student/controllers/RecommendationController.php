@@ -155,7 +155,8 @@ class RecommendationController extends ActiveController
     {
         $studentID = Utility::getParentChildID();
         $submitted_recommendations = ArrayHelper::getColumn(
-            Homeworks::find()->select('reference_id')->where(['reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO], 'student_id' => $studentID])->all(),
+            Homeworks::find()->select('reference_id')
+                ->where(['reference_type' => SharedConstant::REFERENCE_TYPE[SharedConstant::VALUE_TWO], 'student_id' => $studentID])->all(),
             'reference_id'
         );
 
@@ -173,8 +174,9 @@ class RecommendationController extends ActiveController
             'object_type'=>'practice'
         ])
             ->select(['object_id'])
-            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            //->andWhere('DAY(CURDATE()) = DAY(created_at)') // to be returned
             ->asArray()
+            ->limit(8)
             ->all();
 
         $videos = RecommendationTopics::find()->where([
@@ -182,8 +184,9 @@ class RecommendationController extends ActiveController
             'object_type'=>'video'
         ])
             ->select(['object_id'])
-            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            //->andWhere('DAY(CURDATE()) = DAY(created_at)') //TO be returned
             ->asArray()
+            ->limit(2)
             ->all();
 
 
