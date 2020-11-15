@@ -176,7 +176,7 @@ class RecommendationController extends ActiveController
             ->select(['object_id'])
             //->andWhere('DAY(CURDATE()) = DAY(created_at)') // to be returned
             ->asArray()
-            ->limit(10)
+            ->limit(8)
             ->all();
 
         $videos = RecommendationTopics::find()->where([
@@ -184,8 +184,9 @@ class RecommendationController extends ActiveController
             'object_type'=>'video'
         ])
             ->select(['object_id'])
-            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            //->andWhere('DAY(CURDATE()) = DAY(created_at)') //TO be returned
             ->asArray()
+            ->limit(2)
             ->all();
 
 
