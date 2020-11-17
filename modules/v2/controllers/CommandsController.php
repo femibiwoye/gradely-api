@@ -129,8 +129,8 @@ class CommandsController extends Controller
         foreach ($student_ids as $student) {
             try {
                 $recommendation = new Recommendation();
-                $recommendation->dailyRecommendation($student);
-                $key++;
+                if ($recommendation->dailyRecommendation($student))
+                    $key++;
             } catch (\Exception $e) {
                 continue;
             }
