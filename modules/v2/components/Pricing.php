@@ -16,11 +16,11 @@ class Pricing extends Widget
         if ($type == 'school') {
             $model = Schools::findOne(['id' => $id]);
             $model->subscription_plan = 'trial';
-            $model->subscription_expiry = date("Y-m-d", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
+            $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
         } else if ($type == 'student') {
             $model = UserModel::findOne(['id' => $id]);
             $model->subscription_plan = 'trial';
-            $model->subscription_expiry = date("Y-m-d", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
+            $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
         }
 
         if (isset($model) && $model->save()) {
@@ -40,14 +40,14 @@ class Pricing extends Widget
             $type = Yii::$app->user->identity->type;
             if ($type == 'school' || $type == 'teacher') {
                 if ($type == 'teacher')
-                    $schoolID = SchoolTeachers::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1])->id;
+                    $schoolID = SchoolTeachers::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1])->school_id;
                 elseif ($type == 'school')
                     $schoolID = Utility::getSchoolAccess();
                 $model = Schools::findOne(['id' => $schoolID]);
                 $status = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                 $plan = $model->subscription_plan;
                 $used_student = StudentSchool::find()->where(['school_id' => $model->id, 'status' => 1])->count();
-                $limit = Options::findOne(['name' => $plan . '_students_limit']);
+                $limit = Options::findOne(['name' => $plan . '_school_students_limit']);
                 $limit = $limit ? $limit->value : null;
                 $unused_student = $limit - $used_student;
                 $return = [
@@ -56,7 +56,8 @@ class Pricing extends Widget
                     'plan' => $plan,
                     'limit' => $limit,
                     'used_student' => $used_student,
-                    'unused_student' => $unused_student < 1 ? 0 : $unused_student
+                    'unused_student' => $unused_student < 1 ? 0 : $unused_student,
+                    'days_left' => self::subscriptionDaysLeft($model->subscription_expiry)
                 ];
 
                 return $statusOnly ? $status : $return;
@@ -73,22 +74,37 @@ class Pricing extends Widget
                     $schoolSubStatus = false;
                     $status = true;
                     $is_school = 0;
-                    if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $childID])->one()) {
-                        $model = Schools::findOne(['id' => $schoolID]);
+                    if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID])->one()) {
+                        $model = Schools::findOne(['id' => $model->school_id]);
                         $schoolSubStatus = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                         $is_school = $schoolSubStatus ? 1 : 0;
                     }
                     if ($schoolSubStatus || $userStatus) {
                         $status = true;
                     }
-                    $return = ['status' => $status, 'expiry' => $user->subscription_expiry, 'plan' => $user->subscription_plan, 'is_school_sub' => $is_school];
+                    $return = [
+                        'status' => $status,
+                        'expiry' => $user->subscription_expiry,
+                        'plan' => $user->subscription_plan,
+                        'is_school_sub' => $is_school,
+                        'days_left' => self::subscriptionDaysLeft(isset($model->subscription_expiry) && strtotime($model->subscription_expiry) > strtotime($user->subscription_expiry) ? $model->subscription_expiry : $user->subscription_expiry)
+                    ];
                     return $statusOnly ? $status : $return;
                 }
             }
         } catch (\Exception $e) {
-            $return = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0];
+            $return = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0, 'days_left' => 0];
             return $statusOnly ? false : $return;
         }
+    }
+
+    public static function subscriptionDaysLeft($endDate)
+    {
+        $now = time();
+        $endDate = strtotime($endDate);
+        $datediff = $endDate < $now ? 0 : $endDate - $now;
+
+        return round($datediff / (60 * 60 * 24));
     }
 
     public static function SchoolLimitStatus($id)

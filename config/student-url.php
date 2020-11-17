@@ -42,6 +42,8 @@ return [
 
     //student report
     'GET v2/student/report' => 'v2/student/profile/report', //
+    'POST v2/report/student-additional-topic' => 'v2/student/report/create-additional-topic',
+    'DELETE v2/report/student-additional-topic' => 'v2/student/report/remove-additional-topic',
 
     //student catchup
     'GET v2/student/catchup/recent-practice' => 'v2/student/catchup/recent-practice', //
@@ -65,6 +67,7 @@ return [
     'POST v2/student/catchup/get-practice-questions' => 'v2/student/catchup/get-practice-questions',
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
     'GET v2/student/catchup/assessment-recommendations/<id:\d*>' => 'v2/student/catchup/assessment-recommendation',
+    'GET v2/student/catchup/explore'=>'v2/student/catchup/explore',
 
     // Diagnostic
     'POST v2/student/catchup/initialize-diagnostic' => 'v2/student/catchup/initialize-diagnostic', //

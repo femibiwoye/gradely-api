@@ -8,6 +8,7 @@ return [
     'POST v2/forgot-password' => 'v2/auth/forgot-password', //
     'POST v2/reset-password' => 'v2/auth/reset-password', //
     'POST v2/validate' => 'v2/auth/validate-token', //
+    'GET v2/verify-email'=>'v2/auth/verify-email', //
 
     //Onboarding/General endpoints
     'PUT v2/general/update-boarding' => 'v2/general/update-boarding', //
@@ -59,7 +60,6 @@ return [
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
     'GET v2/report/student-mastery' => 'v2/report/mastery-report',
 
-
     //Payment
     'POST v2/payment/verify-coupon' => 'v2/payment/verify-coupon', //
     'GET v2/payment/plan/<type:\w+>' => 'v2/payment/payment-plans', //
@@ -96,5 +96,7 @@ return [
         'GET generate-weekly-recommendation' => 'generate-weekly-recommendation', // Generate weekly recommendation
         'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
+
+    //'GET v2/notification/test' => 'v2/notification/test'
 
 ];

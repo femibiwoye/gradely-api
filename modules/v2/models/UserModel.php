@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 
+use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\db\Expression;
@@ -301,9 +302,10 @@ class UserModel extends User
      */
     public function getParentChildren()
     {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         return $this->hasMany(self::className(), ['id' => 'student_id'])
             ->leftJoin('parents p', 'p.student_id = user.id AND p.parent_id = ' . $this->id)
-            ->leftJoin('student_school s', "s.student_id = user.id")
+            ->innerJoin('student_school s', "s.student_id = user.id AND s.school_id = " . $school->id)
             ->leftJoin('classes c', "c.id = s.class_id AND s.status= '1'")
             ->select(['user.id', 'firstname', 'lastname', 'user.code', 'email', 'image', 'type', 'p.parent_id', 'p.role', 'c.id class_id', 'c.class_name', 'c.class_code'])
             ->asArray()
@@ -353,7 +355,7 @@ class UserModel extends User
         return $this->hasMany(QuizSummaryDetails::className(), ['student_id' => 'id'])
             ->alias('qsd')
             ->select([new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(hq.id))*100) as score'), 'qsd.topic_id',
-                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending") then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending" AND subject_id = qus.subject_id group by student_id) then 1 else 0 end) as is_recommended'),
                 'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
                 'COUNT(hq.id) as questionCount',
                 'st.topic as topic',
@@ -361,7 +363,7 @@ class UserModel extends User
             ])
             ->innerJoin('homework_questions hq', 'hq.homework_id=qsd.homework_id')
             ->innerJoin('quiz_summary qus', "qus.id = qsd.quiz_id AND qus.type = 'homework'")
-            ->leftJoin('subject_topics st', 'st.id=qsd.topic_id')
+            ->innerJoin('subject_topics st', 'st.id=qsd.topic_id')
             ->where(['qsd.homework_id' => Yii::$app->request->get('id')])
             ->groupBy(['qsd.topic_id'])
             ->orderBy('score ASC')
@@ -370,10 +372,11 @@ class UserModel extends User
 
     public function getRecommendation()
     {
+        $resources = array_merge($this->getVideos($this->remedial), $this->getPractice($this->remedial));
+        shuffle($resources);
         return [
             'remedial' => $this->remedial,
-            'videos' => $this->getVideos($this->remedial),
-            'resources' => $this->getPractice($this->remedial),
+            'resources' => $resources,
         ];
     }
 
@@ -413,17 +416,13 @@ class UserModel extends User
             ->where(['topic_id' => $topic['topic_id']])
             ->limit(5)
             ->select('content_id')->all(), 'content_id');
-        $teacher_id = Yii::$app->user->id;
         $classID = Utility::getStudentClass(null, $this->id);
         $referenceID = Yii::$app->request->get('id');
         return VideoContent::find()
             ->select([
                 '*', new Expression("'$classID' as class_id"),
-                //new Expression('(case when (select file_id from file_log where file_id = video_content.id AND type = "video" AND user_id = ' . $this->id . ' AND is_completed = 0) then 1 else 0 end) as is_recommended'),
+                new Expression("'video' as type"),
                 new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $this->id . ' AND resources_id = video_content.id AND reference_type = "homework" AND reference_id = ' . $referenceID . ') then 1 else 0 end) as is_recommended'),
-//                new Expression("$referenceID as reference_id"),
-//                new Expression("$this->id as receiver_id"),
-//                new Expression("{$teacher_id} as creator_id"),
             ])
             ->where(['id' => $videos])
             ->limit(SharedConstant::VALUE_FIVE)
@@ -449,7 +448,7 @@ class UserModel extends User
             ->alias('qsd')
             ->select([
                 new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending") then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending" AND subject_id = ' . $quizSummary->subject_id . ' group by student_id) then 1 else 0 end) as is_recommended'),
                 'qsd.topic_id'
             ])
             ->where([
@@ -461,38 +460,14 @@ class UserModel extends User
             ->groupBy('qsd.topic_id')
             ->all();
 
-        //$topic_objects retrieves topic objects
-        $topic_objects = SubjectTopics::find()
-            ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
-            ->select([
-                'subject_topics.*',
-                new Expression("'practice' as type"),
-                new Expression('(case when (select id from homeworks where reference_id = ' . $quizSummary->homework_id . ' AND type = "recommendation" AND reference_type = "homework"  AND student_id = ' . $this->id . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
-            ])
-            ->where(['subject_topics.id' => ArrayHelper::getColumn($topics, 'topic_id')])
-            ->asArray()
-            ->all();
+        $topic_id = ArrayHelper::getColumn($topics, 'topic_id');
+        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $this->id, 'homework', $quizSummary->homework_id);
 
-        //retrieves assign videos to the topic
-        $video = VideoContent::find()
-            ->select([
-                'video_content.*',
-                new Expression("'video' as type"),
-                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $this->id . ' AND resources_id = video_content.id AND reference_type = "homework" AND reference_id = ' . $quizSummary->homework_id . ') then 1 else 0 end) as is_recommended'),
-                //new Expression('(case when (select * from file_log where file_id = video_content.id AND type = "video" AND user_id = ' . $this->id . ' AND is_completed = 0) then 1 else 0 end) as is_recommended'),
-            ])
-            ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            ->where(['video_assign.topic_id' => ArrayHelper::getColumn($topics, 'topic_id')])
-            ->limit(SharedConstant::VALUE_TWO)
-            ->asArray()
-            ->all();
-
-        if (!$topic_objects) {
+        if (!$practiceVideosRecommendations) {
             return null;
         }
 
-
-        return $topics = array_merge($topic_objects, $video);
+        return $practiceVideosRecommendations;
     }
 
 
@@ -507,15 +482,5 @@ class UserModel extends User
     {
         return $this->hasOne(ProctorReport::className(), ['student_id' => 'id'])
             ->andWhere(['assessment_id' => Yii::$app->request->get('id')]);
-//
-//        $model = ProctorReport::find()
-//            ->where(['student_id' => $this->id])
-//            ->one();
-//
-//        if (!$model) {
-//            return null;
-//        }
-//
-//        return $model;
     }
 }

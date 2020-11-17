@@ -86,7 +86,7 @@ class ClassController extends ActiveController
         }
 
         $school_student_limit = Pricing::SchoolLimitStatus($class->school_id);
-        if ($school_student_limit['status']) {
+        if (!$school_student_limit['status']) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'students limit exceeded, no more students');
         }
 

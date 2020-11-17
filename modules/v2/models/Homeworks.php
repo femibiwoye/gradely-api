@@ -17,7 +17,7 @@ use yii\helpers\ArrayHelper;
  * @property int $subject_id
  * @property int|null $class_id
  * @property int|null $school_id
- * @property int $exam_type_id
+ * @property int|null $exam_type_id It is null by default but the curriculum should be update at the point of updating questions or publishing practice.
  * @property string $slug
  * @property string $title
  * @property string|null $description
@@ -32,10 +32,12 @@ use yii\helpers\ArrayHelper;
  * @property string|null $tag Tag is used to identify homework sub category. Maybe it is an homework, quiz or exam
  * @property int $status
  * @property string $created_at
+ * @property string|null $reference_type
+ * @property int|null $reference_id
  *
- * @property Feed[] $feeds
  * @property HomeworkQuestions[] $homeworkQuestions
  * @property PracticeTopics[] $practiceTopics
+ * @property ProctorReport[] $proctorReports
  */
 class Homeworks extends \yii\db\ActiveRecord
 {
@@ -130,12 +132,14 @@ class Homeworks extends \yii\db\ActiveRecord
             'score',
             'status',
             'tag',
-            'activeStatus' => 'statusMessage', //this is used to be student to know if homework is open, expired or closed
+            'activeStatus' => 'statusMessage', //this is used for student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
             'publish_status' => 'publishStatus',
             'topics',
             'attachments',
             'average',
+            'expected_students' => 'studentExpectedCount',
+            'submitted_students' => 'studentsSubmitted',
             'completion' => 'completedRate',
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
@@ -169,7 +173,11 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getIsTaken()
     {
-        if (QuizSummary::find()->where(['homework_id' => $this->id, 'student_id' => Yii::$app->user->id, 'submit' => SharedConstant::VALUE_ONE])->exists()) {
+        if (Yii::$app->user->identity->type == 'parent')
+            $childID = Yii::$app->request->get('class_id'); // class_id is used for child_id in feed
+        else
+            $childID = Yii::$app->user->id;
+        if (QuizSummary::find()->where(['homework_id' => $this->id, 'student_id' => $childID, 'submit' => SharedConstant::VALUE_ONE])->exists()) {
             return 1;
         }
 
@@ -199,19 +207,22 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getStudentExpectedCount()
     {
-        return StudentSchool::find()->where(['class_id' => $this->class_id, 'school_id' => $this->school_id])->count();
+        return StudentSchool::find()
+            ->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1])->count();
     }
 
     public function getStudentsSubmitted()
     {
-        return (int)$this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->count();
+        return QuizSummary::find()
+            ->innerJoin('student_school','student_school.student_id = quiz_summary.student_id AND student_school.class_id = '.$this->class_id.' AND student_school.status = 1')
+            ->where(['homework_id'=>$this->id,'submit' => SharedConstant::VALUE_ONE, 'quiz_summary.class_id' => $this->class_id])->count();
     }
 
     public function getStrugglingStudents()
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
+            $marks = ($model->correct / $model->total_questions) * 100;
             if ($marks < 50) {
                 $this->struggling_students = $this->struggling_students + 1;
             }
@@ -224,8 +235,8 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
-            if ($marks > 50 && $marks < 75) {
+            $marks = ($model->correct / $model->total_questions) * 100;
+            if ($marks >= 50 && $marks <= 75) {
                 $this->average_students = $this->average_students + 1;
             }
         }
@@ -237,7 +248,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = $model->correct * 100 / $model->total_questions;
+            $marks = ($model->correct / $model->total_questions) * 100;
             if ($marks > 75) {
                 $this->excellent_students = $this->excellent_students + 1;
             }
@@ -395,9 +406,9 @@ class Homeworks extends \yii\db\ActiveRecord
             $condition = ['class_id' => $student_class];
             $studentCheck = true;
         } elseif (Yii::$app->user->identity->type == 'parent') {
-            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id,'status'=>1])->all(), 'student_id');
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1])->all(), 'student_id');
 
-            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
+            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs, 'status' => 1]);
             if (isset($_GET['class_id']))
                 $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
 
@@ -424,7 +435,7 @@ class Homeworks extends \yii\db\ActiveRecord
                     'type' => $homework->type,
                     'title' => $homework->title,
                     'date_time' => $homework->close_date,
-                    'reference'=>$homework
+                    'reference' => $homework
                 ]);
             }
         }

@@ -2,7 +2,6 @@
 
 namespace app\modules\v2\student\controllers;
 
-use app\modules\v1\models\StudentSchool;
 use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\{SharedConstant, Utility};
 use app\modules\v2\models\ApiResponse;
@@ -12,6 +11,7 @@ use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\Questions;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\QuizSummaryDetails;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;

@@ -17,7 +17,7 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery, StudentAdditiionalTopics};
 use app\modules\v2\components\SharedConstant;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -91,6 +91,7 @@ class ReportController extends ActiveController
             $model = UserModel::find()
                 ->with(['proctor'])
                 ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
+                ->innerJoin('student_school ss', 'ss.class_id = qs.class_id AND ss.student_id = qs.student_id')
                 ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3]])
                 ->andWhere([
                     'qs.homework_id' => $id,
@@ -166,7 +167,6 @@ class ReportController extends ActiveController
         }
 
         if (Yii::$app->user->identity->type == 'parent') {
-
             if (!Parents::findOne(['student_id' => $id, 'parent_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE]))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child not found');
         }
@@ -219,7 +219,7 @@ class ReportController extends ActiveController
         return false;
     }
 
-    public function actionMasteryReport()
+    public function actionSingleMasteryReport()
     {
         if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
@@ -234,5 +234,27 @@ class ReportController extends ActiveController
         }
 
         return (new ApiResponse)->success($model->getData(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionMasteryReport()
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type != 'student' && $user->type != 'parent') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $model = new StudentMastery;
+        $model->student_id = Yii::$app->user->identity->type == 'student' ? Yii::$app->user->id : Yii::$app->request->get('student_id');
+        $model->class_id = Yii::$app->request->get('class_id');
+        $model->subject_id = Yii::$app->request->get('subject_id');
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        if (!$model->getGlobalData()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model->getGlobalData(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 }

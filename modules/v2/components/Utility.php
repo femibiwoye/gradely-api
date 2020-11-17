@@ -83,7 +83,7 @@ class Utility extends ActiveRecord
      */
     public static function getTeacherClassesID($teacherID)
     {
-        $classes = ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => $teacherID])->all(), 'class_id');
+        $classes = ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => $teacherID, 'status' => 1])->all(), 'class_id');
         return $classes;
     }
 
@@ -172,9 +172,9 @@ class Utility extends ActiveRecord
     public static function getParentChildID()
     {
         if (Yii::$app->user->identity->type == 'parent') {
-            if (!isset($_GET['child_id']) || empty($_GET['child_id']))
-                return null;
-            $child_id = $_GET['child_id'];
+            if ((!isset($_GET['child_id']) || empty($_GET['child_id'])) && empty($_GET['child']))
+                return 0;
+            $child_id = isset($_GET['child_id']) ? $_GET['child_id'] : $_GET['child'];
             if (Parents::find()->where(['parent_id' => Yii::$app->user->id, 'student_id' => $child_id, 'status' => 1])->exists())
                 return $child_id;
         } elseif (Yii::$app->user->identity->type == 'student')
@@ -259,11 +259,13 @@ class Utility extends ActiveRecord
      * @return array
      * @throws \Exception
      */
-    public static function getStudentTermWeek($only = null)
+    public static function getStudentTermWeek($only = null, $studentID = null)
     {
+        if (empty($studentID))
+            $studentID = Yii::$app->user->id;
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id'])
-            ->where(['student_id' => Yii::$app->user->id])
+            ->where(['student_id' => $studentID])
             ->asArray()
             ->one();
 
@@ -294,7 +296,7 @@ class Utility extends ActiveRecord
     public static function AbsoluteImage($image, $folder)
     {
         if (empty($image) && !empty($folder))
-            $image = "https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/$folder.png";
+            $image = "https://gradly.s3.eu-west-2.amazonaws.com/placeholders/$folder.png";
         elseif (strpos($image, 'http') !== false)
             $image = $image;
         else {
@@ -351,7 +353,12 @@ class Utility extends ActiveRecord
 
     public static function ImageQuery($name)
     {
-        return "IF($name.image IS NULL or $name.image = '', 'https://res.cloudinary.com/gradely/image/upload/v1600773596/placeholders/topics.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
+        return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
+    }
+
+    public static function ThumbnailQuery($name, $type)
+    {
+        return "IF($name.thumbnail IS NULL or $name.thumbnail = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/$type.png',$name.thumbnail) as thumbnail";
     }
 
     public static function StudentClassDetails($child = null)
@@ -500,5 +507,55 @@ class Utility extends ActiveRecord
         }
 
         return true;
+    }
+
+    public static function UserLocation()
+    {
+        $ip = '41.217.70.122';//$_SERVER['REMOTE_ADDR']; // get client's IP
+        return $details = json_decode(file_get_contents("http://ipinfo.io/{$ip}/json"));
+    }
+
+    public static function FormatBytesSize($bytes, $precision = 2)
+    {
+        $units = array('b', 'kb', 'mb', 'gb', 'tb');
+
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        // Uncomment one of the following alternatives
+        // $bytes /= pow(1024, $pow);
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . $units[$pow];
+    }
+
+    public static function ParentStudentChildClass($child_id = null)
+    {
+        if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child_id);
+        } else
+            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+
+        return $class_id;
+    }
+
+    public static function GetNextPreviousTerm($term)
+    {
+        switch ($term) {
+            case 'first':
+                return 'second';
+                break;
+            case 'second':
+                return 'third';
+                break;
+            case 'third';
+                return 'first';
+                break;
+            default:
+                return 'first';
+        }
+
+
     }
 }
