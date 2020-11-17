@@ -5,13 +5,20 @@ namespace app\modules\v2\models;
 use Yii;
 
 /**
- * This is the model class for table "recommendations".
- *
  * @property int $id
  * @property int|null $student_id
  * @property string|null $category Weekly or daily practice/video recommendation interval
+ * @property int|null $is_taken If this recommendation has been consumed
+ * @property string|null $reference_type e.g homework, diagnostic
+ * @property int|null $reference_id Id of the assessment
+ * @property string|null $type This is used to identify if recommendation is practice, video or tutor
+ * @property int|null $resource_count Question count or video count
+ * @property string|null $raw This contains the whole content of each recommendation
  * @property string|null $created_at Let you know if recommendation has been created for today our this week
  * @property string|null $updated_at
+ *
+ * @property RecommendationTopics[] $recommendationTopics
+ * @property User $student
  */
 class Recommendations extends \yii\db\ActiveRecord
 {
@@ -29,11 +36,11 @@ class Recommendations extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['student_id'], 'required'],
-            [['id', 'student_id', 'is_taken'], 'integer'],
-            [['category'], 'string'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['id'], 'unique'],
+            [['student_id', 'is_taken', 'reference_id', 'resource_count'], 'integer'],
+            [['category', 'type'], 'string'],
+            [['raw', 'created_at', 'updated_at'], 'safe'],
+            [['reference_type'], 'string', 'max' => 50],
+            [['student_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
         ];
     }
 
@@ -54,20 +61,20 @@ class Recommendations extends \yii\db\ActiveRecord
         ];
     }
 
-    public function fields()
-    {
-        return [
-            'id',
-            'student_id',
-            'category',
-            'is_taken' => 'isTaken',
-            'reference_type',
-            'reference_id',
-            'recommendationTopics',
-            'created_at',
-            'updated_at'
-        ];
-    }
+//    public function fields()
+//    {
+//        return [
+//            'id',
+//            'student_id',
+//            'category',
+//            'is_taken' => 'isTaken',
+//            'reference_type',
+//            'reference_id',
+//            'recommendationTopics',
+//            'created_at',
+//            'updated_at'
+//        ];
+//    }
 
     public function getRecommendationTopics()
     {

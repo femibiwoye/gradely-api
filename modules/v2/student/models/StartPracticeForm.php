@@ -66,11 +66,6 @@ class StartPracticeForm extends Model
                 return false;
             }
 
-            /*if (!$this->createHomeworkQuestions($homework)) {
-                return false;
-            }*/
-
-
             $dbtransaction->commit();
         } catch (Exception $e) {
             $dbtransaction->rollBack();
@@ -83,31 +78,31 @@ class StartPracticeForm extends Model
         ]);
     }
 
-    public function initializePracticeTemp($student_id = null, $teacher_id = null)
-    {
-        $dbtransaction = Yii::$app->db->beginTransaction();
-        try {
-
-            if (!$homework = $this->createHomework($student_id, $teacher_id)) {
-                return false;
-            }
-
-            if (!$this->createPracticeTopic($homework->id)) {
-                return false;
-            }
-
-
-            $dbtransaction->commit();
-        } catch (Exception $e) {
-            $dbtransaction->rollBack();
-            return false;
-        }
-
-        return array_merge(ArrayHelper::toArray($homework), [
-            'duration' => $this->questions_duration,
-            'practice_type' => $this->type,
-        ]);
-    }
+//    public function initializePracticeTemp($student_id = null, $teacher_id = null)
+//    {
+//        $dbtransaction = Yii::$app->db->beginTransaction();
+//        try {
+//
+//            if (!$homework = $this->createHomework($student_id, $teacher_id)) {
+//                return false;
+//            }
+//
+//            if (!$this->createPracticeTopic($homework->id)) {
+//                return false;
+//            }
+//
+//
+//            $dbtransaction->commit();
+//        } catch (Exception $e) {
+//            $dbtransaction->rollBack();
+//            return false;
+//        }
+//
+//        return array_merge(ArrayHelper::toArray($homework), [
+//            'duration' => $this->questions_duration,
+//            'practice_type' => $this->type,
+//        ]);
+//    }
 
     public function createHomework($student_id = null, $teacher_id = null)
     {
@@ -128,6 +123,11 @@ class StartPracticeForm extends Model
                 $homework->school_id = $hwork->school_id;
                 $homework->class_id = $hwork->class_id;
             }
+        }
+        if ($this->reference_type == 'daily') {
+            $hwork = Homeworks::findOne(['id' => $this->reference_id]);
+            $homework->school_id = $hwork->school_id;
+            $homework->class_id = $hwork->class_id;
         }
 
         if ($this->reference_type) {
