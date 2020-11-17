@@ -5,6 +5,7 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\components\Recommendation;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\FeedLike;
@@ -915,6 +916,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
+
         $model = new StartPracticeForm;
         $model->attributes = Yii::$app->request->post();
         $model->practice_type = 'recommendation';
@@ -922,7 +924,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
-        if (!$homework_model = $model->initializePracticeTemp()) {
+        if (!$homework_model = $model->initializePractice()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
         }
 
@@ -1171,8 +1173,16 @@ class CatchupController extends ActiveController
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
 
+            if ($homework->reference_type == 'daily') {
+                $recommendationObject = Recommendations::findOne(['id' => $homework->reference_id, 'category' => $homework->reference_type, 'student_id' => $homework->student_id]);
+                $recommendationObject->is_taken = 1;
+                $recommendationObject->update();
+            }
+
             if ($homework->type == 'diagnostic') {
-                (new Utility)->generateRecommendation($quizSummary->id);
+                $recommendation = new Recommendation();
+                $recommendation->dailyRecommendation($homework->student_id);
+                //(new Utility)->generateRecommendation($quizSummary->id);
             }
 
             $dbtransaction->commit();
@@ -1205,7 +1215,7 @@ class CatchupController extends ActiveController
                 'pm.filename as url',
                 'pm.downloadable',
                 //'pm.thumbnail',
-                Utility::ThumbnailQuery('pm','document'),
+                Utility::ThumbnailQuery('pm', 'document'),
                 'pm.token',
                 "CONCAT(user.firstname,' ',user.lastname) AS creator_name",
                 "user.image as creator_image",

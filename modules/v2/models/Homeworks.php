@@ -17,7 +17,7 @@ use yii\helpers\ArrayHelper;
  * @property int $subject_id
  * @property int|null $class_id
  * @property int|null $school_id
- * @property int $exam_type_id
+ * @property int|null $exam_type_id It is null by default but the curriculum should be update at the point of updating questions or publishing practice.
  * @property string $slug
  * @property string $title
  * @property string|null $description
@@ -32,10 +32,12 @@ use yii\helpers\ArrayHelper;
  * @property string|null $tag Tag is used to identify homework sub category. Maybe it is an homework, quiz or exam
  * @property int $status
  * @property string $created_at
+ * @property string|null $reference_type
+ * @property int|null $reference_id
  *
- * @property Feed[] $feeds
  * @property HomeworkQuestions[] $homeworkQuestions
  * @property PracticeTopics[] $practiceTopics
+ * @property ProctorReport[] $proctorReports
  */
 class Homeworks extends \yii\db\ActiveRecord
 {

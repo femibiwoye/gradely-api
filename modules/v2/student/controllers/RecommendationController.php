@@ -151,7 +151,7 @@ class RecommendationController extends ActiveController
     }
 
 
-    public function actionDailyRecommendation($child = null)
+    public function actionDailyRecommendationBk($child = null)
     {
         $studentID = Utility::getParentChildID();
         $submitted_recommendations = ArrayHelper::getColumn(
@@ -171,7 +171,7 @@ class RecommendationController extends ActiveController
 
         $attempted_topic = RecommendationTopics::find()->where([
             'student_id' => $studentID,
-            'object_type'=>'practice'
+            'object_type' => 'practice'
         ])
             ->select(['object_id'])
             //->andWhere('DAY(CURDATE()) = DAY(created_at)') // to be returned
@@ -181,14 +181,13 @@ class RecommendationController extends ActiveController
 
         $videos = RecommendationTopics::find()->where([
             'student_id' => $studentID,
-            'object_type'=>'video'
+            'object_type' => 'video'
         ])
             ->select(['object_id'])
             //->andWhere('DAY(CURDATE()) = DAY(created_at)') //TO be returned
             ->asArray()
             ->limit(2)
             ->all();
-
 
 
         $attempted_topic = QuizSummaryDetails::find()
@@ -203,7 +202,7 @@ class RecommendationController extends ActiveController
                 new Expression("'practice' as type"),
             ])
             ->where([
-                'topic_id' => ArrayHelper::getColumn($attempted_topic,'object_id'),
+                'topic_id' => ArrayHelper::getColumn($attempted_topic, 'object_id'),
                 'student_id' => $studentID
             ])
             ->groupBy('st.id')
@@ -224,7 +223,7 @@ class RecommendationController extends ActiveController
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
             ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
             ->innerJoin('global_class gc', 'gc.id = st.class_id')
-            ->where(['video_content.id' => ArrayHelper::getColumn($videos,'object_id')])
+            ->where(['video_content.id' => ArrayHelper::getColumn($videos, 'object_id')])
             ->limit(SharedConstant::VALUE_TWO)
             ->asArray()
             ->all();
@@ -236,5 +235,32 @@ class RecommendationController extends ActiveController
         }
 
         return (new ApiResponse)->success($todayRecommendation, ApiResponse::SUCCESSFUL, 'Daily recommendation found');
+    }
+
+    public function actionDailyRecommendation($child = null)
+    {
+        $studentID = Utility::getParentChildID();
+        $models = Recommendations::find()
+            ->where([
+                'student_id' => $studentID,
+                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
+            ])
+            ->andWhere(['is not', 'raw', null])
+            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            ->all();
+
+        foreach ($models as $model) {
+            $recommendation[] = array_merge([
+                'id' => $model->id,
+                'is_done' => $model->is_taken
+            ], $model->raw);
+        }
+
+        if (!$recommendation) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Daily recommendation not found');
+        }
+
+        return (new ApiResponse)->success($recommendation, ApiResponse::SUCCESSFUL, 'Daily recommendation found');
+
     }
 }

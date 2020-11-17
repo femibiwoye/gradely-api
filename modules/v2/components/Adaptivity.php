@@ -13,8 +13,6 @@ use yii\db\Expression;
 
 class Adaptivity extends ActiveRecord
 {
-
-
     public static function SingleMixTopic($type, $inner)
     {
         if ($type == 'single') {
@@ -86,7 +84,7 @@ class Adaptivity extends ActiveRecord
         }
 
         if (isset($video[0])) {
-            $topicOrders[] = $video[0];
+            $topicOrders[] = array_merge($video[0], ['question_count' => 1]);
         }
 
         if (isset($topicModels[4])) {
@@ -105,7 +103,7 @@ class Adaptivity extends ActiveRecord
         }
 
         if (isset($video[1])) {
-            $topicOrders[] = $video[1];
+            $topicOrders[] = array_merge($video[1], ['question_count' => 1]);
         }
 
         return $topicOrders;
