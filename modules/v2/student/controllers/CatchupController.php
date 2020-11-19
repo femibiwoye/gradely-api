@@ -956,7 +956,7 @@ class CatchupController extends ActiveController
         $startPractice->type = 'mix';
         $startPractice->topic_ids = $topicIDs;
         $startPractice->practice_type = 'diagnostic';
-        if (!$homework_model = $startPractice->initializePracticeTemp()) {
+        if (!$homework_model = $startPractice->initializePractice()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Diagnostic Topics Initialization failed');
         }
 
