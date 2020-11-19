@@ -249,6 +249,7 @@ class RecommendationController extends ActiveController
             ->andWhere('DAY(CURDATE()) = DAY(created_at)')
             ->all();
 
+        $recommendation = [];
         foreach ($models as $model) {
             $recommendation[] = array_merge([
                 'id' => $model->id,
