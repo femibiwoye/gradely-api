@@ -5,6 +5,7 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Recommendation;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Feed;
@@ -339,7 +340,8 @@ class CatchupController extends ActiveController
         //$form->addRule(['video_token'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
-        if (!$form->validate()) {
+        $studentID = Utility::getParentChildID();
+        if (!$form->validate() || !Pricing::SubscriptionStatus(null, $studentID)) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
@@ -1202,7 +1204,7 @@ class CatchupController extends ActiveController
     public function actionExplore($child = null, $all = 0)
     {
         $classID = Utility::ParentStudentChildClass($child);
-
+        $studentID = Utility::getParentChildID();
         $query1 = (new \yii\db\Query())
             ->from('practice_material pm')
             //->alias('pm')
@@ -1212,7 +1214,7 @@ class CatchupController extends ActiveController
                 'pm.extension',
                 'pm.filetype',
                 'pm.filesize',
-                'pm.filename as url',
+                new Expression(Pricing::SubscriptionStatus(null, $studentID) ? 'pm.filename as url' : 'null as url'),
                 'pm.downloadable',
                 //'pm.thumbnail',
                 Utility::ThumbnailQuery('pm', 'document'),

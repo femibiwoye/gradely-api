@@ -119,8 +119,8 @@ class Adaptivity extends ActiveRecord
                 Utility::ImageQuery('subject_topics'),
                 new Expression("'practice' as type"),
                 $referenceType == 'class' ?
-                    new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended') :
-                    new Expression('(case when (select id from homeworks where reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "homework"  AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ') then 1 else 0 end) as is_recommended'),
+                    new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ' GROUP BY id) then 1 else 0 end) as is_recommended') :
+                    new Expression('(case when (select id from homeworks where reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "homework"  AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ' GROUP BY id) then 1 else 0 end) as is_recommended'),
             ])
             ->where(['subject_topics.id' => $topic_id])
             ->asArray()
@@ -131,7 +131,7 @@ class Adaptivity extends ActiveRecord
             ->select([
                 'video_content.*',
                 new Expression("'video' as type"),
-                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $receiverID . ' AND resources_id = video_content.id AND reference_type = "' . $referenceType . '" AND reference_id = ' . $referenceID . ') then 1 else 0 end) as is_recommended'),
+                new Expression('(case when (select resources_id from recommended_resources where creator_id = ' . Yii::$app->user->id . ' AND resources_type = "video" AND receiver_id = ' . $receiverID . ' AND resources_id = video_content.id AND reference_type = "' . $referenceType . '" AND reference_id = ' . $referenceID . ' GROUP BY resources_id) then 1 else 0 end) as is_recommended'),
                 'gc.id class_id',
                 'gc.description class_name',
             ])
