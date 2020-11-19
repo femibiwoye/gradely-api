@@ -555,7 +555,20 @@ class Utility extends ActiveRecord
             default:
                 return 'first';
         }
+    }
 
-
+    public static function StudentRecommendedTodayStatus($studentID = null)
+    {
+        if (!$studentID) {
+            $studentID = Yii::$app->user->id;
+        }
+        return Recommendations::find()
+            ->where([
+                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
+                'DATE(created_at)' => date('Y-m-d'),
+                'student_id' => $studentID
+            ])
+            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            ->exists();
     }
 }
