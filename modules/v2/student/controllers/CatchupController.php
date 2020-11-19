@@ -1181,7 +1181,7 @@ class CatchupController extends ActiveController
                 $recommendationObject->update();
             }
 
-            if ($homework->type == 'diagnostic') {
+            if ($homework->type == 'diagnostic' && !Utility::StudentRecommendedTodayStatus()) {
                 $recommendation = new Recommendation();
                 $recommendation->dailyRecommendation($homework->student_id);
                 //(new Utility)->generateRecommendation($quizSummary->id);
