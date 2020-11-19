@@ -118,7 +118,10 @@ class Recommendation extends Model
         if (!empty($recommendations)) {
             $dbtransaction = Yii::$app->db->beginTransaction();
             try {
+                $recommendedCount = Recommendations::find()->where(['student_id' => $student, 'category' => 'daily', 'is_taken' => 0])->count();
                 foreach ($recommendations as $recommendation) {
+                    if ($recommendedCount >= 6)
+                        break;
                     $model = new Recommendations;
                     $model->student_id = $student;
                     $model->category = $category;
@@ -131,6 +134,7 @@ class Recommendation extends Model
                     if (!$this->createRecommendedTopics($recommendation, $model)) {
                         return false;
                     }
+                    $recommendedCount++;
                 }
                 $dbtransaction->commit();
             } catch (\Exception $e) {
