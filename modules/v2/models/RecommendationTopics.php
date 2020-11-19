@@ -15,7 +15,8 @@ use yii\db\Expression;
  * @property int $student_id
  * @property int|null $object_id
  * @property string|null $object_type This is to let us know if the action is practice or video
- * @property string|null $created_at
+ * @property int|null $is_done
+ * @property string $created_at
  *
  * @property Recommendations $recommendation
  * @property Subjects $subject

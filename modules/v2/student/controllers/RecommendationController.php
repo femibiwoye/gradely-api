@@ -159,7 +159,7 @@ class RecommendationController extends ActiveController
                 'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
             ])
             ->andWhere(['is not', 'raw', null])
-            ->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            //->andWhere('DAY(CURDATE()) = DAY(created_at)')
             ->limit(6)
             ->all();
 
