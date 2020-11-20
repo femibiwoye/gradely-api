@@ -1123,7 +1123,7 @@ class CatchupController extends ActiveController
 
         //use transaction before saving;
         $dbtransaction = \Yii::$app->db->beginTransaction();
-        try {
+        //try { to be returned
 
             $homework = Homeworks::findOne(['id' => $practice_id, 'student_id' => $student_id]);
 
@@ -1200,10 +1200,10 @@ class CatchupController extends ActiveController
 
             $dbtransaction->commit();
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Practice processing completed');
-        } catch (\Exception $ex) {
-            $dbtransaction->rollBack();
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
-        }
+//        } catch (\Exception $ex) {
+//            $dbtransaction->rollBack();
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
+//        }
     }
 
     /**
