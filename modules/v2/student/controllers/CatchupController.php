@@ -479,12 +479,12 @@ class CatchupController extends ActiveController
 
         //This update status of watched daily video recommendation to taken(true)
         if ($recommendedResources = RecommendationTopics::find()
-            ->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
-            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video->id, 'object_type' => 'video','is_done'=>0])->one()) {
+            //->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
+            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video->id, 'object_type' => 'video', 'is_done' => 0])->one()) {
             $recommendedResources->is_done = 1;
-            if ($recommendedResources->update() && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
+            if ($recommendedResources->save() && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
                 $recommendedMain->is_taken = 1;
-                $recommendedMain->update();
+                $recommendedMain->save();
             }
         }
 
@@ -1123,7 +1123,7 @@ class CatchupController extends ActiveController
 
         //use transaction before saving;
         $dbtransaction = \Yii::$app->db->beginTransaction();
-        //try { to be returned
+        try {
 
             $homework = Homeworks::findOne(['id' => $practice_id, 'student_id' => $student_id]);
 
@@ -1199,10 +1199,10 @@ class CatchupController extends ActiveController
 
             $dbtransaction->commit();
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Practice processing completed');
-//        } catch (\Exception $ex) {
-//            $dbtransaction->rollBack();
-//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
-//        }
+        } catch (\Exception $ex) {
+            $dbtransaction->rollBack();
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
+        }
     }
 
     /**
