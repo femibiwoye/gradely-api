@@ -152,7 +152,9 @@ class HomeworkController extends ActiveController
     {
         $student_id = Utility::getParentChildID();
 
-        $model = HomeworkReport::findOne(['student_id' => $student_id, 'homework_id' => $id, 'submit' => 1]);
+        $model = HomeworkReport::findOne([
+            //'student_id' => $student_id, //to be returned
+            'homework_id' => $id, 'submit' => 1]);
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework report not found');
