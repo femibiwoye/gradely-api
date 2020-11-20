@@ -459,7 +459,7 @@ class CatchupController extends ActiveController
             $recResID = ArrayHelper::getColumn($recommendedResources, 'id');
 
 
-            if (RecommendationTopics::updateAll(['is_done' => 1], ['id' => $recResID]) && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
+            if (RecommendationTopics::updateAll(['is_done' => 1], ['id' => $recResID])) {
                 Recommendations::updateAll(['is_taken' => 1], ['id' => $recID]);
             }
         }
