@@ -400,17 +400,6 @@ class CatchupController extends ActiveController
             'file_id' => $video->id,
         ]);
 
-        //This update status of watched daily video recommendation to taken(true)
-        if ($recommendedResources = RecommendationTopics::find()
-            ->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
-            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video->id, 'object_type' => 'video','is_done'=>0])->one()) {
-            $recommendedResources->is_done = 1;
-            if ($recommendedResources->update() && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
-                $recommendedMain->is_taken = 1;
-                $recommendedMain->update();
-            }
-        }
-
         if (!$file_log)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
 
@@ -486,6 +475,17 @@ class CatchupController extends ActiveController
         $model->current_duration = $duration;
         if (!$model->save()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
+        }
+
+        //This update status of watched daily video recommendation to taken(true)
+        if ($recommendedResources = RecommendationTopics::find()
+            ->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
+            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video->id, 'object_type' => 'video','is_done'=>0])->one()) {
+            $recommendedResources->is_done = 1;
+            if ($recommendedResources->update() && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
+                $recommendedMain->is_taken = 1;
+                $recommendedMain->update();
+            }
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video duration updated');

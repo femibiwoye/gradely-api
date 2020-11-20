@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\student\models;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
 use Yii;
@@ -125,9 +126,7 @@ class StartPracticeForm extends Model
             }
         }
         if ($this->reference_type == 'daily') {
-            $hwork = Homeworks::findOne(['id' => $this->reference_id]);
-            $homework->school_id = $hwork->school_id;
-            $homework->class_id = $hwork->class_id;
+            $homework->class_id = Utility::getStudentClass(1);
         }
 
         if ($this->reference_type) {
