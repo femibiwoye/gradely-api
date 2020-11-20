@@ -1186,8 +1186,7 @@ class CatchupController extends ActiveController
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
 
-            if ($homework->reference_type == 'daily') {
-                $recommendationObject = Recommendations::findOne(['id' => $homework->reference_id, 'category' => $homework->reference_type, 'student_id' => $homework->student_id]);
+            if ($homework->reference_type == 'daily' && $recommendationObject = Recommendations::findOne(['id' => $homework->reference_id, 'category' => $homework->reference_type, 'student_id' => $homework->student_id])) {
                 $recommendationObject->is_taken = 1;
                 $recommendationObject->update();
             }
