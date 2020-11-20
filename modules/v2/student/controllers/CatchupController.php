@@ -458,10 +458,8 @@ class CatchupController extends ActiveController
             $recID = ArrayHelper::getColumn($recommendedResources, 'recommendation_id');
             $recResID = ArrayHelper::getColumn($recommendedResources, 'id');
 
-
-            if (RecommendationTopics::updateAll(['is_done' => 1], ['id' => $recResID])) {
-                Recommendations::updateAll(['is_taken' => 1], ['id' => $recID]);
-            }
+            RecommendationTopics::updateAll(['is_done' => 1], ['id' => $recResID]);
+            Recommendations::updateAll(['is_taken' => 1], ['id' => $recID]);
         }
 
 
