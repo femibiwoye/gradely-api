@@ -185,7 +185,7 @@ class FeedController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $models->orderBy('id DESC'),
             'pagination' => [
-                'pageSize' => 3,
+                'pageSize' => 10,
                 'validatePage' => false,
             ],
             'sort' => [

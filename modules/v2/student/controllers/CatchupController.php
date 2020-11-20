@@ -214,16 +214,16 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL);
         }
 
-        $model = new FeedLike;
-        $model->parent_id = $model->id;
-        $model->user_id = Yii::$app->user->id;
-        $model->type = 'video';
-        $model->status = $status;
-        if (!$model->save()) {
+        $modelLike = new FeedLike;
+        $modelLike->parent_id = $model->id;
+        $modelLike->user_id = Yii::$app->user->id;
+        $modelLike->type = 'video';
+        $modelLike->status = $status;
+        if (!$modelLike->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successful');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success($modelLike, ApiResponse::SUCCESSFUL);
     }
 
 
@@ -440,7 +440,6 @@ class CatchupController extends ActiveController
         if (!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
-
         $video = VideoAssign::findOne(['content_id' => $video_id]);
 
         $model = FileLog::find()
@@ -451,6 +450,20 @@ class CatchupController extends ActiveController
                 'user_id' => Yii::$app->user->id
             ])
             ->one();
+
+        //This update status of watched daily video recommendation to taken(true)
+        if ($recommendedResources = RecommendationTopics::find()
+            //->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
+            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video_id, 'object_type' => 'video', 'is_done' => 0])->all()) {
+            $recID = ArrayHelper::getColumn($recommendedResources, 'recommendation_id');
+            $recResID = ArrayHelper::getColumn($recommendedResources, 'id');
+
+
+            if (RecommendationTopics::updateAll(['is_done' => 1], ['id' => $recResID]) && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
+                Recommendations::updateAll(['is_taken' => 1], ['id' => $recID]);
+            }
+        }
+
 
         if (!$model) {
             $model = new FileLog;
@@ -477,16 +490,6 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
         }
 
-        //This update status of watched daily video recommendation to taken(true)
-        if ($recommendedResources = RecommendationTopics::find()
-            //->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
-            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video->id, 'object_type' => 'video', 'is_done' => 0])->one()) {
-            $recommendedResources->is_done = 1;
-            if ($recommendedResources->save() && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
-                $recommendedMain->is_taken = 1;
-                $recommendedMain->save();
-            }
-        }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video duration updated');
     }
