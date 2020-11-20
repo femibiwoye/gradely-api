@@ -126,7 +126,7 @@ class LibraryController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 3,
+                'pageSize' => 13,
                 'validatePage' => false,
             ],
             'sort' => [

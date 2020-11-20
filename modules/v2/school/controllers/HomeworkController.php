@@ -69,7 +69,7 @@ class HomeworkController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $homeworks,
             'pagination' => [
-                'pageSize' => 3,
+                'pageSize' => 20,
                 'validatePage' => false,
             ],
             'sort' => [
