@@ -608,7 +608,7 @@ class CatchupController extends ActiveController
         $model = FileLog::find()->where([
             //'user_id' => $student_id, //to be returned
             'is_completed' => SharedConstant::VALUE_ZERO
-        ]);
+        ])->orderBy('id DESC');
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Videos not found');
