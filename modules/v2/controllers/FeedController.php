@@ -374,4 +374,20 @@ class FeedController extends ActiveController
 
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
+
+    public function actionDeleteComment($comment_id){
+        $comment = FeedComment::findOne(['id' => $comment_id, 'status'=>1]);
+            
+        if(!$comment){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
+        }
+        if ($comment->user_id != Yii::$app->user->id){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access');
+        }
+            if (!$comment->delete()){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not delete this record');
+        }
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
+    }
+
 }

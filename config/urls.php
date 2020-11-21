@@ -43,6 +43,7 @@ return [
     'GET v2/feed/<class_id:\d+>' => 'v2/feed/index', //
     //'GET v2/feed/upcoming' => 'v2/feed/upcoming',
     'DELETE v2/feed/delete-feed/<feed_id:\d+>' => 'v2/feed/delete-feed', //
+    'DELETE v2/feed/delete-comment/<comment_id:\d+>' => 'v2/feed/delete-comment',
 
     //Reports
     'GET v2/library/summary/<class_id:\d+>' => 'v2/library/summary', //
