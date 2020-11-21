@@ -154,22 +154,29 @@ class RecommendationController extends ActiveController
     public function actionDailyRecommendation($child = null)
     {
         $studentID = Utility::getParentChildID();
-        $models = Recommendations::find()
-            ->where([
-                'student_id' => $studentID,
-                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
-            ])
-            ->andWhere(['is not', 'raw', null])
-            //->andWhere('DAY(CURDATE()) = DAY(created_at)')
-            ->limit(6)
-            ->all();
+        $models = $this->FetchRecommendation($studentID, date("Y-m-d"));
 
         $recommendation = [];
+        $isToday = false;
         foreach ($models as $model) {
             $recommendation[] = array_merge([
                 'id' => $model->id,
-                'is_done' => $model->is_taken
+                'is_done' => $model->is_taken,
             ], $model->raw);
+            if ($model->is_taken == 0) {
+                $isToday = true;
+            }
+        }
+
+        if (!$isToday) {
+            $models = $this->FetchRecommendation($studentID, date("Y-m-d", strtotime("+1 day")));
+            $recommendation = [];
+            foreach ($models as $model) {
+                $recommendation[] = array_merge([
+                    'id' => $model->id,
+                    'is_done' => $model->is_taken,
+                ], $model->raw);
+            }
         }
 
         if (!$recommendation) {
@@ -177,6 +184,21 @@ class RecommendationController extends ActiveController
         }
 
         return (new ApiResponse)->success($recommendation, ApiResponse::SUCCESSFUL, 'Daily recommendation found');
+
+    }
+
+    private function FetchRecommendation($studentID, $date)
+    {
+        return Recommendations::find()
+            ->where([
+                'student_id' => $studentID,
+                'category' => SharedConstant::RECOMMENDATION_TYPE[SharedConstant::VALUE_ONE],
+                'DATE(created_at)' => $date
+            ])
+            ->andWhere(['is not', 'raw', null])
+            //->andWhere('DAY(CURDATE()) = DAY(created_at)')
+            ->limit(6)
+            ->all();
 
     }
 
