@@ -5,6 +5,7 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\components\Recommendation;
 use app\modules\v2\models\VideoContent;
 use Yii;
 use yii\db\Expression;
@@ -177,5 +178,16 @@ class RecommendationController extends ActiveController
 
         return (new ApiResponse)->success($recommendation, ApiResponse::SUCCESSFUL, 'Daily recommendation found');
 
+    }
+
+    /**
+     * This allow student to generate new sets of recommendations
+     * @return ApiResponse
+     */
+    public function actionGenerateNewRecommendation()
+    {
+        $studentID = Utility::getParentChildID();
+        $recommendation = new Recommendation();
+        return (new ApiResponse)->success($recommendation->dailyRecommendation($studentID), ApiResponse::SUCCESSFUL);
     }
 }
