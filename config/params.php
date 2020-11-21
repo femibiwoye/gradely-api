@@ -42,6 +42,6 @@ return [
     'live_class_url'=>LIVE_CLASS_URL,
     'live_class_recorded_url'=>LIVE_CLASS_RECORDED_URL,
 
-    'masteryQuestionCount'=>6,
-    'masteryPerTopicPerformance'=>300
+    'masteryQuestionCount' => 6,
+    'masteryPerTopicPerformance' => 100,
 ];
