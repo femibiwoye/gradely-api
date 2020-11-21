@@ -118,7 +118,13 @@ class Recommendation extends Model
         if (!empty($recommendations)) {
             $dbtransaction = Yii::$app->db->beginTransaction();
             try {
-                $recommendedCount = Recommendations::find()->where(['student_id' => $student, 'category' => 'daily', 'is_taken' => 0])->count();
+                $recommendedCount = Recommendations::find()->where(['student_id' => $student, 'category' => $category, 'is_taken' => 0])
+                    ->andWhere(['IS NOT', 'raw', null])->count();
+                if ($recommendedCount > 0) {
+
+                    Recommendations::updateAll(['created_at' => date('Y-m-d H:i:s')], ['AND', ['student_id' => $student, 'category' => $category, 'is_taken' => 0], ['IS NOT', 'raw', null]]);
+                }
+
                 foreach ($recommendations as $recommendation) {
                     if ($recommendedCount >= 6)
                         break;
@@ -128,6 +134,9 @@ class Recommendation extends Model
                     $model->type = $recommendation['type'];
                     $model->resource_count = $recommendation['question_count'];
                     $model->raw = $recommendation;
+                    if (isset($_GET['tomorrow']) && isset($_GET['tomorrow']) == 1) {
+                        $model->created_at = date("Y-m-d", strtotime("+1 day"));
+                    }
                     if (!$model->save()) {
                         return false;
                     }
@@ -163,6 +172,9 @@ class Recommendation extends Model
             $model->student_id = $recommendation->student_id;
             $model->object_id = $object['id'];
             $model->object_type = $object['type'];
+            if (isset($_GET['tomorrow']) && isset($_GET['tomorrow']) == 1) {
+                $model->created_at = date("Y-m-d", strtotime("+1 day"));
+            }
             if (!$model->save()) {
                 return false;
             }
