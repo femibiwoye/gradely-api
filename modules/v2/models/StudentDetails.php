@@ -315,9 +315,14 @@ class StudentDetails extends User
 
     public function getStatistics()
     {
+        if(isset($_GET['term']))
+            $term = $_GET['term'];
+        else
+            $term = Utility::getStudentTermWeek('term');
+
         $studentAnalytics = new StudentAnalytics();
         $subject_id = $this->getSelectedSubject()->id;
-        return $result = $studentAnalytics->Analytics($this, $subject_id, $_GET['term']);
+        return $result = $studentAnalytics->Analytics($this, $subject_id, $term);
     }
 
     public function checkStudentInTeacherClass()
