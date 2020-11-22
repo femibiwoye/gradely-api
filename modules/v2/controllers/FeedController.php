@@ -177,7 +177,7 @@ class FeedController extends ActiveController
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }
 
-        $models = $models->andWhere(['status' => 1]);
+        $models = $models->andWhere(['feed.status' => 1]);
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
