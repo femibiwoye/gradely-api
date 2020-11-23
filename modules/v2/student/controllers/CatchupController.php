@@ -304,10 +304,8 @@ class CatchupController extends ActiveController
         $studentID = Utility::getParentChildID();
         $file_log = FileLog::find()
             ->where([
-                'is_completed' => SharedConstant::VALUE_ONE,
-                //'user_id' => $student_id, //to be returned
-                'type' => SharedConstant::TYPE_VIDEO,
-                //'class_id' => $class_id //to be returned
+                'is_completed' => SharedConstant::VALUE_ONE, 'user_id' => $studentID,
+                'type' => SharedConstant::TYPE_VIDEO, 'class_id' => $class_id
             ])
             ->groupBy('file_id')
             ->orderBy('id DESC');
@@ -548,9 +546,9 @@ class CatchupController extends ActiveController
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = qs.student_id AND qsd.quiz_id = qs.id")
             ->innerJoin('homework_questions hq', 'hq.homework_id = qs.homework_id')
             ->where([
-                //'student_id' => $student_id, //to be returned
+                'student_id' => $student_id,
                 'submit' => SharedConstant::VALUE_ONE])
-            //->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]]) //to be returned
+            ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->orderBy(['submit_at' => SORT_DESC])
             ->groupBy(['qs.id'])
             ->asArray()
@@ -606,7 +604,7 @@ class CatchupController extends ActiveController
         $student_id = $studentID = Utility::getParentChildID();
 
         $model = FileLog::find()->where([
-            //'user_id' => $student_id, //to be returned
+            'user_id' => $student_id,
             'is_completed' => SharedConstant::VALUE_ZERO
         ])->orderBy('id DESC');
 
@@ -675,8 +673,8 @@ class CatchupController extends ActiveController
         $models = QuizSummary::find()
             ->select('subject_id')
             ->where(['submit' => 1,
-                //'student_id' => $student_id
-            ])//to be returned
+                'student_id' => $student_id
+            ])
             ->andWhere(['AND', ['<>', 'type', 'recommendation'], ['<>', 'type', 'catchup']])
             ->innerJoin('quiz_summary_details qsd', 'qsd.quiz_id = quiz_summary.id')
             ->groupBy('subject_id');
@@ -694,7 +692,7 @@ class CatchupController extends ActiveController
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
                 ->where([
                     'quiz_summary.subject_id' => $model['subject_id'],
-                    //'quiz_summary_details.student_id' => $student_id //to be returned
+                    'quiz_summary_details.student_id' => $student_id
                 ])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->orderBy('quiz_summary_details.id DESC')
@@ -717,7 +715,7 @@ class CatchupController extends ActiveController
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
                 ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'),
-                    //'student_id' => $student_id, //to be returned
+                    'student_id' => $student_id,
                     'st.subject_id' => $model['subject_id']])
                 ->orderBy('score')
                 ->asArray()
@@ -809,11 +807,10 @@ class CatchupController extends ActiveController
         // Get actual video object
         $recommendedVideos = VideoContent::find()
             ->select(['*', new Expression("'video' as type"),])
-            //->where(['id' => ArrayHelper::getColumn($recommended_videos, 'resources_id')]) //to be returned
+            ->where(['id' => ArrayHelper::getColumn($recommended_videos, 'resources_id')])
             ->leftJoin('video_assign va', 'va.content_id = video_content.id')
             ->andWhere(['va.topic_id' => ArrayHelper::getColumn($practices, 'id')])
             ->asArray()
-            ->orderBy('rand()')//to be removed
             ->limit(12)
             ->all();
 
@@ -1238,7 +1235,7 @@ class CatchupController extends ActiveController
             ->leftJoin('user', "user.id = pm.user_id")
             ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
             ->where([
-                //'feed.global_class_id' => $classID, //to be returned
+                'feed.global_class_id' => $classID,
                 'pm.filetype' => 'document']);
 
         $query2 = (new \yii\db\Query())

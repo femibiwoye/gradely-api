@@ -153,7 +153,7 @@ class HomeworkController extends ActiveController
         $student_id = Utility::getParentChildID();
 
         $model = HomeworkReport::findOne([
-            //'student_id' => $student_id, //to be returned
+            'student_id' => $student_id,
             'homework_id' => $id, 'submit' => 1]);
 
         if (!$model) {
