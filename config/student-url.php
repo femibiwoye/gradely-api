@@ -68,6 +68,7 @@ return [
     'POST v2/student/catchup/video-likes/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-likes', //
     'GET v2/student/catchup/assessment-recommendations/<id:\d*>' => 'v2/student/catchup/assessment-recommendation',
     'GET v2/student/catchup/explore'=>'v2/student/catchup/explore',
+    'PUT v2/student/catchup/generate-new-recommendation' => 'v2/student/recommendation/generate-new-recommendation',
 
     // Diagnostic
     'POST v2/student/catchup/initialize-diagnostic' => 'v2/student/catchup/initialize-diagnostic', //

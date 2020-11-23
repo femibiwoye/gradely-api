@@ -77,7 +77,11 @@ class StudentDetails extends User
             ->alias('q')
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
             ->where(['q.student_id' => $this->id])
-            ->joinWith(['childHomework', 'subject']);
+            ->joinWith(['childHomework']);
+
+        if(Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher'){
+            $model = $model->andWhere(['q.type'=>'homework']);
+        }
 
         if (Yii::$app->request->get('subject'))
             $model = $model->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
@@ -315,9 +319,14 @@ class StudentDetails extends User
 
     public function getStatistics()
     {
+        if(isset($_GET['term']))
+            $term = $_GET['term'];
+        else
+            $term = Utility::getStudentTermWeek('term');
+
         $studentAnalytics = new StudentAnalytics();
         $subject_id = $this->getSelectedSubject()->id;
-        return $result = $studentAnalytics->Analytics($this, $subject_id, $_GET['term']);
+        return $result = $studentAnalytics->Analytics($this, $subject_id, $term);
     }
 
     public function checkStudentInTeacherClass()
