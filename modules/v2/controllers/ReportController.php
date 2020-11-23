@@ -260,6 +260,11 @@ class ReportController extends ActiveController
 
     public function actionTopicPerformance()
     {
+        $user = Yii::$app->user->identity;
+        if ($user->type != 'student') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
         $model = new StudentTopicPerformance;
         $model->term = Yii::$app->request->get('term');
         $model->class = Yii::$app->request->get('class');
