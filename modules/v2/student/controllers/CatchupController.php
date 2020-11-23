@@ -546,7 +546,7 @@ class CatchupController extends ActiveController
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = qs.student_id AND qsd.quiz_id = qs.id")
             ->innerJoin('homework_questions hq', 'hq.homework_id = qs.homework_id')
             ->where([
-                'student_id' => $student_id,
+                'qs.student_id' => $student_id,
                 'submit' => SharedConstant::VALUE_ONE])
             ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->orderBy(['submit_at' => SORT_DESC])
