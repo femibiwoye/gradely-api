@@ -13,19 +13,20 @@ class StudentTopicPerformance extends Model
     public $term, $class;
     private $topic_performance = array();
     private $direction;
+    private $total_topic_score;
     public function rules()
     {
         return [
-            [['term', 'class'], 'required'],
             ['class', 'integer'],
+            ['term', 'string'],
         ];
     }
 
     public function getPerformance()
     {
         return [
-            'score' => null,
-            'total' => null,
+            'score' => $this->getTotalObtainedScore(),
+            'total' => $this->getTotalTopics(),
             'topics' => $this->getTopics(),
         ];
     }
@@ -35,8 +36,8 @@ class StudentTopicPerformance extends Model
         $topics = ArrayHelper::getColumn(
             SubjectTopics::find()
                     ->where([
-                        'term' => $this->term,
-                        'class_id' => $this->class
+                        'term' => $this->getTerm(),
+                        'class_id' => $this->getClass()
                     ])
                     ->all(),
             'id'
@@ -91,9 +92,21 @@ class StudentTopicPerformance extends Model
                             ->asArray()
                             ->one();
 
-        $total_score = $this->getTotalScore($easy_attempts, 'easy') + $this->getTotalScore($easy_attempts, 'medium') + $this->getTotalScore($easy_attempts, 'hard');
+        $hard_attempts_score = $this->getTotalScore($easy_attempts, 'hard');
+        $medium_attempts_score = $this->getTotalScore($easy_attempts, 'medium');
+        if ($hard_attempts_score == 30) {
+            $easy_attempts_score = 40;
+        } else {
+            $easy_attempts_score = $this->getTotalScore($easy_attempts, 'easy');
+        }
+
+        $total_score = $easy_attempts_score + $medium_attempts_score + $hard_attempts_score;
             
-        return $total_score == 100 ? Yii::$app->params['masteryPerTopicPerformance'] : ('0.' . $total_score) * Yii::$app->params['masteryPerTopicPerformance'];
+        $value = $total_score == 100 ? Yii::$app->params['masteryPerTopicPerformance'] : ('0.' . $total_score) * Yii::$app->params['masteryPerTopicPerformance'];
+
+        $this->total_topic_score = $this->total_topic_score + $value;
+
+        return $value;
     }
 
     private function getTotalScore($attempts, $difficulty)
@@ -208,6 +221,7 @@ class StudentTopicPerformance extends Model
                             ->all();
 
         $value = $this->getImprovemedPercentage($last_attempts);
+
         return $value;
     }
 
@@ -232,6 +246,52 @@ class StudentTopicPerformance extends Model
     private function getPercentage($attempted, $total)
     {
         return ($attempted * 100) / $total;
+    }
+
+    private function getTotalObtainedScore()
+    {
+        return $this->total_topic_score;
+    }
+
+    private function getTotalTopics()
+    {
+        $total = count(ArrayHelper::getColumn(
+            SubjectTopics::find()
+                    ->where([
+                        'term' => $this->term,
+                        'class_id' => $this->class
+                    ])
+                    ->all(),
+            'id'
+        ));
+
+        return $total * $this->getTotal();
+    }
+
+    private function getClass()
+    {
+        if (empty($this->class)) {
+            $class = StudentSchool::find()
+                    ->where([
+                        'student_id' => Yii::$app->user->id
+                    ])
+                    ->asArray()
+                    ->one();
+
+            return $class['class_id'];
+
+        } else {
+            return $this->class;
+        }
+    }
+
+    private function getTerm()
+    {
+        if (empty($this->term)) {
+            return Utility::getStudentTermWeek()['term'];
+        } else {
+            return $this->term;
+        }
     }
     
 }
