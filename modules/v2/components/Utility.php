@@ -318,6 +318,18 @@ class Utility extends ActiveRecord
 
     }
 
+    public static function getGeneralImage($image, $folder)
+    {
+        if (empty($image))
+            $image = null;
+        elseif (strpos($image, 'http') !== false)
+            $image = $image;
+        else {
+            $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $image;
+        }
+        return $image;
+    }
+
     public static function getTeacherSchoolID($teacher_id)
     {
         $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);

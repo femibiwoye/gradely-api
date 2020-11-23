@@ -17,7 +17,7 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery, StudentAdditiionalTopics};
+use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery, StudentAdditiionalTopics, StudentTopicPerformance};
 use app\modules\v2\components\SharedConstant;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -256,5 +256,22 @@ class ReportController extends ActiveController
         }
 
         return (new ApiResponse)->success($model->getGlobalData(), ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionTopicPerformance()
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type != 'student') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        $model = new StudentTopicPerformance;
+        $model->term = Yii::$app->request->get('term');
+        $model->class = Yii::$app->request->get('class');
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+        }
+
+        return (new ApiResponse)->success($model->getPerformance(), ApiResponse::SUCCESSFUL, 'Topic Performance Record found');
     }
 }

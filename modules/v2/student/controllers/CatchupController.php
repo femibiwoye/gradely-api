@@ -214,16 +214,16 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL);
         }
 
-        $model = new FeedLike;
-        $model->parent_id = $model->id;
-        $model->user_id = Yii::$app->user->id;
-        $model->type = 'video';
-        $model->status = $status;
-        if (!$model->save()) {
+        $modelLike = new FeedLike;
+        $modelLike->parent_id = $model->id;
+        $modelLike->user_id = Yii::$app->user->id;
+        $modelLike->type = 'video';
+        $modelLike->status = $status;
+        if (!$modelLike->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successful');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success($modelLike, ApiResponse::SUCCESSFUL);
     }
 
 
@@ -304,10 +304,8 @@ class CatchupController extends ActiveController
         $studentID = Utility::getParentChildID();
         $file_log = FileLog::find()
             ->where([
-                'is_completed' => SharedConstant::VALUE_ONE,
-                //'user_id' => $student_id, //to be returned
-                'type' => SharedConstant::TYPE_VIDEO,
-                //'class_id' => $class_id //to be returned
+                'is_completed' => SharedConstant::VALUE_ONE, 'user_id' => $studentID,
+                'type' => SharedConstant::TYPE_VIDEO, 'class_id' => $class_id
             ])
             ->groupBy('file_id')
             ->orderBy('id DESC');
@@ -440,7 +438,6 @@ class CatchupController extends ActiveController
         if (!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
-
         $video = VideoAssign::findOne(['content_id' => $video_id]);
 
         $model = FileLog::find()
@@ -451,6 +448,18 @@ class CatchupController extends ActiveController
                 'user_id' => Yii::$app->user->id
             ])
             ->one();
+
+        //This update status of watched daily video recommendation to taken(true)
+        if ($recommendedResources = RecommendationTopics::find()
+            //->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
+            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video_id, 'object_type' => 'video', 'is_done' => 0])->all()) {
+            $recID = ArrayHelper::getColumn($recommendedResources, 'recommendation_id');
+            $recResID = ArrayHelper::getColumn($recommendedResources, 'id');
+
+            RecommendationTopics::updateAll(['is_done' => 1], ['id' => $recResID]);
+            Recommendations::updateAll(['is_taken' => 1], ['id' => $recID]);
+        }
+
 
         if (!$model) {
             $model = new FileLog;
@@ -477,16 +486,6 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
         }
 
-        //This update status of watched daily video recommendation to taken(true)
-        if ($recommendedResources = RecommendationTopics::find()
-            //->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
-            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video->id, 'object_type' => 'video', 'is_done' => 0])->one()) {
-            $recommendedResources->is_done = 1;
-            if ($recommendedResources->save() && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
-                $recommendedMain->is_taken = 1;
-                $recommendedMain->save();
-            }
-        }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video duration updated');
     }
@@ -547,9 +546,9 @@ class CatchupController extends ActiveController
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = qs.student_id AND qsd.quiz_id = qs.id")
             ->innerJoin('homework_questions hq', 'hq.homework_id = qs.homework_id')
             ->where([
-                //'student_id' => $student_id, //to be returned
+                'qs.student_id' => $student_id,
                 'submit' => SharedConstant::VALUE_ONE])
-            //->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]]) //to be returned
+            ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->orderBy(['submit_at' => SORT_DESC])
             ->groupBy(['qs.id'])
             ->asArray()
@@ -605,9 +604,9 @@ class CatchupController extends ActiveController
         $student_id = $studentID = Utility::getParentChildID();
 
         $model = FileLog::find()->where([
-            //'user_id' => $student_id, //to be returned
+            'user_id' => $student_id,
             'is_completed' => SharedConstant::VALUE_ZERO
-        ]);
+        ])->orderBy('id DESC');
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Videos not found');
@@ -674,8 +673,8 @@ class CatchupController extends ActiveController
         $models = QuizSummary::find()
             ->select('subject_id')
             ->where(['submit' => 1,
-                //'student_id' => $student_id
-            ])//to be returned
+                'quiz_summary.student_id' => $student_id
+            ])
             ->andWhere(['AND', ['<>', 'type', 'recommendation'], ['<>', 'type', 'catchup']])
             ->innerJoin('quiz_summary_details qsd', 'qsd.quiz_id = quiz_summary.id')
             ->groupBy('subject_id');
@@ -693,7 +692,7 @@ class CatchupController extends ActiveController
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
                 ->where([
                     'quiz_summary.subject_id' => $model['subject_id'],
-                    //'quiz_summary_details.student_id' => $student_id //to be returned
+                    'quiz_summary_details.student_id' => $student_id
                 ])
                 ->groupBy('quiz_summary_details.topic_id')
                 ->orderBy('quiz_summary_details.id DESC')
@@ -716,7 +715,7 @@ class CatchupController extends ActiveController
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
                 ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'),
-                    //'student_id' => $student_id, //to be returned
+                    'qsd.student_id' => $student_id,
                     'st.subject_id' => $model['subject_id']])
                 ->orderBy('score')
                 ->asArray()
@@ -808,11 +807,10 @@ class CatchupController extends ActiveController
         // Get actual video object
         $recommendedVideos = VideoContent::find()
             ->select(['*', new Expression("'video' as type"),])
-            //->where(['id' => ArrayHelper::getColumn($recommended_videos, 'resources_id')]) //to be returned
+            ->where(['id' => ArrayHelper::getColumn($recommended_videos, 'resources_id')])
             ->leftJoin('video_assign va', 'va.content_id = video_content.id')
             ->andWhere(['va.topic_id' => ArrayHelper::getColumn($practices, 'id')])
             ->asArray()
-            ->orderBy('rand()')//to be removed
             ->limit(12)
             ->all();
 
@@ -1237,7 +1235,7 @@ class CatchupController extends ActiveController
             ->leftJoin('user', "user.id = pm.user_id")
             ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
             ->where([
-                //'feed.global_class_id' => $classID, //to be returned
+                'feed.global_class_id' => $classID,
                 'pm.filetype' => 'document']);
 
         $query2 = (new \yii\db\Query())

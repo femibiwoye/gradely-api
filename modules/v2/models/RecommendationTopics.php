@@ -64,32 +64,32 @@ class RecommendationTopics extends \yii\db\ActiveRecord
         ];
     }
 
-    public function fields()
-    {
-        return [
-
-            'type' => function () {
-                return $this->object_type;
-            },
-            'object' => function () {
-                if ($this->object_type == 'video') {
-                    return $this->getObject()
-                        ->select([
-                            'video_content.*',
-                            new Expression("'video' as type"),
-                        ])
-                        ->one();
-                } else {
-                    return $this->getObject()
-                        ->select([
-                            'subject_topics.*',
-                            new Expression("'practice' as type"),
-                        ])
-                        ->one();
-                }
-            },
-        ];
-    }
+//    public function fields()
+//    {
+//        return [
+//
+//            'type' => function () {
+//                return $this->object_type;
+//            },
+//            'object' => function () {
+//                if ($this->object_type == 'video') {
+//                    return $this->getObject()
+//                        ->select([
+//                            'video_content.*',
+//                            new Expression("'video' as type"),
+//                        ])
+//                        ->one();
+//                } else {
+//                    return $this->getObject()
+//                        ->select([
+//                            'subject_topics.*',
+//                            new Expression("'practice' as type"),
+//                        ])
+//                        ->one();
+//                }
+//            },
+//        ];
+//    }
 
     public function getObject()
     {
