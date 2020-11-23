@@ -77,7 +77,11 @@ class StudentDetails extends User
             ->alias('q')
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
             ->where(['q.student_id' => $this->id])
-            ->joinWith(['childHomework', 'subject']);
+            ->joinWith(['childHomework']);
+
+        if(Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher'){
+            $model = $model->andWhere(['q.type'=>'homework']);
+        }
 
         if (Yii::$app->request->get('subject'))
             $model = $model->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
