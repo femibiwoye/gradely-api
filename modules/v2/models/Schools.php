@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\Utility;
 use Yii;
 use yii\behaviors\SluggableBehavior;
 
@@ -138,8 +139,12 @@ class Schools extends \yii\db\ActiveRecord
             'slug',
             'name',
             'abbr',
-            'logo',
-            'banner',
+            'logo' => function () {
+                return Utility::getGeneralImage($this->logo,'schools');
+            },
+            'banner' => function () {
+                return Utility::getGeneralImage($this->banner,'schools');
+            },
             'tagline',
             'about',
             'address',
@@ -164,7 +169,6 @@ class Schools extends \yii\db\ActiveRecord
             'demographics' => 'demographics',
         ];
     }
-
 
     /**
      * Gets query for [[ClassSubjects]].
