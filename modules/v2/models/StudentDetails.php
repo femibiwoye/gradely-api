@@ -77,10 +77,10 @@ class StudentDetails extends User
             ->alias('q')
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
             ->where(['q.student_id' => $this->id])
-            ->joinWith(['childHomework','subject']);
+            ->joinWith(['childHomework', 'subject']);
 
-        if(Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher'){
-            $model = $model->andWhere(['q.type'=>'homework']);
+        if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
+            $model = $model->andWhere(['q.type' => 'homework']);
         }
 
         if (Yii::$app->request->get('subject'))
@@ -213,7 +213,7 @@ class StudentDetails extends User
         if (Yii::$app->request->get('subject'))
             $topics = $topics->andWhere(['subject_id' => Yii::$app->request->get('subject')]);
         else
-            $topics = $topics->andWhere(['subject_id' => $this->getSelectedSubject()]);
+            $topics = $topics->andWhere(['subject_id' => isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null]);
         if (Yii::$app->request->get('term'))
             $topics = $topics->andWhere(['term' => Yii::$app->request->get('term')]);
 
@@ -319,7 +319,7 @@ class StudentDetails extends User
 
     public function getStatistics()
     {
-        if(isset($_GET['term']))
+        if (isset($_GET['term']))
             $term = $_GET['term'];
         else
             $term = Utility::getStudentTermWeek('term');
@@ -381,11 +381,11 @@ class StudentDetails extends User
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
-                    if ($data->getResult($this->id,$data->id) >= 75) {
+                    if ($data->getResult($this->id, $data->id) >= 75) {
                         $excellence[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($this->id,$data->id) >= 50 && $data->getResult($this->id,$data->id) < 75) {
+                    } elseif ($data->getResult($this->id, $data->id) >= 50 && $data->getResult($this->id, $data->id) < 75) {
                         $averages[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($this->id,$data->id) < 50) {
+                    } elseif ($data->getResult($this->id, $data->id) < 50) {
                         $struggling[] = $this->topicPerformanceMini($data);
                     }
                 }
