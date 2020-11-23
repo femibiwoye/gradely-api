@@ -363,13 +363,14 @@ class StudentDetails extends User
         $activeTopics = ArrayHelper::getColumn($activeTopics->groupBy('qsd.topic_id')->all(), 'topic_id');
 
         if (!empty($activeTopics)) {
-            if (isset($_GET['subject'])) {
+            if (isset($_GET['subject']) && !empty($_GET['subject'])) {
                 $selectedSubject = Subjects::find()->where(['status' => 1]);
                 $selectedSubject = $selectedSubject->andWhere(['id' => $_GET['subject']]);
                 $selectedSubject = ArrayHelper::getColumn($selectedSubject->all(), 'id');
             } else {
-                $attemptedSubjects = QuizSummary::find()->where(['student_id' => $this->id])->groupBy('subject_id')->all();
-                $selectedSubject = ArrayHelper::getColumn($attemptedSubjects, 'subject_id');
+//                $attemptedSubjects = QuizSummary::find()->where(['student_id' => $this->id])->groupBy('subject_id')->all();
+//                $selectedSubject = ArrayHelper::getColumn($attemptedSubjects, 'subject_id');
+                $selectedSubject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
             }
 
             $topics = SubjectTopics::find()
