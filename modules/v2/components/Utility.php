@@ -325,7 +325,7 @@ class Utility extends ActiveRecord
         elseif (strpos($image, 'http') !== false)
             $image = $image;
         else {
-            $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $this->image;
+            $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $image;
         }
         return $image;
     }
