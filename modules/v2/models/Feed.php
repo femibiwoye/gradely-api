@@ -83,7 +83,7 @@ class Feed extends \yii\db\ActiveRecord
 
     public function fields()
     {
-        return [
+        $fields =  [
             'id',
             'description',
             'type',
@@ -103,6 +103,11 @@ class Feed extends \yii\db\ActiveRecord
             'comment' => 'miniComment',
             'attachments' => 'attachments',
         ];
+
+        if ($this->isRelationPopulated('participants')) {
+            $fields = array_merge($fields, ['participants'=>'participants']);
+        }
+        return $fields;
     }
 
     public function savePost()
@@ -257,6 +262,11 @@ class Feed extends \yii\db\ActiveRecord
     public function getAttachments()
     {
         return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id']);
+    }
+
+    public function getParticipants()
+    {
+        return $this->hasMany(User::className(),['id'=>'user_id'])->select(['id','firstname','lastname','image'])->asArray();
     }
 
     public function beforeSave($insert)

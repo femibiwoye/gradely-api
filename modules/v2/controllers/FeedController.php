@@ -76,7 +76,7 @@ class FeedController extends ActiveController
             }
 
             $models = $this->modelClass::find()
-                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class','teacher']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
+                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class', 'teacher']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
 
         } else if (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -160,9 +160,6 @@ class FeedController extends ActiveController
                 ]);
         }
 
-        if ($type)
-            $models = $models->andWhere(['type' => $type]);
-
         if ($me && $me != SharedConstant::VALUE_ZERO)
             $models = $models->andWhere(['user_id' => Yii::$app->user->id]);
 
@@ -171,6 +168,11 @@ class FeedController extends ActiveController
 
         if ($homework && $homework != SharedConstant::VALUE_ZERO)
             $models = $models->andWhere(['type' => SharedConstant::FEED_TYPES[2]]);
+
+        if ($type) {
+            $models = $models->andWhere(['feed.type' => $type]);
+            //->with('participants');
+        }
 
         if ($token && $oneMmodels = $models->andWhere(['token' => $token])->one()) {
             $comments = FeedComment::find()->where(['feed_id' => $oneMmodels->id, 'type' => 'feed'])->orderBy('id')->all();
