@@ -673,7 +673,7 @@ class CatchupController extends ActiveController
         $models = QuizSummary::find()
             ->select('subject_id')
             ->where(['submit' => 1,
-                'student_id' => $student_id
+                'quiz_summary.student_id' => $student_id
             ])
             ->andWhere(['AND', ['<>', 'type', 'recommendation'], ['<>', 'type', 'catchup']])
             ->innerJoin('quiz_summary_details qsd', 'qsd.quiz_id = quiz_summary.id')
