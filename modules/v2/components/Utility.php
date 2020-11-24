@@ -318,6 +318,18 @@ class Utility extends ActiveRecord
 
     }
 
+    public static function getGeneralImage($image, $folder)
+    {
+        if (empty($image))
+            $image = null;
+        elseif (strpos($image, 'http') !== false)
+            $image = $image;
+        else {
+            $image = Yii::$app->params['baseURl'] . "/images/$folder/" . $image;
+        }
+        return $image;
+    }
+
     public static function getTeacherSchoolID($teacher_id)
     {
         $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);
@@ -351,9 +363,12 @@ class Utility extends ActiveRecord
         return json_decode($response);
     }
 
-    public static function ImageQuery($name)
+    public static function ImageQuery($name, $folder = 'topics')
     {
-        return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/topics/',$name.image))) as image";
+        if ($folder == 'users')
+            return "IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/$folder/',$name.image)) as image";
+        else
+            return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/$folder/',$name.image))) as image";
     }
 
     public static function ThumbnailQuery($name, $type)

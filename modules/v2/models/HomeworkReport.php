@@ -127,16 +127,20 @@ class HomeworkReport extends Homeworks
     public function getAverage()
     {
         //getting those records which are submitted
-        $quizSummaries = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
-        if (!$quizSummaries) {
+        $quizSummaries = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE]);
+        if (!$quizSummaries->exists()) {
             return SharedConstant::VALUE_ZERO;
         }
 
-        foreach ($quizSummaries as $quizSummary) {
-            $this->sum_of_correct_answers = $this->sum_of_correct_answers + $quizSummary->correct;
-        }
+        $totals = $quizSummaries->sum('total_questions');
+        $sums = $quizSummaries->sum('correct');
+        return $totals > 0 ? round(($sums / $totals) * 100) : 0;
 
-        return $quizSummaries[0]->total_questions > 0 ? (double)round(($this->sum_of_correct_answers / $quizSummaries[0]->total_questions) * 100) : 0;
+//        foreach ($quizSummaries as $quizSummary) {
+//            $this->sum_of_correct_answers = $this->sum_of_correct_answers + $quizSummary->correct;
+//        }
+//
+//        return $quizSummaries[0]->total_questions > 0 ? (double)round(($this->sum_of_correct_answers / $quizSummaries[0]->total_questions) * 100) : 0;
     }
 
     public function getHomeworkQuestions()

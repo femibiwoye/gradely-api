@@ -76,7 +76,7 @@ class FeedController extends ActiveController
             }
 
             $models = $this->modelClass::find()
-                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class','teacher']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
+                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class', 'teacher']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
 
         } else if (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -160,9 +160,6 @@ class FeedController extends ActiveController
                 ]);
         }
 
-        if ($type)
-            $models = $models->andWhere(['type' => $type]);
-
         if ($me && $me != SharedConstant::VALUE_ZERO)
             $models = $models->andWhere(['user_id' => Yii::$app->user->id]);
 
@@ -172,12 +169,17 @@ class FeedController extends ActiveController
         if ($homework && $homework != SharedConstant::VALUE_ZERO)
             $models = $models->andWhere(['type' => SharedConstant::FEED_TYPES[2]]);
 
+        if ($type) {
+            $models = $models->andWhere(['feed.type' => $type]);
+            //->with('participants');
+        }
+
         if ($token && $oneMmodels = $models->andWhere(['token' => $token])->one()) {
             $comments = FeedComment::find()->where(['feed_id' => $oneMmodels->id, 'type' => 'feed'])->orderBy('id')->all();
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }
 
-        $models = $models->andWhere(['status' => 1]);
+        $models = $models->andWhere(['feed.status' => 1]);
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
@@ -185,7 +187,7 @@ class FeedController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $models->orderBy('id DESC'),
             'pagination' => [
-                'pageSize' => 3,
+                'pageSize' => 10,
                 'validatePage' => false,
             ],
             'sort' => [
@@ -203,7 +205,7 @@ class FeedController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No record found!');
         }
 
-        array_splice($new_announcements, 3);
+        array_splice($new_announcements, 2);
         array_multisort(array_column($new_announcements, 'date_time'), $new_announcements);
         return (new ApiResponse)->success($new_announcements, ApiResponse::SUCCESSFUL, count($new_announcements) . ' records found!');
     }

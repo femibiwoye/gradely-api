@@ -50,7 +50,7 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionClassHomeworks($class_id)
+    public function actionClassHomeworks($class_id, $sort = 'created')
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $school_id = $school->id;
@@ -61,15 +61,23 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $homeworks = $this->modelClass::find()->where(['class_id' => $class_id]);
+        $homeworks = $this->modelClass::find()
+            ->where(['class_id' => $class_id])->orderBy('id DESC');
         if (!$homeworks->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homeworks not found');
+        }
+        if ($sort == 'created') {
+            $homeworks = $homeworks->orderBy('created_at DESC');
+        } elseif ($sort == 'open') {
+            $homeworks = $homeworks->orderBy('open_date DESC');
+        } elseif ($sort == 'close') {
+            $homeworks = $homeworks->orderBy('close_date DESC');
         }
 
         $provider = new ActiveDataProvider([
             'query' => $homeworks,
             'pagination' => [
-                'pageSize' => 3,
+                'pageSize' => 20,
                 'validatePage' => false,
             ],
             'sort' => [

@@ -106,7 +106,7 @@ class AwsController extends Controller
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file extension');
             }
 
-            $mbLimit = 20;
+            $mbLimit = 10;
             $limit = $mbLimit * 1048576;
             if ($fileSize > $limit) {
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, "Size cannot be more than {$mbLimit} MB");

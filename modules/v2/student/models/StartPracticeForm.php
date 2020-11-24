@@ -36,7 +36,8 @@ class StartPracticeForm extends Model
         return [
             [['topic_ids', 'type', 'practice_type'], 'required'],
             [['topic_ids', 'type', 'reference_type', 'reference_id', 'practice_type'], 'required', 'on' => 'create-practice'],
-            ['topic_ids', 'each', 'rule' => ['integer']],
+            [['topic_ids'], 'each', 'rule' => ['integer']],
+            [['reference_id'],'integer'],
             ['type', 'in', 'range' => [SharedConstant::MIX_TYPE_ARRAY, SharedConstant::SINGLE_TYPE_ARRAY]],
             ['reference_type', 'in', 'range' => SharedConstant::REFERENCE_TYPE],
             ['type', 'validateType'],
@@ -130,6 +131,7 @@ class StartPracticeForm extends Model
         }
 
         if ($this->reference_type) {
+
             $homework->reference_type = $this->reference_type;
             $homework->reference_id = $this->reference_id;
         }

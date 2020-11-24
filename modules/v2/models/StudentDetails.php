@@ -32,7 +32,7 @@ class StudentDetails extends User
             'firstname',
             'lastname',
             'code',
-            'image',
+            'image' => 'imageUrl',
             'email',
             'phone',
             'type',
@@ -49,6 +49,18 @@ class StudentDetails extends User
             'performance' => 'performance',
             'feeds' => 'feeds'
         ];
+    }
+
+    public function getImageUrl()
+    {
+        if (empty($this->image))
+            $image = null;
+        elseif (strpos($this->image, 'http') !== false)
+            $image = $this->image;
+        else {
+            $image = Yii::$app->params['baseURl'] . '/images/users/' . $this->image;
+        }
+        return $image;
     }
 
     public function getUser()
@@ -78,6 +90,10 @@ class StudentDetails extends User
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
             ->where(['q.student_id' => $this->id])
             ->joinWith(['childHomework', 'subject']);
+
+        if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
+            $model = $model->andWhere(['q.type' => 'homework']);
+        }
 
         if (Yii::$app->request->get('subject'))
             $model = $model->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
@@ -209,7 +225,7 @@ class StudentDetails extends User
         if (Yii::$app->request->get('subject'))
             $topics = $topics->andWhere(['subject_id' => Yii::$app->request->get('subject')]);
         else
-            $topics = $topics->andWhere(['subject_id' => $this->getSelectedSubject()]);
+            $topics = $topics->andWhere(['subject_id' => isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null]);
         if (Yii::$app->request->get('term'))
             $topics = $topics->andWhere(['term' => Yii::$app->request->get('term')]);
 
@@ -315,9 +331,14 @@ class StudentDetails extends User
 
     public function getStatistics()
     {
+        if (isset($_GET['term']))
+            $term = $_GET['term'];
+        else
+            $term = Utility::getStudentTermWeek('term');
+
         $studentAnalytics = new StudentAnalytics();
         $subject_id = $this->getSelectedSubject()->id;
-        return $result = $studentAnalytics->Analytics($this, $subject_id, $_GET['term']);
+        return $result = $studentAnalytics->Analytics($this, $subject_id, $term);
     }
 
     public function checkStudentInTeacherClass()
@@ -354,13 +375,14 @@ class StudentDetails extends User
         $activeTopics = ArrayHelper::getColumn($activeTopics->groupBy('qsd.topic_id')->all(), 'topic_id');
 
         if (!empty($activeTopics)) {
-            if (isset($_GET['subject'])) {
+            if (isset($_GET['subject']) && !empty($_GET['subject'])) {
                 $selectedSubject = Subjects::find()->where(['status' => 1]);
                 $selectedSubject = $selectedSubject->andWhere(['id' => $_GET['subject']]);
                 $selectedSubject = ArrayHelper::getColumn($selectedSubject->all(), 'id');
             } else {
-                $attemptedSubjects = QuizSummary::find()->where(['student_id' => $this->id])->groupBy('subject_id')->all();
-                $selectedSubject = ArrayHelper::getColumn($attemptedSubjects, 'subject_id');
+//                $attemptedSubjects = QuizSummary::find()->where(['student_id' => $this->id])->groupBy('subject_id')->all();
+//                $selectedSubject = ArrayHelper::getColumn($attemptedSubjects, 'subject_id');
+                $selectedSubject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
             }
 
             $topics = SubjectTopics::find()
@@ -372,11 +394,11 @@ class StudentDetails extends User
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
-                    if ($data->getResult($this->id,$data->id) >= 75) {
+                    if ($data->getResult($this->id, $data->id) >= 75) {
                         $excellence[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($this->id,$data->id) >= 50 && $data->getResult($this->id,$data->id) < 75) {
+                    } elseif ($data->getResult($this->id, $data->id) >= 50 && $data->getResult($this->id, $data->id) < 75) {
                         $averages[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($this->id,$data->id) < 50) {
+                    } elseif ($data->getResult($this->id, $data->id) < 50) {
                         $struggling[] = $this->topicPerformanceMini($data);
                     }
                 }

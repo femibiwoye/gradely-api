@@ -22,7 +22,7 @@ return [
     'payment_sk' => PAYSTACK_SK,
     'payment_pk' => PAYSTACK_PK,
 
-    'baseURl' => 'https://test.gradely.ng',
+    'baseURl' => 'https://gradely.ng',
     'userImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/users/',image))) as image",
     'questionImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/questions/',image))) as image",
     'subjectImage' => "IF(image IS NULL or image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/subject.png',IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/subjects/',image))) as image",
@@ -42,6 +42,6 @@ return [
     'live_class_url'=>LIVE_CLASS_URL,
     'live_class_recorded_url'=>LIVE_CLASS_RECORDED_URL,
 
-    'masteryQuestionCount'=>6,
-    'masteryPerTopicPerformance'=>300
+    'masteryQuestionCount' => 6,
+    'masteryPerTopicPerformance' => 100,
 ];
