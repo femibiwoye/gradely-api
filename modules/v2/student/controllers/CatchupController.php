@@ -5,6 +5,7 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Recommendation;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Feed;
@@ -339,7 +340,8 @@ class CatchupController extends ActiveController
         //$form->addRule(['video_token'], 'exist', ['targetClass' => VideoAssign::className(), 'targetAttribute' => ['video_id' => 'content_id']]);
         $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
 
-        if (!$form->validate()) {
+        $studentID = Utility::getParentChildID();
+        if (!$form->validate() || !Pricing::SubscriptionStatus(null, $studentID)) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
@@ -473,6 +475,17 @@ class CatchupController extends ActiveController
         $model->current_duration = $duration;
         if (!$model->save()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
+        }
+
+        //This update status of watched daily video recommendation to taken(true)
+        if ($recommendedResources = RecommendationTopics::find()
+            //->andWhere('created_at >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)')
+            ->where(['student_id' => Yii::$app->user->id, 'object_id' => $video->id, 'object_type' => 'video', 'is_done' => 0])->one()) {
+            $recommendedResources->is_done = 1;
+            if ($recommendedResources->save() && $recommendedMain = Recommendations::findOne(['id' => $recommendedResources->recommendation_id, 'student_id' => Yii::$app->user->id, 'is_taken' => 0])) {
+                $recommendedMain->is_taken = 1;
+                $recommendedMain->save();
+            }
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video duration updated');
@@ -954,7 +967,7 @@ class CatchupController extends ActiveController
         $startPractice->type = 'mix';
         $startPractice->topic_ids = $topicIDs;
         $startPractice->practice_type = 'diagnostic';
-        if (!$homework_model = $startPractice->initializePracticeTemp()) {
+        if (!$homework_model = $startPractice->initializePractice()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Diagnostic Topics Initialization failed');
         }
 
@@ -1173,13 +1186,12 @@ class CatchupController extends ActiveController
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
 
-            if ($homework->reference_type == 'daily') {
-                $recommendationObject = Recommendations::findOne(['id' => $homework->reference_id, 'category' => $homework->reference_type, 'student_id' => $homework->student_id]);
+            if ($homework->reference_type == 'daily' && $recommendationObject = Recommendations::findOne(['id' => $homework->reference_id, 'category' => $homework->reference_type, 'student_id' => $homework->student_id])) {
                 $recommendationObject->is_taken = 1;
                 $recommendationObject->update();
             }
 
-            if ($homework->type == 'diagnostic') {
+            if ($homework->type == 'diagnostic' && !Utility::StudentRecommendedTodayStatus()) {
                 $recommendation = new Recommendation();
                 $recommendation->dailyRecommendation($homework->student_id);
                 //(new Utility)->generateRecommendation($quizSummary->id);
@@ -1202,7 +1214,7 @@ class CatchupController extends ActiveController
     public function actionExplore($child = null, $all = 0)
     {
         $classID = Utility::ParentStudentChildClass($child);
-
+        $studentID = Utility::getParentChildID();
         $query1 = (new \yii\db\Query())
             ->from('practice_material pm')
             //->alias('pm')
@@ -1212,7 +1224,7 @@ class CatchupController extends ActiveController
                 'pm.extension',
                 'pm.filetype',
                 'pm.filesize',
-                'pm.filename as url',
+                new Expression(Pricing::SubscriptionStatus(null, $studentID) ? 'pm.filename as url' : 'null as url'),
                 'pm.downloadable',
                 //'pm.thumbnail',
                 Utility::ThumbnailQuery('pm', 'document'),
