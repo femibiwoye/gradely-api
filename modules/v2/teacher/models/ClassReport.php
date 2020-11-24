@@ -81,8 +81,14 @@ class ClassReport extends Model
             $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
 
             $record = SubjectTopics::find()
+                ->select(['subject_topics.*', 'count(qs.id) countDo'])
                 ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
-                ->where(['subject_topics.term' => $term, 'subject_topics.subject_id' => $subject->id, 'subject_topics.class_id' => $class->global_class_id])->all();
+                ->leftJoin('homeworks h', 'h.school_id = ' . $class->school_id)
+                ->leftJoin('quiz_summary qs', 'qs.homework_id = h.id')
+                ->where(['subject_topics.term' => $term, 'subject_topics.subject_id' => $subject->id, 'subject_topics.class_id' => $class->global_class_id])
+                ->groupBy('subject_topics.id')
+                ->orderBy(['qs.id' => 'ASC', 'subject_topics.week_number' => 'ASC'])
+                ->all();
 
             return $record;
         } catch (\Exception $exception) {
@@ -106,6 +112,7 @@ class ClassReport extends Model
             return SubjectTopics::findOne(['id' => Yii::$app->request->get('topic_id'), 'subject_id' => $subject->id]);
         }
 
+
         return isset($this->topicList[0]) ? $this->topicList[0] : null;
 
     }
@@ -125,7 +132,7 @@ class ClassReport extends Model
                 'user.firstname',
                 'user.lastname',
                 'user.email',
-                'user.image',
+                Utility::ImageQuery('user', 'users'),
                 'user.type',
                 new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
                 new Expression('COUNT(qsd.id) as attempt'),

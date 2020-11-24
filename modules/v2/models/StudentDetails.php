@@ -32,7 +32,7 @@ class StudentDetails extends User
             'firstname',
             'lastname',
             'code',
-            'image',
+            'image' => 'imageUrl',
             'email',
             'phone',
             'type',
@@ -49,6 +49,18 @@ class StudentDetails extends User
             'performance' => 'performance',
             'feeds' => 'feeds'
         ];
+    }
+
+    public function getImageUrl()
+    {
+        if (empty($this->image))
+            $image = null;
+        elseif (strpos($this->image, 'http') !== false)
+            $image = $this->image;
+        else {
+            $image = Yii::$app->params['baseURl'] . '/images/users/' . $this->image;
+        }
+        return $image;
     }
 
     public function getUser()
