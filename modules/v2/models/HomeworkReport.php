@@ -134,7 +134,7 @@ class HomeworkReport extends Homeworks
 
         $totals = $quizSummaries->sum('total_questions');
         $sums = $quizSummaries->sum('correct');
-        return ($sums/$totals)*100;
+        return $totals > 0 ? round(($sums / $totals) * 100) : 0;
 
 //        foreach ($quizSummaries as $quizSummary) {
 //            $this->sum_of_correct_answers = $this->sum_of_correct_answers + $quizSummary->correct;
