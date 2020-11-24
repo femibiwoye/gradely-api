@@ -372,7 +372,9 @@ class UserModel extends User
 
     public function getRecommendation()
     {
-        $resources = array_merge($this->getVideos($this->remedial), $this->getPractice($this->remedial));
+        $videos = is_array($this->getVideos($this->remedial)) ? $this->getVideos($this->remedial) : [];
+        $practice = is_array($this->getPractice($this->remedial)) ? $this->getPractice($this->remedial) : [];
+        $resources = array_merge($videos, $practice);
         shuffle($resources);
         return [
             'remedial' => $this->remedial,
