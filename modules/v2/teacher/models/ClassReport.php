@@ -81,7 +81,6 @@ class ClassReport extends Model
             $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
 
             $record = SubjectTopics::find()
-                ->select(['subject_topics.*', 'count(qs.id) countDo'])
                 ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
                 ->leftJoin('homeworks h', 'h.school_id = ' . $class->school_id)
                 ->leftJoin('quiz_summary qs', 'qs.homework_id = h.id')
@@ -152,14 +151,16 @@ class ClassReport extends Model
         $struggling = [];
 
         foreach ($students as $student) {
+
             array_push($student, $this->getRecommendations($student['id']));
-            $student['recommendations'] = $student[SharedConstant::VALUE_ZERO];
+            $student['recommendations'] = $student['score'] < 75 ? $student[SharedConstant::VALUE_ZERO] : [];
             unset($student[SharedConstant::VALUE_ZERO]);
+
             if ($student['score'] >= 75) {
                 $excellence[] = $student;
-            } elseif ($student['score'] >= 50 && $student['score'] < 75) {
+            } elseif ($student['score'] >= 40 && $student['score'] < 75) {
                 $average[] = $student;
-            } elseif ($student['score'] >= 0 && $student['score'] < 50) {
+            } elseif ($student['score'] >= 0 && $student['score'] < 40) {
                 $struggling[] = $student;
             }
         }
