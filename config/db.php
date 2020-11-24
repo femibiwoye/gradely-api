@@ -7,9 +7,9 @@ return ['db' => [
     'charset' => 'utf8',
 
     // Schema cache options (for production environment)
-    //'enableSchemaCache' => true,
-    //'schemaCacheDuration' => 60,
-    //'schemaCache' => 'cache',
+    'enableSchemaCache' => true,
+    'schemaCacheDuration' => 60,
+    'schemaCache' => 'cache',
 
 ],
     'main' => [
@@ -19,5 +19,8 @@ return ['db' => [
     'password' => NOTIFICATION_PASSWORD,
     'charset' => 'utf8',
 ],
+    'cache' => [
+        'class' => 'yii\caching\FileCache',
+    ],
 ];
 
