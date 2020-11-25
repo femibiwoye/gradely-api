@@ -61,7 +61,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
 {
     $fields = parent::fields();
     $fields['image'] = function ($model) {
-        return Utility::AbsoluteImage($model->image,'topic');
+        return Utility::AbsoluteImage($model->image,'topics');
     };
 
     $fields['catchup_status'] = function() {
