@@ -251,7 +251,7 @@ class ClassReport extends Model
     private function getResources($topic_id, $student_id)
     {
         $classID = Yii::$app->request->get('class_id');
-        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $student_id, 'class', $classID);
+        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $student_id, 'class', $classID,$this->currentSubject->id);
 
         if (!$practiceVideosRecommendations) {
             return SharedConstant::VALUE_NULL;
