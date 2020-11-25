@@ -337,7 +337,7 @@ class StudentDetails extends User
             $term = Utility::getStudentTermWeek('term');
 
         $studentAnalytics = new StudentAnalytics();
-        $subject_id = $this->getSelectedSubject()->id;
+        $subject_id = isset($this->getSelectedSubject()->id) ? $this->getSelectedSubject()->id : null;
         return $result = $studentAnalytics->Analytics($this, $subject_id, $term);
     }
 
