@@ -339,10 +339,20 @@ class UserModel extends User
 
     public function getTeacherSubjects()
     {
+
         if (isset($_GET['class_id']) && !empty($_GET['class_id']))
-            return $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->where(['status' => 1, 'class_id' => $_GET['class_id']])->groupBy('subject_id');
+            $return = $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->where(['status' => 1, 'class_id' => $_GET['class_id']]);
         else
-            return $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->where(['status' => 1])->groupBy('subject_id');
+            $return = $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->where(['status' => 1]);
+
+
+        if (Yii::$app->user->identity->type == 'school') {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $school_id = $school->id;
+            $return = $return->andWhere(['school_id' => $school_id]);
+        }
+
+        return $return->groupBy('subject_id');
     }
 
     public function getTeacherSubjectList()
@@ -464,7 +474,7 @@ class UserModel extends User
             ->all();
 
         $topic_id = ArrayHelper::getColumn($topics, 'topic_id');
-        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $this->id, 'homework', $quizSummary->homework_id);
+        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $this->id, 'homework', $quizSummary->homework_id,$quizSummary->subject_id);
 
         if (!$practiceVideosRecommendations) {
             return null;

@@ -337,7 +337,7 @@ class StudentDetails extends User
             $term = Utility::getStudentTermWeek('term');
 
         $studentAnalytics = new StudentAnalytics();
-        $subject_id = $this->getSelectedSubject()->id;
+        $subject_id = isset($this->getSelectedSubject()->id) ? $this->getSelectedSubject()->id : null;
         return $result = $studentAnalytics->Analytics($this, $subject_id, $term);
     }
 
@@ -405,9 +405,9 @@ class StudentDetails extends User
             }
         }
 
-        $excellence = array_slice($excellence, 0, 5);
-        $averages = array_slice($averages, 0, 5);
-        $struggling = array_slice($struggling, 0, 5);
+        $excellence = array_slice($excellence, 0, 3);
+        $averages = array_slice($averages, 0, 3);
+        $struggling = array_slice($struggling, 0, 3);
 
         return [
             'excellence' => $excellence,
