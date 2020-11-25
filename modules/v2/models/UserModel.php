@@ -474,7 +474,7 @@ class UserModel extends User
             ->all();
 
         $topic_id = ArrayHelper::getColumn($topics, 'topic_id');
-        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $this->id, 'homework', $quizSummary->homework_id);
+        $practiceVideosRecommendations = Adaptivity::PracticeVideoRecommendation($topic_id, $this->id, 'homework', $quizSummary->homework_id,$quizSummary->subject_id);
 
         if (!$practiceVideosRecommendations) {
             return null;

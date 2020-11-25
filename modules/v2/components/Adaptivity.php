@@ -109,7 +109,7 @@ class Adaptivity extends ActiveRecord
         return $topicOrders;
     }
 
-    public static function PracticeVideoRecommendation($topic_id, $receiverID, $referenceType, $referenceID)
+    public static function PracticeVideoRecommendation($topic_id, $receiverID, $referenceType, $referenceID, $subjectID)
     {
         $topic_objects = SubjectTopics::find()
             ->leftJoin('practice_topics pt', 'pt.topic_id = subject_topics.id')
@@ -122,7 +122,7 @@ class Adaptivity extends ActiveRecord
                     new Expression('(case when (SELECT id FROM homeworks WHERE homeworks.id = h.id AND reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "class" AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ' GROUP BY id) then 1 else 0 end) as is_recommended') :
                     new Expression('(case when (select id from homeworks where reference_id = ' . $referenceID . ' AND type = "recommendation" AND reference_type = "homework"  AND student_id = ' . $receiverID . ' AND teacher_id = ' . Yii::$app->user->id . ' GROUP BY id) then 1 else 0 end) as is_recommended'),
             ])
-            ->where(['subject_topics.id' => $topic_id])
+            ->where(['subject_topics.id' => $topic_id, 'subject_topics.subject_id' => $subjectID])
             ->asArray()
             ->all();
 
@@ -136,7 +136,7 @@ class Adaptivity extends ActiveRecord
                 'gc.description class_name',
             ])
             ->innerJoin('video_assign', 'video_assign.content_id = video_content.id')
-            ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id')
+            ->innerJoin('subject_topics st', 'st.id = video_assign.topic_id AND st.subject_id = ' . $subjectID)
             ->innerJoin('global_class gc', 'gc.id = st.class_id')
             ->where(['video_assign.topic_id' => $topic_id])
             ->limit(SharedConstant::VALUE_THREE)
