@@ -72,7 +72,7 @@ class Pricing extends Widget
                 if ($user = UserModel::findOne(['id' => $studentID, 'type' => 'student'])) {
                     $userStatus = !empty($user->subscription_expiry) && strtotime($user->subscription_expiry) > time() ? true : false;
                     $schoolSubStatus = false;
-                    $status = true;
+                    $status = false;
                     $is_school = 0;
                     if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID])->one()) {
                         $model = Schools::findOne(['id' => $model->school_id]);
