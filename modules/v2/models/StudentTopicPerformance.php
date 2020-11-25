@@ -35,12 +35,14 @@ class StudentTopicPerformance extends Model
     {
         $topics = ArrayHelper::getColumn(
             SubjectTopics::find()
+                    ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
                     ->where([
-                        'term' => $this->getTerm(),
-                        'class_id' => $this->getClass()
+                        'subject_topics.term' => $this->getTerm(),
+                        'subject_topics.class_id' => $this->getClass(),
+                        'quiz_summary_details.student_id' => $this->getStudent()
                     ])
                     ->all(),
-            'id'
+            'subject_topics.id'
         );
 
         foreach ($topics as $topic) { 
@@ -65,11 +67,18 @@ class StudentTopicPerformance extends Model
         return $this->topic_performance;
     }
 
+    private function getStudent()
+    {
+        return Yii::$app->user->id;
+    }
+
     private function getTopicInfo($topic_id)
     {
         return SubjectTopics::find()
                     ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
-                    ->where(['subject_topics.id' => $topic_id])
+                    ->where([
+                        'subject_topics.id' => $topic_id,
+                    ])
                     ->asArray()
                     ->one();
         
@@ -195,11 +204,12 @@ class StudentTopicPerformance extends Model
     {
         $attempts = QuizSummaryDetails::find()
                             ->select([
-                                new Expression('COUNT(quiz_summary_details.id) as total_attempts'),
+                                new Expression('COUNT(quiz_summary_details.question_id) as total_attempts'),
                                 new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as total_correct_questions')
                             ])
                             ->where([
-                                'quiz_summary_details.topic_id' => $topic_id
+                                'quiz_summary_details.topic_id' => $topic_id,
+                                'quiz_summary_details.student_id' => $this->getStudent()
                             ])
                             ->asArray()
                             ->one();
@@ -229,18 +239,17 @@ class StudentTopicPerformance extends Model
     {
         if (count($attempts) == 1) {
             return;
-        }
-
-        $value = $this->getPercentage($attempts[0]->correct, $attempts[0]->total_questions) - $this->getPercentage($attempts[1]->correct, $attempts[1]->total_questions);
-
-        if ($value < 0) {
-            $this->direction = 'down';
         } else {
-            $this->direction = 'up';
+            $value = $this->getPercentage($attempts[0]->correct, $attempts[0]->total_questions) - $this->getPercentage($attempts[1]->correct, $attempts[1]->total_questions);
+
+            if ($value < 0) {
+                $this->direction = 'down';
+            } else {
+                $this->direction = 'up';
+            }
+
+            return $value;
         }
-
-        return $value;
-
     }
 
     private function getPercentage($attempted, $total)
@@ -257,12 +266,14 @@ class StudentTopicPerformance extends Model
     {
         $total = count(ArrayHelper::getColumn(
             SubjectTopics::find()
+                    ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
                     ->where([
-                        'term' => $this->term,
-                        'class_id' => $this->class
+                        'subject_topics.term' => $this->getTerm(),
+                        'subject_topics.class_id' => $this->getClass(),
+                        'quiz_summary_details.student_id' => $this->getStudent()
                     ])
                     ->all(),
-            'id'
+            'subject_topics.id'
         ));
 
         return $total * $this->getTotal();
