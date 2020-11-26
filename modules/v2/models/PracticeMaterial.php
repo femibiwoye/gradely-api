@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use Yii;
 
@@ -31,6 +32,8 @@ use Yii;
  */
 class PracticeMaterial extends \yii\db\ActiveRecord
 {
+    public static $database = 'db';
+
     /**
      * {@inheritdoc}
      */
@@ -72,7 +75,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'downloadable',
             'download_count',
             'isOwner',
-            'thumbnail'=>'materialThumbnail',
+            'thumbnail' => 'materialThumbnail',
             'token',
             'updated_at',
             'user',
@@ -99,11 +102,14 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         ];
     }
 
-    public function saveFileFeed($classID)
+    public function saveFileFeed($classID, $isTest = false)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
 
+            if ($isTest) {
+                Feed::$database = SharedConstant::DB_CONNECTION_NAME[1];
+            }
             $model = new Feed();
             $model->view_by = 'class';
             $model->type = 'post';
@@ -133,7 +139,6 @@ class PracticeMaterial extends \yii\db\ActiveRecord
 
     protected function saveToFeed()
     {
-
         return true;
     }
 
@@ -145,7 +150,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
 
     public function getMaterialThumbnail()
     {
-        return Utility::AbsoluteImage($this->thumbnail,$this->type);
+        return Utility::AbsoluteImage($this->thumbnail, $this->type);
     }
 
     public function getFeedLike()
@@ -170,5 +175,16 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             $this->token = $token;
         }
         return parent::beforeSave($insert);
+    }
+
+    public static function getDb()
+    {
+        $database = self::$database;
+        return Yii::$app->$database;
+    }
+
+    public static function setDatabase($database)
+    {
+        self::$database = $database;
     }
 }

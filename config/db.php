@@ -11,6 +11,18 @@ return ['db' => [
     'schemaCacheDuration' => 60,
     'schemaCache' => 'cache',
 
+],'db_test' => [
+    'class' => 'yii\db\Connection',
+    'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . DATABASE_TEST,
+    'username' => USERNAME,
+    'password' => PASSWORD,
+    'charset' => 'utf8',
+
+    // Schema cache options (for production environment)
+    'enableSchemaCache' => true,
+    'schemaCacheDuration' => 60,
+    'schemaCache' => 'cache',
+
 ],
     'main' => [
     'class' => 'yii\db\Connection',

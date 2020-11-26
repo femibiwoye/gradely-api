@@ -80,6 +80,7 @@ $config = [
         ],
 
         'db' => $db['db'],
+        'db_test' => $db['db_test'],
         'notification' => $db['main'],
 
         'urlManager' => [
