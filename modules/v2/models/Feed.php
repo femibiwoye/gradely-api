@@ -32,6 +32,9 @@ use app\modules\v2\components\SharedConstant;
  */
 class Feed extends \yii\db\ActiveRecord
 {
+
+    public static $database = 'db';
+
     /**
      * {@inheritdoc}
      */
@@ -83,7 +86,7 @@ class Feed extends \yii\db\ActiveRecord
 
     public function fields()
     {
-        $fields =  [
+        $fields = [
             'id',
             'description',
             'type',
@@ -105,7 +108,7 @@ class Feed extends \yii\db\ActiveRecord
         ];
 
         if ($this->isRelationPopulated('participants')) {
-            $fields = array_merge($fields, ['participants'=>'participants']);
+            $fields = array_merge($fields, ['participants' => 'participants']);
         }
         return $fields;
     }
@@ -266,7 +269,7 @@ class Feed extends \yii\db\ActiveRecord
 
     public function getParticipants()
     {
-        return $this->hasMany(User::className(),['id'=>'user_id'])->select(['id','firstname','lastname','image'])->asArray();
+        return $this->hasMany(User::className(), ['id' => 'user_id'])->select(['id', 'firstname', 'lastname', 'image'])->asArray();
     }
 
     public function beforeSave($insert)
@@ -280,5 +283,16 @@ class Feed extends \yii\db\ActiveRecord
             $this->updated_at = date('y-m-d H-i-s');
         }
         return parent::beforeSave($insert);
+    }
+
+    public static function getDb()
+    {
+        $database = self::$database;
+        return Yii::$app->$database;
+    }
+
+    public static function setDatabase($database)
+    {
+        self::$database = $database;
     }
 }
