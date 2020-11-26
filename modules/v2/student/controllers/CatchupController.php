@@ -347,7 +347,7 @@ class CatchupController extends ActiveController
             //->with(['views'])
             ->one();
 
-        $videoObject = Utility::GetVideo($video->id);
+        $videoObject = Utility::GetVideo($video->content_id);
 
         $videoUrl = isset($videoObject->data->content_link) ? $videoObject->data->content_link : null;
 

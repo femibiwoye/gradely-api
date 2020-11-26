@@ -11,6 +11,7 @@ use app\modules\v2\models\Classes;
 use app\modules\v2\models\GenerateString;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeMaterial;
+use app\modules\v2\models\Questions;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
@@ -243,8 +244,13 @@ class LiveClassController extends Controller
 
     /**
      * This receives the video when meeting ends
+     *
+     * This function is dynamic, the video from live class is first processed to live db, if the meeting token does not exist, it checks test database.
+     * It then save the recorded video to the database that has the meeting token.
+     *
      * @param $filename
      * @return ApiResponse
+     * @throws \Exception
      */
     public function actionUpdateLiveClassVideo($filename)
     {
@@ -258,8 +264,24 @@ class LiveClassController extends Controller
 
         $fileUrl = Yii::$app->params['live_class_recorded_url'] . "$meeting_room/$filename";
 
-        if (TutorSession::find()->where(['meeting_room' => $meeting_room])->exists() && !PracticeMaterial::find()->where(['filename' => $filename])->exists()) {
-            $tutorSession = TutorSession::find()->where(['meeting_room' => $meeting_room])->one();
+        $status = false;
+        $db = Yii::$app->db;
+        $isTest = false;
+        if (TutorSession::find()->where(['meeting_room' => $meeting_room])->exists(Yii::$app->db)) {
+            $status = true;
+            $dbName = SharedConstant::DB_CONNECTION_NAME[0];
+            $db = Yii::$app->$dbName;
+            $isTest = false;
+        } elseif (TutorSession::find()->where(['meeting_room' => $meeting_room])->exists(Yii::$app->db_test)) {
+            $status = true;
+            $dbName = SharedConstant::DB_CONNECTION_NAME[1];
+            $db = Yii::$app->$dbName;
+            $isTest = true;
+        }
+
+        if ($status && !PracticeMaterial::find()->where(['filename' => $filename])->exists($db)) {
+            $tutorSession = TutorSession::find()->where(['meeting_room' => $meeting_room])->one($db);
+            PracticeMaterial::$database = $dbName;
             $model = new PracticeMaterial(['scenario' => 'live-class-material']);
             $model->user_id = $tutorSession->requester_id;
             $model->type = SharedConstant::FEED_TYPE;
@@ -278,9 +300,7 @@ class LiveClassController extends Controller
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
             }
-            $model->saveFileFeed($tutorSession->class);
-
-
+            $model->saveFileFeed($tutorSession->class, $isTest);
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
         }
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Token is invalid');

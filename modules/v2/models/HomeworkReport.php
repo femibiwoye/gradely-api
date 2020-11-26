@@ -51,6 +51,7 @@ class HomeworkReport extends Homeworks
 
     public function getHomeworkSummary()
     {
+        $this->getScoreRange();
         return [
             'title' => $this->title,
             'tag' => $this->tag,
@@ -58,9 +59,9 @@ class HomeworkReport extends Homeworks
             'completion_rate' => $this->completedRate,
             'expected_students' => $this->studentExpected,
             'submitted_students' => $this->studentsSubmitted,
-            'struggling_students' => $this->strugglingStudents,
-            'average_students' => $this->averageStudents,
-            'excellence_students' => $this->excellentStudents,
+            'struggling_students' => $this->struggling_students,
+            'average_students' => $this->average_students,
+            'excellence_students' => $this->excellent_students,
             'due_date' => $this->close_date
 
         ];
@@ -85,43 +86,60 @@ class HomeworkReport extends Homeworks
         return (int)$this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->count();
     }
 
-    public function getStrugglingStudents()
+//    public function getStrugglingStudents()
+//    {
+//        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+//        foreach ($models as $model) {
+//            $marks = ($model->correct / $model->total_questions) * 100;
+//            if ($marks < 50) {
+//                $this->struggling_students = $this->struggling_students + 1;
+//            }
+//        }
+//
+//        return $this->struggling_students;
+//    }
+//
+//    public function getAverageStudents()
+//    {
+//        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+//        foreach ($models as $model) {
+//            $marks = ($model->correct / $model->total_questions) * 100;
+//            if ($marks >= 50 && $marks < 75) {
+//                $this->average_students = $this->average_students + 1;
+//            }
+//        }
+//
+//        return $this->average_students;
+//    }
+//
+//    public function getExcellentStudents()
+//    {
+//        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
+//        foreach ($models as $model) {
+//            $marks = ($model->correct * $model->total_questions) * 100;
+//            if ($marks >= 75) {
+//                $this->excellent_students = $this->excellent_students + 1;
+//            }
+//        }
+//
+//        return $this->excellent_students;
+//    }
+
+    public function getScoreRange()
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = ($model->correct / $model->total_questions) * 100;
+            $marks = ($model->total_questions / $model->correct) * 100;
+            if ($marks >= 75) {
+                $this->excellent_students = $this->excellent_students + 1;
+            }
+            if ($marks >= 50 && $marks < 75) {
+                $this->average_students = $this->average_students + 1;
+            }
             if ($marks < 50) {
                 $this->struggling_students = $this->struggling_students + 1;
             }
         }
-
-        return $this->struggling_students;
-    }
-
-    public function getAverageStudents()
-    {
-        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
-        foreach ($models as $model) {
-            $marks = ($model->correct / $model->total_questions) * 100;
-            if ($marks >= 50 && $marks < 75) {
-                $this->average_students = $this->average_students + 1;
-            }
-        }
-
-        return $this->average_students;
-    }
-
-    public function getExcellentStudents()
-    {
-        $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
-        foreach ($models as $model) {
-            $marks = ($model->correct * $model->total_questions) * 100;
-            if ($marks >= 75) {
-                $this->excellent_students = $this->excellent_students + 1;
-            }
-        }
-
-        return $this->excellent_students;
     }
 
     public function getAverage()

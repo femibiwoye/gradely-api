@@ -46,7 +46,7 @@ class SharedConstant
     const PRACTICE_MATERIAL_TYPES = ['video', 'document', 'link', 'image'];
     const RECOMMENDATION_TYPE = ['weekly', 'daily'];
     const WEEKLY_GENERATE_DAY = 'Monday';//'Sunday';
-    const REFERENCE_TYPE = ['homework', 'catchup', 'recommendation', 'practice', 'class','daily'];
+    const REFERENCE_TYPE = ['homework', 'catchup', 'recommendation', 'practice', 'class', 'daily'];
     const PROCTOR_FEEDBACK_TYPE = ['reject_submission', 'admin_report', 'report_error'];
     const PROCTOR_FILE_TYPE = ['image', 'audio', 'video'];
     const TUTOR_SESSION_CATEGORY_TYPE = ['class'];
@@ -62,4 +62,6 @@ class SharedConstant
 
     const SINGLE_PRACTICE_QUESTION_COUNT = 5;
     const MIX_PRACTICE_QUESTION_COUNT = 3;
+
+    const DB_CONNECTION_NAME = ['db', 'db_test'];
 }
