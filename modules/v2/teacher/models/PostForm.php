@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\models;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\Parents;
@@ -50,10 +51,10 @@ class PostForm extends Model
             $model->view_by = 'class';
 
             if ($userType == 'parent') {
-                if (!isset($_GET['child_id']))
+                if (!isset($_GET['child']))
                     return false;
 
-                $student = $_GET['child_id'];
+                $student = $_GET['child'];
                 if (!Parents::find()->where(['status' => 1, 'parent_id' => Yii::$app->user->id, 'student_id' => $student])->exists())
                     return false;
             } else
