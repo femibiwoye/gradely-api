@@ -63,6 +63,9 @@ class Pricing extends Widget
                 return $statusOnly ? $status : $return;
 
             } else if ($type == 'student' || $type == 'parent') {
+                if (isset($_GET['child']) && !empty($_GET['child'])) {
+                    $childID = $_GET['child'];
+                }
                 if ($type == 'parent' && Parents::find()->where(['status' => 1, 'student_id' => $childID])->exists()) {
                     $studentID = $childID;
                 } else if ($type == 'student') {
