@@ -129,7 +129,7 @@ class HomeworkReport extends Homeworks
     {
         $models = $this->getQuizSummaryRecord()->where(['submit' => SharedConstant::VALUE_ONE])->all();
         foreach ($models as $model) {
-            $marks = ($model->total_questions / $model->correct) * 100;
+            $marks = $model->total_questions > 0 ? ($model->correct / $model->total_questions) * 100 : 0;
             if ($marks >= 75) {
                 $this->excellent_students = $this->excellent_students + 1;
             }
