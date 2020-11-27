@@ -62,6 +62,11 @@ class StudentHomeworkReport extends Homeworks
         ];
     }
 
+    public function getStudentID()
+    {
+        return Utility::getParentChildID();
+    }
+
     public function getCorrectQuestions()
     {
         return $this->getQuizSummaryDetails()->where(['=', 'selected', new Expression('`answer`')])->count();
@@ -93,7 +98,7 @@ class StudentHomeworkReport extends Homeworks
 
     public function getQuizSummaryDetails()
     {
-        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id'])->andWhere(['student_id' => $this->student_id]);
+        return $this->hasMany(QuizSummaryDetails::className(), ['homework_id' => 'id'])->andWhere(['student_id' => $this->studentID]);
     }
 
     public function getHomeworkSummary()
@@ -258,7 +263,7 @@ class StudentHomeworkReport extends Homeworks
     public function getQuizSummary()
     {
         return QuizSummary::find()
-            ->andWhere(['student_id' => $this->student_id])
+            ->andWhere(['student_id' => $this->studentID])
             ->andWhere(['homework_id' => $this->id])->one();
 
     }
