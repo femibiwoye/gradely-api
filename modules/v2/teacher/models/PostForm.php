@@ -59,7 +59,7 @@ class PostForm extends Model
             } else
                 $student = Yii::$app->user->id;
 
-            $model->class_id = Utility::getStudentClass();
+            $model->class_id = Utility::getStudentClass(0,$student);
         }
 
         $dbtransaction = Yii::$app->db->beginTransaction();
