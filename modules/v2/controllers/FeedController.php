@@ -308,7 +308,7 @@ class FeedController extends ActiveController
         $header = $model->type == 'post' ? 'Discussion' : 'Announcement';
 
         if (!$response = $model->newPost()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $header . ' not made');
+            return (new ApiResponse)->error($response, ApiResponse::UNABLE_TO_PERFORM_ACTION, $header . ' not made');
         }
 
         return (new ApiResponse)->success(ArrayHelper::toArray($response), ApiResponse::SUCCESSFUL, $header . ' made successfully');

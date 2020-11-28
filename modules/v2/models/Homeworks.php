@@ -214,8 +214,8 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getStudentsSubmitted()
     {
         return QuizSummary::find()
-            ->innerJoin('student_school','student_school.student_id = quiz_summary.student_id AND student_school.class_id = '.$this->class_id.' AND student_school.status = 1')
-            ->where(['homework_id'=>$this->id,'submit' => SharedConstant::VALUE_ONE, 'quiz_summary.class_id' => $this->class_id])->count();
+            ->innerJoin('student_school', 'student_school.student_id = quiz_summary.student_id AND student_school.class_id = ' . $this->class_id . ' AND student_school.status = 1')
+            ->where(['homework_id' => $this->id, 'submit' => SharedConstant::VALUE_ONE, 'quiz_summary.class_id' => $this->class_id])->count();
     }
 
     public function getStrugglingStudents()
@@ -390,11 +390,11 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getNewHomeworks()
     {
         if (Yii::$app->user->identity->type == 'teacher') {
-            $condition = ['teacher_id' => Yii::$app->user->id];
+            $condition = Yii::$app->request->get('class') ? ['teacher_id' => Yii::$app->user->id, 'class_id' => Yii::$app->request->get('class')] : ['teacher_id' => Yii::$app->user->id];
         } elseif (Yii::$app->user->identity->type == 'school') {
             $classes = ArrayHelper::getColumn(Classes::find()
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
-            $condition = ['class_id' => $classes];
+            $condition = Yii::$app->request->get('class') ? ['class_id' => Yii::$app->request->get('class')] : ['class_id' => $classes];
         } elseif (Yii::$app->user->identity->type == 'student') {
             $studentIDs = Yii::$app->user->id;
             if ($studentModel = StudentSchool::find()
@@ -406,7 +406,7 @@ class Homeworks extends \yii\db\ActiveRecord
             $condition = ['class_id' => $student_class];
             $studentCheck = true;
         } elseif (Yii::$app->user->identity->type == 'parent') {
-            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1])->all(), 'student_id');
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1, 'student_id' => Yii::$app->request->get('child')])->all(), 'student_id');
 
             $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs, 'status' => 1]);
             if (isset($_GET['class_id']))

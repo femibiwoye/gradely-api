@@ -184,12 +184,11 @@ class TutorSession extends \yii\db\ActiveRecord
     {
 
         if (Yii::$app->user->identity->type == 'teacher') {
-            $condition = ['requester_id' => Yii::$app->user->id, 'status' => 'pending'];
+            $condition = Yii::$app->request->get('class') ? ['requester_id' => Yii::$app->user->id, 'status' => 'pending', 'class' => Yii::$app->request->get('class')] : ['requester_id' => Yii::$app->user->id, 'status' => 'pending'];
         } elseif (Yii::$app->user->identity->type == 'school') {
             $classes = ArrayHelper::getColumn(Classes::find()
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
-
-            $condition = ['class' => $classes, 'status' => 'pending'];
+            $condition = Yii::$app->request->get('class') ? ['class' => Yii::$app->request->get('class'), 'status' => 'pending'] : ['class' => $classes, 'status' => 'pending'];
         } elseif (Yii::$app->user->identity->type == 'student') {
             if ($studentModel = StudentSchool::find()
                 ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one())
@@ -199,7 +198,7 @@ class TutorSession extends \yii\db\ActiveRecord
 
             $condition = ['class' => $student_class];
         } elseif (Yii::$app->user->identity->type == 'parent') {
-            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
+            $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'student_id' => Yii::$app->request->get('child')])->all(), 'student_id');
             $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
             if (isset($_GET['class_id']))
                 $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
