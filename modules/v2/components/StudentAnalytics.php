@@ -74,8 +74,10 @@ class StudentAnalytics extends Model
             $model = $model->andWhere(['AND',
                 !empty($subject) ? ['quiz_summary.subject_id' => $subject] : [],
                 !empty($term) ? ['term' => $term] : [],
-                !empty($studentId) ? ['student_id' => $studentId] : []
+                !empty($studentId) ? ['quiz_summary.student_id' => $studentId] : []
             ]);
+
+
             if ($state) {
                 $myState = UserProfile::findOne(['user_id' => $studentId]);
                 $model = $model->innerJoin('user_profile', '`user_profile`.`user_id` = `quiz_summary`.`student_id`')
@@ -91,13 +93,38 @@ class StudentAnalytics extends Model
 
         $homeworkModel = clone $model;
 
+//        $finalHomework = $homeworkModel
+//            ->select([
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(homework_questions.id))*100) as correctPercentage'),
+//                new Expression('COUNT(qsd.id) as attempt'),
+//                'COUNT(homework_questions.id) as questionCount',
+//                new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'),
+//                'quiz_summary.student_id'
+//            ])
+//            ->innerJoin('quiz_summary_details qsd', "qsd.student_id = quiz_summary.student_id")
+//            ->andWhere(['submit'=>1])
+//            ->innerJoinWith(['homeworkQuestions'], false)
+//            ->groupBy('quiz_summary.student_id')
+//            ->orderBy('correctPercentage DESC')
+//            ->asArray()
+//            ->all();
+
+
         $finalHomework = $homeworkModel
-            ->select([new Expression('round((SUM(distinct(correct))/COUNT(homework_questions.id))*100) as correctPercentage'), 'quiz_summary.student_id, COUNT(homework_questions.id) as questionCount, SUM(distinct(correct)) as correct'])
+            ->select([new Expression('round((SUM(distinct(correct))/COUNT(homework_questions.id))*100) as correctPercentage'),
+                'quiz_summary.student_id, COUNT(homework_questions.id) as questionCount, SUM(distinct(correct)) as correct'])
             ->innerJoinWith(['homeworkQuestions'], false)
             ->groupBy(['quiz_summary.student_id'])
             ->orderBy('correctPercentage DESC')
+            ->andWhere(['submit' => 1])
             ->asArray()
             ->all();
+
+
+//        if ($studentId) {
+//            print_r($finalHomework);
+//            die;
+//        }
 
         foreach ($finalHomework as $key => $homework) {
             if (!empty($homework['correct'])) {
@@ -106,6 +133,7 @@ class StudentAnalytics extends Model
                 $finalHomework[$key]['correctPercentage'] = round(($finalHomework[$key]['correct'] / $finalHomework[$key]['questionCount']) * 100);
             }
         }
+
 
         return $finalHomework;
     }
@@ -121,7 +149,6 @@ class StudentAnalytics extends Model
         if (!empty($student)) {
 
             $classStudentsAggregate = $this->StudentsClassAggregateScores(null, $subject, $term, $type, $state);
-
 
             if (!empty($classStudentsAggregate)) {
 
