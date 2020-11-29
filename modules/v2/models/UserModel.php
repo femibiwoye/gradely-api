@@ -352,7 +352,7 @@ class UserModel extends User
             $return = $return->andWhere(['school_id' => $school_id]);
         }
 
-        return $return->groupBy('subject_id');
+        return $return;
     }
 
     public function getTeacherSubjectList()
