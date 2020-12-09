@@ -57,8 +57,7 @@ class Feed extends \yii\db\ActiveRecord
             [['subject_id'], 'string', 'max' => 45],
             [['token'], 'string', 'max' => 100],
             [['token'], 'unique'],
-            //I commented this out because of live class video upload
-            //[['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
+            [['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
             [['global_class_id'], 'exist', 'skipOnError' => true, 'targetClass' => GlobalClass::className(), 'targetAttribute' => ['global_class_id' => 'id']],
             [['reference_id'], 'exist', 'skipOnError' => true, 'targetClass' => Homeworks::className(), 'targetAttribute' => ['reference_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
@@ -278,10 +277,10 @@ class Feed extends \yii\db\ActiveRecord
         $this->global_class_id = Classes::findOne(['id' => $this->class_id])->global_class_id;
         if ($this->isNewRecord) {
             $this->token = GenerateString::widget();
-            $this->created_at = date('y-m-d H-i-s');
+            $this->created_at = date('Y-m-d H:i:s');
             //$this->updated_at = date('y-m-d H-i-s');
         } else {
-            $this->updated_at = date('y-m-d H-i-s');
+            $this->updated_at = date('Y-m-d H:i:s');
         }
         return parent::beforeSave($insert);
     }

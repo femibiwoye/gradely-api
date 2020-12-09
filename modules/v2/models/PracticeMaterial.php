@@ -108,20 +108,49 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         try {
 
             if ($isTest) {
-                Feed::$database = SharedConstant::DB_CONNECTION_NAME[1];
-            }
-            $model = new Feed();
-            $model->view_by = 'class';
-            $model->type = 'post';
-            $model->tag = $this->filetype;
-            $model->user_id = $this->user_id;
-            $model->reference_id = $this->id;
-            $model->description = $this->title;
-            $model->class_id = $classID;
-            if (!$model->save()) {
-                return false;
-            }
+                //Feed::$database = SharedConstant::DB_CONNECTION_NAME[1];
+                $db = SharedConstant::DB_CONNECTION_NAME[1];
+                $global_class_id = Yii::$app->$db->createCommand('SELECT * FROM classes WHERE id=:class_id')
+                    ->bindValue(':class_id', $classID)
+                    ->queryOne();
 
+//                Yii::$app->$db->createCommand('INSERT INTO `feed` (`view_by`,`type`,`tag`, `user_id`,`reference_id`, `description`,`class_id`,`global_class_id`,`token`,`created_at`)
+//                                    VALUES (:view_by)', [
+//                    ':view_by' => 'class',
+//                    ':type' => 'class',
+//                ])->execute();
+
+                $model = Yii::$app->$db->createCommand()->insert('feed', [
+                    'view_by' => 'class',
+                    'type' => 'post',
+                    'tag' => $this->filetype,
+                    'user_id' => $this->user_id,
+                    'reference_id' => $this->id,
+                    'description' => $this->title,
+                    'class_id' => $classID,
+                    'global_class_id' => $global_class_id->global_class_id,
+                    'token' => GenerateString::widget(),
+                    'created_at' => date('Y-m-d H:i:s'),
+                ])->execute();
+
+
+                if (!$model) {
+                    return false;
+                }
+
+            } else {
+                $model = new Feed();
+                $model->view_by = 'class';
+                $model->type = 'post';
+                $model->tag = $this->filetype;
+                $model->user_id = $this->user_id;
+                $model->reference_id = $this->id;
+                $model->description = $this->title;
+                $model->class_id = $classID;
+                if (!$model->save()) {
+                    return false;
+                }
+            }
             $this->practice_id = $model->id;
 
             if (!$model = $this->save()) {
