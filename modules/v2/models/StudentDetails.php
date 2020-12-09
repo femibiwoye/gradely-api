@@ -182,7 +182,7 @@ class StudentDetails extends User
         }
 
         $homeworkCount = Homeworks::find()
-            ->where(['AND', $condition, [/*'class_id' => $class->class_id,*/ 'status' => 1]]);
+            ->where(['AND', $condition, [/*'class_id' => $class->class_id,*/ 'status' => 1, 'type' => 'homework']]);
         if (Yii::$app->request->get('subject'))
             $homeworkCount = $homeworkCount->andWhere(['homeworks.subject_id' => Yii::$app->request->get('subject')]);
         $homeworkCount = $homeworkCount->count();
@@ -190,7 +190,7 @@ class StudentDetails extends User
         $studentCount = QuizSummary::find()
             ->alias('q')
             ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1])
-            ->innerJoin('homeworks', "homeworks.id = q.homework_id" . $condition2);
+            ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.type = 'homework'" . $condition2);
 
         if (Yii::$app->request->get('subject'))
             $studentCount = $studentCount->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
@@ -201,18 +201,18 @@ class StudentDetails extends User
 
         return $homeworkCount > 0 ? round($studentCount / $homeworkCount * 100) : 0;
 
-        $attempted_questions = 0;
-        foreach ($this->homework as $homework) {
-            if ($homework->quizSummary && $homework->quizSummary->submit == SharedConstant::VALUE_ONE) {
-                $attempted_questions = $attempted_questions + 1;
-            }
-        }
-
-        if ($attempted_questions > 0)
-            $attempted_questions = ($attempted_questions / count($this->homework)) * 100;
-
-
-        return $attempted_questions;
+//        $attempted_questions = 0;
+//        foreach ($this->homework as $homework) {
+//            if ($homework->quizSummary && $homework->quizSummary->submit == SharedConstant::VALUE_ONE) {
+//                $attempted_questions = $attempted_questions + 1;
+//            }
+//        }
+//
+//        if ($attempted_questions > 0)
+//            $attempted_questions = ($attempted_questions / count($this->homework)) * 100;
+//
+//
+//        return $attempted_questions;
     }
 
     public function getTopicBreakdown()
