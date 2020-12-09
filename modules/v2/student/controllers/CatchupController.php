@@ -135,8 +135,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
 
         $model = FeedComment::find()
-            //->where(['feed_id' => $video->id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id])
-            ->limit(10)
+            ->where(['feed_id' => $video->id, 'type' => SharedConstant::TYPE_VIDEO
+                //    , 'user_id' => Yii::$app->user->id
+            ])
+            ->limit(20)
             ->orderBy('id DESC')
             ->all();
 
