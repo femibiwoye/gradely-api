@@ -110,7 +110,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             if ($isTest) {
                 //Feed::$database = SharedConstant::DB_CONNECTION_NAME[1];
                 $db = SharedConstant::DB_CONNECTION_NAME[1];
-                $global_class_id = Yii::$app->db->createCommand('SELECT * FROM classes WHERE id=:class_id')
+                $global_class_id = Yii::$app->$db->createCommand('SELECT * FROM classes WHERE id=:class_id')
                     ->bindValue(':class_id', $classID)
                     ->queryOne();
 
@@ -132,6 +132,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
                     'token' => GenerateString::widget(),
                     'created_at' => date('Y-m-d H:i:s'),
                 ])->execute();
+
 
                 if (!$model) {
                     return false;
