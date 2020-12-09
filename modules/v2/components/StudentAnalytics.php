@@ -67,9 +67,9 @@ class StudentAnalytics extends Model
     {
         if (!empty($subject) || !empty($term) || !empty($studentId) || $state) {
             $model = QuizSummary::find();
-            if (!empty($type))
-                $model = $model->where(['quiz_summary.type' => $type]);
 
+            if (!empty($type))
+                $model = $model->andWhere(['quiz_summary.type' => $type]);
 
             $model = $model->andWhere(['AND',
                 !empty($subject) ? ['quiz_summary.subject_id' => $subject] : [],
@@ -90,6 +90,10 @@ class StudentAnalytics extends Model
                 $model = $model->where(['quiz_summary.type' => $type]);
         }
 
+        $model = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id AND homeworks.type = 'homework'")
+            ->leftJoin('classes', 'classes.id = homeworks.class_id')
+            ->andWhere(['classes.global_class_id' => Utility::getStudentClass(1, Utility::getParentChildID())]);
+
 
         $homeworkModel = clone $model;
 
@@ -102,7 +106,7 @@ class StudentAnalytics extends Model
                 'quiz_summary.student_id'
             ])
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = quiz_summary.student_id")
-            ->andWhere(['submit'=>1])
+            ->andWhere(['submit' => 1])
             ->innerJoinWith(['homeworkQuestions'], false)
             ->groupBy('quiz_summary.student_id')
             ->orderBy('correctPercentage DESC')
@@ -170,13 +174,21 @@ class StudentAnalytics extends Model
             }
         }
 
+        if ($myState = UserProfile::findOne(['user_id' => $student->id])) {
+            $myState = $myState->state;
+        } else {
+            $myState = null;
+        }
+
         $return = [
             'percentile' => round($percentile),
             'classPosition' => round($classPosition),
             'percentileRank' => round($percentileRank),
             'studentAggregate' => round($studentAggregate),
             'rankPosition' => $studentAggregate >= $percentile ? "Top" : "Bottom",
-            'studentOverallAndPosition' => ($studentOverallAndPosition)
+            'studentOverallAndPosition' => ($studentOverallAndPosition),
+            'stateRanking' => $state && $myState,
+            'stateName' => $myState
         ];
 
         return $return;
