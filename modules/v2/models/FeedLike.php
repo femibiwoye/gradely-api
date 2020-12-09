@@ -47,7 +47,7 @@ class FeedLike extends \yii\db\ActiveRecord
 
     public function beforeSave($insert) {
         if ($this->isNewRecord) {
-            $this->created_at = date('y-m-d H-i-s');
+            $this->created_at = date('Y-m-d H:i:s');
         }
 
         return parent::beforeSave($insert);
