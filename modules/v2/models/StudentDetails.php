@@ -334,7 +334,7 @@ class StudentDetails extends User
         if (isset($_GET['term']))
             $term = $_GET['term'];
         else
-            $term = Utility::getStudentTermWeek('term');
+            $term = Utility::getStudentTermWeek('term',$this->id);
 
         $studentAnalytics = new StudentAnalytics();
         $subject_id = isset($this->getSelectedSubject()->id) ? $this->getSelectedSubject()->id : null;

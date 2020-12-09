@@ -63,7 +63,7 @@ class StudentAnalytics extends Model
      * @param null $term
      * @return array
      */
-    public function StudentsClassAggregateScores($studentId = null, $subject = null, $term = null, $type, $state)
+    public function StudentsClassAggregateScores($studentId = null, $subject = null, $term = null, $type, $state, $studentClassID)
     {
         if (!empty($subject) || !empty($term) || !empty($studentId) || $state) {
             $model = QuizSummary::find();
@@ -92,7 +92,7 @@ class StudentAnalytics extends Model
 
         $model = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id AND homeworks.type = 'homework'")
             ->leftJoin('classes', 'classes.id = homeworks.class_id')
-            ->andWhere(['classes.global_class_id' => Utility::getStudentClass(1, Utility::getParentChildID())]);
+            ->andWhere(['classes.global_class_id' => $studentClassID]);
 
 
         $homeworkModel = clone $model;
@@ -152,11 +152,12 @@ class StudentAnalytics extends Model
 
         if (!empty($student)) {
 
-            $classStudentsAggregate = $this->StudentsClassAggregateScores(null, $subject, $term, $type, $state);
+            $classID = Utility::getStudentClass(1, $student->id);
+            $classStudentsAggregate = $this->StudentsClassAggregateScores(null, $subject, $term, $type, $state, $classID);
 
             if (!empty($classStudentsAggregate)) {
 
-                $studentAggregate = $this->StudentsClassAggregateScores($student->id, $subject, $term, $type, $state);
+                $studentAggregate = $this->StudentsClassAggregateScores($student->id, $subject, $term, $type, $state, $classID);
 
                 $modelAggregate = $classStudentsAggregate;
                 $classStudentsAggregate = ArrayHelper::getColumn($classStudentsAggregate, 'correctPercentage');
