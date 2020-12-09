@@ -353,13 +353,25 @@ class CatchupController extends ActiveController
 
         $videoUrl = isset($videoObject->data->content_link) ? $videoObject->data->content_link : null;
 
+        if ($file_log = FileLog::findOne([
+            'is_completed' => SharedConstant::VALUE_ZERO,
+            'user_id' => Yii::$app->user->id,
+            'type' => SharedConstant::TYPE_VIDEO,
+            'file_id' => $video->id,
+        ])) {
+            $currentDuration = $file_log->current_duration;
+        } else {
+            $currentDuration = 0;
+        }
+
         $video = array_merge(
             ArrayHelper::toArray($video),
             [
                 'url' => $videoUrl,
                 'assign' => $video->videoAssigned,
                 'topic' => $video->videoAssigned->topic,
-                'subject' => $video->videoAssigned->topic->subject
+                'subject' => $video->videoAssigned->topic->subject,
+                'currentDuration' => $currentDuration
             ]);
 
 
