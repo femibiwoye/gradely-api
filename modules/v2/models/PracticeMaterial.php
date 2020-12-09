@@ -128,7 +128,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
                     'reference_id' => $this->id,
                     'description' => $this->title,
                     'class_id' => $classID,
-                    'global_class_id' => $global_class_id->global_class_id,
+                    'global_class_id' => $global_class_id['global_class_id'],
                     'token' => GenerateString::widget(),
                     'created_at' => date('Y-m-d H:i:s'),
                 ])->execute();
