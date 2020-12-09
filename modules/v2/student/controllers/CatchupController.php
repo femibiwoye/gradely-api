@@ -135,8 +135,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
 
         $model = FeedComment::find()
-            //->where(['feed_id' => $video->id, 'type' => SharedConstant::TYPE_VIDEO, 'user_id' => Yii::$app->user->id])
-            ->limit(10)
+            ->where(['feed_id' => $video->id, 'type' => SharedConstant::TYPE_VIDEO
+                //    , 'user_id' => Yii::$app->user->id
+            ])
+            ->limit(20)
             ->orderBy('id DESC')
             ->all();
 
@@ -351,13 +353,25 @@ class CatchupController extends ActiveController
 
         $videoUrl = isset($videoObject->data->content_link) ? $videoObject->data->content_link : null;
 
+        if ($file_log = FileLog::findOne([
+            'is_completed' => SharedConstant::VALUE_ZERO,
+            'user_id' => Yii::$app->user->id,
+            'type' => SharedConstant::TYPE_VIDEO,
+            'file_id' => $video->id,
+        ])) {
+            $currentDuration = $file_log->current_duration;
+        } else {
+            $currentDuration = 0;
+        }
+
         $video = array_merge(
             ArrayHelper::toArray($video),
             [
                 'url' => $videoUrl,
                 'assign' => $video->videoAssigned,
                 'topic' => $video->videoAssigned->topic,
-                'subject' => $video->videoAssigned->topic->subject
+                'subject' => $video->videoAssigned->topic->subject,
+                'currentDuration' => $currentDuration
             ]);
 
 

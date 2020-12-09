@@ -2,9 +2,11 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\QuizSummaryDetails;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\UserModel;
 use Yii;
@@ -71,6 +73,10 @@ class CatchupController extends ActiveController
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        if (!Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
         $type = Yii::$app->request->post('type');
@@ -171,6 +177,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
+        if (!Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
+
         $student_id = Yii::$app->request->post('student_id');
         $topic_ids = Yii::$app->request->post('topic_ids');
         $reference_type = Yii::$app->request->post('reference_type');
@@ -205,6 +215,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
+        if (!Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
+
         $model = new RecommendedResources;
         $model->creator_id = Yii::$app->user->id;
         $model->receiver_id = Yii::$app->request->post('student_id');
@@ -225,7 +239,7 @@ class CatchupController extends ActiveController
 
     public function actionHomeworkSummaryProctor($student_id, $assessment_id)
     {
-        if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
+        if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER && Yii::$app->user->identity->type != SharedConstant::TYPE_SCHOOL) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
@@ -233,7 +247,9 @@ class CatchupController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('student_id', 'assessment_id', 'teacher_id'));
         $form->addRule(['student_id', 'assessment_id'], 'required');
         $form->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']]);
-        $form->addRule(['assessment_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id', 'teacher_id']]);
+        if (Yii::$app->user->identity->type == SharedConstant::TYPE_TEACHER) {
+            $form->addRule(['assessment_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['assessment_id' => 'id', 'teacher_id']]);
+        }
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
@@ -254,10 +270,15 @@ class CatchupController extends ActiveController
 
         $homework = Homeworks::find()
             ->select(['title', 'tag', 'created_at', 'close_date'])
-            ->where(['id' => $assessment_id,
-                'teacher_id' => Yii::$app->user->id
-            ])
-            ->asArray()->one();
+            ->where(['id' => $assessment_id]);
+
+        if (Yii::$app->user->identity->type == SharedConstant::TYPE_SCHOOL) {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $homework = $homework->andWhere(['school_id' => $school->id]);
+        } else
+            $homework = $homework->andWhere(['teacher_id' => Yii::$app->user->id]);
+
+        $homework = $homework->asArray()->one();
 
         $homeworkQuestions = ArrayHelper::getColumn(HomeworkQuestions::find()->where(['homework_id' => $assessment_id])->all(), 'question_id');
 

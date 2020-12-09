@@ -26,7 +26,8 @@ class Caller
             // to allow args to be specified in the payload, filter them out and put them in sentargs
             $sentargs = (!$sentargs) ? [ ] : $sentargs; // Make sure $sentargs is not null
             $args = $interface[RouteInterface::ARGS_KEY];
-            while (list($key, $value) = each($payload)) {
+            //while (list($key, $value) = each($payload)) {
+            foreach($payload as $key => $value) {
                 // check that a value was specified
                 // with a key that was expected as an arg
                 if (in_array($key, $args)) {
@@ -40,11 +41,12 @@ class Caller
     public function putArgsIntoEndpoint(&$endpoint, $sentargs)
     {
         // substitute sentargs in endpoint
-        while (list($key, $value) = each($sentargs)) {
+        //while (list($key, $value) = each($sentargs)) {
+        foreach($sentargs as $key => $value) {
             $endpoint = str_replace('{' . $key . '}', $value, $endpoint);
         }
     }
-    
+
     private function attemptGuzzle($method, $endpoint, $headers, $body)
     {
         if ($this->use_guzzle &&
@@ -62,11 +64,11 @@ class Caller
                 $response = $client->send($request);
             } catch (\Exception $e) {
                 if (($e instanceof \GuzzleHttp\Exception\BadResponseException
-                    || $e instanceof \GuzzleHttp\Exception\ClientException
-                    || $e instanceof \GuzzleHttp\Exception\ConnectException
-                    || $e instanceof \GuzzleHttp\Exception\RequestException
-                    || $e instanceof \GuzzleHttp\Exception\ServerException
-                    || $e instanceof \GuzzleHttp\Exception\TooManyRedirectsException
+                        || $e instanceof \GuzzleHttp\Exception\ClientException
+                        || $e instanceof \GuzzleHttp\Exception\ConnectException
+                        || $e instanceof \GuzzleHttp\Exception\RequestException
+                        || $e instanceof \GuzzleHttp\Exception\ServerException
+                        || $e instanceof \GuzzleHttp\Exception\TooManyRedirectsException
                     ) && $e->hasResponse()) {
                     $response = $e->getResponse();
                 } else {
@@ -86,7 +88,7 @@ class Caller
 
         $this->moveArgsToSentargs($interface, $payload, $sentargs);
         $this->putArgsIntoEndpoint($endpoint, $sentargs);
- 
+
         $headers = ["Authorization"=>"Bearer " . $this->secret_key ];
         $body = '';
         if (($method === RouteInterface::POST_METHOD)
@@ -102,7 +104,7 @@ class Caller
         if ($guzzleResponse !== false) {
             return $guzzleResponse;
         }
-        
+
         return $this->attemptCurl($method, $endpoint, $headers, $body);
     }
 
@@ -120,7 +122,8 @@ class Caller
         }
         //flatten the headers
         $flattened_headers = [];
-        while (list($key, $value) = each($headers)) {
+        //while (list($key, $value) = each($headers)) {
+        foreach($headers as $key => $value) {
             $flattened_headers[] = $key . ": " . $value;
         }
         \curl_setopt($ch, \CURLOPT_HTTPHEADER, $flattened_headers);
@@ -128,7 +131,7 @@ class Caller
         \curl_setopt($ch, \CURLOPT_SSLVERSION, 6);
 
         $response = \curl_exec($ch);
-        
+
         if (\curl_errno($ch)) {   // should be 0
             // curl ended with an error
             $cerr = \curl_error($ch);
@@ -142,7 +145,7 @@ class Caller
 
         if (json_last_error() !== JSON_ERROR_NONE || !$resp->status) {
             throw new \Exception("Paystack Request failed with response: '" .
-            ((json_last_error() === JSON_ERROR_NONE) ? $resp->message : $response) . "'.");
+                ((json_last_error() === JSON_ERROR_NONE) ? $resp->message : $response) . "'.");
         }
 
         return $resp;
