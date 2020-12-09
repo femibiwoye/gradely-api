@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\QuizSummaryDetails;
@@ -71,6 +72,10 @@ class CatchupController extends ActiveController
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        if (!Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
         $type = Yii::$app->request->post('type');
@@ -171,6 +176,10 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
+        if (!Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+        }
+
         $student_id = Yii::$app->request->post('student_id');
         $topic_ids = Yii::$app->request->post('topic_ids');
         $reference_type = Yii::$app->request->post('reference_type');
@@ -203,6 +212,10 @@ class CatchupController extends ActiveController
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_TEACHER) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
+        }
+
+        if (!Pricing::SubscriptionStatus()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
         }
 
         $model = new RecommendedResources;
