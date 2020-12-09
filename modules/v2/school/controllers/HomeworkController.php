@@ -62,7 +62,7 @@ class HomeworkController extends ActiveController
         }
 
         $homeworks = $this->modelClass::find()
-            ->where(['class_id' => $class_id])->orderBy('id DESC');
+            ->where(['class_id' => $class_id,'type'=>'homework'])->orderBy('id DESC');
         if (!$homeworks->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homeworks not found');
         }
