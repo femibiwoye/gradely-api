@@ -251,8 +251,8 @@ class GeneralController extends Controller
 
         $result = [
             'learningMinutes' => round(time() / 3200), //$learningMinutes,
-            'teacherCount' => $teacherCount,
-            'studentCount' => $studentCount,
+            'teacherCount' => (int)$teacherCount,
+            'studentCount' => (int)$studentCount,
         ];
         return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
     }
