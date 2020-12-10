@@ -114,12 +114,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
                     ->bindValue(':class_id', $classID)
                     ->queryOne();
 
-//                Yii::$app->$db->createCommand('INSERT INTO `feed` (`view_by`,`type`,`tag`, `user_id`,`reference_id`, `description`,`class_id`,`global_class_id`,`token`,`created_at`)
-//                                    VALUES (:view_by)', [
-//                    ':view_by' => 'class',
-//                    ':type' => 'class',
-//                ])->execute();
-
+                $token = GenerateString::widget();
                 $model = Yii::$app->$db->createCommand()->insert('feed', [
                     'view_by' => 'class',
                     'type' => 'post',
@@ -129,7 +124,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
                     'description' => $this->title,
                     'class_id' => $classID,
                     'global_class_id' => $global_class_id['global_class_id'],
-                    'token' => GenerateString::widget(),
+                    'token' => $token,
                     'created_at' => date('Y-m-d H:i:s'),
                 ])->execute();
 
@@ -137,6 +132,10 @@ class PracticeMaterial extends \yii\db\ActiveRecord
                 if (!$model) {
                     return false;
                 }
+                $object = Yii::$app->$db->createCommand('SELECT * FROM feed WHERE token=:token')
+                    ->bindValue(':token', $token)
+                    ->queryOne();
+                $this->practice_id = $object['id'];
 
             } else {
                 $model = new Feed();
@@ -150,8 +149,9 @@ class PracticeMaterial extends \yii\db\ActiveRecord
                 if (!$model->save()) {
                     return false;
                 }
+                $this->practice_id = $model->id;
             }
-            $this->practice_id = $model->id;
+
 
             if (!$model = $this->save()) {
                 return false;

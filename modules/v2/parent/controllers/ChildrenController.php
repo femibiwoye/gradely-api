@@ -283,7 +283,7 @@ class ChildrenController extends ActiveController
             if ($parent->scenario == 'parent-student-signup') {
                 //Notification that parent add child
                 $notification = new InputNotification();
-                $notification->NewNotification('parent_adds_student', [['student_id', $user->id]]);
+                $notification->NewNotification('parent_connects_student', [['student_id', $user->id]]);
             }
 
             // Notification to welcome user
