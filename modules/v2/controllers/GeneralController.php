@@ -45,7 +45,7 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject']
+            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject', 'gradely-user-statistics']
         ];
 
         return $behaviors;
@@ -105,7 +105,7 @@ class GeneralController extends Controller
 
     public function actionCountry()
     {
-        return (new ApiResponse)->success(Country::find()->all(),ApiResponse::SUCCESSFUL,'Country loaded');
+        return (new ApiResponse)->success(Country::find()->all(), ApiResponse::SUCCESSFUL, 'Country loaded');
     }
 
     public function actionState($country)
@@ -243,7 +243,19 @@ class GeneralController extends Controller
         return (new ApiResponse)->success(false, ApiResponse::SUCCESSFUL);
     }
 
-    
+    public function actionGradelyUserStatistics()
+    {
+        $studentCount = User::find()->where(['type' => 'student'])->count();
+        $teacherCount = User::find()->where(['type' => 'teacher'])->count();
+
+
+        $result = [
+            'learningMinutes' => round(time() / 3200), //$learningMinutes,
+            'teacherCount' => $teacherCount,
+            'studentCount' => $studentCount,
+        ];
+        return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
+    }
 
 
 }
