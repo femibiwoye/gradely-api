@@ -8,7 +8,7 @@ return [
     'POST v2/forgot-password' => 'v2/auth/forgot-password', //
     'POST v2/reset-password' => 'v2/auth/reset-password', //
     'POST v2/validate' => 'v2/auth/validate-token', //
-    'GET v2/verify-email'=>'v2/auth/verify-email', //
+    'GET v2/verify-email' => 'v2/auth/verify-email', //
 
     //Onboarding/General endpoints
     'PUT v2/general/update-boarding' => 'v2/general/update-boarding', //
@@ -25,6 +25,7 @@ return [
     'GET v2/general/curriculum' => '/v2/general/curriculum', //
     'GET v2/general/subject' => '/v2/general/subject', //
     'GET v2/general/class-status/<class_id:\d+>' => '/v2/general/class-status', //
+    'GET v2/gradely-user-statistics' => 'v2/general/gradely-user-statistics',
 
 
     //Current User
