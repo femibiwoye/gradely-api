@@ -42,7 +42,8 @@ return [
         'POST generate' => 'generate-classes', //
         'PUT update' => 'update', //
         'GET students/<class_id:\d+>' => 'student-in-class', //
-        'DELETE <class_id:\d+>' => 'delete' //
+        'DELETE <class_id:\d+>' => 'delete', //
+        'GET class-subjects'=>'class-subjects'
     ]],
 
 
