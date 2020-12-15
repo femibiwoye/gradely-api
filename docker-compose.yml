@@ -1,10 +1,41 @@
-version: '2'
-
+version: '3'
 services:
-  php:
-    image: yiisoftware/yii2-php:7.4-apache
+
+  #PHP App
+  app:
+    build:
+      context: .
+      dockerfile: vagrant/docker/dockerfile
+    image: christexe/php:7.4-fpm-alpine
+#    container_name: php_app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www/html/
     volumes:
-      - ~/.composer-docker/cache:/root/.composer/cache:delegated
-      - ./:/app:delegated
+      - ./:/var/www/html
+      - ./vagrant/docker/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      - labnet
+
+  #Nginx Service
+  nginx:
+    image: nginx:alpine
+#    container_name: nginx
+    restart: unless-stopped
+    tty: true
     ports:
-      - '8000:80'
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - ./vagrant/docker/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - labnet
+
+#Docker Networks
+networks:
+  labnet: 
+    external:
+      name: labnet
