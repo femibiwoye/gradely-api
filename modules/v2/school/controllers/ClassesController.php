@@ -6,6 +6,7 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\{Utility, SharedConstant};
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\{Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User, Homeworks};
+use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
@@ -112,15 +113,10 @@ class ClassesController extends ActiveController
 
     public function actionClassSubjects($classes)
     {
-//        echo($classes);
-//        die;
-
         $classes = json_decode($classes);
-
         if (!is_array($classes)) {
             return (new ApiResponse)->success(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class(es) must be an array.');
         }
-
 
         $category = [];
         foreach ($classes as $class) {
@@ -132,9 +128,23 @@ class ClassesController extends ActiveController
                 $category[] = null;
         }
         $category[] = 'all';
-        $subjects = Subjects::findAll(['category' => $category]);
-        if ($subjects) {
-            return (new ApiResponse)->success($subjects, ApiResponse::SUCCESSFUL);
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $mySubjects = SchoolSubject::find()
+            ->alias('s')
+            ->select([
+
+                'subjects.id',
+                'subjects.slug',
+                'subjects.name',
+                'subjects.description',
+            ])
+            ->innerJoin('subjects', "subjects.id = s.subject_id")
+            ->where(['s.school_id' => $school->id, 's.status' => 1,'subjects.category'=>$category])
+            ->groupBy(['s.subject_id'])
+            ->asArray()->all();
+
+        if ($mySubjects) {
+            return (new ApiResponse)->success($mySubjects, ApiResponse::SUCCESSFUL);
         }
 
         return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND);

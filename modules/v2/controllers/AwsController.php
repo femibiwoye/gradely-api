@@ -20,7 +20,7 @@ use yii\filters\auth\HttpBearerAuth;
 class AwsController extends Controller
 {
     public $config = [];
-    public $bucketName = 'gradly';
+    public $bucketName;
 
     public function behaviors()
     {
@@ -42,13 +42,8 @@ class AwsController extends Controller
 
     public function beforeAction($action)
     {
-        $credentials = new Credentials(Yii::$app->params['AwsS3Key'], Yii::$app->params['AwsS3Secret']);
-
-        $this->config = [
-            'version' => 'latest',
-            'region' => 'eu-west-2',
-            'credentials' => $credentials
-        ];
+        $this->bucketName = Yii::$app->params['AwsS3BucketName'];
+        $this->config = Utility::AwsS3Config();
         return parent::beforeAction($action);
     }
 
@@ -101,7 +96,7 @@ class AwsController extends Controller
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file');
             }
 
-            $allowedfileExtensions = ['jpg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'] ;
+            $allowedfileExtensions = ['jpg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'];
             if (in_array($fileExtension, $allowedfileExtensions) === false) {
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file extension');
             }
