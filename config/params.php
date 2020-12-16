@@ -1,6 +1,6 @@
 <?php
 
-
+Yii::setAlias('@webfolder', realpath(dirname(__FILE__) . '/../web'));
 //$year = date('Y');
 $year = "2021";
 $ftBegin = "2020-08-09";
@@ -37,10 +37,11 @@ return [
 
     'AwsS3Key' => AWS_S3_KEY,
     'AwsS3Secret' => AWS_S3_SECRET,
+    'AwsS3BucketName' => 'gradly',
 
     'live_class_limit' => 20,
-    'live_class_url'=>LIVE_CLASS_URL,
-    'live_class_recorded_url'=>LIVE_CLASS_RECORDED_URL,
+    'live_class_url' => LIVE_CLASS_URL,
+    'live_class_recorded_url' => LIVE_CLASS_RECORDED_URL,
 
     'masteryQuestionCount' => 6,
     'masteryPerTopicPerformance' => 100,
