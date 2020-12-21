@@ -10,9 +10,9 @@ return ['db' => [
     'enableSchemaCache' => true,
     'schemaCacheDuration' => 60,
     'schemaCache' => 'cache',
-//    'on afterOpen' => function ($event) {
-//        $event->sender->createCommand("SET time_zone='+01:00';")->execute();
-//    },
+    'on afterOpen' => function ($event) {
+        $event->sender->createCommand("SET time_zone='+01:00';")->execute();
+    },
 
 ], 'db_test' => [
     'class' => 'yii\db\Connection',
@@ -25,6 +25,9 @@ return ['db' => [
     'enableSchemaCache' => true,
     'schemaCacheDuration' => 60,
     'schemaCache' => 'cache',
+    'on afterOpen' => function ($event) {
+        $event->sender->createCommand("SET time_zone='+01:00';")->execute();
+    },
 ],
     'main' => [
         'class' => 'yii\db\Connection',
@@ -32,6 +35,9 @@ return ['db' => [
         'username' => NOTIFICATION_USERNAME,
         'password' => NOTIFICATION_PASSWORD,
         'charset' => 'utf8',
+        'on afterOpen' => function ($event) {
+            $event->sender->createCommand("SET time_zone='+01:00';")->execute();
+        },
     ],
     'cache' => [
         'class' => 'yii\caching\FileCache',
