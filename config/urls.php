@@ -1,6 +1,9 @@
 <?php
 
 return [
+
+    'GET site/error'=>'site/error',
+
     //Authentications
     'POST v2/login' => 'v2/auth/login', //
     'POST v2/signup/<type:[a-z]+>' => 'v2/auth/signup', //
