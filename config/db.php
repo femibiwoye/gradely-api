@@ -10,9 +10,9 @@ return ['db' => [
     'enableSchemaCache' => true,
     'schemaCacheDuration' => 60,
     'schemaCache' => 'cache',
-    'on afterOpen' => function ($event) {
-        $event->sender->createCommand("SET time_zone='+01:00';")->execute();
-    },
+//    'on afterOpen' => function ($event) {
+//        $event->sender->createCommand("SET time_zone='+01:00';")->execute();
+//    },
 
 ], 'db_test' => [
     'class' => 'yii\db\Connection',

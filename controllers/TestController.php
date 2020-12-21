@@ -25,9 +25,11 @@ class TestController extends Controller
         \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
         //return $this->render('/site/db');
         $this->layout = 'empty';
-        $result =  Yii::$app->db->createCommand('SHOW VARIABLES LIKE \'%time_zone%\';
-SELECT NOW();')->queryAll();
+        $result =  Yii::$app->db->createCommand('SHOW VARIABLES LIKE \'%time_zone%\';')->queryAll();
         print_r($result);
+        $result =  Yii::$app->db->createCommand('SELECT NOW();')->queryAll();
+        print_r($result);
+        die;
     }
 }
 
