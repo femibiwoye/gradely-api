@@ -50,7 +50,7 @@ class Questions extends \yii\db\ActiveRecord
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration', 'option_a', 'option_b', 'option_c', 'option_d'], 'required', 'on' => 'create-multiple'],
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration'], 'required', 'on' => 'create-bool'],
             [['answer'], 'integer', 'on' => 'create-bool'],
-            [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category','image'], 'string'],
+            [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category', 'image'], 'string'],
             [['created_at'], 'safe'],
             //[['answer'], 'string', 'max' => 1],
             [['comprehension_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comprehension::className(), 'targetAttribute' => ['comprehension_id' => 'id']],
@@ -103,17 +103,31 @@ class Questions extends \yii\db\ActiveRecord
             'option_e',
             'answer',
             'image',
-            'duration',
+            //'duration', //Had to add custom duration
+            'duration' => 'customDuration',
             'difficulty',
             'type',
             'topic_id',
             'comprehension',
             'comprehension_id',
-            'topic'=>'questionTopic',
-            'owner'=>'questionOwner',
+            'topic' => 'questionTopic',
+            'owner' => 'questionOwner',
             'correct_students' => 'correctQuizSummaryDetails',
             'wrong_students' => 'wrongQuizSummaryDetails'
         ];
+    }
+
+    public function getCustomDuration()
+    {
+        if ($this->difficulty == 'medium')
+            $duration = 70;
+        elseif ($this->difficulty == 'hard')
+            $duration = 70;
+        else {
+            $duration = 60;
+        }
+
+        return $duration;
     }
 
     public function getCorrectQuizSummaryDetails()
@@ -141,13 +155,13 @@ class Questions extends \yii\db\ActiveRecord
 
     public function getQuestionOwner()
     {
-        return $this->teacher_id == Yii::$app->user->id?1:0;
+        return $this->teacher_id == Yii::$app->user->id ? 1 : 0;
     }
 
     public function getQuestionTopic()
     {
-        $topic = SubjectTopics::findOne(['id'=>$this->topic_id]);
-        return !empty($topic)?$topic->topic:null;
+        $topic = SubjectTopics::findOne(['id' => $this->topic_id]);
+        return !empty($topic) ? $topic->topic : null;
     }
 
     public static function find()

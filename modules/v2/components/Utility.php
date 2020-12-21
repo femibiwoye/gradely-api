@@ -184,6 +184,14 @@ class Utility extends ActiveRecord
         return null;
     }
 
+    /**
+     * This function allows you to get the class of a student.
+     * There are 2 options. global_id is 0 when you want to get school class, e.g 1839 could be student class_id while in JSS1
+     * and global_id is 1 when you want to get the global class_id. e.g 7 is JSS 1
+     * @param int $global_id
+     * @param null $studentID
+     * @return int|mixed|string|null
+     */
     public static function getStudentClass($global_id = SharedConstant::VALUE_ZERO, $studentID = null)
     {
         if (!empty($studentID)) {
