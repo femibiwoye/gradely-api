@@ -65,7 +65,7 @@ class BookingController extends ActiveController
 
         $total = $price * $session_count;
         foreach($availability as $available){
-            implode($available);
+             implode($available);
         }   
        
 
@@ -73,11 +73,12 @@ class BookingController extends ActiveController
         $model->requester_id = $tutor_id;
         $model->student_id = $student_id;
         $model->subject_id = $subject_id;
-       // $model->availability = $available;
+        $model->availability = $available; 
         $model->title = $title;
         //$model->curriculum_id = $curriculum;
         $model->repetition = $repetition;
-        //$model->class = getStudentClass();
+        //$model->class = $this->getStudentClass();
+        $model->category = 'Tutor';
         
         if (!$model->save(false)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
