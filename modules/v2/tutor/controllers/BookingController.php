@@ -9,8 +9,9 @@ use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\GlobalClass;
-use app\modules\v2\models\{ApiResponse, PaymentPlan, Coupon, Subjects, TutorSession};
+use app\modules\v2\models\{ApiResponse, PaymentPlan, Coupon, Subjects, TutorSession, TutorSessionTiming};
 use app\modules\v2\models\User;
+use app\modules\v2\components\Utility;
 
 class BookingController extends ActiveController
 {
@@ -71,11 +72,65 @@ class BookingController extends ActiveController
             return (new ApiResponse)->error($validate->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
+        $payment_plan = PaymentPlan::findOne(['id' => $payment_plan_id]);
+        $price = $payment_plan->price;
+        $curriculum = $payment_plan->curriculum;
+        $repetition = $payment_plan->slug;
+
+        $total = $price * $session_count;
 
         foreach ($availability as $available) {
-            return $available['time'];
+             $date = $available['date'];
+             $time = $available['time'];
+        }
+        
+        $payment_plan = PaymentPlan::findOne(['id' => $payment_plan_id, 'type'=>'tutor']);
+        $price = $payment_plan->price;
+        $curriculum = $payment_plan->curriculum;
+        $repetition = $payment_plan->slug;
+
+        $subject = Subjects::findOne(['id' => $subject_id]);
+        $title = $subject->slug;
+
+        $model = new TutorSession();
+        $model->requester_id = $tutor_id;
+        $model->student_id = $student_id;
+        $model->subject_id = $subject_id;
+        $model->availability = $date .' '. $time;
+        $model->title = $title;
+        $model->session_count = $session_count;
+        $model->repetition = $repetition;
+        $model->class = Utility::getStudentClass($student_id);
+        $model->category = 'Tutor';
+
+
+        $timemodel = new TutorSessionTiming();
+        $timemodel->session_id = $model->id;
+        $timemodel->day = $date;
+        $timemodel->time = $time;
+        $timemodel->save();
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not saved');
+        }
+            
+            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'TutorSession saved');
+
+        if ($coupon) {
+            $couponcode = Coupon::findOne(['code' => $coupon]);
+            if ($couponcode) {
+                $discount = Coupon::findOne(['status' => 1]);
+                $percentage = $discount->percentage;
+                if ($discount) {
+                    $newprice = ($price * $session_count);
+                    $discountedPrice = ($percentage / 100) * $newprice;
+                    $discountedPrice = ($newprice - $discountedPrice);
+                    return (new ApiResponse)->success($discountedPrice, ApiResponse::SUCCESSFUL, 'Discount');
+                }
+            }
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Incorrect Coupon');
         }
 
+        return (new ApiResponse)->success($total, ApiResponse::SUCCESSFUL, 'Total Price');
 
 
     }
