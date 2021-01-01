@@ -13,7 +13,10 @@ use Yii;
  * @property int|null $class_id
  * @property string|null $invite_code
  * @property int $status
+ * @property int $current_class This is to know if this is current class of a child. 1 mean child is in this class, 0 means this is not current class of a child. Can be use for promoting of a child.
+ * @property string|null $subscription_status Basic is lms, premium is lms with catchup
  * @property string $created_at
+ * @property string|null $updated_at
  *
  * @property User $student
  * @property Classes $class
@@ -34,6 +37,7 @@ class StudentSchool extends \yii\db\ActiveRecord
             [['student_id', 'school_id'], 'required'],
             [['student_id', 'school_id', 'class_id', 'status'], 'integer'],
             [['created_at'], 'safe'],
+            [['subscription_status'], 'string'],
             [['invite_code'], 'string', 'max' => 20],
             [['student_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
             [['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],

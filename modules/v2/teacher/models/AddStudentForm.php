@@ -103,9 +103,13 @@ class AddStudentForm extends Model
                 array_push($this->added_students, $student);
             }
 
-//            $notification = new InputNotification();
-//            if (!$notification->NewNotification('teacher_adds_student', [['teacher_id', Yii::$app->user->id]]))
-//                return false;
+            $notification = new InputNotification();
+            $notification->NewNotification('teacher_adds_student', [
+                ['teacher_id', Yii::$app->user->id],
+                ['students_id', implode(',', ArrayHelper::getColumn($this->added_students, 'id'))],
+                ['password', $this->password],
+                ['class_id', $this->class_id]
+            ]);
 
             $dbtransaction->commit();
         } catch (\Exception $e) {

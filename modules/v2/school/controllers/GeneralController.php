@@ -84,18 +84,39 @@ class GeneralController extends ActiveController
     {
 
         $dateTime = date('Y-m-d H:i:s');
+        $weekCondition = 'YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)';
 
-        $allHomeWorkCount = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'status' => 1, 'tag' => 'homework', 'type' => 'homework'])->count();
+        $activeHomeWorkCount = Homeworks::find()
+            ->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'status' => 1, 'tag' => 'homework', 'type' => 'homework'])
+            ->andWhere(['>', 'close_date', date("Y-m-d")])
+            ->andWhere($weekCondition)
+            ->count();
 
-        $pastHomework = Homeworks::find()
-            ->where(['AND', ['school_id' => Utility::getSchoolAccess(), 'status' => 1, 'tag' => 'homework', 'type' => 'homework'], ['<', 'close_date', $dateTime]
-            ])->count();
+        $completedHomework = Homeworks::find()
+            ->where(['AND',
+                ['school_id' => Utility::getSchoolAccess(), 'status' => 1, 'tag' => 'homework', 'type' => 'homework'],
+                ['<', 'close_date', $dateTime]
+            ])
+            ->andWhere($weekCondition)
+            ->count();
 
-        $allExamCount = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'status' => 1, 'tag' => 'exam', 'type' => 'homework'])->count();
+        $allExamCount = Homeworks::find()
+            ->where([
+                'school_id' => Utility::getSchoolAccess(),
+                'publish_status' => 1,
+                'status' => 1,
+                'tag' => 'exam',
+                'type' => 'homework'])
+            ->andWhere($weekCondition)
+            ->count();
 
         $pastExam = Homeworks::find()
-            ->where(['AND', ['school_id' => Utility::getSchoolAccess(), 'status' => 1, 'tag' => 'exam', 'type' => 'homework'], ['<', 'close_date', $dateTime]
-            ])->count();
+            ->where(
+                ['AND', ['school_id' => Utility::getSchoolAccess(), 'status' => 1, 'tag' => 'exam', 'type' => 'homework'],
+                    ['<', 'close_date', $dateTime]
+                ])
+            ->andWhere($weekCondition)
+            ->count();
 
 //        $activeHomeWork = Homeworks::find()->where(['AND',
 //            ['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'access_status' => 1, 'status' => 1],
@@ -117,37 +138,31 @@ class GeneralController extends ActiveController
 
         $liveClassSessions = TutorSession::find()
             ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses])
+            ->andWhere($weekCondition)
             ->count();
-
-//        $pendingSessions = TutorSession::find()
-//            ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses, 'status' => 'pending'])
-//            ->count();
-//
-//
-//        $ongoingSessions = TutorSession::find()
-//            ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses, 'status' => 'ongoing'])
-//            ->count();
-
 
         $completedSessions = TutorSession::find()
             ->where(['is_school' => 1, 'category' => 'class', 'class' => $schoolClasses, 'status' => 'completed'])
+            ->andWhere($weekCondition)
             ->count();
 
-        $lessonNoteShared = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'status' => 1, 'type' => 'lesson'])->count();
-        $discussions = Feed::find()->where(['class_id' => $schoolClasses, 'type' => 'post'])->count();
+        $lessonNoteShared = Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'status' => 1, 'type' => 'lesson'])
+            ->andWhere($weekCondition)
+            ->count();
+        $discussions = Feed::find()
+            ->where(['class_id' => $schoolClasses, 'type' => 'post'])
+            ->andWhere($weekCondition)
+            ->count();
+
 
         $data = [
-            'allHomework' => $allHomeWorkCount,
-            'pastHomework' => $pastHomework,
+            'allHomework' => $activeHomeWorkCount,
+            'pastHomework' => $completedHomework,
             'allExam' => $allExamCount,
             'completedExams' => $pastExam,
 
-            //'activeHomeWork' => $activeHomeWork,
-            //'yetToStartHomeWork' => $yetToStartHomeWork,
-            //'homeworkRange' => $homeworkRange,
             'liveClassSessions' => $liveClassSessions,
-//            'pendingSessions' => $pendingSessions,
-//            'ongoingSessions' => $ongoingSessions,
+//
             'completedSessions' => $completedSessions,
             'lessonNoteShared' => $lessonNoteShared,
             'discussion' => $discussions
