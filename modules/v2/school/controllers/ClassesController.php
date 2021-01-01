@@ -4,7 +4,10 @@ namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\{Utility, SharedConstant};
+use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\{Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User, Homeworks};
+use app\modules\v2\models\SchoolSubject;
+use app\modules\v2\models\Subjects;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
 use yii\db\Expression;
@@ -108,6 +111,45 @@ class ClassesController extends ActiveController
         return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL);
     }
 
+    public function actionClassSubjects($classes)
+    {
+        $classes = json_decode($classes);
+        if (!is_array($classes)) {
+            return (new ApiResponse)->success(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class(es) must be an array.');
+        }
+
+        $category = [];
+        foreach ($classes as $class) {
+            if ($class >= 7 && $class <= 12)
+                $category[] = 'secondary';
+            elseif ($class >= 1 && $class <= 6 || $class > 12)
+                $category[] = 'primary';
+            else
+                $category[] = null;
+        }
+        $category[] = 'all';
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $mySubjects = SchoolSubject::find()
+            ->alias('s')
+            ->select([
+
+                'subjects.id',
+                'subjects.slug',
+                'subjects.name',
+                'subjects.description',
+            ])
+            ->innerJoin('subjects', "subjects.id = s.subject_id")
+            ->where(['s.school_id' => $school->id, 's.status' => 1,'subjects.category'=>$category])
+            ->groupBy(['s.subject_id'])
+            ->asArray()->all();
+
+        if ($mySubjects) {
+            return (new ApiResponse)->success($mySubjects, ApiResponse::SUCCESSFUL);
+        }
+
+        return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND);
+    }
+
     public function actionView($id)
     {
         $getClass = Classes::find()
@@ -190,14 +232,14 @@ class ClassesController extends ActiveController
         $school_id = $school->id;
 
         $status = 1;
-        $model = new \yii\base\DynamicModel(compact('class_id', 'school_id','status'));
-        $model->addRule(['class_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id','status']]);
+        $model = new \yii\base\DynamicModel(compact('class_id', 'school_id', 'status'));
+        $model->addRule(['class_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id', 'status']]);
 
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id,'status'=>1])->all(), 'student_id');
+        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id, 'status' => 1])->all(), 'student_id');
 
         $students = User::find()->where(['id' => $student_ids])
             ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])

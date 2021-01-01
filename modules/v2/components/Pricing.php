@@ -77,22 +77,29 @@ class Pricing extends Widget
                     $schoolSubStatus = false;
                     $status = false;
                     $is_school = 0;
+                    $plan = $user->subscription_plan;
                     if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID])->one()) {
                         $model = Schools::findOne(['id' => $model->school_id]);
                         $schoolSubStatus = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                         $is_school = $schoolSubStatus ? 1 : 0;
+                        $plan = $model->subscription_plan;
                     }
                     if ($schoolSubStatus || $userStatus) {
                         $status = true;
                     }
-                    $return = [
+
+                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus);
+
+                    //I have only merged catchup and lms status to full return.
+                    $return = array_merge([
                         'status' => $status,
                         'expiry' => $user->subscription_expiry,
-                        'plan' => $user->subscription_plan,
+                        'plan' => $plan,
                         'is_school_sub' => $is_school,
                         'days_left' => self::subscriptionDaysLeft(isset($model->subscription_expiry) && strtotime($model->subscription_expiry) > strtotime($user->subscription_expiry) ? $model->subscription_expiry : $user->subscription_expiry)
-                    ];
+                    ],$lmsCatchupStatus);
                     return $statusOnly ? $status : $return;
+                    //return $statusOnly ? array_merge(['status'=>$status],$lmsCatchupStatus) : $return; // Final result
                 }
             }
         } catch (\Exception $e) {
@@ -150,5 +157,37 @@ class Pricing extends Widget
         }
 
         return true;
+    }
+
+    /**
+     * Get Catchup and LMS subscription status of a student
+     *
+     * @param $studentID
+     * @param $subStatus
+     * @param $studentSubStatus
+     * @param $schoolSubStatus
+     * @param bool $isSchool
+     * @return array
+     */
+    public static function StudentLmsCatchupStatus($studentID, $subStatus, $studentSubStatus, $schoolSubStatus, $isSchool = false)
+    {
+        $lms = false;
+        $catchup = false;
+        if ($subStatus) {
+            if ($isSchool && $schoolSubStatus) {
+                $studentSchool = StudentSchool::findOne(['student_id' => $studentID]);
+                if ($studentSchool->subscription_status == 'basic') {
+                    $lms = true;
+                }
+                if ($studentSchool->subscription_status == 'premium') {
+                    $catchup = true;
+                }
+            }
+            if ($studentSubStatus) {
+                $catchup = true;
+            }
+        }
+
+        return ['lms' => $lms, 'catchup' => $catchup];
     }
 }

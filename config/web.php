@@ -13,6 +13,8 @@ $parentUrl = require 'parent-url.php';
 $tutorUrl = require 'tutor-url.php';
 $learningUrl = require 'learning-url.php';
 $awsUrl = require 'aws-url.php';
+$commandUrl = require 'command-url.php';
+$testUrl = require 'test-url.php';
 
 $config = [
     'id' => 'gradely-v2',
@@ -87,7 +89,7 @@ $config = [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl),
+            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl, $commandUrl, $testUrl),
         ],
 
     ],

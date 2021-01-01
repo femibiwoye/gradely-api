@@ -26,7 +26,9 @@ class HomeworkReport extends QuizSummary
             'failed',
             'skipped',
             'submit',
+            'type',
             'topic_id',
+            'subject'=>'homeworkSubject',
             'actualAttemptCount' => 'countAttemptedQuestions',
             'actualScore' => 'homeworkScore',
             'homework_title' => 'homeworkTitle',
@@ -42,10 +44,21 @@ class HomeworkReport extends QuizSummary
         return HomeworkQuestions::find()->where(['homework_id' => $this->homework_id])->count();
     }
 
+    public function getHomework()
+    {
+        return Homeworks::find()->where(['id' => $this->homework_id])->one();
+    }
+
     public function getHomeworkTitle()
     {
-        $homework = Homeworks::find()->where(['id' => $this->homework_id])->one();
+        $homework = $this->getHomework();
         return isset($homework->title) ? $homework->title : null;
+    }
+
+    public function getHomeworkSubject()
+    {
+        $homework = $this->getHomework();
+        return isset($homework->title) ? $homework->subject->name : null;
     }
 
     public function getHomeworkScore()
@@ -78,7 +91,7 @@ class HomeworkReport extends QuizSummary
                 'qsd.selected',
                 'qsd.selected',
             ])
-            ->where(['hq.homework_id' => $this->homework_id, 'qsd.student_id'=>$this->student_id])
+            ->where(['hq.homework_id' => $this->homework_id, 'qsd.student_id' => $this->student_id])
             ->innerJoin('questions q', 'q.id = hq.question_id')
             ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id')
             ->groupBy('hq.question_id')
@@ -90,8 +103,8 @@ class HomeworkReport extends QuizSummary
     {
         return SubjectTopics::find()
             ->alias('st')
-            ->innerJoin('practice_topics pt','pt.topic_id = st.id')
-            ->where(['pt.practice_id'=>$this->homework_id])
+            ->innerJoin('practice_topics pt', 'pt.topic_id = st.id')
+            ->where(['pt.practice_id' => $this->homework_id])
             ->all();
     }
 

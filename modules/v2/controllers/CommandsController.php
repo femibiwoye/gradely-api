@@ -3,29 +3,23 @@
 namespace app\modules\v2\controllers;
 
 
-use app\modules\v2\components\Adaptivity;
 use app\modules\v2\components\Recommendation;
-use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
-use app\modules\v2\models\Classes;
 use app\modules\v2\models\GenerateString;
 use app\modules\v2\models\PracticeMaterial;
-use app\modules\v2\models\QuizSummary;
-use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Recommendations;
-use app\modules\v2\models\RecommendationTopics;
 use app\modules\v2\models\SchoolCalendar;
-use app\modules\v2\models\StudentSchool;
-use app\modules\v2\models\SubjectTopics;
-use app\modules\v2\models\TutorSession;
 use app\modules\v2\models\User;
-use app\modules\v2\models\VideoAssign;
 use app\modules\v2\models\VideoContent;
+use Aws\S3\S3Client;
+use FFMpeg\Coordinate\TimeCode;
+use FFMpeg\FFMpeg;
+use FFMpeg\Media\Video;
 use Yii;
-use yii\db\Expression;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
 use yii\rest\Controller;
 
 
@@ -137,6 +131,54 @@ class CommandsController extends Controller
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, ($key) . ' students generated');
+    }
+
+
+    public function actionVideoThumbnailExtractor()
+    {
+
+        $path = Url::to('@webfolder/thumbnails/videos/');
+        Utility::DeleteFolderWithFiles($path);
+        if (!Utility::CreateFolder($path))
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'There is error with the folder');
+
+        $models = PracticeMaterial::find()->where(['filetype' => 'video', 'thumbnail' => null])->all();
+        foreach ($models as $model) {
+            try {
+
+                //$file = 'https://s3.eu-west-2.amazonaws.com/recordings.gradely.ng/recordings/td6z7ljkhhwdkfwuu54jyt2zs36kd7/td6z7ljkhhwdkfwuu54jyt2zs36kd7_2020-11-11-20-11-46.mp4';
+                $file = $model->filename;
+                if (empty(pathinfo($file, PATHINFO_EXTENSION)) || !filter_var($file, FILTER_VALIDATE_URL)) {
+                    continue;
+                }
+                $fileName = pathinfo($file, PATHINFO_FILENAME);
+
+                $imageName = "$fileName.jpg";
+                $ffmpeg = FFMpeg::create([
+                        'ffmpeg.binaries' => exec('which ffmpeg'),
+                        'ffprobe.binaries' => exec('which ffprobe')
+                    ]
+                );
+                $video = $ffmpeg->open($file);
+                $frame = $video->frame(TimeCode::fromSeconds(5))
+                    ->addFilter(new \FFMpeg\Filters\Frame\CustomFrameFilter('scale=500x300'));
+                $frame->save($path . "$imageName");
+
+                $key = 'files/thumbnails/' . $imageName;
+                $s3Client = new S3Client(Utility::AwsS3Config());
+                $awsResponnse = $result = $s3Client->putObject([
+                    'Bucket' => Yii::$app->params['AwsS3BucketName'],
+                    'Key' => $key,
+                    'SourceFile' => $path . "$imageName",
+                ]);
+                if (isset($awsResponnse['ObjectURL'])) {
+                    $model->thumbnail = $awsResponnse['ObjectURL'];
+                    $model->save();
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
     }
 
 

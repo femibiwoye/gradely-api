@@ -95,13 +95,15 @@ class Feed extends \yii\db\ActiveRecord
             'token',
             'view_by',
             'myLike',
-            'created_at',
-            'updated_at',
             'user',
             'reference',
             'subject',
             'class',
             'isOwner',
+            'created_at',
+            'updated_at',
+            'createdTimestamp',
+            'updatedTimestamp',
             'global_class_id' => 'globalClass',
             'comment' => 'miniComment',
             'attachments' => 'attachments',
@@ -270,6 +272,16 @@ class Feed extends \yii\db\ActiveRecord
     public function getParticipants()
     {
         return $this->hasMany(User::className(), ['id' => 'user_id'])->select(['id', 'firstname', 'lastname', 'image'])->asArray();
+    }
+
+    public function getCreatedTimestamp()
+    {
+        return strtotime($this->created_at);
+    }
+
+    public function getUpdatedTimestamp()
+    {
+        return strtotime($this->updated_at);
     }
 
     public function beforeSave($insert)

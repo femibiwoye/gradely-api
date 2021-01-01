@@ -21,6 +21,7 @@ use app\modules\v2\models\{TeacherClass,
     RecommendationTopics};
 
 use app\modules\v2\models\User;
+use Aws\Credentials\Credentials;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
@@ -183,6 +184,14 @@ class Utility extends ActiveRecord
         return null;
     }
 
+    /**
+     * This function allows you to get the class of a student.
+     * There are 2 options. global_id is 0 when you want to get school class, e.g 1839 could be student class_id while in JSS1
+     * and global_id is 1 when you want to get the global class_id. e.g 7 is JSS 1
+     * @param int $global_id
+     * @param null $studentID
+     * @return int|mixed|string|null
+     */
     public static function getStudentClass($global_id = SharedConstant::VALUE_ZERO, $studentID = null)
     {
         if (!empty($studentID)) {
@@ -585,5 +594,44 @@ class Utility extends ActiveRecord
             ])
             ->andWhere('DAY(CURDATE()) = DAY(created_at)')
             ->exists();
+    }
+
+    /**
+     * This function allows you to create a folder with the necessary permission if it doesn't exist.
+     * @param $folder
+     * @return bool
+     */
+    public static function CreateFolder($folder)
+    {
+        if (!is_dir($folder)) {
+            mkdir($folder, 0777, true);
+        }
+        return true;
+    }
+
+
+    /**
+     * This deletes folder
+     * @param $folder
+     * @return bool
+     */
+    public static function DeleteFolderWithFiles($folder)
+    {
+        if (is_dir($folder)) {
+            array_map('unlink', glob("$folder/*.*"));
+            rmdir($folder);
+            return true;
+        }
+    }
+
+    public static function AwsS3Config()
+    {
+        $credentials = new Credentials(Yii::$app->params['AwsS3Key'], Yii::$app->params['AwsS3Secret']);
+
+        return [
+            'version' => 'latest',
+            'region' => 'eu-west-2',
+            'credentials' => $credentials
+        ];
     }
 }
