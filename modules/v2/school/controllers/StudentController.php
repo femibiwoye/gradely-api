@@ -6,14 +6,17 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Homeworks;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentDetails;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
+use app\modules\v2\models\UserModel;
 use Yii;
 use app\modules\v2\components\{SharedConstant, Utility};
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -169,6 +172,79 @@ class StudentController extends ActiveController
         if ($model->save())
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
+    }
+
+    public function actionStudents()
+    {
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $classes = StudentSchool::find()
+            ->where(['school_id' => $school->id]);
+
+        if (!$classes->exists()) {
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
+        }
+
+        $models = StudentSchool::find()
+            ->alias('ss')
+            ->select([
+                'u.id student_id',
+                'u.firstname student_firstname',
+                'u.lastname student_lastname',
+                'u.image student_image',
+                'u.lastname student_lastname',
+                'pu.id parent_id',
+                'pu.firstname parent_firstname',
+                'pu.lastname parent_lastname',
+                'pu.phone parent_phone',
+                'pu.email parent_email',
+                'p.role relationship',
+                'pu.image parent_image',
+                'ss.subscription_status',
+                'cl.class_name',
+            ])
+            ->innerJoin('user u', 'u.id = ss.student_id')
+            ->leftJoin('parents p', 'p.student_id = ss.student_id AND p.status = 1')
+            ->leftJoin('user pu', 'pu.id = p.parent_id AND p.status = 1')
+            ->leftJoin('classes cl', 'cl.id = ss.class_id')
+            ->where(['ss.school_id' => $school->id])
+            ->asArray();
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $models,
+            'sort' => [
+                //'attributes' => ['id', 'firstname', 'lastname', 'email'],
+//                'defaultOrder' => [
+//                    'id' => SORT_DESC,
+//                    'firstname' => SORT_ASC,
+//                ]
+            ],
+            'pagination' => [
+                'pageSize' => 20, // This is a fixed number of content to be rendered per page.
+            ],
+        ]);
+
+        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
+
+    }
+
+    public function actionParentChildren($parent_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $model = UserModel::find()
+            ->select([
+                'user.id',
+                'firstname',
+                'lastname',
+                'image',
+                'cl.class_name',
+            ])
+            ->innerJoin('parents p', 'p.student_id = user.id AND p.status = 1')
+            ->innerJoin('student_school ss', 'ss.student_id = p.student_id AND ss.status = 1')
+            ->leftJoin('classes cl', 'cl.id = ss.class_id')
+            ->where(['p.parent_id' => $parent_id,'ss.school_id'=>$school->id])->asArray()->all();
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
 

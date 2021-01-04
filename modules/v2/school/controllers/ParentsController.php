@@ -8,6 +8,7 @@ use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
 use yii\data\ActiveDataProvider;

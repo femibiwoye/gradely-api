@@ -2,7 +2,9 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\Utility;
 use Yii;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "student_school".
@@ -75,7 +77,7 @@ class StudentSchool extends \yii\db\ActiveRecord
 
     public function getSchool()
     {
-        return $this->hasOne(Schools::className(), ['id' => 'school_id'])->select(['id','name','slug','abbr','logo']);
+        return $this->hasOne(Schools::className(), ['id' => 'school_id'])->select(['id', 'name', 'slug', 'abbr', 'logo']);
     }
 
     public function getClass()
@@ -87,4 +89,5 @@ class StudentSchool extends \yii\db\ActiveRecord
     {
         return $this->hasMany(Parents::className(), ['student_id' => 'student_id']);
     }
+
 }
