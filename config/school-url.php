@@ -43,7 +43,7 @@ return [
         'PUT update' => 'update', //
         'GET students/<class_id:\d+>' => 'student-in-class', //
         'DELETE <class_id:\d+>' => 'delete', //
-        'GET class-subjects'=>'class-subjects'
+        'GET class-subjects' => 'class-subjects'
     ]],
 
 
@@ -56,6 +56,8 @@ return [
     'DELETE v2/school/student/<student_id:\d+>' => 'v2/school/student/remove-student', //
     'GET v2/school/student/<id:\d+>' => 'v2/teacher/class/get-student', //
     'PUT v2/school/student/update-class' => 'v2/school/student/update-class', //
+    'GET v2/school/students' => 'v2/school/student/students', //
+    'GET v2/school/students/parent/<parent_id:\d+>' => 'v2/school/student/parent-children', //
 
     //School Profile
     'GET v2/school/profile/school' => 'v2/school/profile/school', //
