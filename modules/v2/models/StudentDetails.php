@@ -257,7 +257,7 @@ class StudentDetails extends User
     public function getQuestion($question_id)
     {
         $model = Questions::findOne(['id' => $question_id]);
-        return $model->difficulty;
+        return isset($model->difficulty) ? $model->difficulty : SharedConstant::QUESTION_DIFFICULTY[2];
     }
 
     public function getQuestionsDifficulty($summary, $topic)
@@ -334,7 +334,7 @@ class StudentDetails extends User
         if (isset($_GET['term']))
             $term = $_GET['term'];
         else
-            $term = Utility::getStudentTermWeek('term',$this->id);
+            $term = Utility::getStudentTermWeek('term', $this->id);
 
         $studentAnalytics = new StudentAnalytics();
         $subject_id = isset($this->getSelectedSubject()->id) ? $this->getSelectedSubject()->id : null;
