@@ -39,6 +39,7 @@ phpunit.phar
 
 tests/_output/*
 tests/_support/_generated
+tests/unit.suite.yml
 
 #vagrant folder
 /.vagrant
