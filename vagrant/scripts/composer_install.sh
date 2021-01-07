@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /var/www/tapp.gradely.ng
+cd /var/www/tapi.gradely.ng
 composer update
