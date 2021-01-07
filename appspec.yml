@@ -3,7 +3,7 @@ os: linux
 files:
   - source: /
     destination: /var/www/test/tapi.gradely.ng
-    overwrite: true
+    retain: true
 hooks:
 #  BeforeInstall:
 #    - location: vagrant/scripts/install_dependencies.sh
