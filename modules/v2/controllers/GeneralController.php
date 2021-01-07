@@ -151,7 +151,7 @@ class GeneralController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No unread notifications!');
         }
 
-        return (new ApiResponse)->success($in_app_model, ApiResponse::SUCCESSFUL, 'Notifications Found!');
+        return (new ApiResponse)->success($in_app_model, ApiResponse::SUCCESSFUL, 'Notifications Found.');
 
     }
 
