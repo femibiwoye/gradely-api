@@ -8,7 +8,7 @@ hooks:
 #    - location: vagrant/scripts/install_dependencies.sh
 #      timeout: 300
 #      runas: root
-  ApplicationStart:
+  ValidateService:
     - location: vagrant/scripts/composer_install.sh
       timeout: 300
       runas: root
