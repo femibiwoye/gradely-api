@@ -5,10 +5,10 @@ files:
     destination: /var/www/test/tapi.gradely.ng
 hooks:
   BeforeInstall:
-    - location: vagrant/scripts/install_dependencies
+    - location: vagrant/scripts/install_dependencies.sh
       timeout: 300
       runas: root
   AfterInstall:
-    - location: vagrant/scripts/composer_install
+    - location: vagrant/scripts/composer_install.sh
       timeout: 300
       runas: root
