@@ -382,7 +382,7 @@ class ClassController extends ActiveController
 
     public function actionClassDetails($class_id)
     {
-        $teacherClass = TeacherClass::findOne(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id]);
+        $teacherClass = TeacherClass::findOne(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1]);
         if (!$teacherClass) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class either does not exist or invalid!');
         }
@@ -397,5 +397,28 @@ class ClassController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::NOT_FOUND, 'Class not found!');
+    }
+
+    public function actionGroupClasses($class_id = null)
+    {
+        if (Yii::$app->user->identity->type == 'school')
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        else {
+            if (empty($class_id)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class_id must be provided');
+            }
+            $school = TeacherClass::findOne(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1]);
+            $school = Schools::findOne(['id' => $school->id]);
+        }
+
+        $globalClasses = Utility::getMyGlobalClassesID($school->school_type);
+        $classes = [];
+
+        foreach ($globalClasses as $class) {
+            $globalTemp = Utility::getGlobalClasses($class->id, $school);
+            $classes[] = array_merge($globalTemp, ['classes' => $class->getSchoolClasses($school->id)]);
+        }
+
+        return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL);
     }
 }
