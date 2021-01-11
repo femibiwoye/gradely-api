@@ -122,7 +122,7 @@ class Questions extends \yii\db\ActiveRecord
         if ($this->difficulty == 'medium')
             $duration = 70;
         elseif ($this->difficulty == 'hard')
-            $duration = 70;
+            $duration = 80;
         else {
             $duration = 60;
         }
