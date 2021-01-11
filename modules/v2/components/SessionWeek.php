@@ -14,7 +14,7 @@ class SessionWeek extends Widget
     {
         parent::init();
         $this->start = date("Y-m-d", strtotime($this->start));
-        $this->end = date("Y- m-d");
+        $this->end = date("Y-m-d");
 
         //if ($this->start > $this->end) return datediffInWeeks($this->end, $this->start);
 
