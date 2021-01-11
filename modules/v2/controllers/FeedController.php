@@ -377,18 +377,44 @@ class FeedController extends ActiveController
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
 
-    public function actionDeleteComment($comment_id){
-        $comment = FeedComment::findOne(['id' => $comment_id, 'status'=>1]);
-            
-        if(!$comment){
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
+    /**
+     *
+     * Delete records from feed
+     *
+     * @param $feed_id
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDeleteComment($feed_id, $comment_id)
+    {
+        $feed = Feed::findOne(['id' => $feed_id, 'status' => 1]);
+        if (!$feed) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
-        if ($comment->user_id != Yii::$app->user->id){
+
+        $comment = FeedComment::findOne(['feed_id' => $feed_id, 'id' => $comment_id, 'status' => 1]);
+        if (!$comment) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment not found');
+        }
+
+        $user = Yii::$app->user->identity;
+        $status = false;
+        if ($user->type == 'teacher' && TeacherClass::find()->where(['class_id' => $feed->class_id, 'teacher_id' => $user->id, 'status' => 1])->exists()) {
+            $status = true;
+        }
+
+        if ($user->type == 'school' && Classes::find()->where(['class_id' => $feed->class_id, 'school_id' => Utility::getSchoolAccess(), 'status' => 1])->exists()) {
+            $status = true;
+        }
+
+
+        if ($feed->user_id != Yii::$app->user->id && $status == false)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access');
-        }
-            if (!$comment->delete()){
+
+        if (!$comment->delete())
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not delete this record');
-        }
+
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
 
