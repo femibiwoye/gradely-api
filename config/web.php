@@ -82,6 +82,7 @@ $config = [
         ],
 
         'db' => $db['db'],
+        'dblive' => $db['dblive'],
         'db_test' => $db['db_test'],
         'notification' => $db['main'],
 

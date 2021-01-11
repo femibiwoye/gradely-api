@@ -133,4 +133,9 @@ class Subjects extends \yii\db\ActiveRecord
         }
         return $image;
     }
+
+    public static function getDb()
+    {
+        return Yii::$app->get('dblive');
+    }
 }
