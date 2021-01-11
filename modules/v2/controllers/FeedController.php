@@ -417,4 +417,5 @@ class FeedController extends ActiveController
 
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
+
 }
