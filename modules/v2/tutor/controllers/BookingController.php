@@ -1,6 +1,5 @@
 <?php
 
-
 namespace app\modules\v2\tutor\controllers;
 
 use Yii;
@@ -11,6 +10,7 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\{ApiResponse, PaymentPlan, Coupon, Subjects, TutorSession};
 use app\modules\v2\models\User;
+
 
 class BookingController extends ActiveController
 {
@@ -52,6 +52,7 @@ class BookingController extends ActiveController
      */
     public function actionSingleBooking()
     {
+
         $tutor_id = Yii::$app->request->post('tutor_id');
         $subject_id = Yii::$app->request->post('subject_id');
         $availability = Yii::$app->request->post('availability');
@@ -110,6 +111,7 @@ class BookingController extends ActiveController
         $model->student_id = $student_id;
         $model->subject_id = $subject_id;
         $model->availability = $available;
+
         $model->title = $title;
         //$model->curriculum_id = $curriculum;
         $model->repetition = $repetition;
@@ -121,7 +123,6 @@ class BookingController extends ActiveController
         }
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
 
-
         if ($coupon) {
             $couponcode = Coupon::findOne(['code' => $coupon]);
             if ($couponcode) {
@@ -130,14 +131,13 @@ class BookingController extends ActiveController
                 if ($discount) {
                     $newprice = ($price * $session_count);
                     $discountedPrice = ($percentage / 100) * $newprice;
+
                     $discountedPrice = ($newprice - $discountedPrice);
                     return (new ApiResponse)->success($discountedPrice, ApiResponse::SUCCESSFUL, 'Discount');
                 }
             }
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Incorrect Coupon');
         }
-
         return (new ApiResponse)->success($total, ApiResponse::SUCCESSFUL, 'Total Price');
     }
-
 }
