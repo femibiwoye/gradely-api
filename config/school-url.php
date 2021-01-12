@@ -28,7 +28,7 @@ return [
     'POST v2/school/general/request-call' => 'v2/school/general/request-call', //
     'GET v2/school/general/dashboard-todo-status' => 'v2/school/general/dashboard-todo-status', //
 
-    'GET v2/school/week/<type:[a-zA-Z0-9/]+>' => 'v2/school/general/week', //
+    'GET v2/school/week/<type:[a-zA-Z0-9-/]+>' => 'v2/school/general/week', //
 
 
     //School class homeworks
