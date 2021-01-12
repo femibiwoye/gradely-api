@@ -185,7 +185,7 @@ class StudentController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
 
-        $models = StudentSchool::find($s= null, $class=null, $package=null)
+        $models = StudentSchool::find($s = null, $class = null, $package = null)
             ->alias('ss')
             ->select([
                 'u.id student_id',
@@ -224,7 +224,13 @@ class StudentController extends ActiveController
             ],
         ]);
 
-        $return = ['students'=>$dataProvider->getModels(),'license'=>[]];
+        $basicUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic'])->count();
+        $premiumUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium'])->count();
+        $return = ['students' => $dataProvider->getModels(),
+            'license' => [
+                ['basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed]],
+                ['premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]]
+            ]];
 
         return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
 
@@ -244,7 +250,7 @@ class StudentController extends ActiveController
             ->innerJoin('parents p', 'p.student_id = user.id AND p.status = 1')
             ->innerJoin('student_school ss', 'ss.student_id = p.student_id AND ss.status = 1')
             ->leftJoin('classes cl', 'cl.id = ss.class_id')
-            ->where(['p.parent_id' => $parent_id,'ss.school_id'=>$school->id])->asArray()->all();
+            ->where(['p.parent_id' => $parent_id, 'ss.school_id' => $school->id])->asArray()->all();
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }

@@ -11,7 +11,7 @@ return [
     'second_term_start' => $year . '-01-05',
     'second_term_end' => $year . '-04-18',
     'third_term_start' => $year . '-04-19',
-    'third_term_end' => $year . '-09-08',
+    'third_term_end' => $year . '-08-08',
 
     //'domain' => Yii::$app->request->BaseUrl,
     'appName' => 'gradely',

@@ -265,13 +265,13 @@ class GeneralController extends ActiveController
         if ($type == 'homework') {
             $model = Homeworks::find()
                 ->where(['type' => 'homework', 'tag' => 'homework', 'school_id' => $school_id])
-                //->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+                //->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)') // To be returned
             ;
 
         } elseif ($type == 'exam') {
             $model = Homeworks::find()
                 ->where(['type' => 'homework', 'tag' => 'exam', 'school_id' => $school_id])
-            //    ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+            //    ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)') // To be returned
             ;
         } elseif ($type == 'live-class') {
             $model = TutorSession::find()
@@ -300,11 +300,11 @@ class GeneralController extends ActiveController
                     'is_school' => 1,
                     'school_teachers.school_id' => $school_id,
                 ])
-                //->andWhere('YEARWEEK(`tutor_session`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+                //->andWhere('YEARWEEK(`tutor_session`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)') // To be returned
                 ->asArray();
         } elseif ($type == 'event') {
             $model = Event::find()
-            //    ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+            //    ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)') // To be returned
             ;
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
