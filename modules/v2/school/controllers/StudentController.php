@@ -185,7 +185,7 @@ class StudentController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
 
-        $models = StudentSchool::find()
+        $models = StudentSchool::find($s= null, $class=null, $package=null)
             ->alias('ss')
             ->select([
                 'u.id student_id',
@@ -224,7 +224,9 @@ class StudentController extends ActiveController
             ],
         ]);
 
-        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
+        $return = ['students'=>$dataProvider->getModels(),'license'=>[]];
+
+        return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
 
     }
 

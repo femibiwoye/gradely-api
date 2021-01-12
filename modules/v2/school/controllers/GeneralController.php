@@ -16,11 +16,13 @@ use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolTeachers;
 use app\modules\v2\models\SchoolType;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
 use app\modules\v2\models\{User, UserProfile, SchoolCurriculum};
 use app\modules\v2\school\models\SchoolProfile;
 use app\modules\v2\components\SharedConstant;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -251,5 +253,36 @@ class GeneralController extends ActiveController
         $profile = !empty($school->tagline);
 
         return (new ApiResponse)->success(['teacher' => $teacher, 'student' => $student, 'announcement' => $announcement, 'profile' => $profile]);
+    }
+
+    public function actionWeek($type)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+
+        if($type == 'homework') {
+            $model = Homeworks::find()
+                ->where(['type' => 'homework','school_id'=>$school_id])
+                ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+                ->orderBy('id DESC');
+        }
+
+        if (!$model->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 20,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['open_date', 'close_date'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' homework found', $provider);
     }
 }
