@@ -6,6 +6,7 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
+use app\modules\v2\models\Event;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\InviteLog;
@@ -270,7 +271,7 @@ class GeneralController extends ActiveController
             $model = Homeworks::find()
                 ->where(['type' => 'homework', 'tag' => 'exam', 'school_id' => $school_id])
                 ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
-        }elseif($type == 'live-class'){
+        } elseif ($type == 'live-class') {
             $model = TutorSession::find()
                 ->select([
                     'tutor_session.id',
@@ -299,13 +300,17 @@ class GeneralController extends ActiveController
                 ])
                 ->andWhere('YEARWEEK(`tutor_session`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
                 ->asArray();
+        } elseif ($type == 'event') {
+            $model = Event::find()
+                ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
+        } else {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
 
         $model = $model->orderBy('id DESC');
-
         if (!$model->exists()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            return (new ApiResponse)->error(null, ApiResponse::NO_CONTENT);
         }
 
 
