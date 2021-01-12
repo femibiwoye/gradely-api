@@ -23,6 +23,7 @@ use app\modules\v2\school\models\SchoolProfile;
 use app\modules\v2\components\SharedConstant;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -260,12 +261,48 @@ class GeneralController extends ActiveController
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $school_id = $school->id;
 
-        if($type == 'homework') {
+        if ($type == 'homework') {
             $model = Homeworks::find()
-                ->where(['type' => 'homework','school_id'=>$school_id])
-                ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
-                ->orderBy('id DESC');
+                ->where(['type' => 'homework', 'tag' => 'homework', 'school_id' => $school_id])
+                ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
+
+        } elseif ($type == 'exam') {
+            $model = Homeworks::find()
+                ->where(['type' => 'homework', 'tag' => 'exam', 'school_id' => $school_id])
+                ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
+        }elseif($type == 'live-class'){
+            $model = TutorSession::find()
+                ->select([
+                    'tutor_session.id',
+                    'tutor_session.title',
+                    'tutor_session.subject_id',
+                    'tutor_session.class as class_id',
+                    'tutor_session.created_at',
+                    'tutor_session.availability as datetime',
+                    'subjects.name as subject_name',
+                    'classes.class_name',
+                    'DATE(tutor_session.availability) as date',
+                    'TIME(tutor_session.availability) as time',
+                    new Expression("'live_class' as type"),
+                    'user.firstname as teacher_firstname',
+                    'user.lastname as teacher_lastname',
+                    'user.id as teacher_id',
+                    'user.image as teacher_image',
+                ])
+                ->innerJoin('user', 'user.id = tutor_session.requester_id')
+                ->innerJoin('school_teachers', 'school_teachers.teacher_id = tutor_session.requester_id')
+                ->innerJoin('subjects', 'subjects.id = tutor_session.subject_id')
+                ->innerJoin('classes', 'classes.id = tutor_session.class')
+                ->where([
+                    'is_school' => 1,
+                    'school_teachers.school_id' => $school_id,
+                ])
+                ->andWhere('YEARWEEK(`tutor_session`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+                ->asArray();
         }
+
+
+        $model = $model->orderBy('id DESC');
 
         if (!$model->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
