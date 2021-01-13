@@ -188,7 +188,7 @@ class StudentController extends ActiveController
         $models = StudentSchool::find($s = null, $class = null, $package = null)
             ->alias('ss')
             ->select([
-                'u.id student_id',
+                'u.id',
                 'u.firstname student_firstname',
                 'u.lastname student_lastname',
                 'u.image student_image',
@@ -212,15 +212,12 @@ class StudentController extends ActiveController
 
         $dataProvider = new ActiveDataProvider([
             'query' => $models,
-            //'sort' => [
-                //'attributes' => ['id', 'firstname', 'lastname', 'email'],
-//                'defaultOrder' => [
-//                    'id' => SORT_DESC,
-//                    'firstname' => SORT_ASC,
-//                ]
-            //],
             'pagination' => [
-                'pageSize' => 20, // This is a fixed number of content to be rendered per page.
+                'pageSize' => 20,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['open_date', 'close_date'],
             ],
         ]);
 
