@@ -119,6 +119,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'subject',
             'teacher',
             'class_id',
+            'class',
             'school_id',
             'exam_type_id',
             'slug',
@@ -482,6 +483,11 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getAttachments()
     {
         return $this->hasMany(PracticeMaterial::className(), ['practice_id' => 'id'])->andWhere(['type' => 'practice']);
+    }
+
+    public function getClass()
+    {
+        return $this->hasOne(Classes::className(),['id'=>'class_id'])->select(['id','class_name']);
     }
 
 }
