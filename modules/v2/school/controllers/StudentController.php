@@ -212,13 +212,13 @@ class StudentController extends ActiveController
 
         $dataProvider = new ActiveDataProvider([
             'query' => $models,
-            'sort' => [
+            //'sort' => [
                 //'attributes' => ['id', 'firstname', 'lastname', 'email'],
 //                'defaultOrder' => [
 //                    'id' => SORT_DESC,
 //                    'firstname' => SORT_ASC,
 //                ]
-            ],
+            //],
             'pagination' => [
                 'pageSize' => 20, // This is a fixed number of content to be rendered per page.
             ],
@@ -226,11 +226,13 @@ class StudentController extends ActiveController
 
         $basicUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic'])->count();
         $premiumUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium'])->count();
-        $return = ['students' => $dataProvider->getModels(),
+        $return = [
+            'students' => $dataProvider->getModels(),
             'license' => [
                 ['basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed]],
                 ['premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]]
-            ]];
+            ]
+        ];
 
         return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
 
