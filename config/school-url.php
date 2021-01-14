@@ -45,7 +45,8 @@ return [
         'PUT update' => 'update', //
         'GET students/<class_id:\d+>' => 'student-in-class', //
         'DELETE <class_id:\d+>' => 'delete', //
-        'GET class-subjects' => 'class-subjects'
+        'GET class-subjects' => 'class-subjects',
+        'PUT move-student-class' => 'move-student-class'
     ]],
 
 
