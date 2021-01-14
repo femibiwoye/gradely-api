@@ -82,4 +82,9 @@ class VideoAssign extends \yii\db\ActiveRecord
     {
         return $this->hasOne(VideoContent::className(), ['id' => 'content_id']);
     }
+
+    public static function getDb()
+    {
+        return Yii::$app->get('dblive');
+    }
 }

@@ -301,10 +301,10 @@ class ClassesController extends ActiveController
 
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            if (!StudentSchool::updateAll(['status' => 0,'is_active_class'=>0], ['student_id' => ArrayHelper::getColumn($currentStudents, 'student_id'), 'status' => 1, 'school_id' => $school_id]))
+            if (!StudentSchool::updateAll(['status' => 0, 'is_active_class' => 0], ['student_id' => ArrayHelper::getColumn($currentStudents, 'student_id'), 'status' => 1, 'school_id' => $school_id]))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Previous class was not updated');
 
-            if ($finalYear != 1) {
+            if ($finalYear != 1 and $new_class != $current_class) {
                 foreach ($currentStudents as $student) {
                     $newClass = new StudentSchool();
                     $newClass->student_id = $student->student_id;
