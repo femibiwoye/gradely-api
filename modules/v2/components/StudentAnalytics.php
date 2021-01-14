@@ -4,6 +4,7 @@ namespace app\modules\v2\components;
 
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\UserProfile;
+use Yii;
 use yii\base\Model;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
@@ -92,7 +93,10 @@ class StudentAnalytics extends Model
 
         $model = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id AND homeworks.type = 'homework'")
             ->leftJoin('classes', 'classes.id = homeworks.class_id')
-            ->andWhere(['classes.global_class_id' => $studentClassID]);
+            ->andWhere(['classes.global_class_id' => $studentClassID])
+            ->andWhere(['between', 'quiz_summary.submit_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+        ;
 
 
         $homeworkModel = clone $model;
