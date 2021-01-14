@@ -14,6 +14,20 @@ return ['db' => [
         $event->sender->createCommand("SET time_zone='+01:00';")->execute();
     },
 
+], 'dblive' => [
+    'class' => 'yii\db\Connection',
+    'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . DATABASE_LIVE,
+    'username' => USERNAME,
+    'password' => PASSWORD,
+    'charset' => 'utf8',
+
+    // Schema cache options (for production environment)
+    'enableSchemaCache' => true,
+    'schemaCacheDuration' => 60,
+    'schemaCache' => 'cache',
+    'on afterOpen' => function ($event) {
+        $event->sender->createCommand("SET time_zone='+01:00';")->execute();
+    },
 ], 'db_test' => [
     'class' => 'yii\db\Connection',
     'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . DATABASE_TEST,

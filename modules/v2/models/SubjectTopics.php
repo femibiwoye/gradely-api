@@ -256,4 +256,9 @@ class SubjectTopics extends \yii\db\ActiveRecord
             return 0;
         }
     }
+
+    public static function getDb()
+    {
+        return Yii::$app->get('dblive');
+    }
 }

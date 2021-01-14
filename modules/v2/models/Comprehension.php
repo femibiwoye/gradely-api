@@ -40,4 +40,9 @@ class Comprehension extends \yii\db\ActiveRecord
     {
         return $this->hasMany(Questions::className(), ['comprehension_id' => 'id']);
     }
+
+    public static function getDb()
+    {
+        return Yii::$app->get('dblive');
+    }
 }

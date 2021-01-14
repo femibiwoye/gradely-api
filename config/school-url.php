@@ -28,6 +28,8 @@ return [
     'POST v2/school/general/request-call' => 'v2/school/general/request-call', //
     'GET v2/school/general/dashboard-todo-status' => 'v2/school/general/dashboard-todo-status', //
 
+    'GET v2/school/week/<type:[a-zA-Z0-9-/]+>' => 'v2/school/general/week', //
+
 
     //School class homeworks
     'GET v2/school/homeworks/<class_id:\d+>' => 'v2/school/homework/class-homeworks', //
@@ -43,7 +45,8 @@ return [
         'PUT update' => 'update', //
         'GET students/<class_id:\d+>' => 'student-in-class', //
         'DELETE <class_id:\d+>' => 'delete', //
-        'GET class-subjects'=>'class-subjects'
+        'GET class-subjects' => 'class-subjects',
+        'PUT move-student-class' => 'move-student-class'
     ]],
 
 
@@ -56,6 +59,8 @@ return [
     'DELETE v2/school/student/<student_id:\d+>' => 'v2/school/student/remove-student', //
     'GET v2/school/student/<id:\d+>' => 'v2/teacher/class/get-student', //
     'PUT v2/school/student/update-class' => 'v2/school/student/update-class', //
+    'GET v2/school/students' => 'v2/school/student/students', //
+    'GET v2/school/students/parent/<parent_id:\d+>' => 'v2/school/student/parent-children', //
 
     //School Profile
     'GET v2/school/profile/school' => 'v2/school/profile/school', //

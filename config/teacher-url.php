@@ -27,6 +27,9 @@ return [
     'POST v2/teacher/student/add-multiple' => 'v2/teacher/class/add-student', //
     'DELETE v2/teacher/class/<class_id:\d+>' => 'v2/teacher/class/remove-class', //
 
+    'GET v2/teacher/classes/group-classes' => 'v2/teacher/class/group-classes',
+    'PUT v2/teacher/student/update-class' => 'v2/teacher/class/update-class', //
+
 
     //Homework Class
     'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework', //

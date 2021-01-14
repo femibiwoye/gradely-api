@@ -2,6 +2,9 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\GetSpecificData;
+use app\modules\v2\components\SessionTermOnly;
+use app\modules\v2\components\SessionWeek;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use Yii;
@@ -79,6 +82,8 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'token',
             'updated_at',
             'user',
+            'uploadTerm',
+            'uploadWeek',
             'feed_likes_and_dislikes' => 'feedLike',
         ];
     }
@@ -192,6 +197,20 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         if ($this->user_id == Yii::$app->user->id)
             return 1;
         return 0;
+    }
+
+    public function getUploadTerm(){
+        $model = new GetSpecificData();
+        return $model->term('2020-01-21');
+    }
+
+    public function getUploadWeek(){
+        $createdAt = '2020-01-21';
+        $model = new GetSpecificData();
+        $term = strtolower($model->term($createdAt));
+        $y = date('Y', strtotime($createdAt));
+        $start = $y.'-'.date('m-d', strtotime(Yii::$app->params["{$term}_term_start"]));
+        return $model->week($start,'2020-01-21');
     }
 
     public function beforeSave($insert)

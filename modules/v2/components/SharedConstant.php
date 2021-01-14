@@ -63,5 +63,5 @@ class SharedConstant
     const SINGLE_PRACTICE_QUESTION_COUNT = 5;
     const MIX_PRACTICE_QUESTION_COUNT = 3;
 
-    const DB_CONNECTION_NAME = ['db', 'db_test'];
+    const DB_CONNECTION_NAME = ['db', 'db_test','dblive'];
 }

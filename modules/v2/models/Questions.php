@@ -119,14 +119,21 @@ class Questions extends \yii\db\ActiveRecord
 
     public function getCustomDuration()
     {
-        if ($this->difficulty == 'medium')
-            $duration = 70;
-        elseif ($this->difficulty == 'hard')
-            $duration = 70;
-        else {
-            $duration = 60;
+        if ($this->class_id >= 1 && $this->class_id <= 6 || $this->class_id > 12) {
+            if ($this->difficulty == 'medium')
+                $duration = 240;
+            elseif ($this->difficulty == 'hard')
+                $duration = 180;
+            else
+                $duration = 120;
+        } else {
+            if ($this->difficulty == 'medium')
+                $duration = 75;
+            elseif ($this->difficulty == 'hard')
+                $duration = 90;
+            else
+                $duration = 60;
         }
-
         return $duration;
     }
 
@@ -167,5 +174,10 @@ class Questions extends \yii\db\ActiveRecord
     public static function find()
     {
         return parent::find()->andWhere(['<>', 'status', SharedConstant::STATUS_DELETED]);
+    }
+
+    public static function getDb()
+    {
+        return Yii::$app->get('dblive');
     }
 }
