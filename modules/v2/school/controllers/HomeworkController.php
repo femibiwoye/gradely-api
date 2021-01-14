@@ -62,7 +62,9 @@ class HomeworkController extends ActiveController
         }
 
         $homeworks = $this->modelClass::find()
-            ->where(['class_id' => $class_id,'type'=>'homework'])->orderBy('id DESC');
+            ->where(['class_id' => $class_id, 'type' => 'homework'])
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+            ->orderBy('id DESC');
         if (!$homeworks->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homeworks not found');
         }

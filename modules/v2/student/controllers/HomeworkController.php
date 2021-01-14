@@ -66,6 +66,7 @@ class HomeworkController extends ActiveController
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
             ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
             ->orderBy('quiz_summary.submit_at DESC')
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
             ->all();
 
         $missedModels = StudentHomeworkReport::find()
@@ -74,6 +75,7 @@ class HomeworkController extends ActiveController
             ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
             ->andWhere(['<', 'UNIX_TIMESTAMP(close_date)', time()])
             ->andWhere(['IS', 'qs.homework_id', null])
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
             ->all();
 
 //return $models;
@@ -110,8 +112,8 @@ class HomeworkController extends ActiveController
             ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
             ->andWhere(['<', 'UNIX_TIMESTAMP(open_date)', time()])
             ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()])
-            ->andWhere(['IS', 'qs.homework_id', null]);
-
+            ->andWhere(['IS', 'qs.homework_id', null])
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }

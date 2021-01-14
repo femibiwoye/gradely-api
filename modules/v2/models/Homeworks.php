@@ -142,6 +142,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'expected_students' => 'studentExpectedCount',
             'submitted_students' => 'studentsSubmitted',
             'completion' => 'completedRate',
+            'created_at'
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
 //            'homework_performance' => 'homeworkPerformance'
