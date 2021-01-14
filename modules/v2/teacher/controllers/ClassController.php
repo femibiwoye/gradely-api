@@ -427,17 +427,21 @@ class ClassController extends ActiveController
         $student_id = Yii::$app->request->post('student_id');
         $class_id = Yii::$app->request->post('class_id');
 
-        if (Yii::$app->user->identity->type == 'school')
+        if (Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        else {
+            $school_id = $school->id;
+        } else {
             if (empty($class_id)) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class_id must be provided');
             }
-            $school = TeacherClass::findOne(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1]);
-            $school = Schools::findOne(['id' => $school->school_id]);
+            $classes = Classes::findOne(['id' => $class_id]);
+            if (!TeacherClass::find()->where(['school_id' => $classes->school_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'You cannot move to this class.');
+            }
+            $school_id = $classes->school_id;
         }
 
-        $school_id = $school->id;
+
         $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id'));
         $model->addRule(['student_id', 'class_id'], 'required');
         $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id', 'school_id']]);

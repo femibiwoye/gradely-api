@@ -15,8 +15,11 @@ use yii\db\Expression;
  * @property int|null $class_id
  * @property string|null $invite_code
  * @property int $status
+ * @property int $promoted_by
+ * @property int $is_active_class
  * @property int $current_class This is to know if this is current class of a child. 1 mean child is in this class, 0 means this is not current class of a child. Can be use for promoting of a child.
  * @property string|null $subscription_status Basic is lms, premium is lms with catchup
+ * @property string $promoted_at
  * @property string $created_at
  * @property string|null $updated_at
  *
@@ -37,9 +40,9 @@ class StudentSchool extends \yii\db\ActiveRecord
     {
         return [
             [['student_id', 'school_id'], 'required'],
-            [['student_id', 'school_id', 'class_id', 'status'], 'integer'],
+            [['student_id', 'school_id', 'class_id', 'status','promoted_by','is_active_class'], 'integer'],
             [['created_at'], 'safe'],
-            [['subscription_status'], 'string'],
+            [['subscription_status','promoted_at'], 'string'],
             [['invite_code'], 'string', 'max' => 20],
             [['student_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
             [['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],

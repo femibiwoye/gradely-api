@@ -10,6 +10,7 @@ use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
+use yii\db\Exception;
 use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\rest\ActiveController;
@@ -139,7 +140,7 @@ class ClassesController extends ActiveController
                 'subjects.description',
             ])
             ->innerJoin('subjects', "subjects.id = s.subject_id")
-            ->where(['s.school_id' => $school->id, 's.status' => 1,'subjects.category'=>$category])
+            ->where(['s.school_id' => $school->id, 's.status' => 1, 'subjects.category' => $category])
             ->groupBy(['s.subject_id'])
             ->asArray()->all();
 
@@ -276,6 +277,56 @@ class ClassesController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Class deleted.');
         else
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class could not be deleted.');
+    }
+
+    public function actionMoveStudentClass()
+    {
+        $current_class = Yii::$app->request->post('current_class');
+        $new_class = Yii::$app->request->post('new_class');
+        $finalYear = Yii::$app->request->post('final_year');
+
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('new_class', 'current_class', 'school_id'));
+        $model->addRule(['new_class', 'current_class'], 'required');
+        $model->addRule(['new_class'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'new_class' => 'id']]);
+        $model->addRule(['current_class'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'current_class' => 'id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1])->all();
+
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!StudentSchool::updateAll(['status' => 0,'is_active_class'=>0], ['student_id' => ArrayHelper::getColumn($currentStudents, 'student_id'), 'status' => 1, 'school_id' => $school_id]))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Previous class was not updated');
+
+            if ($finalYear != 1) {
+                foreach ($currentStudents as $student) {
+                    $newClass = new StudentSchool();
+                    $newClass->student_id = $student->student_id;
+                    $newClass->status = 1;
+                    $newClass->school_id = $school_id;
+                    $newClass->class_id = $new_class;
+                    $newClass->promoted_by = Yii::$app->user->id;
+                    $newClass->promoted_at = date('Y-m-d H:i:s');
+                    if (!$newClass->save()) {
+                        return (new ApiResponse)->error($newClass->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                    }
+                }
+            }
+
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, count($currentStudents) . ' students moved');
     }
 
 }
