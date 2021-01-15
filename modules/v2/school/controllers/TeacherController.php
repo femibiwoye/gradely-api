@@ -69,7 +69,6 @@ class TeacherController extends ActiveController
     }
 
 
-
     public function actionIndex($class_id = null)
     {
         if ($class_id) {
@@ -375,6 +374,36 @@ class TeacherController extends ActiveController
         }
 
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not remove teacher from class');
+    }
+
+    /**
+     * Remove subject from teacher in a class.
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionRemoveTeacherSubject()
+    {
+        $teacher_id = Yii::$app->request->post('teacher_id');
+        $class_id = Yii::$app->request->post('class_id');
+        $subject_id = Yii::$app->request->post('subject_id');
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id', 'class_id', 'subject_id'));
+        $model->addRule(['school_id', 'teacher_id', 'class_id', 'subject_id'], 'required');
+        $model->addRule(['teacher_id'], 'exist', ['targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['teacher_id', 'school_id', 'class_id', 'subject_id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = TeacherClassSubjects::findOne(['school_id' => $school_id, 'teacher_id' => $teacher_id, 'class_id' => $class_id, 'subject_id' => $subject_id]);
+
+        if ($model->delete()) {
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Successful');
+        }
+
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not remove subject from teacher');
     }
 
     public function actionPendingInvitation()
