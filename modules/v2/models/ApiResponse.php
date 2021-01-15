@@ -122,10 +122,10 @@ class ApiResponse
         return $this->message("success", $message, $code ? $code : self::SUCCESSFUL, $models, $pagination, $extra);
     }
 
-    function error($models = null, $code = null, $message = null)
+    function error($models = null, $code = null, $message = null, $extra = null)
     {
         //Yii::$app->response->statusCode = $code;
-        return $this->message("error", $message, $code ? $code : self::EXPECTATION_FAILED, $models);
+        return $this->message("error", $message, $code ? $code : self::EXPECTATION_FAILED, $models,null, $extra);
     }
 
     function underconstruction()
