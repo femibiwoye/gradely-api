@@ -2,7 +2,7 @@
 
 return [
 
-    'GET site/error'=>'site/error',
+    'GET site/error' => 'site/error',
 
     //Authentications
     'POST v2/login' => 'v2/auth/login', //
@@ -84,6 +84,7 @@ return [
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/invites'], 'extraPatterns' => [
         'POST school-admin' => 'school-admin', //
         'POST school-teacher' => 'school-teacher', //
+        'POST school-parent' => 'school-parent', //
         'POST teacher-school' => 'teacher-school', //
         'GET verify' => 'verify', //
         'PUT resend/<id:\d+>' => 'resend', //

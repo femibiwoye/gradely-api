@@ -149,6 +149,27 @@ class InvitesController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid or expired token');
     }
 
+    public function actionSchoolParent()
+    {
+        $form = new InviteLog(['scenario' => InviteLog::SCENARIO_SCHOOL_INVITE_PARENT]);
+        $form->attributes = Yii::$app->request->post();
+
+        if (Yii::$app->user->identity->type != 'school')
+            return (new ApiResponse)->error(null, ApiResponse::BAD_REQUEST, 'You are not a valid user');
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $form->sender_id = $school->id;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        if (!$model = $form->schoolInviteParent()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not invite parent');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
+
     public function actionVerified($token)
     {
         if (!$model = InviteLog::findOne(['token' => $token, 'status' => 0]))
@@ -194,6 +215,17 @@ class InvitesController extends ActiveController
         } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
 
 
+        } elseif ($model->sender_type == 'school' && $model->receiver_type == 'parent') {
+            $parent = new Parents();
+            $parent->parent_id = Yii::$app->user->id;
+            $parent->student_id = $model->extra_data;
+            $parent->inviter = 'school';
+            $parent->status = 1;
+            $parent->invitation_token = $model->token;
+            if (!$parent->save()) {
+                return false;
+            }
+
         } elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
             $parent_model = new Parents;
             $parent_model->parent_id = Yii::$app->user->id;
@@ -217,7 +249,6 @@ class InvitesController extends ActiveController
     {
         $senderID = Yii::$app->user->identity->type == 'school' ? Schools::findOne(['id' => Utility::getSchoolAccess()])->id : Yii::$app->user->id;
         if ($model = InviteLog::findOne(['id' => $id, 'status' => 0, 'sender_id' => $senderID])) {
-
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Invitation has been resent');
         } else
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not process your request');

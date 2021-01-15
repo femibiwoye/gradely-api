@@ -37,6 +37,7 @@ class InviteLog extends \yii\db\ActiveRecord
     const SCENARIO_SCHOOL_INVITE_TEACHER = 'invite-school-teacher';
     const SCENARIO_STUDENT_INVITE_PARENT = 'invite-student-parent';
     const SCENARIO_TEACHER_INVITE_SCHOOL = 'invite-teacher-school';
+    const SCENARIO_SCHOOL_INVITE_PARENT = 'invite-school-parent';
 
     public $role;
 
@@ -69,6 +70,11 @@ class InviteLog extends \yii\db\ActiveRecord
             [['receiver_email', 'receiver_name', 'receiver_phone'], 'required', 'on' => self::SCENARIO_TEACHER_INVITE_SCHOOL],
             ['receiver_email', 'email', 'on' => self::SCENARIO_TEACHER_INVITE_SCHOOL],
             ['receiver_email', 'validateRepetetion', 'on' => self::SCENARIO_TEACHER_INVITE_SCHOOL],
+
+            // Extra Data in this case is for student_id
+            [['receiver_email', 'receiver_phone', 'extra_data'], 'required', 'on' => self::SCENARIO_SCHOOL_INVITE_PARENT],
+            ['receiver_email', 'email', 'on' => self::SCENARIO_SCHOOL_INVITE_PARENT],
+            ['receiver_email', 'validateRepetetion', 'on' => self::SCENARIO_SCHOOL_INVITE_PARENT],
         ];
     }
 
@@ -146,14 +152,13 @@ class InviteLog extends \yii\db\ActiveRecord
     public function validateRepetetion()
     {
         if (InviteLog::find()->where(['sender_id' => $this->sender_id, 'receiver_email' => $this->receiver_email])->exists()) {
-            $this->addError('receiver_email', 'Invitation has already been sent to teacher');
+            $this->addError('receiver_email', 'Invitation has already been sent');
             return false;
         }
     }
 
     public function schoolInviteTeacher()
     {
-
         $model = new InviteLog();
         $model->receiver_email = $this->receiver_email;
         $model->receiver_name = $this->receiver_name;
@@ -177,6 +182,24 @@ class InviteLog extends \yii\db\ActiveRecord
         return false;
     }
 
+    public function schoolInviteParent()
+    {
+        $model = new InviteLog();
+        $model->receiver_email = $this->receiver_email;
+        $model->receiver_phone = $this->receiver_phone;
+        $model->extra_data = $this->extra_data;
+        $model->sender_id = $this->sender_id;
+        $model->sender_type = 'school';
+        $model->receiver_type = 'parent';
+        $model->token = Yii::$app->security->generateRandomString(100);
+        if ($model->save()) {
+//            $notification = new InputNotification();
+//            $notification->NewNotification('school_invite_teacher', [['invitation_id', $model->id]]);
+            return $model;
+        }
+        return false;
+    }
+
     public function teacherInviteSchool()
     {
         $model = new InviteLog();
@@ -188,10 +211,8 @@ class InviteLog extends \yii\db\ActiveRecord
         $model->receiver_type = 'school';
         $model->token = Yii::$app->security->generateRandomString(100);
         if ($model->save()) {
-
             $notification = new InputNotification();
             $notification->NewNotification('teacher_invite_school', [['invitation_id', $model->id]]);
-
             return $model;
         }
         return false;
