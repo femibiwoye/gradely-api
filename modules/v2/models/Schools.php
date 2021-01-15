@@ -38,6 +38,8 @@ use yii\behaviors\SluggableBehavior;
  * @property string|null $boarding_type
  * @property string|null $subscription_expiry
  * @property string|null $subscription_plan
+ * @property string|null $basic_subscription
+ * @property string|null $premium_subscription
  * @property string $created_at
  *
  * @property ClassSubjects[] $classSubjects
