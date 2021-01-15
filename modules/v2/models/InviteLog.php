@@ -106,8 +106,11 @@ class InviteLog extends \yii\db\ActiveRecord
         $model->receiver_type = 'school';
         $model->extra_data = $this->role;
         $model->token = Yii::$app->security->generateRandomString(100);
-        if ($model->save())
+        if ($model->save()) {
+            $notification = new InputNotification();
+            $notification->NewNotification('school_invite_admin', [['invite_id', $model->id], ['user_id', Yii::$app->user->id]]);
             return $model;
+        }
         return false;
     }
 

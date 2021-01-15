@@ -176,8 +176,8 @@ class Questions extends \yii\db\ActiveRecord
         return parent::find()->andWhere(['<>', 'status', SharedConstant::STATUS_DELETED]);
     }
 
-    public static function getDb()
-    {
-        return Yii::$app->get('dblive');
-    }
+//    public static function getDb()
+//    {
+//        return Yii::$app->get('dblive');
+//    }
 }
