@@ -14,6 +14,7 @@ class ApiResponse
     public $code;
     public $data;
     public $pagination;
+    public $extra;
 
 
     const UNKNOWN_RESPONSE = 0;
@@ -96,7 +97,7 @@ class ApiResponse
         self::VALIDATION_ERROR => "There is validation error",
     ];
 
-    function message($name = null, $message = null, $code = null, $models = null, $pagination = null)
+    function message($name = null, $message = null, $code = null, $models = null, $pagination = null, $extra = null)
     {
         $this->name = $name;
         $this->message = $message ? $message : $this->getMessage($code);
@@ -107,13 +108,18 @@ class ApiResponse
         else
             unset($this->pagination);
 
+        if (!empty($extra))
+            $this->extra = $extra;
+        else
+            unset($this->extra);
+
         return $this;
     }
 
-    function success($models = null, $code = null, $message = null, $pagination = null)
+    function success($models = null, $code = null, $message = null, $pagination = null, $extra = null)
     {
         //Yii::$app->response->statusCode = $code;
-        return $this->message("success", $message, $code ? $code : self::SUCCESSFUL, $models, $pagination);
+        return $this->message("success", $message, $code ? $code : self::SUCCESSFUL, $models, $pagination, $extra);
     }
 
     function error($models = null, $code = null, $message = null)
