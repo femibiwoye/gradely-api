@@ -524,12 +524,16 @@ class CatchupController extends ActiveController
             ->groupBy('id')
             ->all();
 
+        $attemptStatus = QuizSummary::find()->where(['student_id' => $studentID, 'submit' => 1])->exists() ? true : false;
+        $attemptStatus = ['takenPractice'=>$attemptStatus];
+
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not found');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not found',$attemptStatus);
         }
 
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' subjects found');
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' subjects found', null,$attemptStatus);
     }
 
     /**
