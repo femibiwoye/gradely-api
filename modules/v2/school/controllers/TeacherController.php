@@ -397,9 +397,7 @@ class TeacherController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $model = TeacherClassSubjects::findOne(['school_id' => $school_id, 'teacher_id' => $teacher_id, 'class_id' => $class_id, 'subject_id' => $subject_id]);
-
-        if ($model->delete()) {
+        if (TeacherClassSubjects::deleteAll(['school_id' => $school_id, 'teacher_id' => $teacher_id, 'class_id' => $class_id, 'subject_id' => $subject_id])) {
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Successful');
         }
 

@@ -174,7 +174,7 @@ class StudentController extends ActiveController
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
 
-    public function actionStudents()
+    public function actionStudents($student = null, $class = null, $license = null)
     {
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -185,7 +185,7 @@ class StudentController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
 
-        $models = StudentSchool::find($s = null, $class = null, $package = null)
+        $models = StudentSchool::find()
             ->alias('ss')
             ->select([
                 'u.id',
@@ -207,8 +207,25 @@ class StudentController extends ActiveController
             ->leftJoin('parents p', 'p.student_id = ss.student_id AND p.status = 1')
             ->leftJoin('user pu', 'pu.id = p.parent_id AND p.status = 1')
             ->leftJoin('classes cl', 'cl.id = ss.class_id')
-            ->where(['ss.school_id' => $school->id, 'ss.status' => 1, 'ss.is_active_class' => 1])
-            ->asArray();
+            ->where(['ss.school_id' => $school->id, 'ss.status' => 1, 'ss.is_active_class' => 1]);
+
+        if (!empty($class)) {
+            $models = $models->andWhere(['cl.global_class_id' => $class]);
+        }
+
+        if (!empty($student)) {
+            $models = $models->andFilterWhere(['OR', ['like', 'u.lastname', '%' . $student . '%', false],
+                ['like', 'u.firstname', '%' . $student . '%', false],
+                ['like', 'u.code', '%' . $student . '%', false]]);
+        }
+
+        if (!empty($license) && $license != 'all') {
+            if ($license == 'disable')
+                $license = null;
+            $models = $models->andWhere(['ss.subscription_status' => $license]);
+        }
+
+        $models = $models->asArray();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $models,
