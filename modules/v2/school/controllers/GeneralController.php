@@ -320,7 +320,7 @@ class GeneralController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $model,
             'pagination' => [
-                'pageSize' => 20,
+                'pageSize' => 3, // To be updated
                 'validatePage' => false,
             ],
             'sort' => [
