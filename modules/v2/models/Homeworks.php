@@ -210,7 +210,7 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getStudentExpectedCount()
     {
         return StudentSchool::find()
-            ->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1])->count();
+            ->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1,'is_active_class'=>1])->count();
     }
 
     public function getStudentsSubmitted()
@@ -410,7 +410,7 @@ class Homeworks extends \yii\db\ActiveRecord
         } elseif (Yii::$app->user->identity->type == 'parent') {
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1, 'student_id' => Yii::$app->request->get('child')])->all(), 'student_id');
 
-            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs, 'status' => 1]);
+            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs, 'status' => 1,'is_active_class'=>1]);
             if (isset($_GET['class_id']))
                 $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
 

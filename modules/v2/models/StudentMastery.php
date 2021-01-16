@@ -143,7 +143,7 @@ class StudentMastery extends Model
     private function getClasses()
     {
         $student_classes = ArrayHelper::getColumn(
-            StudentSchool::findAll(['student_id' => $this->student_id]),
+            StudentSchool::findAll(['student_id' => $this->student_id,'is_active_class'=>1,'status'=>1]),
             'class_id'
         );
 

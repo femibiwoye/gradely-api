@@ -17,7 +17,12 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, StudentMastery, StudentAdditiionalTopics, StudentTopicPerformance};
+use app\modules\v2\models\{Homeworks,
+    Classes,
+    ApiResponse,
+    StudentMastery,
+    StudentAdditiionalTopics,
+    StudentTopicPerformance};
 use app\modules\v2\components\SharedConstant;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -189,7 +194,7 @@ class ReportController extends ActiveController
             if (Yii::$app->user->identity->type == 'teacher') {
                 $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => 1])->all();
                 foreach ($teacher_classes as $teacher_class) {
-                    if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $id])->exists()) {
+                    if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $id,'status'=>1,'is_active_class'=>1])->exists()) {
                         return true;
                     }
                 }
@@ -207,11 +212,11 @@ class ReportController extends ActiveController
                 if ($model->teacher_id == Yii::$app->user->id)
                     return true;
             } elseif (Yii::$app->user->identity->type == 'student') {
-                if (StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'class_id' => $model->class_id])->exists())
+                if (StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'class_id' => $model->class_id, 'is_active_class' => 1, 'status' => 1])->exists())
                     return true;
             } elseif (Yii::$app->user->identity->type == 'parent') {
                 $studentsID = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id])->all(), 'student_id');
-                if (StudentSchool::find()->where(['student_id' => $studentsID, 'class_id' => $model->class_id])->exists())
+                if (StudentSchool::find()->where(['student_id' => $studentsID, 'class_id' => $model->class_id,'is_active_class'=>1,'status'=>1])->exists())
                     return true;
             }
         }

@@ -207,7 +207,7 @@ class StudentController extends ActiveController
             ->leftJoin('parents p', 'p.student_id = ss.student_id AND p.status = 1')
             ->leftJoin('user pu', 'pu.id = p.parent_id AND p.status = 1')
             ->leftJoin('classes cl', 'cl.id = ss.class_id')
-            ->where(['ss.school_id' => $school->id])
+            ->where(['ss.school_id' => $school->id,'ss.status'=>1,'ss.is_active_class'=>1])
             ->asArray();
 
         $dataProvider = new ActiveDataProvider([
@@ -221,8 +221,8 @@ class StudentController extends ActiveController
             ],
         ]);
 
-        $basicUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic'])->count();
-        $premiumUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium'])->count();
+        $basicUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic','is_active_class'=>1])->count();
+        $premiumUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium','is_active_class'=>1])->count();
         $return = [
             'students' => $dataProvider->getModels(),
             'license' => [

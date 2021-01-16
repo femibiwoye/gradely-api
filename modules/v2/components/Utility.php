@@ -196,7 +196,7 @@ class Utility extends ActiveRecord
     {
         if (!empty($studentID)) {
             $user = User::findOne(['id' => $studentID, 'type' => 'student']);
-            $data = StudentSchool::findOne(['student_id' => $studentID]);
+            $data = StudentSchool::findOne(['student_id' => $studentID,'status'=>1,'is_active_class'=>1]);
 
             if (empty($data)) {
                 if (!empty($user))
@@ -214,7 +214,7 @@ class Utility extends ActiveRecord
             return null;
         }
 
-        $data = StudentSchool::findOne(['student_id' => Yii::$app->user->id]);
+        $data = StudentSchool::findOne(['student_id' => Yii::$app->user->id,'is_active_class'=>1,'status'=>1]);
 
         if (empty($data)) {
             if (!empty(Yii::$app->user->identity->class))
@@ -274,7 +274,7 @@ class Utility extends ActiveRecord
             $studentID = Yii::$app->user->id;
         $school_id = StudentSchool::find()
             ->select(['school_id', 'class_id'])
-            ->where(['student_id' => $studentID])
+            ->where(['student_id' => $studentID,'status'=>1,'is_active_class'=>1])
             ->asArray()
             ->one();
 
@@ -396,7 +396,7 @@ class Utility extends ActiveRecord
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid');
 
         }
-        if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1])) {
+        if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1,'is_active_class'=>1])) {
             $classId = $classes->class_id;
             $className = $classes->class->class_name;
             $schoolName = $classes->school->name;

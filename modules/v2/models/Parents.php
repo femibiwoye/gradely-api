@@ -72,7 +72,7 @@ class Parents extends \yii\db\ActiveRecord
 
     public function getStudentSchool()
     {
-        return $this->hasOne(StudentSchool::className(), ['student_id' => 'student_id']);
+        return $this->hasOne(StudentSchool::className(), ['student_id' => 'student_id'])->andWhere(['status'=>1,'is_active_status'=>1]);
     }
 
     public function beforeSave($insert)

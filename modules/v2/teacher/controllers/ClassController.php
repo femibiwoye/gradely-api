@@ -451,7 +451,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id]);
+        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id,'is_active_class'=>1,'status'=>1]);
         $model->class_id = $class_id;
         if ($model->save())
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
