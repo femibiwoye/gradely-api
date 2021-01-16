@@ -117,7 +117,7 @@ class Classes extends \yii\db\ActiveRecord
 
     public function getStudentSchool()
     {
-        return $this->hasMany(StudentSchool::className(), ['class_id' => 'id']);
+        return $this->hasMany(StudentSchool::className(), ['class_id' => 'id'])->andWhere(['status'=>1,'is_active_class'=>1]);
     }
 
     public function getHomeworks()

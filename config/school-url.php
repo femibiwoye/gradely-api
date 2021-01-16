@@ -13,6 +13,7 @@ return [
     'POST v2/school/teacher/assign-class-subject' => 'v2/school/teacher/assign-class-subject', //
     'DELETE v2/school/teacher/class-remove' => 'v2/school/teacher/remove-teacher', //
     'DELETE v2/school/teacher/school-remove' => 'v2/school/teacher/remove-teacher-school', //
+    'DELETE v2/school/teacher/class-subject' => 'v2/school/teacher/remove-teacher-subject', //
     'GET v2/school/teacher/pending-invitation' => 'v2/school/teacher/pending-invitation', //
 
 

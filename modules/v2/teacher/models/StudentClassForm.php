@@ -31,7 +31,7 @@ class StudentClassForm extends Model
             ->select(['user.id', 'user.code', 'user.firstname', 'user.lastname', 'user.image'])
             ->from('student_school')
             ->innerJoin('user', 'user.id = student_school.student_id')
-            ->where(['student_school.class_id' => $this->class_id])
+            ->where(['student_school.class_id' => $this->class_id,'student_school.is_active_class'=>1,'student_school.status'=>1])
             ->all();
 
         return $students_in_class;

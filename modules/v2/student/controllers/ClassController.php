@@ -76,7 +76,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class code is required');
         }
 
-        if (StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+        if (StudentSchool::find()->where(['student_id' => Yii::$app->user->id, 'status' => 1,'is_active_class'=>1])->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student already in class');
         }
 

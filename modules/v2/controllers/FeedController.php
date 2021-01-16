@@ -127,7 +127,7 @@ class FeedController extends ActiveController
 
         } elseif (Yii::$app->user->identity->type == 'student') {
             $user_id = Yii::$app->user->id;
-            $class = StudentSchool::findOne(['student_id' => $user_id, 'status' => 1]);
+            $class = StudentSchool::findOne(['student_id' => $user_id, 'status' => 1, 'is_active_class' => 1]);
             if ($class) {
                 $class_id = $class->class_id;
             }
@@ -142,7 +142,7 @@ class FeedController extends ActiveController
             if (!in_array($class_id, $parents)) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child does not exist');
             }
-            $classes = ArrayHelper::getColumn(StudentSchool::find()->where(['student_id' => $parents, 'status' => 1])->all(), 'class_id');
+            $classes = ArrayHelper::getColumn(StudentSchool::find()->where(['student_id' => $parents, 'status' => 1, 'is_active_class' => 1])->all(), 'class_id');
 
 
             $models = $this->modelClass::find()
@@ -179,7 +179,9 @@ class FeedController extends ActiveController
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }
 
-        $models = $models->andWhere(['feed.status' => 1]);
+        $models = $models
+            ->andWhere(['between', 'feed.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+            ->andWhere(['feed.status' => 1]);
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }

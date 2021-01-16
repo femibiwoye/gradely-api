@@ -250,7 +250,7 @@ class GeneralController extends ActiveController
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
         $teacher = InviteLog::find()->where(['sender_id' => $school->id, 'receiver_type' => 'teacher'])->exists() || SchoolTeachers::find()->where(['school_id' => $school->id])->exists();
-        $student = StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1])->exists();
+        $student = StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1,'is_active_class'=>1])->exists();
         $announcement = Feed::find()->where(['type' => 'announcement', 'user_id' => $school->id])->exists();
         $profile = !empty($school->tagline);
 
