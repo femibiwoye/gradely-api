@@ -73,7 +73,7 @@ class StudentProfile extends User
     public function getTotalHomeworks()
     {
 
-        $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1]);
+        $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1,'is_active_class'=>1]);
 
         $homeworkCount = Homeworks::find()
             ->where(['teacher_id' => Yii::$app->user->id, 'class_id' => $class->class_id, 'status' => 1, 'type' => 'homework'])
@@ -140,7 +140,7 @@ class StudentProfile extends User
     {
         $teacher_classes = TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id])->all();
         foreach ($teacher_classes as $teacher_class) {
-            if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $this->id])->one()) {
+            if (StudentSchool::find()->where(['class_id' => $teacher_class->class_id])->andWhere(['student_id' => $this->id,'is_active_class'=>1,'status'=>1])->one()) {
                 return true;
             }
         }

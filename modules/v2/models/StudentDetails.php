@@ -167,7 +167,7 @@ class StudentDetails extends User
     public function getTotalHomeworks()
     {
 
-        $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1]);
+        $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1,'is_active_class'=>1]);
 
         if (Yii::$app->user->identity->type == 'teacher') {
             $condition = ['teacher_id' => Yii::$app->user->id];

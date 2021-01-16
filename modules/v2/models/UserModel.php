@@ -305,7 +305,7 @@ class UserModel extends User
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         return $this->hasMany(self::className(), ['id' => 'student_id'])
             ->leftJoin('parents p', 'p.student_id = user.id AND p.parent_id = ' . $this->id)
-            ->innerJoin('student_school s', "s.student_id = user.id AND s.school_id = " . $school->id)
+            ->innerJoin('student_school s', "s.student_id = user.id AND s.status = 1 AND is_active_status = 1 AND s.school_id = " . $school->id)
             ->leftJoin('classes c', "c.id = s.class_id AND s.status= '1'")
             ->select(['user.id', 'firstname', 'lastname', 'user.code', 'email', Utility::ImageQuery('user', 'users'), 'type', 'p.parent_id', 'p.role', 'c.id class_id', 'c.class_name', 'c.class_code'])
             ->asArray()

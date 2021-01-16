@@ -158,7 +158,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
         return ArrayHelper::getColumn(
             StudentSchool::find()
                 ->select(['student_id'])
-                ->where(['class_id' => Yii::$app->request->get('class_id')])
+                ->where(['class_id' => Yii::$app->request->get('class_id'),'is_active_class'=>1,'status'=>1])
                 ->all(),
             'student_id'
         );

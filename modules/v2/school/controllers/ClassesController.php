@@ -240,7 +240,7 @@ class ClassesController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id, 'status' => 1])->all(), 'student_id');
+        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id, 'status' => 1,'is_active_class'=>1])->all(), 'student_id');
 
         $students = User::find()->where(['id' => $student_ids])
             ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
@@ -297,7 +297,7 @@ class ClassesController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1])->all();
+        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1,'is_active_class'=>1])->all();
 
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
@@ -312,6 +312,7 @@ class ClassesController extends ActiveController
                     $newClass->school_id = $school_id;
                     $newClass->class_id = $new_class;
                     $newClass->promoted_by = Yii::$app->user->id;
+                    $newClass->promoted_from = $current_class;
                     $newClass->promoted_at = date('Y-m-d H:i:s');
                     if (!$newClass->save()) {
                         return (new ApiResponse)->error($newClass->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);

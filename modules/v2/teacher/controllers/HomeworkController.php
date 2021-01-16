@@ -350,7 +350,7 @@ class HomeworkController extends ActiveController
 
 
         //Get all the students in that class
-        $classStudent = StudentSchool::find()->where(['class_id' => $model->class_id, 'status' => 1])->exists();
+        $classStudent = StudentSchool::find()->where(['class_id' => $model->class_id, 'status' => 1,'is_active_class'=>1])->exists();
 
         //foreach ($classStudents as $classStudent){
 
