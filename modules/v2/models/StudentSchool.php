@@ -94,4 +94,15 @@ class StudentSchool extends \yii\db\ActiveRecord
         return $this->hasMany(Parents::className(), ['student_id' => 'student_id']);
     }
 
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord) {
+            $this->created_at = time();
+        } else {
+            $this->updated_at = time();
+        }
+
+        return parent::beforeSave($insert);
+    }
+
 }

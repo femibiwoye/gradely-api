@@ -62,6 +62,7 @@ return [
     'PUT v2/school/student/update-class' => 'v2/school/student/update-class', //
     'GET v2/school/students' => 'v2/school/student/students', //
     'GET v2/school/students/parent/<parent_id:\d+>' => 'v2/school/student/parent-children', //
+    'PUT v2/school/students/modify-subscription' => 'v2/school/student/modify-subscription', //
 
     //School Profile
     'GET v2/school/profile/school' => 'v2/school/profile/school', //

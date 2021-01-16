@@ -391,7 +391,7 @@ class TeacherController extends ActiveController
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id', 'class_id', 'subject_id'));
         $model->addRule(['school_id', 'teacher_id', 'class_id', 'subject_id'], 'required');
-        $model->addRule(['teacher_id'], 'exist', ['targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['teacher_id', 'school_id', 'class_id', 'subject_id']]);
+        $model->addRule(['teacher_id'], 'exist', ['targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['teacher_id', 'school_id', 'class_id']]);
 
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
