@@ -86,8 +86,8 @@ class Schools extends \yii\db\ActiveRecord
         return [
             //[['user_id', 'slug', 'abbr'], 'required'],
             [['user_id'], 'integer'],
-            [['about', 'naming_format','subscription_plan'], 'string'],
-            [['created_at'], 'safe'],
+            [['about', 'naming_format', 'subscription_plan'], 'string'],
+            [['created_at', 'subscription_plan', 'subscription_plan'], 'safe'],
             [['slug', 'name', 'logo', 'banner', 'tagline', 'address'], 'string', 'max' => 255],
             [['abbr'], 'string', 'max' => 10],
             [['subscription_expiry'], 'datetime', 'format' => 'php:Y-m-d H:i:s'],
@@ -142,10 +142,10 @@ class Schools extends \yii\db\ActiveRecord
             'name',
             'abbr',
             'logo' => function () {
-                return Utility::getGeneralImage($this->logo,'schools');
+                return Utility::getGeneralImage($this->logo, 'schools');
             },
             'banner' => function () {
-                return Utility::getGeneralImage($this->banner,'schools');
+                return Utility::getGeneralImage($this->banner, 'schools');
             },
             'tagline',
             'about',
@@ -234,7 +234,7 @@ class Schools extends \yii\db\ActiveRecord
 
     public function getSchoolCurriculumDetails()
     {
-        return $this->hasMany(ExamType::className(), ['id' => 'curriculum_id'])->select(['id','slug','name','title','description'])->via('schoolCurriculums');
+        return $this->hasMany(ExamType::className(), ['id' => 'curriculum_id'])->select(['id', 'slug', 'name', 'title', 'description'])->via('schoolCurriculums');
     }
 
     /**
