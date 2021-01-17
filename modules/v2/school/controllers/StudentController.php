@@ -167,14 +167,14 @@ class StudentController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id]);
+        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'status' => 1, 'is_active_class' => 1]);
         $model->class_id = $class_id;
         if ($model->save())
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
 
-    public function actionStudents()
+    public function actionStudents($student = null, $class = null, $license = null)
     {
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -185,7 +185,7 @@ class StudentController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
         }
 
-        $models = StudentSchool::find($s = null, $class = null, $package = null)
+        $models = StudentSchool::find()
             ->alias('ss')
             ->select([
                 'u.id',
@@ -207,8 +207,25 @@ class StudentController extends ActiveController
             ->leftJoin('parents p', 'p.student_id = ss.student_id AND p.status = 1')
             ->leftJoin('user pu', 'pu.id = p.parent_id AND p.status = 1')
             ->leftJoin('classes cl', 'cl.id = ss.class_id')
-            ->where(['ss.school_id' => $school->id,'ss.status'=>1,'ss.is_active_class'=>1])
-            ->asArray();
+            ->where(['ss.school_id' => $school->id, 'ss.status' => 1, 'ss.is_active_class' => 1]);
+
+        if (!empty($class)) {
+            $models = $models->andWhere(['cl.global_class_id' => $class]);
+        }
+
+        if (!empty($student)) {
+            $models = $models->andFilterWhere(['OR', ['like', 'u.lastname', '%' . $student . '%', false],
+                ['like', 'u.firstname', '%' . $student . '%', false],
+                ['like', 'u.code', '%' . $student . '%', false]]);
+        }
+
+        if (!empty($license) && $license != 'all') {
+            if ($license == 'disable')
+                $license = null;
+            $models = $models->andWhere(['ss.subscription_status' => $license]);
+        }
+
+        $models = $models->asArray();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $models,
@@ -221,14 +238,10 @@ class StudentController extends ActiveController
             ],
         ]);
 
-        $basicUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic','is_active_class'=>1])->count();
-        $premiumUsed = (int) StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium','is_active_class'=>1])->count();
+
         $return = [
             'students' => $dataProvider->getModels(),
-            'license' => [
-                ['basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed]],
-                ['premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]]
-            ]
+            'license' => Utility::SchoolStudentSubscriptionDetails($school)
         ];
 
         return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
@@ -252,6 +265,44 @@ class StudentController extends ActiveController
             ->where(['p.parent_id' => $parent_id, 'ss.school_id' => $school->id])->asArray()->all();
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionModifySubscription()
+    {
+        $status = Yii::$app->request->post('status');
+        $student_id = Yii::$app->request->post('student_id');
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('student_id', 'school_id', 'status'));
+        $model->addRule(['student_id', 'status'], 'required');
+        $model->addRule(['status'], 'in', ['range' => ['basic', 'premium', 'disable']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        if (!is_array($student_id)) {
+            return (new ApiResponse)->error('Student id must be an array.', ApiResponse::VALIDATION_ERROR);
+        }
+
+        if (count($student_id) > StudentSchool::find()->where(['student_id' => $student_id, 'school_id' => $school_id, 'status' => 1, 'is_active_class' => 1])->count()) {
+            return (new ApiResponse)->error('One or more student ID is invalid', ApiResponse::VALIDATION_ERROR);
+        }
+
+        $license = Utility::SchoolStudentSubscriptionDetails($school);
+        if (isset($license[$status]['remaining']) && count($student_id) > $license[$status]['remaining']) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Invalid action or no enough room for '$status' subscription.");
+        }
+
+        if ($status == 'disable') {
+            $status = null;
+        }
+
+        if (StudentSchool::updateAll(['subscription_status' => $status], ['student_id' => $student_id, 'school_id' => $school_id, 'status' => 1, 'is_active_class' => 1]))
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student subscriptions updated');
+
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not update');
     }
 
 

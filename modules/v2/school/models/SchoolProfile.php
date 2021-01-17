@@ -53,7 +53,7 @@ class SchoolProfile extends Schools
     {
         $this->scenario = self::SCENERIO_EDIT_SCHOOL_PROFILE;
         $sch = $this->attributes;
-        unset($sch['id'], $sch['user_id'], $sch['slug'], $sch['naming_format'], $sch['school_type'], $sch['created_at']);
+        unset($sch['id'], $sch['user_id'], $sch['slug'], $sch['naming_format'], $sch['school_type'], $sch['created_at'], $sch['subscription_plan'], $sch['subscription_expiry'], $sch['basic_subscription'], $sch['premium_subscription']);
         $school->attributes = $sch;
         if ($school->save())
             return $school;
