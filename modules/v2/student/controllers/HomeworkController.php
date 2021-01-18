@@ -80,7 +80,7 @@ class HomeworkController extends ActiveController
 
 //return $models;
 
-        $models = array_merge($models,$missedModels);
+        $models = array_merge($models, $missedModels);
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -92,7 +92,7 @@ class HomeworkController extends ActiveController
                 'pageSize' => 10,
                 'validatePage' => false,
             ],
-            'sort'=> [
+            'sort' => [
 
                 'attributes' => [
                     'id'
@@ -100,7 +100,7 @@ class HomeworkController extends ActiveController
                 'defaultOrder' => ['id' => SORT_ASC]]
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found',$provider);
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found', $provider);
     }
 
     public function actionNewHomework()
@@ -126,7 +126,7 @@ class HomeworkController extends ActiveController
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found');
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found', $provider);
     }
 
     public function actionHomeworkScore($homework_id)
