@@ -234,4 +234,17 @@ class InviteLog extends \yii\db\ActiveRecord
         }
         return $this->redirect(Yii::$app->request->referrer);
     }
+
+    public function SchoolAdmin($model, $userID = null)
+    {
+        $school_admin = new SchoolAdmin;
+        $school_admin->school_id = $model->sender_id;
+        $school_admin->user_id = !empty($userID) ? $userID : Yii::$app->user->id;
+        $school_admin->level = $model->extra_data;
+        $school_admin->status = 1;
+        if (!$school_admin->save()) {
+            return false;
+        }
+        return true;
+    }
 }

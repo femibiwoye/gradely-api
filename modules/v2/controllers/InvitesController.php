@@ -180,15 +180,7 @@ class InvitesController extends ActiveController
 
 
         if ($model->sender_type == 'school' && $model->receiver_type == 'school') {
-            $school_admin = new SchoolAdmin;
-            $school_admin->school_id = $model->sender_id;
-            $school_admin->user_id = Yii::$app->user->id;
-            $school_admin->level = $model->extra_data;
-            $school_admin->status = 1;
-            if (!$school_admin->save()) {
-                return false;
-            }
-
+            $model->SchoolAdmin($model);
         } elseif ($model->sender_type == 'school' && $model->receiver_type == 'teacher') {
             $school_teacher = new SchoolTeachers;
             $school_teacher->teacher_id = Yii::$app->user->id;
