@@ -19,6 +19,7 @@ class SignupForm extends Model
     public $school_name;
     public $class;
     public $country;
+    public $token;
 
     public function rules()
     {
@@ -51,6 +52,7 @@ class SignupForm extends Model
             [['email'], 'safe', 'on' => 'student-signup'],
 
             [['class'], 'required', 'on' => 'parent-student-signup'],
+            [['email', 'phone', 'token'], 'required', 'on' => 'invite-signup'],
             //[['email', 'country'], 'safe', 'on' => 'parent-student-signup'],
         ];
     }
@@ -64,6 +66,16 @@ class SignupForm extends Model
      */
     public function signup($type)
     {
+        $isInvite = false;
+        if ($type == 'invite') {
+            if ($invite = InviteLog::findOne(['token' => $this->token, 'status' => 0])) {
+                $type = $invite->receiver_type;
+                $isInvite = true;
+            } else {
+                return false;
+            }
+        }
+
         $user = new User;
         $user->firstname = $this->first_name;
         $user->lastname = $this->last_name;
@@ -79,7 +91,7 @@ class SignupForm extends Model
         $user->generateVerificationKey();
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$user->save() || !$this->generateCode($user) || !$this->createProfile($user)) {
+            if (!$user->save() || !$this->generateCode($user) || !$this->createProfile($user, $isInvite, $invite)) {
                 return false;
             }
 
@@ -102,13 +114,17 @@ class SignupForm extends Model
      * @param $user
      * @return bool
      */
-    private function createProfile($user)
+    private function createProfile($user, $isInvite = false, InviteLog $invite = null)
     {
         $model = new UserProfile();
         $model->user_id = $user->id;
         $model->country = $this->country;
         if ($user->type == 'school') {
-            $this->createSchool($user);
+            if ($isInvite) {
+                if (!$invite->SchoolAdmin($invite,$user->id))
+                    return false;
+            } else
+                $this->createSchool($user);
         } else {
             Pricing::ActivateTrial($user->id, $user->type);
         }
