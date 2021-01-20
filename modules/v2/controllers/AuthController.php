@@ -90,7 +90,7 @@ class AuthController extends Controller
             $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
 
 
-        return (new ApiResponse)->success($user, null, 'You have successfully signed up as a' . $type);
+        return (new ApiResponse)->success($user, null, 'You have successfully signed up as a ' . $type);
     }
 
 
