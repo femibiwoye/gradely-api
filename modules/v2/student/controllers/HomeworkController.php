@@ -5,6 +5,7 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Remarks;
@@ -200,5 +201,36 @@ class HomeworkController extends ActiveController
 
         return (new ApiResponse)->success($topics, ApiResponse::SUCCESSFUL, 'Homework recommendation retrieved');
 
+    }
+
+
+    public function actionVideos($child_id=null, $search = null)
+    {
+        $studentClassID = Utility::ParentStudentChildClass($child_id,0);
+
+        $model = PracticeMaterial::find()
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
+            ->groupBy('practice_material.id');
+        $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->andWhere(['feed.class_id' => $studentClassID]);
+
+        if ($search) {
+            $model = $model->
+            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+        }
+        $model = $model->orderBy(['created_at' => SORT_DESC]);
+
+        $provider = new ActiveDataProvider([
+            'query' => $model,
+            'pagination' => [
+                'pageSize' => 12,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 }

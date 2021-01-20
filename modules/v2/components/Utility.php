@@ -554,12 +554,12 @@ class Utility extends ActiveRecord
         return round($bytes, $precision) . $units[$pow];
     }
 
-    public static function ParentStudentChildClass($child_id = null)
+    public static function ParentStudentChildClass($child_id = null, $globalIDStatus = 1)
     {
         if (Yii::$app->user->identity->type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
-            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE, $child_id);
+            $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
         } else
-            $class_id = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+            $class_id = Utility::getStudentClass($globalIDStatus);
 
         return $class_id;
     }

@@ -33,6 +33,9 @@ return [
     'POST v2/student/practice/process-homework' => 'v2/student/practice/process-homework', //
     'GET v2/student/process-attempt/<quiz_id:\d+>' => 'v2/student/practice/process-attempt', //
 
+    //Student Schoolwork
+    'GET v2/student/class-videos' => 'v2/student/homework/videos', //
+
     //student class
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class', //
     'POST v2/student/class' => 'v2/student/class/student-class', //
