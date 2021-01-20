@@ -67,6 +67,7 @@ class SignupForm extends Model
     public function signup($type)
     {
         $isInvite = false;
+        $invite = null;
         if ($type == 'invite') {
             if ($invite = InviteLog::findOne(['token' => $this->token, 'status' => 0])) {
                 $type = $invite->receiver_type;
