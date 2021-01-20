@@ -210,7 +210,7 @@ class StudentController extends ActiveController
             ->where(['ss.school_id' => $school->id, 'ss.status' => 1, 'ss.is_active_class' => 1]);
 
         if (!empty($class)) {
-            $models = $models->andWhere(['cl.global_class_id' => $class]);
+            $models = $models->andWhere(['cl.id' => $class]);
         }
 
         if (!empty($student)) {
