@@ -67,6 +67,7 @@ class SignupForm extends Model
     public function signup($type)
     {
         $isInvite = false;
+        $invite = null;
         if ($type == 'invite') {
             if ($invite = InviteLog::findOne(['token' => $this->token, 'status' => 0])) {
                 $type = $invite->receiver_type;
@@ -121,8 +122,13 @@ class SignupForm extends Model
         $model->country = $this->country;
         if ($user->type == 'school') {
             if ($isInvite) {
-                if (!$invite->SchoolAdmin($invite,$user->id))
+                if (!$invite->SchoolAdmin($invite, $user->id)) {
                     return false;
+                }
+                $invite->status = SharedConstant::VALUE_ONE;
+                if (!$model->save()) {
+                    return false;
+                }
             } else
                 $this->createSchool($user);
         } else {
