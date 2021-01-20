@@ -16,6 +16,7 @@ use app\modules\v2\student\models\HomeworkReport;
 use app\modules\v2\student\models\StudentHomeworkReport;
 use Yii;
 use yii\data\ArrayDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\data\ActiveDataProvider;
 use app\modules\v2\components\SharedConstant;
@@ -204,9 +205,9 @@ class HomeworkController extends ActiveController
     }
 
 
-    public function actionVideos($child_id=null, $search = null)
+    public function actionVideos($child_id = null, $search = null)
     {
-        $studentClassID = Utility::ParentStudentChildClass($child_id,0);
+        $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
 
         $model = PracticeMaterial::find()
             ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
@@ -232,5 +233,50 @@ class HomeworkController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
+    }
+
+    public function actionNotes($child_id = null, $term = null, $search = null)
+    {
+        $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
+
+        $model = PracticeMaterial::find()
+            ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => 'feed'])
+            ->groupBy('practice_material.id');
+        $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
+            ->andWhere(['feed.class_id' => $studentClassID])
+            ->andWhere(['between', 'practice_material.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
+
+        if ($search) {
+            $model = $model->
+            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+        }
+        $model = $model->orderBy(['created_at' => SORT_DESC])->all();
+
+        $uniqueData = ArrayHelper::getColumn($model, 'uploadTermWeek');
+        $dates = array_unique($uniqueData);
+        $bothFinal = [];
+        foreach ($dates as $k => $date) {
+            $tempData = [];
+            foreach ($model as $y => $element) {
+                if ($date == $element['uploadTermWeek']) {
+                    $tempData[] = $element;
+                }
+            }
+            $bothFinal[] = ['date' => $date, 'data' => $tempData];
+        }
+
+
+        $provider = new ArrayDataProvider([
+            'models' => $bothFinal,
+            'pagination' => [
+                'pageSize' => 12,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found', $provider);
     }
 }
