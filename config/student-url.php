@@ -35,6 +35,7 @@ return [
 
     //Student Schoolwork
     'GET v2/student/class-videos' => 'v2/student/homework/videos', //
+    'GET v2/student/class-notes' => 'v2/student/homework/notes', //
 
     //student class
     'GET v2/student/verify-class/<code:[a-zA-Z0-9/]+>' => 'v2/student/class/verify-class', //
