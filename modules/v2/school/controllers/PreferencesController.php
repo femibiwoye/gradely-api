@@ -4,6 +4,8 @@ namespace app\modules\v2\school\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\Classes;
+use app\modules\v2\models\ClassSubjects;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\InviteLog;
 use app\modules\v2\models\SchoolAdmin;
@@ -96,8 +98,11 @@ class PreferencesController extends ActiveController
         }
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (ExamType::find()->where(['school_id' => $school->id])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You have already created curriculum');
+        }
         if (!$model = $form->addCurriculum($school)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class is not updated');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Curriculum is not added');
         }
 
         return (new ApiResponse)->success($model);
@@ -122,20 +127,27 @@ class PreferencesController extends ActiveController
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        $curriculum = SchoolCurriculum::find()->where(['school_id' => $school->id, 'curriculum_id' => $form->curriculum_id]);
-        if ($curriculum->exists()) {
-            $curriculum->one()->delete();
-            return (new ApiResponse)->success(false, null, 'Curriculum removed!');
+        if (!ExamType::find()->where(['id' => $form->curriculum_id])->andWhere(['OR', ['school_id' => null], ['school_id' => $school->id]])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid curriculum!');
+        }
+        $curriculum = SchoolCurriculum::find()->where(['school_id' => $school->id]);
+
+        if ($curriculum->count() > 1) {
+            SchoolCurriculum::deleteAll(['school_id' => $school->id]);
+        }
+
+        if ($curriculum = $curriculum->one()) {
+            $curriculum->curriculum_id = $form->curriculum_id;
+            $curriculum->save();
         } else {
-            if (!ExamType::find()->where(['id' => $form->curriculum_id])->exists()) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid curriculum!');
-            }
             $new = new SchoolCurriculum();
             $new->curriculum_id = $form->curriculum_id;
             $new->school_id = $school->id;
             $new->save();
-            return (new ApiResponse)->success(true, null, 'Curriculum added!');
         }
+
+        return (new ApiResponse)->success(true, null, 'Curriculum added!');
+
     }
 
     /**
@@ -161,7 +173,7 @@ class PreferencesController extends ActiveController
             ])
             ->where(['s.school_id' => $school->id, 's.status' => 1])
             //->leftJoin('teacher_class_subjects c', "c.subject_id = s.subject_id AND c.school_id = '$school->id'")
-            ->leftJoin('class_subjects d', "d.subject_id = s.subject_id AND d.school_id = '$school->id'")
+            ->leftJoin('class_subjects d', "d.subject_id = s.subject_id AND d.school_id = '$school->id' AND d.status = 1")
             ->innerJoin('subjects', "subjects.id = s.subject_id")
             ->leftJoin('homeworks h', "h.subject_id = s.subject_id AND h.school_id = s.school_id")
             ->groupBy(['s.subject_id'])
@@ -211,6 +223,55 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Subject has been removed!');
     }
 
+    public function actionAssignClassSubjects()
+    {
+        $subject_id = Yii::$app->request->post('subject_id');
+        $class_id = Yii::$app->request->post('class_id');
+        $model = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
+        $model->addRule(['class_id', 'subject_id'], 'required');
+        $model->addRule(['subject_id'], 'exist', ['targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        if (!is_array($class_id)) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Class id must be an array');
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+
+
+        if (ClassSubjects::find()->where(['class_id' => $class_id, 'school_id' => $school->id, 'subject_id' => $subject_id, 'status' => 1])->count() >= $class_id) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'No new record to be added');
+        }
+
+        $classes = Classes::find()->where(['id' => $class_id, 'school_id' => $school->id])->all();
+        if (count($classes) < 1) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'No class selected');
+        }
+
+        $n = 0;
+        foreach ($classes as $class) {
+            if (ClassSubjects::find()->where(['class_id' => $class, 'school_id' => $school->id, 'subject_id' => $subject_id, 'status' => 1])->exists()) {
+                continue;
+            }
+            $model = new ClassSubjects();
+            $model->class_id = $class->id;
+            $model->school_id = $school->id;
+            $model->subject_id = $subject_id;
+            $model->status = 1;
+            if ($model->save())
+                $n++;
+        }
+
+        if($n>0) {
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, $n . ' saved!');
+        }else{
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No new record');
+        }
+    }
+
 
     public function actionSubjectCurriculum($subject = null)
     {
@@ -231,9 +292,9 @@ class PreferencesController extends ActiveController
         $terms = [];
         foreach ($classes as $class) {
             $terms[] = array_merge(ArrayHelper::toArray($class), [
-                'first' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1,'subject_id'=>$currentSubject->id]),
-                'second' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1,'subject_id'=>$currentSubject->id]),
-                'third' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1,'subject_id'=>$currentSubject->id])
+                'first' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1, 'subject_id' => $currentSubject->id]),
+                'second' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1, 'subject_id' => $currentSubject->id]),
+                'third' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1, 'subject_id' => $currentSubject->id])
             ]);
         }
         $result = [
@@ -434,6 +495,10 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    /**
+     * School can change their academic calendar different from gradely default dates
+     * @return ApiResponse
+     */
     public function actionUpdateCalendar()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -456,6 +521,10 @@ class PreferencesController extends ActiveController
 
     }
 
+    /**
+     * This allow school to reset their calendar to gradely default dates
+     * @return ApiResponse
+     */
     public function actionResetCalendar()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);

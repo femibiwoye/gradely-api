@@ -95,7 +95,9 @@ return [
         'GET calendar' => 'calendar', //
         'PUT calendar' => 'update-calendar', //
         'PUT reset-calendar' => 'reset-calendar', //
-        'GET subject-curriculum' => 'subject-curriculum' //
+        'GET subject-curriculum' => 'subject-curriculum', //
+
+        'POST assign-class-subjects' => 'assign-class-subjects' //
     ]],
 
 
