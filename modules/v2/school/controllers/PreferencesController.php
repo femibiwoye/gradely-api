@@ -265,9 +265,9 @@ class PreferencesController extends ActiveController
                 $n++;
         }
 
-        if($n>0) {
+        if ($n > 0) {
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, $n . ' saved!');
-        }else{
+        } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No new record');
         }
     }
@@ -297,9 +297,10 @@ class PreferencesController extends ActiveController
                 'third' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1, 'subject_id' => $currentSubject->id])
             ]);
         }
+        $subjectClasses = ClassSubjects::find()->select(['class_id'])->where(['subject_id' => $currentSubject->id, 'school_id' => $school->id,'status'=>1])->all();
         $result = [
             'subjects' => $subjects,
-            'current_subject' => $currentSubject,
+            'current_subject' => array_merge(ArrayHelper::toArray($currentSubject), ['classes' => Classes::findAll(['id' => ArrayHelper::getColumn($subjectClasses, 'class_id')])]),
             'classes' => $terms
         ];
         return $result;
