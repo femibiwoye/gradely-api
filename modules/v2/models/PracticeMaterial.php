@@ -84,6 +84,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'user',
             'uploadTerm',
             'uploadWeek',
+            'uploadTermWeek',
             'feed_likes_and_dislikes' => 'feedLike',
         ];
     }
@@ -199,18 +200,26 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         return 0;
     }
 
-    public function getUploadTerm(){
+    public function getUploadTerm()
+    {
         $model = new GetSpecificData();
-        return $model->term('2020-01-21');
+        return $model->term($this->created_at);
     }
 
-    public function getUploadWeek(){
-        $createdAt = '2020-01-21';
+    public function getUploadWeek()
+    {
+        $createdAt = $this->created_at;
         $model = new GetSpecificData();
         $term = strtolower($model->term($createdAt));
         $y = date('Y', strtotime($createdAt));
-        $start = $y.'-'.date('m-d', strtotime(Yii::$app->params["{$term}_term_start"]));
-        return $model->week($start,'2020-01-21');
+        $start = $y . '-' . date('m-d', strtotime(Yii::$app->params["{$term}_term_start"]));
+        return $model->week($start, date('Y-m-d',strtotime($this->created_at)));
+    }
+
+    public function getUploadTermWeek()
+    {
+
+        return ucfirst($this->getUploadTerm()) . ' Term, Week ' . $this->getUploadWeek();
     }
 
     public function beforeSave($insert)
