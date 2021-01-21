@@ -5,6 +5,26 @@ namespace app\modules\v2\models;
 use Yii;
 use yii\behaviors\SluggableBehavior;
 
+
+/**
+ * This is the model class for table "exam_type".
+ *
+ * @property int $id
+ * @property string $slug
+ * @property string $name
+ * @property string $title
+ * @property string $description
+ * @property int $general General is 1 if the curriculum should be checked on school setup
+ * @property string|null $country
+ * @property int|null $school_id
+ * @property int $approved If approved is one, it means it should be available for every school on the platform
+ * @property int|null $approved_by ID of the admin that approved it
+ * @property string $created_at
+ * @property string|null $updated_at
+ *
+ * @property SchoolCurriculum[] $schoolCurriculums
+ */
+
 class ExamType extends \yii\db\ActiveRecord
 {
 	public static function tableName()

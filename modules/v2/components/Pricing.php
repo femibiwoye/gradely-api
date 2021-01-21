@@ -182,6 +182,7 @@ class Pricing extends Widget
                 }
                 if ($studentSchool->subscription_status == 'premium') {
                     $catchup = true;
+                    $lms = true;
                 }
             }
             if ($studentSubStatus) {
@@ -189,6 +190,6 @@ class Pricing extends Widget
             }
         }
 
-        return ['lms' => $lms, 'catchup' => $catchup];
+        return ['lms' => $lms, 'status' => $catchup];
     }
 }
