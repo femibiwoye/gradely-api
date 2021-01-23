@@ -170,7 +170,7 @@ class PreferencesController extends ActiveController
                 //'count(d.class_id) class_subject_count',
                 //'count(c.id) teacher_class_count'
                 new Expression('CASE WHEN h.subject_id IS NULL THEN 1 ELSE 0 END as can_delete'),
-                new Expression("(SELECT COUNT(*) FROM class_subjects d WHERE d.subject_id = s.subject_id AND school_id = '$school->id' AND d.status = 1) AS teacher_class_count")
+                new Expression("(SELECT COUNT(*) FROM class_subjects d WHERE d.subject_id = s.subject_id AND school_id = '$school->id' AND d.status = 1) AS class_subject_count")
             ])
             ->where(['s.school_id' => $school->id, 's.status' => 1])
             //->leftJoin('teacher_class_subjects c', "c.subject_id = s.subject_id AND c.school_id = '$school->id'")
