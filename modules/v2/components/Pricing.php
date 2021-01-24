@@ -89,7 +89,7 @@ class Pricing extends Widget
                         $status = true;
                     }
 
-                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus);
+                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus,$is_school);
 
                     //I have only merged catchup and lms status to full return.
                     $return = array_merge([
