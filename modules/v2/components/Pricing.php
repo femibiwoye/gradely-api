@@ -190,11 +190,6 @@ class Pricing extends Widget
             }
         }
 
-        if($catchup)
-            $statusTitle = 'status';
-        else
-            $statusTitle = 'catchup';
-
-        return ['lms' => $lms, $statusTitle => $catchup];
+        return ['lms' => $lms, 'status' => $catchup];
     }
 }
