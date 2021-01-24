@@ -45,7 +45,7 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject', 'gradely-users-statistics']
+            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject', 'gradely-users-statistics','school-auth']
         ];
 
         return $behaviors;
@@ -261,6 +261,13 @@ class GeneralController extends Controller
         return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
     }
 
+    public function actionSchoolAuth($sch)
+    {
+        if(!$school = Schools::find()->select(['id','name','slug','logo','banner','tagline'])->where(['slug'=>$sch])->asArray()->one()){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid school');
+        }
+        return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL);
+    }
 
 }
 
