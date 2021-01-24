@@ -28,7 +28,8 @@ return [
     'GET v2/general/curriculum' => '/v2/general/curriculum', //
     'GET v2/general/subject' => '/v2/general/subject', //
     'GET v2/general/class-status/<class_id:\d+>' => '/v2/general/class-status', //
-    'GET v2/gradely-users-statistics' => 'v2/general/gradely-users-statistics',
+    'GET v2/gradely-users-statistics' => 'v2/general/gradely-users-statistics', //
+    'GET v2/school-auth-details/<sch:[a-z0-9-]+>' => 'v2/general/school-auth', //
 
 
     //Current User
