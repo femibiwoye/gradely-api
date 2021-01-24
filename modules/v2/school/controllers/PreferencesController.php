@@ -167,13 +167,14 @@ class PreferencesController extends ActiveController
                 'subjects.slug',
                 'subjects.name',
                 'subjects.description',
-                'count(d.class_id) class_subject_count',
+                //'count(d.class_id) class_subject_count',
                 //'count(c.id) teacher_class_count'
-                new Expression('CASE WHEN h.subject_id IS NULL THEN 1 ELSE 0 END as can_delete')
+                new Expression('CASE WHEN h.subject_id IS NULL THEN 1 ELSE 0 END as can_delete'),
+                new Expression("(SELECT COUNT(*) FROM class_subjects d WHERE d.subject_id = s.subject_id AND school_id = '$school->id' AND d.status = 1) AS class_subject_count")
             ])
             ->where(['s.school_id' => $school->id, 's.status' => 1])
             //->leftJoin('teacher_class_subjects c', "c.subject_id = s.subject_id AND c.school_id = '$school->id'")
-            ->leftJoin('class_subjects d', "d.subject_id = s.subject_id AND d.school_id = '$school->id' AND d.status = 1")
+            //->leftJoin('class_subjects d', "d.subject_id = s.subject_id AND d.school_id = '$school->id' AND d.status = 1")
             ->innerJoin('subjects', "subjects.id = s.subject_id")
             ->leftJoin('homeworks h', "h.subject_id = s.subject_id AND h.school_id = s.school_id")
             ->groupBy(['s.subject_id'])
@@ -265,9 +266,9 @@ class PreferencesController extends ActiveController
                 $n++;
         }
 
-        if($n>0) {
+        if ($n > 0) {
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, $n . ' saved!');
-        }else{
+        } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No new record');
         }
     }
@@ -297,9 +298,10 @@ class PreferencesController extends ActiveController
                 'third' => SubjectTopics::findAll(['term' => 'first', 'class_id' => $class->id, 'status' => 1, 'subject_id' => $currentSubject->id])
             ]);
         }
+        $subjectClasses = ClassSubjects::find()->select(['class_id'])->where(['subject_id' => $currentSubject->id, 'school_id' => $school->id, 'status' => 1])->all();
         $result = [
             'subjects' => $subjects,
-            'current_subject' => $currentSubject,
+            'current_subject' => array_merge(ArrayHelper::toArray($currentSubject), ['classes' => Classes::findAll(['id' => ArrayHelper::getColumn($subjectClasses, 'class_id')])]),
             'classes' => $terms
         ];
         return $result;
