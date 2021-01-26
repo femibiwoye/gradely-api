@@ -639,8 +639,10 @@ class Utility extends ActiveRecord
     {
         $basicUsed = (int)StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic', 'is_active_class' => 1])->count();
         $premiumUsed = (int)StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium', 'is_active_class' => 1])->count();
-
-        return ['basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed],
-                'premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]];
+        $basicUsed += $premiumUsed;
+        return [
+            'basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed],
+            'premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]
+        ];
     }
 }
