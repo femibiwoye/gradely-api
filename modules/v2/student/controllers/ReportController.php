@@ -3,7 +3,7 @@
 namespace app\modules\v2\student\controllers;
 
 use Yii;
-use app\modules\v2\models\{ApiResponse, StudentAdditiionalTopics};
+use app\modules\v2\models\{ApiResponse, StudentAdditionalTopics};
 use app\modules\v2\components\SharedConstant;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -49,7 +49,7 @@ class ReportController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
-        $model = new StudentAdditiionalTopics;
+        $model = new StudentAdditionalTopics;
         $model->attributes = Yii::$app->request->post();
         $model->updated_by = Yii::$app->user->id;
         if (!$model->validate()) {
@@ -79,7 +79,7 @@ class ReportController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
-        $model = StudentAdditiionalTopics::find([
+        $model = StudentAdditionalTopics::find([
             'topic_id' => $topic_id,
             'student_id' => $student_id,
             'status' => SharedConstant::VALUE_ONE
