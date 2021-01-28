@@ -114,7 +114,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
 
     public function getAdditiionalTopic()
     {
-        return $this->hasOne(StudentAdditiionalTopics::className(), ['topic_id' => 'id'])
+        return $this->hasOne(StudentAdditionalTopics::className(), ['topic_id' => 'id'])
                 ->where([
                     'class_id' => $this->class_id,
                     'subject_id' => $this->subject_id,

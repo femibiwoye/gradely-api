@@ -192,7 +192,7 @@ class StudentMastery extends Model
     private function getPreviousClassTopics()
     {
         $previous_class_topics = ArrayHelper::getColumn(
-            StudentAdditiionalTopics::find()
+            StudentAdditionalTopics::find()
                 ->where([
                     'student_id' => $this->student_id,
                     'class_id' => $this->getCurrentClass(),
