@@ -191,6 +191,6 @@ class Pricing extends Widget
             }
         }
 
-        return ['lms' => $lms, 'status' => $catchup];
+        return ['lms' => $lms, 'catchup' => $catchup];
     }
 }
