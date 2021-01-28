@@ -21,7 +21,7 @@ use app\modules\v2\models\{Homeworks,
     Classes,
     ApiResponse,
     StudentMastery,
-    StudentAdditiionalTopics,
+    StudentAdditionalTopics,
     StudentTopicPerformance};
 use app\modules\v2\components\SharedConstant;
 use yii\filters\AccessControl;

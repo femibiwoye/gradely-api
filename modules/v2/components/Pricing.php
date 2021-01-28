@@ -17,7 +17,8 @@ class Pricing extends Widget
             $model = Schools::findOne(['id' => $id]);
             $model->subscription_plan = 'trial';
             $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
-            $model->basic_subscription = 100;
+//            $model->basic_subscription = 100;
+//            $model->premium_subscription = 100;
         } else if ($type == 'student') {
             $model = UserModel::findOne(['id' => $id]);
             $model->subscription_plan = 'trial';
@@ -180,7 +181,7 @@ class Pricing extends Widget
                 if ($studentSchool->subscription_status == 'basic') {
                     $lms = true;
                 }
-                if ($studentSchool->subscription_status == 'premium') {
+                if ($studentSchool->subscription_status == 'premium' || $studentSchool->subscription_status == 'trial') {
                     $catchup = true;
                     $lms = true;
                 }
@@ -190,11 +191,6 @@ class Pricing extends Widget
             }
         }
 
-        if($catchup)
-            $statusTitle = 'status';
-        else
-            $statusTitle = 'catchup';
-
-        return ['lms' => $lms, $statusTitle => $catchup];
+        return ['lms' => $lms, 'catchup' => $catchup];
     }
 }

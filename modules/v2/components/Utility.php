@@ -375,9 +375,9 @@ class Utility extends ActiveRecord
     public static function ImageQuery($name, $folder = 'topics')
     {
         if ($folder == 'users')
-            return "IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/$folder/',$name.image)) as image";
+            return "IF($name.image LIKE '%http%',$name.image, CONCAT('https://live.gradely.ng/images/$folder/',$name.image)) as image";
         else
-            return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/$folder/',$name.image))) as image";
+            return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://live.gradely.ng/images/$folder/',$name.image))) as image";
     }
 
     public static function ThumbnailQuery($name, $type)
@@ -639,8 +639,10 @@ class Utility extends ActiveRecord
     {
         $basicUsed = (int)StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic', 'is_active_class' => 1])->count();
         $premiumUsed = (int)StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium', 'is_active_class' => 1])->count();
-
-        return ['basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed],
-                'premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]];
+        $basicUsed += $premiumUsed;
+        return [
+            'basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed],
+            'premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]
+        ];
     }
 }
