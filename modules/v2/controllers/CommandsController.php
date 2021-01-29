@@ -7,12 +7,15 @@ use app\modules\v2\components\Recommendation;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\GenerateString;
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\Recommendations;
 use app\modules\v2\models\SchoolCalendar;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\User;
 use app\modules\v2\models\VideoContent;
+use app\modules\v2\school\models\ClassForm;
 use Aws\S3\S3Client;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
@@ -179,6 +182,22 @@ class CommandsController extends Controller
                 continue;
             }
         }
+    }
+
+    public function actionPopulateSchoolClasses()
+    {
+        foreach (Schools::find()->leftJoin('classes','classes.school_id = schools.id')->where(['classes.id'=>null])->all() as $school) {
+            if(!Classes::find()->where(['school_id'=>$school->id])->exists()) {
+                $form = new ClassForm();
+                $form->school_format = $school->naming_format;
+                $form->school_type = $school->school_type;
+                if (!$form->generateClasses($school)) {
+                    continue;
+                }
+            }
+        }
+
+
     }
 
 
