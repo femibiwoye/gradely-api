@@ -90,7 +90,7 @@ class Pricing extends Widget
                         $status = true;
                     }
 
-                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus, $is_school);
+                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus, $is_school, $plan);
 
                     //I have only merged catchup and lms status to full return.
                     $return = array_merge([
@@ -171,7 +171,7 @@ class Pricing extends Widget
      * @param bool $isSchool
      * @return array
      */
-    public static function StudentLmsCatchupStatus($studentID, $subStatus, $studentSubStatus, $schoolSubStatus, $isSchool = false)
+    public static function StudentLmsCatchupStatus($studentID, $subStatus, $studentSubStatus, $schoolSubStatus, $isSchool = false, $plan = null)
     {
         $lms = false;
         $catchup = false;
@@ -181,7 +181,7 @@ class Pricing extends Widget
                 if ($studentSchool->subscription_status == 'basic') {
                     $lms = true;
                 }
-                if ($studentSchool->subscription_status == 'premium' || $studentSchool->subscription_status == 'trial') {
+                if ($studentSchool->subscription_status == 'premium' || $plan == 'trial') {
                     $catchup = true;
                     $lms = true;
                 }
