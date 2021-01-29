@@ -375,9 +375,9 @@ class Utility extends ActiveRecord
     public static function ImageQuery($name, $folder = 'topics')
     {
         if ($folder == 'users')
-            return "IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/$folder/',$name.image)) as image";
+            return "IF($name.image LIKE '%http%',$name.image, CONCAT('https://live.gradely.ng/images/$folder/',$name.image)) as image";
         else
-            return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://gradely.ng/images/$folder/',$name.image))) as image";
+            return "IF($name.image IS NULL or $name.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF($name.image LIKE '%http%',$name.image, CONCAT('https://live.gradely.ng/images/$folder/',$name.image))) as image";
     }
 
     public static function ThumbnailQuery($name, $type)
