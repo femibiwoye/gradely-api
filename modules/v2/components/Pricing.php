@@ -48,7 +48,7 @@ class Pricing extends Widget
                 $model = Schools::findOne(['id' => $schoolID]);
                 $status = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                 $plan = $model->subscription_plan;
-                $used_student = StudentSchool::find()->where(['school_id' => $model->id, 'status' => 1,'is_active_class'=>1])->count();
+                $used_student = StudentSchool::find()->where(['school_id' => $model->id, 'status' => 1, 'is_active_class' => 1])->count();
                 $limit = Options::findOne(['name' => $plan . '_school_students_limit']);
                 $limit = $limit ? $limit->value : null;
                 $unused_student = $limit - $used_student;
@@ -90,7 +90,7 @@ class Pricing extends Widget
                         $status = true;
                     }
 
-                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus,$is_school);
+                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus, $is_school);
 
                     //I have only merged catchup and lms status to full return.
                     $return = array_merge([
@@ -99,7 +99,7 @@ class Pricing extends Widget
                         'plan' => $plan,
                         'is_school_sub' => $is_school,
                         'days_left' => self::subscriptionDaysLeft(isset($model->subscription_expiry) && strtotime($model->subscription_expiry) > strtotime($user->subscription_expiry) ? $model->subscription_expiry : $user->subscription_expiry)
-                    ],$lmsCatchupStatus);
+                    ], $lmsCatchupStatus);
                     return $statusOnly ? $status : $return;
                     //return $statusOnly ? array_merge(['status'=>$status],$lmsCatchupStatus) : $return; // Final result
                 }
@@ -191,6 +191,6 @@ class Pricing extends Widget
             }
         }
 
-        return ['lms' => $lms, 'catchup' => $catchup];
+        return ['lms' => $lms, 'catchup' => $catchup, 'subStatus' => $subStatus, 'isSchool' => $isSchool, 'schoolSubStatus' => $schoolSubStatus];
     }
 }
