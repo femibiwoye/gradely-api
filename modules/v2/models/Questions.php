@@ -141,7 +141,7 @@ class Questions extends \yii\db\ActiveRecord
     {
         return User::find()
             ->innerJoin('quiz_summary_details qsd', 'qsd.student_id = user.id AND qsd.question_id = ' . $this->id)
-            ->where('qsd.selected = qsd.answer')
+            ->where(['qsd.selected' => 'qsd.answer'])
             ->andWhere(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'qsd.homework_id' => Yii::$app->request->get('id')])
             ->all();
     }
@@ -149,9 +149,10 @@ class Questions extends \yii\db\ActiveRecord
     public function getWrongQuizSummaryDetails()
     {
         return User::find()
-            ->innerJoin('quiz_summary_details qsd', 'qsd.student_id = user.id AND qsd.question_id = ' . $this->id)
-            ->where('qsd.selected != qsd.answer')
-            ->andWhere(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'qsd.homework_id' => Yii::$app->request->get('id')])
+            ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
+            ->leftJoin('quiz_summary_details qsd', 'qsd.student_id = user.id AND qsd.question_id = ' . $this->id)
+            ->where(['OR',['!=','qsd.selected', 'qsd.answer'],['qsd.selected'=>null]])
+            ->andWhere(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'qsd.homework_id' => Yii::$app->request->get('id'),'qs.homework_id' => Yii::$app->request->get('id')])
             ->all();
     }
 
