@@ -642,7 +642,7 @@ class Utility extends ActiveRecord
         $basicUsed += $premiumUsed;
         return [
             'basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed],
-            'premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->basic_subscription - $premiumUsed]
+            'premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->premium_subscription - $premiumUsed]
         ];
     }
 }

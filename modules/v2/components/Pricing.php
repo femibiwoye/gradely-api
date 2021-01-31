@@ -8,6 +8,7 @@ use app\modules\v2\models\UserModel;
 use yii\base\Widget;
 use Yii;
 use app\modules\v2\models\{Schools, Options, SchoolTeachers, StudentSchool, Parents};
+use yii\helpers\ArrayHelper;
 
 class Pricing extends Widget
 {
@@ -48,7 +49,7 @@ class Pricing extends Widget
                 $model = Schools::findOne(['id' => $schoolID]);
                 $status = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                 $plan = $model->subscription_plan;
-                $used_student = StudentSchool::find()->where(['school_id' => $model->id, 'status' => 1,'is_active_class'=>1])->count();
+                $used_student = StudentSchool::find()->where(['school_id' => $model->id, 'status' => 1, 'is_active_class' => 1])->count();
                 $limit = Options::findOne(['name' => $plan . '_school_students_limit']);
                 $limit = $limit ? $limit->value : null;
                 $unused_student = $limit - $used_student;
@@ -90,7 +91,7 @@ class Pricing extends Widget
                         $status = true;
                     }
 
-                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus,$is_school);
+                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus, $is_school, $plan);
 
                     //I have only merged catchup and lms status to full return.
                     $return = array_merge([
@@ -99,7 +100,7 @@ class Pricing extends Widget
                         'plan' => $plan,
                         'is_school_sub' => $is_school,
                         'days_left' => self::subscriptionDaysLeft(isset($model->subscription_expiry) && strtotime($model->subscription_expiry) > strtotime($user->subscription_expiry) ? $model->subscription_expiry : $user->subscription_expiry)
-                    ],$lmsCatchupStatus);
+                    ], $lmsCatchupStatus);
                     return $statusOnly ? $status : $return;
                     //return $statusOnly ? array_merge(['status'=>$status],$lmsCatchupStatus) : $return; // Final result
                 }
@@ -171,7 +172,7 @@ class Pricing extends Widget
      * @param bool $isSchool
      * @return array
      */
-    public static function StudentLmsCatchupStatus($studentID, $subStatus, $studentSubStatus, $schoolSubStatus, $isSchool = false)
+    public static function StudentLmsCatchupStatus($studentID, $subStatus, $studentSubStatus, $schoolSubStatus, $isSchool = false, $plan = null)
     {
         $lms = false;
         $catchup = false;
@@ -181,7 +182,7 @@ class Pricing extends Widget
                 if ($studentSchool->subscription_status == 'basic') {
                     $lms = true;
                 }
-                if ($studentSchool->subscription_status == 'premium' || $studentSchool->subscription_status == 'trial') {
+                if ($studentSchool->subscription_status == 'premium' || $plan == 'trial') {
                     $catchup = true;
                     $lms = true;
                 }
@@ -191,6 +192,68 @@ class Pricing extends Widget
             }
         }
 
-        return ['lms' => $lms, 'catchup' => $catchup];
+//        return ['lms' => $lms, 'catchup' => $catchup, 'subStatus' => $subStatus, 'isSchool' => $isSchool, 'schoolSubStatus' => $schoolSubStatus];
+        return ['lms' => $lms, 'status' => $catchup];
     }
+
+    /**
+     * This is called when teacher or school added a new student. If there is available slot, it add the student to the slot
+     * @param $students
+     * @return bool
+     */
+    public static function SchoolAddStudentSubscribe($students)
+    {
+
+        $students = StudentSchool::find()->where(['student_id' => $students, 'status' => 1, 'is_active_class' => 1, 'subscription_status' => null])->all();
+        foreach ($students as $student) {
+            $school = Schools::findOne(['id' => $student->school_id]);
+            $status = Utility::SchoolStudentSubscriptionDetails($school);
+            if ($status['premium']['remaining'] > 0) {
+                $student->subscription_status = 'premium';
+                $student->save();
+            } elseif ($status['basic']['remaining'] > 0) {
+                $student->subscription_status = 'basic';
+                $student->save();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * This subscribe students in a school if the school is subscribing for the first time and no student has subscription before now.
+     * @param Schools $school
+     */
+    public static function SchoolStudentFirstTimeSubscription(Schools $school)
+    {
+        if (!StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'is_active_class' => 1, 'subscription_status' => ['basic', 'premium']])->exists() && $school->basic_subscription > 0) {
+            $students = StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'is_active_class' => 1])->all();
+            for ($i = 1; $i <= $school->basic_subscription; $i++) {
+                if (isset($students[$i])) {
+                    echo $i.' - ';
+                   // Pricing::SubscribeChildFunction($students[$i], $school);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * This is inner function for school students subscription
+     * @param StudentSchool $student
+     * @param Schools $school
+     * @return bool
+     */
+    public static function SubscribeChildFunction(StudentSchool $student, Schools $school)
+    {
+        if ($school->premium_subscription > StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'is_active_class' => 1, 'subscription_status' => 'premium'])->exists()) {
+            $student->subscription_status = 'premium';
+        } else {
+            $student->subscription_status = 'basic';
+        }
+        $student->save();
+    }
+
 }

@@ -3,6 +3,7 @@
 namespace app\modules\v2\teacher\models;
 
 use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\Pricing;
 use app\modules\v2\models\StudentSchool;
 use Yii;
 use yii\base\Model;
@@ -110,6 +111,8 @@ class AddStudentForm extends Model
                 ['password', $this->password],
                 ['class_id', $this->class_id]
             ]);
+            $studentsID = ArrayHelper::getColumn($this->added_students, 'id');
+            Pricing::SchoolAddStudentSubscribe($studentsID);
 
             $dbtransaction->commit();
         } catch (\Exception $e) {
