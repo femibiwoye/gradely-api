@@ -230,8 +230,7 @@ class Pricing extends Widget
             $students = StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'is_active_class' => 1])->all();
             for ($i = 1; $i <= $school->basic_subscription; $i++) {
                 if (isset($students[$i])) {
-                    echo $i.' - ';
-                   // Pricing::SubscribeChildFunction($students[$i], $school);
+                    Pricing::SubscribeChildFunction($students[$i], $school);
                 } else {
                     break;
                 }
