@@ -22,12 +22,12 @@ return [
     'payment_sk' => PAYSTACK_SK,
     'payment_pk' => PAYSTACK_PK,
 
-    'baseURl' => 'https://gradely.ng',
-    'userImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/users/',image))) as image",
-    'questionImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/questions/',image))) as image",
-    'subjectImage' => "IF(image IS NULL or image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/subject.png',IF(image LIKE '%http%',image, CONCAT('https://gradely.ng/images/subjects/',image))) as image",
-    'topicImage' => "IF(subject_topics.image IS NULL or subject_topics.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF(subject_topics.image LIKE '%http%',subject_topics.image, CONCAT('https://gradely.ng/images/topics/',subject_topics.image))) as image",
-    'ThumbnailQuery' => "IF(subject_topics.image IS NULL or subject_topics.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF(subject_topics.image LIKE '%http%',subject_topics.image, CONCAT('https://gradely.ng/images/topics/',subject_topics.image))) as image",
+    'baseURl' => 'https://live.gradely.ng',
+    'userImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://live.gradely.ng/images/users/',image))) as image",
+    'questionImage' => "IF(image IS NULL or image = '', null,IF(image LIKE '%http%',image, CONCAT('https://live.gradely.ng/images/questions/',image))) as image",
+    'subjectImage' => "IF(image IS NULL or image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/subject.png',IF(image LIKE '%http%',image, CONCAT('https://live.gradely.ng/images/subjects/',image))) as image",
+    'topicImage' => "IF(subject_topics.image IS NULL or subject_topics.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF(subject_topics.image LIKE '%http%',subject_topics.image, CONCAT('https://live.gradely.ng/images/topics/',subject_topics.image))) as image",
+    'ThumbnailQuery' => "IF(subject_topics.image IS NULL or subject_topics.image = '', 'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/topic.png',IF(subject_topics.image LIKE '%http%',subject_topics.image, CONCAT('https://live.gradely.ng/images/topics/',subject_topics.image))) as image",
 
     //WIzItUp url
     'videoDomain' => 'https://api.wizitup.com/reseller/v1/get-link',
