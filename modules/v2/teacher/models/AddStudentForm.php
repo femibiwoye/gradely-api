@@ -80,6 +80,7 @@ class AddStudentForm extends Model
     /**
      * This add the student to class immediately teacher register the child
      * @param $user
+     * @return bool
      */
     private function addToClass($user)
     {
@@ -88,7 +89,7 @@ class AddStudentForm extends Model
         $model->student_id = $user->id;
         $model->school_id = Classes::findOne(['id' => $this->class_id])->school_id;
         $model->status = 1;
-        $model->save();
+        return $model->save();
     }
 
     public function addStudents($type)
@@ -96,10 +97,18 @@ class AddStudentForm extends Model
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             foreach ($this->students as $student) {
-                if (!$student = $this->addStudent($type, $student)) {
+
+                $studentName = $student['name'];
+                if (strpos($studentName, '/') !== false) { // Add existing student by code
+                    if ($userModel = User::findOne(['code' => $studentName, 'type' => 'student'])) {
+                        if (StudentSchool::find()->where(['student_id' => $userModel->id, 'is_active_class' => 1, 'status' => 1])->exists() || !$this->addToClass($userModel)) {
+                            return false;
+                        }
+                        $student = $userModel;
+                    }
+                } elseif (!$student = $this->addStudent($type, $student)) { // Add new student
                     return false;
                 }
-
 
                 array_push($this->added_students, $student);
             }
