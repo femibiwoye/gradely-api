@@ -106,7 +106,10 @@ class QuestionController extends ActiveController
         $model->addRule(['subject_id'], 'exist', ['targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']]);
         $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
         $model->addRule(['difficulty'], 'in', ['range' => ['easy', 'medium', 'hard']]);
-        $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
+        if ($type == 'multiple')
+            $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
+        elseif ($type == 'bool')
+            $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
         $model->addRule(['duration', 'class_id'], 'integer');
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
