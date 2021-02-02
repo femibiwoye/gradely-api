@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
@@ -51,6 +52,7 @@ class QuestionController extends ActiveController
 
     public function actionQuestions()
     {
+
         $homework_id = Yii::$app->request->get('homework_id');
         $teacher_id = Yii::$app->user->id;
         $form = new \yii\base\DynamicModel(compact('homework_id', 'teacher_id'));
@@ -70,7 +72,7 @@ class QuestionController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question found');
     }
 
     public function actionHomeworkQuestions($homework_id)
@@ -119,6 +121,10 @@ class QuestionController extends ActiveController
             $model = new Questions(['scenario' => 'create-' . $type]);
             $model->attributes = Yii::$app->request->post();
             $model->teacher_id = $teacher_id;
+
+            if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a])->exists()) {
+                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
+            }
 
             $model->type = $type;
             $model->category = 'homework';
@@ -212,7 +218,9 @@ class QuestionController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+        $model = Utility::FilterQuestionReturns($model);
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question found');
     }
 
     public function actionDelete()
