@@ -37,6 +37,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
     private $struggling = [];
     private $average = [];
     private $excellence = [];
+
     public static function tableName()
     {
         return 'subject_topics';
@@ -58,26 +59,26 @@ class SubjectTopics extends \yii\db\ActiveRecord
     }
 
     public function fields()
-{
-    $fields = parent::fields();
-    $fields['image'] = function ($model) {
-        return Utility::AbsoluteImage($model->image,'topics');
-    };
+    {
+        $fields = parent::fields();
+        $fields['image'] = function ($model) {
+            return Utility::AbsoluteImage($model->image, 'topics');
+        };
 
-    $fields['catchup_status'] = function() {
-        if ($this->additiionalTopic) {
-            return $this->additiionalTopic->status;
-        } else {
-            return 1; //default status is supposed to be 1
+        $fields['catchup_status'] = function () {
+            if ($this->additiionalTopic) {
+                return $this->additiionalTopic->status;
+            } else {
+                return 1; //default status is supposed to be 1
+            }
+        };
+
+        if ($this->learningArea) {
+            $fields['learning_area'] = 'learningArea';
         }
-    };
 
-    if ($this->learningArea) {
-        $fields['learning_area'] = 'learningArea';
+        return $fields;
     }
-
-    return $fields;
-}
 
     /**
      * {@inheritdoc}
@@ -115,10 +116,10 @@ class SubjectTopics extends \yii\db\ActiveRecord
     public function getAdditiionalTopic()
     {
         return $this->hasOne(StudentAdditionalTopics::className(), ['topic_id' => 'id'])
-                ->where([
-                    'class_id' => $this->class_id,
-                    'subject_id' => $this->subject_id,
-                    'status' => 1,
+            ->where([
+                'class_id' => $this->class_id,
+                'subject_id' => $this->subject_id,
+                'status' => 1,
             ]);
     }
 
@@ -158,7 +159,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
         return ArrayHelper::getColumn(
             StudentSchool::find()
                 ->select(['student_id'])
-                ->where(['class_id' => Yii::$app->request->get('class_id'),'is_active_class'=>1,'status'=>1])
+                ->where(['class_id' => Yii::$app->request->get('class_id'), 'is_active_class' => 1, 'status' => 1])
                 ->all(),
             'student_id'
         );
@@ -169,11 +170,11 @@ class SubjectTopics extends \yii\db\ActiveRecord
         foreach ($this->studentsInClass as $student) {
             $score = $this->getResult($student, $this->id);
             if ($score > 75) {
-                $this->excellence = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score ." %"]);
+                $this->excellence = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score . " %"]);
             } else if ($score >= 50 && $score < 75) {
-                $this->average = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score ." %"]);
+                $this->average = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score . " %"]);
             } else {
-                $this->struggling = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score ." %"]);
+                $this->struggling = array_merge(ArrayHelper::toArray($this->getStudent($student, $score)), ['score' => $score . " %"]);
             }
         }
 
@@ -194,18 +195,18 @@ class SubjectTopics extends \yii\db\ActiveRecord
     public function getStudent($student_id, $score)
     {
         return User::find()
-                ->select('id, firstname, image')
-                ->where(['id' => $student_id, 'type' => SharedConstant::ACCOUNT_TYPE[3]])
-                ->all();
+            ->select('id, firstname, image')
+            ->where(['id' => $student_id, 'type' => SharedConstant::ACCOUNT_TYPE[3]])
+            ->all();
     }
 
-    public function getResult($student_id, $topic_id=null)
+    public function getResult($student_id, $topic_id = null)
     {
         $query = QuizSummaryDetails::find()
-                    ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
-                    ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
-                    ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id]);
-        
+            ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
+            ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+            ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id]);
+
         if (!$query->all()) {
             return SharedConstant::VALUE_ZERO;
         }
@@ -247,14 +248,19 @@ class SubjectTopics extends \yii\db\ActiveRecord
         return $this->hasMany(VideoAssign::className(), ['topic_id' => 'id']);
     }
 
-    public function getTopicPerformanceByID($id,$studentID)
+    public function getTopicPerformanceByID($id, $studentID)
     {
-        $model = QuizSummary::find()->where(['topic_id'=>$id,'student_id'=>$studentID]);
-        if($model->sum('correct')>0) {
+        $model = QuizSummary::find()->where(['topic_id' => $id, 'student_id' => $studentID]);
+        if ($model->sum('correct') > 0) {
             return $model->sum('correct') / $model->sum('total_questions') * 100;
-        }else{
+        } else {
             return 0;
         }
+    }
+
+    public function getIsReferenced()
+    {
+        return $this->hasOne(SchoolTopic::className(), ['topic_id' => 'id'])->andWhere(['school_id' => Utility::getSchoolAccess()]);
     }
 
 //    public static function getDb()
