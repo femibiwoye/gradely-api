@@ -68,7 +68,7 @@ class CurriculumController extends ActiveController
         return $actions;
     }
 
-    public function actionTopics($subject, $school_class, $global_class, $term = null)
+    public function actionTopics($subject, $school_class, $global_class, $term = null, $search = null)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         if (SchoolTopic::find()->where(['school_id' => $school])->exists() && empty($term)) {
@@ -96,13 +96,13 @@ class CurriculumController extends ActiveController
                     'week_number AS week',
                     'term',
                     'exam_type_id AS curriculum',
-                    'image',-
+                    'image',
                     new Expression("null AS position"),
                 ])
                 ->with(['learningArea'])
                 ->where(['status' => 1, 'class_id' => $global_class, 'subject_id' => $subject])->asArray();
             if (!empty($term)) {
-                $models = $models->with(['isReferenced'])->andWhere(['term' => $term])->all();
+                $models = $models->with(['isReferenced'])->andWhere(['AND', ['term' => $term], ['like', 'topic', '%' . $search . '%', false]])->all();
                 return (new ApiResponse)->success($models);
             }
         }
