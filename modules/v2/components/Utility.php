@@ -7,6 +7,7 @@ use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
+use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\{TeacherClass,
@@ -639,13 +640,18 @@ class Utility extends ActiveRecord
     {
         $basicUsed = (int)StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'basic', 'is_active_class' => 1])->count();
         $premiumUsed = (int)StudentSchool::find()->where(['school_id' => $school->id, 'status' => 1, 'subscription_status' => 'premium', 'is_active_class' => 1])->count();
-        $basicUsed += $premiumUsed;
+        //$basicUsed += $premiumUsed;
         return [
             'basic' => ['total' => $school->basic_subscription, 'used' => $basicUsed, 'remaining' => $school->basic_subscription - $basicUsed],
             'premium' => ['total' => $school->premium_subscription, 'used' => $premiumUsed, 'remaining' => $school->premium_subscription - $premiumUsed]
         ];
     }
 
+    /**
+     * Remove unnecessary question fields
+     * @param $model
+     * @return mixed
+     */
     public static function FilterQuestionReturns($model)
     {
         if ($model['type'] == 'essay') {
@@ -668,4 +674,14 @@ class Utility extends ActiveRecord
 
         return $model;
     }
+
+    public static function SchoolActiveCurriculum($schoolID)
+    {
+        if ($curriculum = SchoolCurriculum::findOne(['school_id' => $schoolID])) {
+            return $curriculum->curriculum_id;
+        }
+        return 1;
+    }
+
+
 }

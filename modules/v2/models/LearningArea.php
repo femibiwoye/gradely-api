@@ -3,6 +3,7 @@
 namespace app\modules\v2\models;
 
 use Yii;
+use yii\behaviors\SluggableBehavior;
 
 /**
  * This is the model class for table "learning_area".
@@ -14,6 +15,8 @@ use Yii;
  * @property string $topic
  * @property string $slug
  * @property string|null $description
+ * @property int $week
+ * @property int $is_school
  * @property string|null $created_at
  * @property string|null $updated_at
  *
@@ -29,13 +32,24 @@ class LearningArea extends \yii\db\ActiveRecord
         return 'learning_area';
     }
 
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => SluggableBehavior::className(),
+                'attribute' => 'topic',
+                'ensureUnique' => true
+            ],
+        ];
+    }
+
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['class_id', 'subject_id', 'topic_id', 'topic', 'slug'], 'required'],
+            [['class_id', 'subject_id', 'topic_id', 'topic', 'slug','week'], 'required'],
             [['class_id', 'subject_id', 'topic_id'], 'integer'],
             [['description'], 'string'],
             [['created_at', 'updated_at'], 'safe'],

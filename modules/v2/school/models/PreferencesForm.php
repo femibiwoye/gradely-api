@@ -4,9 +4,13 @@ namespace app\modules\v2\school\models;
 
 
 use app\modules\v2\components\SharedConstant;
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\ClassSubjects;
 use app\modules\v2\models\ExamType;
+use app\modules\v2\models\SchoolCurriculum;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
 use Yii;
@@ -64,9 +68,23 @@ class PreferencesForm extends Model
         $newCurriculum->country = $this->country;
         $newCurriculum->title = $this->name;
         $newCurriculum->school_id = $school->id;
-        if ($newCurriculum->save())
-            return $newCurriculum;
-        return false;
+        if (!$newCurriculum->save())
+            return false;
+
+        $curriculum = SchoolCurriculum::find()->where(['school_id' => $school->id]);
+        if ($curriculum->count() > 1) {
+            SchoolCurriculum::deleteAll(['school_id' => $school->id]);
+        }
+        if ($curriculum = $curriculum->one()) {
+            $curriculum->curriculum_id = $newCurriculum->id;
+            $curriculum->save();
+        } else {
+            $new = new SchoolCurriculum();
+            $new->curriculum_id = $newCurriculum->id;
+            $new->school_id = $school->id;
+            $new->save();
+        }
+        return $newCurriculum;
     }
 
     /**
@@ -109,6 +127,22 @@ class PreferencesForm extends Model
             $dbtransaction->rollBack();
             return $this->addError('name', $e->getMessage());
         }
+    }
+
+    public function EnsureAndCreateCurriculum(Schools $school)
+    {
+        if (ExamType::find()->where(['school_id' => $school->id])->exists()) {
+            return false;
+        }
+
+        $form = new PreferencesForm(['scenario' => 'curriculum-request']);
+        $form->name = 'Custom';
+        $form->description = 'Custom';
+        $form->country = !empty($school->country) ? $school->country : 'Nigeria';
+        if (!$model = $form->addCurriculum($school)) {
+            return false;
+        }
+        return $model;
     }
 
 }
