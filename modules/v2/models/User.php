@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\Utility;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
@@ -71,6 +72,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'is_boarded',
             'token',
             'profile' => 'userProfile',
+            'termWeek'
             //'performance' => 'topics'
         ];
 
@@ -108,6 +110,11 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             $image = Yii::$app->params['baseURl'] . '/images/users/' . $this->image;
         }
         return $image;
+    }
+
+    public function getTermWeek()
+    {
+        return Utility::getStudentTermWeek();
     }
 
     public function getUserPreference()

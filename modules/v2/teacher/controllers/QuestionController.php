@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
@@ -51,6 +52,7 @@ class QuestionController extends ActiveController
 
     public function actionQuestions()
     {
+
         $homework_id = Yii::$app->request->get('homework_id');
         $teacher_id = Yii::$app->user->id;
         $form = new \yii\base\DynamicModel(compact('homework_id', 'teacher_id'));
@@ -70,7 +72,7 @@ class QuestionController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question found');
     }
 
     public function actionHomeworkQuestions($homework_id)
@@ -106,7 +108,10 @@ class QuestionController extends ActiveController
         $model->addRule(['subject_id'], 'exist', ['targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']]);
         $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
         $model->addRule(['difficulty'], 'in', ['range' => ['easy', 'medium', 'hard']]);
-        $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
+        if ($type == 'multiple')
+            $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
+        elseif ($type == 'bool')
+            $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
         $model->addRule(['duration', 'class_id'], 'integer');
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
@@ -116,6 +121,10 @@ class QuestionController extends ActiveController
             $model = new Questions(['scenario' => 'create-' . $type]);
             $model->attributes = Yii::$app->request->post();
             $model->teacher_id = $teacher_id;
+
+            if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a])->exists()) {
+                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
+            }
 
             $model->type = $type;
             $model->category = 'homework';
@@ -209,7 +218,9 @@ class QuestionController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+        $model = Utility::FilterQuestionReturns($model);
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question found');
     }
 
     public function actionDelete()

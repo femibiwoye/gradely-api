@@ -10,6 +10,7 @@ use app\modules\v2\models\Event;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\Homeworks;
 use app\modules\v2\models\InviteLog;
+use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\RequestCall;
 use app\modules\v2\models\SchoolNamingFormat;
 use app\modules\v2\models\SchoolRole;
@@ -271,6 +272,16 @@ class GeneralController extends ActiveController
             $model = Homeworks::find()
                 ->where(['type' => 'homework', 'tag' => 'exam', 'school_id' => $school_id])
                 ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
+        } elseif ($type == 'note') {
+            $noOrder = true;
+            $model = $model = PracticeMaterial::find()
+                ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
+                ->andWhere(['practice_material.filetype' => 'document', 'homeworks.type' => 'lesson', 'homeworks.school_id' => $school_id])
+                ->groupBy('practice_material.id')->orderBy('practice_material.id DESC');
+        } elseif ($type == 'discussion') {
+            $noOrder = true;
+            $model = Feed::find()->where(['type' => SharedConstant::FEED_TYPES[0], 'view_by' => ['class', 'all']])
+                ->innerJoin('classes', 'classes.id = feed.class_id')->andWhere(['classes.school_id' => $school_id]);
         } elseif ($type == 'live-class') {
             $model = TutorSession::find()
                 ->select([
@@ -307,8 +318,8 @@ class GeneralController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-
-        $model = $model->orderBy('id DESC');
+        if (!isset($noOrder))
+            $model = $model->orderBy('id DESC');
         if (!$model->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::NO_CONTENT);
         }
