@@ -661,6 +661,7 @@ class Utility extends ActiveRecord
             unset($model['option_d']);
             unset($model['option_e']);
             unset($model['answer']);
+            unset($model['score']);
         } elseif ($model['type'] == 'short' || $model['type'] == 'bool') {
             unset($model['option_a']);
             unset($model['option_b']);
@@ -669,8 +670,8 @@ class Utility extends ActiveRecord
             unset($model['option_e']);
             unset($model['file_upload']);
             unset($model['word_limit']);
+            unset($model['score']);
         }
-        unset($model['score']);
 
         return $model;
     }

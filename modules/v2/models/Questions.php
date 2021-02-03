@@ -130,6 +130,7 @@ class Questions extends \yii\db\ActiveRecord
             unset($question[array_search('option_d', $question)]);
             unset($question[array_search('option_e', $question)]);
             unset($question[array_search('answer', $question)]);
+            unset($question[array_search('score', $question)]);
         }elseif ($this->type == 'short' || $this->type == 'bool') {
             unset($question[array_search('option_a', $question)]);
             unset($question[array_search('option_b', $question)]);
@@ -138,8 +139,9 @@ class Questions extends \yii\db\ActiveRecord
             unset($question[array_search('option_e', $question)]);
             unset($question[array_search('file_upload', $question)]);
             unset($question[array_search('word_limit', $question)]);
+            unset($question[array_search('score', $question)]);
         }
-        unset($question[array_search('score', $question)]);
+
 
         return $question;
     }
