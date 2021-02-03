@@ -103,6 +103,7 @@ return [
     'GET v2/school/curriculum/topics' => 'v2/school/curriculum/topics', //
     'POST v2/school/curriculum/topic' => 'v2/school/curriculum/create-topic', //
     'DELETE v2/school/curriculum/topic' => 'v2/school/curriculum/delete-topic', //
+    'PUT v2/school/curriculum/order-topic' => 'v2/school/curriculum/order-topic', //
 
     //For population
     'GET v2/school/teacher/populate-class-subjects' => 'v2/school/teacher/populate-class-subjects', //

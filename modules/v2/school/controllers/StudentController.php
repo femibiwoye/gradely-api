@@ -225,16 +225,13 @@ class StudentController extends ActiveController
             $models = $models->andWhere(['ss.subscription_status' => $license]);
         }
 
-        $models = $models->asArray();
+        $models = $models->groupBy('u.id')->asArray();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $models,
             'pagination' => [
                 'pageSize' => 20,
                 'validatePage' => false,
-            ],
-            'sort' => [
-                'attributes' => ['open_date', 'close_date'],
             ],
         ]);
 
