@@ -37,7 +37,6 @@ use yii\rest\ActiveController;
 class GeneralController extends ActiveController
 {
     public $modelClass = 'app\modules\v2\models\SchoolType';
-    //public $modelFormat = 'app\modules\v2\models\SchoolNamingFormat';
 
     /**
      * @return array
@@ -122,22 +121,6 @@ class GeneralController extends ActiveController
                 ])
             ->andWhere($weekCondition)
             ->count();
-
-//        $activeHomeWork = Homeworks::find()->where(['AND',
-//            ['school_id' => Utility::getSchoolAccess(), 'publish_status' => 1, 'access_status' => 1, 'status' => 1],
-//            ['>', 'close_date', $dateTime],
-//            ['<', 'open_date', $dateTime],
-//        ])->count();
-
-//        $yetToStartHomeWork = Homeworks::find()->where([
-//            'AND',
-//            [
-//                'school_id' => Utility::getSchoolAccess(),
-//                'status' => 1,
-//                'publish_status' => 1],
-//            ['>', 'open_date', $dateTime]
-//        ])->count();
-
 
         $schoolClasses = ArrayHelper::getColumn(Classes::find()->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
 
@@ -246,6 +229,10 @@ class GeneralController extends ActiveController
 
     }
 
+    /**
+     * Get basic onboarding status
+     * @return ApiResponse
+     */
     public function actionDashboardTodoStatus()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -258,6 +245,11 @@ class GeneralController extends ActiveController
         return (new ApiResponse)->success(['teacher' => $teacher, 'student' => $student, 'announcement' => $announcement, 'profile' => $profile]);
     }
 
+    /**
+     * School weekly activities report.
+     * @param $type
+     * @return ApiResponse
+     */
     public function actionWeek($type)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -277,11 +269,12 @@ class GeneralController extends ActiveController
             $model = $model = PracticeMaterial::find()
                 ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
                 ->andWhere(['practice_material.filetype' => 'document', 'homeworks.type' => 'lesson', 'homeworks.school_id' => $school_id])
-                ->groupBy('practice_material.id')->orderBy('practice_material.id DESC');
+                ->groupBy('practice_material.id')->orderBy('practice_material.id DESC')
+                ->andWhere('YEARWEEK(`practice_material`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
         } elseif ($type == 'discussion') {
             $noOrder = true;
             $model = Feed::find()->where(['type' => SharedConstant::FEED_TYPES[0], 'view_by' => ['class', 'all']])
-                ->innerJoin('classes', 'classes.id = feed.class_id')->andWhere(['classes.school_id' => $school_id]);
+                ->innerJoin('classes', 'classes.id = feed.class_id')->andWhere(['classes.school_id' => $school_id])->andWhere('YEARWEEK(`feed`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
         } elseif ($type == 'live-class') {
             $model = TutorSession::find()
                 ->select([

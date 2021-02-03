@@ -654,23 +654,23 @@ class Utility extends ActiveRecord
      */
     public static function FilterQuestionReturns($model)
     {
-        if ($model['type'] == 'essay') {
-            unset($model['option_a']);
-            unset($model['option_b']);
-            unset($model['option_c']);
-            unset($model['option_d']);
-            unset($model['option_e']);
-            unset($model['answer']);
-        } elseif ($model['type'] == 'short' || $model['type'] == 'bool') {
-            unset($model['option_a']);
-            unset($model['option_b']);
-            unset($model['option_c']);
-            unset($model['option_d']);
-            unset($model['option_e']);
-            unset($model['file_upload']);
-            unset($model['word_limit']);
-        }
-        unset($model['score']);
+//        if ($model['type'] == 'essay') {
+//            unset($model['option_a']);
+//            unset($model['option_b']);
+//            unset($model['option_c']);
+//            unset($model['option_d']);
+//            unset($model['option_e']);
+//            unset($model['answer']);
+//        } elseif ($model['type'] == 'short' || $model['type'] == 'bool') {
+//            unset($model['option_a']);
+//            unset($model['option_b']);
+//            unset($model['option_c']);
+//            unset($model['option_d']);
+//            unset($model['option_e']);
+//            unset($model['file_upload']);
+//            unset($model['word_limit']);
+//        }
+//        unset($model['score']);
 
         return $model;
     }
