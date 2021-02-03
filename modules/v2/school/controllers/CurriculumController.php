@@ -68,6 +68,16 @@ class CurriculumController extends ActiveController
         return $actions;
     }
 
+    /**
+     * Fetch and Search for topics
+     *
+     * @param $subject
+     * @param $school_class
+     * @param $global_class
+     * @param null $term
+     * @param null $search
+     * @return ApiResponse
+     */
     public function actionTopics($subject, $school_class, $global_class, $term = null, $search = null)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
@@ -78,14 +88,14 @@ class CurriculumController extends ActiveController
                     'topic_id',
                     'topic',
                     new Expression('1 is_custom'),
-                    'topic',
                     'week',
                     'term',
                     'curriculum_id AS curriculum',
+                    new Expression("null AS image"),
                     'position'
                 ])
-                ->with('learningArea')
-                ->where(['school_id' => $school->id, 'class_id' => $school_class, 'subject_id' => $subject])->asArray();
+                //->with('learningArea')
+                ->where(['school_id' => $school->id, 'class_id' => $school_class, 'subject_id' => $subject])->orderBy(['position'=>SORT_ASC,'week'=>SORT_ASC])->asArray();
         } else {
             $models = SubjectTopics::find()
                 ->select([
@@ -122,6 +132,11 @@ class CurriculumController extends ActiveController
 
     }
 
+    /**
+     * Create new topic.
+     * If school curriculum is using gradely default, it will create a new custom curriculum for them.
+     * @return ApiResponse
+     */
     public function actionCreateTopic()
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]); //Get school details
@@ -163,6 +178,50 @@ class CurriculumController extends ActiveController
         return (new ApiResponse)->success(array_merge($model, ['learning' => $model]));
     }
 
+    public function actionOrderTopic($is_custom, $subject, $school_class)
+    {
+        $topics = Yii::$app->request->post('topics');
+        if (empty($topics) || !is_array($topics)) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Topics cannot be empty and must be an objects array');
+        }
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]); //Get school details
+        $preferenceForm = new PreferencesForm();
+        $preferenceForm->EnsureAndCreateCurriculum($school); // Check curriculum exist, else create curriculum
+        $schoolCurriculum = Utility::SchoolActiveCurriculum($school->id); //Get school active curriculum
+        SchoolTopic::SchoolReplicateTopic($school->id, $schoolCurriculum); //Generate all topics if it does not exist
+        if (SchoolTopic::find()->where(['school_id' => $school])->exists() && $is_custom == 0)
+            $field = 'topic_id';
+        else
+            $field = 'id';
+        $terms = ['first', 'second', 'third'];
+//        $dbtransaction = Yii::$app->db->beginTransaction();
+//        try {
+        foreach ($terms as $term) {
+            if (!isset($topics[$term]))
+                continue;
+            foreach ($topics[$term] as $order => $topic) {
+                $model = SchoolTopic::findOne([$field => $topic['id'], 'class_id' => $school_class, 'subject_id' => $subject]);
+                $model->term = $term;
+                $model->position = $order + 1;
+                $model->save();
+            }
+        }
+//            $dbtransaction->commit();
+//        } catch (\Exception $e) {
+//            $dbtransaction->rollBack();
+//            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//        }
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Updated');
+    }
+
+    /**
+     * This deletes a topics from custom curriculum
+     * @param $id
+     * @param $is_custom
+     * @return ApiResponse
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionDeleteTopic($id, $is_custom)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]); //Get school details
@@ -181,6 +240,5 @@ class CurriculumController extends ActiveController
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Deleted');
     }
-
 
 }

@@ -139,6 +139,8 @@ class SchoolTopic extends \yii\db\ActiveRecord
         foreach ($classes as $class) {
             $topics = SubjectTopics::find()->where(['status' => 1, 'class_id' => $class->global_class_id])->orderBy(['class_id' => SORT_ASC, 'term' => SORT_ASC, 'week_number' => SORT_ASC])->all();
             foreach ($topics as $order => $topic) {
+                if (SchoolTopic::find()->where(['school_id' => $school,'topic_id'=>$topic->id])->exists())
+                    continue;
                 $schoolModel = new SchoolTopic();
                 $schoolModel->topic_id = $topic->id;
                 $schoolModel->topic = $topic->topic;
@@ -150,8 +152,7 @@ class SchoolTopic extends \yii\db\ActiveRecord
                 $schoolModel->term = $topic->term;
                 $schoolModel->week = $topic->week_number;
                 if (!$schoolModel->save()) {
-                    print_r($schoolModel->errors);
-                    die;
+                    return false;
                 }
             }
         }
