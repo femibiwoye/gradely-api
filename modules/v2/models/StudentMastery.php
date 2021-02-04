@@ -186,7 +186,6 @@ class StudentMastery extends Model
                 'subject_topics.class_id' => $this->getClass(),
                 'status' => 1,
                 'school_id' => null,
-                'id' => [1, 2, 8]
             ])
             ->all();
 

@@ -42,7 +42,7 @@ class MasteryController extends Controller
     public function actionTopics()
     {
         $user = Yii::$app->user->identity;
-        if ($user->type != 'student') {
+        if ($user->type != 'student' && $user->type != 'parent') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
