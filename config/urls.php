@@ -64,8 +64,6 @@ return [
     'GET v2/report/homework' => 'v2/report/homework-summary', //
     'GET v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/get-remarks',
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
-    'GET v2/report/student-mastery' => 'v2/report/mastery-report',
-    'GET v2/report/mastery-report' => 'v2/report/topic-performance',
 
     //Payment
     'POST v2/payment/verify-coupon' => 'v2/payment/verify-coupon', //
@@ -105,6 +103,10 @@ return [
         'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
 
-    'GET v2/notification/test' => 'v2/notification/test'
+    'GET v2/notification/test' => 'v2/notification/test',
 
+    'GET v2/report/student-mastery' => 'v2/report/mastery-report',
+    'GET v2/report/mastery-report' => 'v2/report/topic-performance',
+
+    'GET v2/mastery/topics' => 'v2/mastery/topics', //
 ];

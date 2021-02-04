@@ -14,6 +14,8 @@ class StudentTopicPerformance extends Model
     private $topic_performance = array();
     private $direction;
     private $total_topic_score;
+
+
     public function rules()
     {
         return [
@@ -35,19 +37,18 @@ class StudentTopicPerformance extends Model
     {
         $topics = ArrayHelper::getColumn(
             SubjectTopics::find()
-                    ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
-                    ->where([
-                        'subject_topics.term' => $this->getTerm(),
-                        'subject_topics.class_id' => $this->getClass(),
-                        'quiz_summary_details.student_id' => $this->getStudent()
-                    ])
-                    ->all(),
+                ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
+                ->where([
+                    'subject_topics.term' => $this->getTerm(),
+                    'subject_topics.class_id' => $this->getClass(),
+                    'quiz_summary_details.student_id' => $this->getStudent()
+                ])
+                ->all(),
             'subject_topics.id'
         );
 
-        foreach ($topics as $topic) { 
+        foreach ($topics as $topic) {
             $topic_info = $this->getTopicInfo($topics);
-
             $topic_array = [
                 'topic_id' => $topic_info['id'],
                 'name' => $topic_info['topic'],
@@ -69,37 +70,37 @@ class StudentTopicPerformance extends Model
 
     private function getStudent()
     {
-        return Yii::$app->user->id;
+        return Utility::getParentChildID();
     }
 
     private function getTopicInfo($topic_id)
     {
         return SubjectTopics::find()
-                    ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
-                    ->where([
-                        'subject_topics.id' => $topic_id,
-                    ])
-                    ->asArray()
-                    ->one();
-        
+            ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
+            ->where([
+                'subject_topics.id' => $topic_id,
+            ])
+            ->asArray()
+            ->one();
+
     }
 
     private function getScore($topic)
     {
         $easy_attempts = $this->getAttemptedQuestions($topic)
-                            ->andWhere(['questions.difficulty' => 'easy'])
-                            ->asArray()
-                            ->one();
+            ->andWhere(['questions.difficulty' => 'easy'])
+            ->asArray()
+            ->one();
 
         $medium_attempts = $this->getAttemptedQuestions($topic)
-                            ->andWhere(['questions.difficulty' => 'medium'])
-                            ->asArray()
-                            ->one();
+            ->andWhere(['questions.difficulty' => 'medium'])
+            ->asArray()
+            ->one();
 
         $hard_attempts = $this->getAttemptedQuestions($topic)
-                            ->andWhere(['questions.difficulty' => 'hard'])
-                            ->asArray()
-                            ->one();
+            ->andWhere(['questions.difficulty' => 'hard'])
+            ->asArray()
+            ->one();
 
         $hard_attempts_score = $this->getTotalScore($easy_attempts, 'hard');
         $medium_attempts_score = $this->getTotalScore($easy_attempts, 'medium');
@@ -110,7 +111,7 @@ class StudentTopicPerformance extends Model
         }
 
         $total_score = $easy_attempts_score + $medium_attempts_score + $hard_attempts_score;
-            
+
         $value = $total_score == 100 ? Yii::$app->params['masteryPerTopicPerformance'] : ('0.' . $total_score) * Yii::$app->params['masteryPerTopicPerformance'];
 
         $this->total_topic_score = $this->total_topic_score + $value;
@@ -125,7 +126,7 @@ class StudentTopicPerformance extends Model
                 return 40;
             } else {
                 $value = 0;
-                for ($i = 0; $i < $attempts['total_questions']; $i++) { 
+                for ($i = 0; $i < $attempts['total_questions']; $i++) {
                     $value = $value + $this->getSingleQuestionScore('easy');
                 }
 
@@ -136,7 +137,7 @@ class StudentTopicPerformance extends Model
                 return 30;
             } else {
                 $value = 0;
-                for ($i = 0; $i < $attempts['total_questions']; $i++) { 
+                for ($i = 0; $i < $attempts['total_questions']; $i++) {
                     $value = $value + $this->getSingleQuestionScore('medium');
                 }
 
@@ -147,13 +148,13 @@ class StudentTopicPerformance extends Model
                 return 30;
             } else {
                 $value = 0;
-                for ($i = 0; $i < $attempts['total_questions']; $i++) { 
+                for ($i = 0; $i < $attempts['total_questions']; $i++) {
                     $value = $value + $this->getSingleQuestionScore('hard');
                 }
 
                 return $value;
             }
-        } 
+        }
     }
 
     private function getSingleQuestionScore($difficulty)
@@ -185,14 +186,14 @@ class StudentTopicPerformance extends Model
     private function getAttemptedQuestions($topic_id)
     {
         return QuizSummaryDetails::find()
-                            ->select([
-                                new Expression('round((SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id))*100) as score'),
-                                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as total_questions')
-                            ])
-                            ->innerJoin('questions', 'quiz_summary_details.question_id = questions.id')
-                            ->where([
-                                'quiz_summary_details.topic_id' => $topic_id
-                            ]);
+            ->select([
+                new Expression('round((SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id))*100) as score'),
+                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as total_questions')
+            ])
+            ->innerJoin('questions', 'quiz_summary_details.question_id = questions.id')
+            ->where([
+                'quiz_summary_details.topic_id' => $topic_id
+            ]);
     }
 
     private function getTotal()
@@ -203,16 +204,16 @@ class StudentTopicPerformance extends Model
     private function getAverage($topic_id)
     {
         $attempts = QuizSummaryDetails::find()
-                            ->select([
-                                new Expression('COUNT(quiz_summary_details.question_id) as total_attempts'),
-                                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as total_correct_questions')
-                            ])
-                            ->where([
-                                'quiz_summary_details.topic_id' => $topic_id,
-                                'quiz_summary_details.student_id' => $this->getStudent()
-                            ])
-                            ->asArray()
-                            ->one();
+            ->select([
+                new Expression('COUNT(quiz_summary_details.question_id) as total_attempts'),
+                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as total_correct_questions')
+            ])
+            ->where([
+                'quiz_summary_details.topic_id' => $topic_id,
+                'quiz_summary_details.student_id' => $this->getStudent()
+            ])
+            ->asArray()
+            ->one();
 
         return $attempts['total_correct_questions'] / ($attempts['total_attempts'] == 0 ? 1 : $attempts['total_attempts']);
     }
@@ -220,15 +221,15 @@ class StudentTopicPerformance extends Model
     private function getImprovement($topic)
     {
         $last_attempts = QuizSummary::find()
-                            ->leftJoin('quiz_summary_details', 'quiz_summary_details.quiz_id = quiz_summary.id')
-                            ->where([
-                                'quiz_summary_details.topic_id' => $topic,
-                                'quiz_summary.class_id' => $this->class,
-                                'quiz_summary.submit' => 1
-                            ])
-                            ->limit(2)
-                            ->orderBy(['submit_at' => SORT_DESC])
-                            ->all();
+            ->leftJoin('quiz_summary_details', 'quiz_summary_details.quiz_id = quiz_summary.id')
+            ->where([
+                'quiz_summary_details.topic_id' => $topic,
+                'quiz_summary.class_id' => $this->class,
+                'quiz_summary.submit' => 1
+            ])
+            ->limit(2)
+            ->orderBy(['submit_at' => SORT_DESC])
+            ->all();
 
         $value = $this->getImprovemedPercentage($last_attempts);
 
@@ -266,13 +267,13 @@ class StudentTopicPerformance extends Model
     {
         $total = count(ArrayHelper::getColumn(
             SubjectTopics::find()
-                    ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
-                    ->where([
-                        'subject_topics.term' => $this->getTerm(),
-                        'subject_topics.class_id' => $this->getClass(),
-                        'quiz_summary_details.student_id' => $this->getStudent()
-                    ])
-                    ->all(),
+                ->innerJoin('quiz_summary_details', 'quiz_summary_details.topic_id = subject_topics.id')
+                ->where([
+                    'subject_topics.term' => $this->getTerm(),
+                    'subject_topics.class_id' => $this->getClass(),
+                    'quiz_summary_details.student_id' => $this->getStudent()
+                ])
+                ->all(),
             'subject_topics.id'
         ));
 
@@ -282,15 +283,7 @@ class StudentTopicPerformance extends Model
     private function getClass()
     {
         if (empty($this->class)) {
-            $class = StudentSchool::find()
-                    ->where([
-                        'student_id' => Yii::$app->user->id
-                    ])
-                    ->asArray()
-                    ->one();
-
-            return $class['class_id'];
-
+            return $class = Utility::ParentStudentChildClass();
         } else {
             return $this->class;
         }
@@ -304,5 +297,5 @@ class StudentTopicPerformance extends Model
             return $this->term;
         }
     }
-    
+
 }

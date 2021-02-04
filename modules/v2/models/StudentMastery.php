@@ -2,273 +2,230 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\Utility;
 use Yii;
 use yii\base\Model;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
-use app\modules\v2\components\Utility;
 
+/**
+ * Password reset request form
+ */
 class StudentMastery extends Model
 {
-
     public $student_id;
-    public $subject_id;
-    public $class_id;
-
+    public $term;
+    public $class;
+    public $subject;
+    private $studentDifficultyValue;
 
     public function rules()
     {
         return [
-            [['student_id'], 'required', 'when' => function ($model) {
-                return Yii::$app->user->identity->type == 'parent';
-            }],
-            [['student_id', 'class_id', 'subject_id'], 'integer'],
-            [['student_id'], 'exist', 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
-            [['subject_id'], 'exist', 'targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']],
-            [['class_id'], 'exist', 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
-            [['class_id'], 'exist', 'targetClass' => StudentSchool::className(), 'targetAttribute' => ['class_id' => 'class_id', 'student_id' => 'student_id']],
-            [['student_id'], 'exist', 'targetClass' => Parents::className(), 'targetAttribute' => ['student_id' => 'student_id', 'parent_id' => Yii::$app->user->id], 'when' => function ($model) {
-                return Yii::$app->user->identity->type == 'parent';
-            }],
+            [['class', 'subject'], 'integer'],
+            ['term', 'string'],
+            ['term', 'in', 'range' => ['first', 'second', 'third']]
         ];
     }
 
-    public function getData()
+
+    /**
+     * Initialize values.
+     */
+    private function getUpdateInitValues()
     {
-        return [
-            'id' => $this->getUser()->id,
-            'name' => $this->getName(),
-            'image' => $this->getUser()->image,
-            'subjects' => $this->getSubjects(),
-            'current_subject' => $this->getCurrentSubject(),
-            'classes' => $this->getClasses(),
-            'current_class' => $this->getCurrentClass(),
-            'report' => $this->getReport()
+        $this->studentDifficultyValue = [
+            'easy' => 40 * Yii::$app->params['masteryPerTopicUnit'],
+            'medium' => 30 * Yii::$app->params['masteryPerTopicUnit'],
+            'hard' => 30 * Yii::$app->params['masteryPerTopicUnit']
         ];
     }
 
-    public function getGlobalData()
+    public function getPerformance()
     {
-        return [
-            'id' => $this->getUser()->id,
-            'name' => $this->getName(),
-            'image' => $this->getUser()->image,
-            'subjects' => $this->getClassSubjects(),
-            'current_subject' => $this->getCurrentClassSubject(),
-            'terms' => $this->getClassTerms(),
-            'classes' => $this->getGlobalClasses(),
-            'current_class' => $this->getCurrentClass(),
-        ];
+        $this->getUpdateInitValues();
+        return array_merge([
+            'total' => $this->getTotalTopics(),
+            'singleTotal'=>$this->getSinglePercentageValue(),
+        ], $this->getTopicDetails());
     }
 
-    private function getName()
+    /**
+     * Return topics lists with details and summed correct value
+     * @return array
+     */
+    private function getTopicDetails()
     {
-        return $this->getUser()->firstname . ' ' . $this->getUser()->lastname;
+        $topics = [];
+        foreach ($this->getAllAccessibleTopics() as $topic) {
+            $topic_info = $this->getScorePerTopic($topic->id);
+            $topic_array = [
+                'topic_id' => $topic->id,
+                'name' => $topic->topic,
+                'week' => $topic->week_number,
+                'term' => $topic->term,
+                'class' => $topic->class_id,
+                'performance' => $topic_info,
+            ];
+
+            $topics[] = $topic_array;
+        }
+        $score = array_sum(ArrayHelper::getColumn(ArrayHelper::getColumn($topics, 'performance'), 'singleScore'));
+        return ['score' => $score, 'topics' => $topics];
     }
 
-    private function getClassSubjects()
+    /**
+     * Your metrics in a single topic
+     * @param $topic
+     * @return array
+     */
+    private function getScorePerTopic($topic)
     {
-        $subjects = Subjects::findAll(['category' => [Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id), 'all']]);
-        return  $subjects ? $subjects : null;
-    }
 
-    private function getCurrentClassSubject()
-    {
-        if ($this->subject_id) {
-            return Subjects::findOne([
-                'category' => Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id)
-            ]);
+        $easy_attempt = $this->getAttemptedQuestions($topic, 'easy');
+        $medium_attempt = $this->getAttemptedQuestions($topic, 'medium');
+        $hard_attempt = $this->getAttemptedQuestions($topic, 'hard');
+
+        $attempts = ['easy' => $easy_attempt, 'medium' => $medium_attempt, 'hard' => $hard_attempt];
+
+        $attemptEasy = $this->getTotalScore($attempts, 'easy');
+        $attemptMedium = $this->getTotalScore($attempts, 'medium');
+        $attemptHard = $this->getTotalScore($attempts, 'hard');
+        if ($attemptHard['singlePortion'] >= $this->studentDifficultyValue['hard']) {
+            $attemptEasy = $this->getTopicCompletedScore('easy');
         }
 
-        return $this->getClassSubjects()[0] ? $this->getClassSubjects()[0] : null;
-    }
+        $summedSharedScore = round(array_sum([$attemptEasy['sharedPortion'], $attemptMedium['sharedPortion'], $attemptHard['sharedPortion']]));
+        $summedSingleScore = round(array_sum([$attemptEasy['singlePortion'], $attemptMedium['singlePortion'], $attemptHard['singlePortion']]));
 
-    private function getDefaultClass()
-    {
-        if ($this->student_id) {
-            $class_id = $this->getSchoolStudentClass($this->student_id);
-        } else {
-            $class_id = $this->getSchoolStudentClass(Yii::$app->user->id);
-        }
-
-        if (!$class_id) {
-            $class_id =  User::find()
-                        ->select(['class'])
-                        ->where(['id' => $this->student_id ? $this->student_id : Yii::$app->user->id])
-                        ->one();
-        }
-
-        return $this->getClass($class_id);
-    }
-
-    private function getClass($class_id)
-    {
-        return Classes::find()->where(['global_class_id' => $class_id])->one();
-    }
-
-    private function getSchoolStudentClass($student_id)
-    {
-        return StudentSchool::find()
-                    ->select(['class_id'])
-                    ->where(['student_id' => $student_id,'status'=>1])
-                    ->one();
-    }
-
-    private function getSubjects()
-    {
-        return Subjects::findAll(['id' => $this->getParticipatedSubjectsList()]);
-    }
-
-    private function getParticipatedSubjectsList()
-    {
-        return ArrayHelper::getColumn(
-            QuizSummary::find()->where(['student_id' => $this->student_id])->groupBy('subject_id')->all(),
-            'subject_id'
-        );
-    }
-
-    private function getUser()
-    {
-        return User::findOne(['id' => $this->student_id]);
-    }
-
-    private function getCurrentSubject()
-    {
-        if ($this->subject_id) {
-            return Subjects::findOne(['id' => $this->subject_id]);
-        }
-
-        return $this->getSubjects()[0];
-    }
-
-    private function getClasses()
-    {
-        $student_classes = ArrayHelper::getColumn(
-            StudentSchool::findAll(['student_id' => $this->student_id,'is_active_class'=>1,'status'=>1]),
-            'class_id'
-        );
-
-        return Classes::findAll(['id' => $student_classes]);
-    }
-
-    private function getGlobalClasses()
-    {
-        return GlobalClass::find()->where(['status' => 1])->all();
-    }
-
-    private function getClassTerms()
-    {
         return [
-            'first' => $this->getClassTermData('first'),
-            'second' => $this->getClassTermData('second'),
-            'third' => $this->getClassTermData('third'),
+            'sharedScore' => $summedSharedScore,
+            'singleScore' => $summedSingleScore,
+            'details' => [
+                'easy' => array_merge($attemptEasy, $easy_attempt),
+                'medium' => array_merge($attemptMedium, $medium_attempt),
+                'hard' => array_merge($attemptHard, $hard_attempt)
+            ]
         ];
     }
 
-    private function getClassTermData($term)
+    /**
+     * What you score using 100%/per difficulty calculation and 40|30|30 calculation
+     * @param $attempt
+     * @param $difficulty
+     * @return array
+     */
+    private function getTotalScore($attempt, $difficulty)
     {
-        $start_index = $term . '_term_start';
-        $end_index = $term . '_term_end';
-        return [
-            'start_date' => Yii::$app->params[$start_index],
-            'end_date' => Yii::$app->params[$end_index],
-            'topics' => $this->getTopicsInTerm($term),
-        ];
+        $correct = !empty($attempt[$difficulty]['correct']) ? $attempt[$difficulty]['correct'] : 0;
+        if ($correct >= Yii::$app->params['masteryQuestionCount']) {
+            return $this->getTopicCompletedScore($difficulty);
+        }
+        $singlePortion = ($correct / Yii::$app->params['masteryQuestionCount']) * $this->getSinglePercentageValue();
+        $sharedPortion = ($correct / Yii::$app->params['masteryQuestionCount']) * $this->studentDifficultyValue[$difficulty];
+        return ['sharedPortion' => $sharedPortion, 'singlePortion' => $singlePortion];
     }
 
-    private function getTopicsInTerm($term)
+    /**
+     * The highest value when you scored 100% of specified difficulty
+     * @param $difficulty
+     * @return array
+     */
+    private function getTopicCompletedScore($difficulty)
+    {
+        return ['sharedPortion' => $this->studentDifficultyValue[$difficulty], 'singlePortion' => $this->getSinglePercentageValue()];
+    }
+
+    /**
+     * This gives you the correct, attempt and score of a student per topic.
+     * @param $topic_id
+     * @param $difficulty
+     * @return QuizSummaryDetails|array|\yii\db\ActiveRecord|null
+     */
+    private function getAttemptedQuestions($topic_id, $difficulty)
+    {
+
+        $masteryPerTopicPerformance = $this->getSinglePercentageValue();
+
+        return QuizSummaryDetails::find()
+            ->select([
+                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as correct'),
+                new Expression('COUNT(quiz_summary_details.id) as attempt'),
+                new Expression("(SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id))*{$masteryPerTopicPerformance} as score"),
+            ])
+            ->innerJoin('questions', 'questions.id = quiz_summary_details.question_id')
+            ->where([
+                'quiz_summary_details.topic_id' => $topic_id,
+                'student_id' => $this->student_id,
+                'questions.difficulty' => $difficulty
+            ])->asArray()
+            ->one();
+    }
+
+    /**
+     * Multiply the number of topics to be taken in that term with our multiplying figure. e.g
+     * @return float|int
+     */
+    private function getTotalTopics()
+    {
+        $total = count($this->getAllAccessibleTopics());
+
+        return $total * $this->getSinglePercentageValue();
+    }
+
+    /**
+     * Multiply the number of topics to be taken in that term with our multiplying figure. e.g
+     * @return float|int
+     */
+    private function getAllAccessibleTopics()
     {
         $topics = SubjectTopics::find()
+            ->select(['id', 'topic', 'term', 'subject_id', 'week_number', 'class_id'])
             ->where([
-                'subject_topics.subject_id' => $this->getCurrentSubject(),
-                'subject_topics.term' => $term,
+                'term' => $this->getTerm(),
+                'subject_topics.class_id' => $this->getClass(),
+                'status' => 1,
+                'school_id' => null,
             ])
             ->all();
 
-        $previous_class_topics = $this->getPreviousClassTopics();
-
-        return array_merge($topics, $previous_class_topics);
+        return $topics;
     }
 
-    private function getPreviousClassTopics()
+    /**
+     * By default, unit is 1, meaning 100% score is 100.
+     * If the value changed to 2, it means 100% of a score becomes 200
+     * @return mixed
+     */
+    private function getSingleUnitValue()
     {
-        $previous_class_topics = ArrayHelper::getColumn(
-            StudentAdditionalTopics::find()
-                ->where([
-                    'student_id' => $this->student_id,
-                    'class_id' => $this->getCurrentClass(),
-                    'status' => 1
-                ])
-                ->all(),
-            'topic_id'
-        );
-
-        return SubjectTopics::find()->where(['id' => $previous_class_topics])->all();
+        return Yii::$app->params['masteryPerTopicUnit'];
     }
 
-    private function getCurrentClass()
+    /**
+     * This is 100% value.
+     * if unit increase, from 1 to 2, this will retur 200
+     * @return float|int
+     */
+    private function getSinglePercentageValue()
     {
-        if ($this->class_id) {
-            return Classes::findOne(['global_class_id' => $this->class_id]);
+        return $this->getSingleUnitValue() * Yii::$app->params['masteryPerTopicPerformance'];
+    }
+
+    private function getClass()
+    {
+        if (empty($this->class)) {
+            return $class = Utility::ParentStudentChildClass($this->student_id, 1);
+        } else {
+            return $this->class;
         }
-
-        return $this->getDefaultClass();
     }
 
-    private function getTopics()
+    private function getTerm()
     {
-        return QuizSummary::find()
-            ->where(['student_id' => $this->student_id])
-            ->groupBy('topic_id');
-    }
-
-    private function getFirstTermReport()
-    {
-        $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'first'])->all(), 'topic_id');
-        $first_term_topics = SubjectTopics::find()
-            ->select(['subject_topics.id AS topic_id', 'subject_topics.topic AS topic_name', 'subject_topics.image AS topic_image'])
-            ->where(['id' => $topics])
-            ->asArray()
-            ->all();
-
-
-        return [$first_term_topics, 'learning_area' => $this->getLearningArea($topics)];
-    }
-
-    private function getSecondTermReport()
-    {
-        $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'second'])->all(), 'topic_id');
-        $second_term_topics = SubjectTopics::find()
-            ->select(['id', 'topic', 'image'])
-            ->where(['id' => $topics])
-            ->all();
-
-
-        return [$second_term_topics, 'learning_area' => $this->getLearningArea($topics)];
-    }
-
-    private function getThirdTermReport()
-    {
-        $topics = ArrayHelper::getColumn($this->getTopics()->andWhere(['term' => 'third'])->all(), 'topic_id');
-        $third_term_topics = SubjectTopics::find()
-            ->select(['id', 'topic', 'image'])
-            ->where(['id' => $topics])
-            ->all();
-
-
-        return [$third_term_topics, 'learning_area' => $this->getLearningArea($topics)];
-    }
-
-    private function getLearningArea($topics)
-    {
-        return LearningArea::findAll(['topic_id' => $topics]);
-    }
-
-    private function getReport()
-    {
-        return [
-            'first' => $this->getFirstTermReport(),
-            'second' => $this->getSecondTermReport(),
-            'third' => $this->getThirdTermReport()
-        ];
+        if (empty($this->term)) {
+            return Utility::getStudentTermWeek('term', $this->student_id);
+        }
+        return $this->term;
     }
 }
