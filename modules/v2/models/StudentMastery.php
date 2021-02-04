@@ -46,7 +46,7 @@ class StudentMastery extends Model
         $this->getUpdateInitValues();
         return array_merge([
             'total' => $this->getTotalTopics(),
-            'singleTotal'=>$this->getSinglePercentageValue(),
+            'singleTotal' => $this->getSinglePercentageValue(),
         ], $this->getTopicDetails());
     }
 
@@ -81,7 +81,6 @@ class StudentMastery extends Model
      */
     private function getScorePerTopic($topic)
     {
-
         $easy_attempt = $this->getAttemptedQuestions($topic, 'easy');
         $medium_attempt = $this->getAttemptedQuestions($topic, 'medium');
         $hard_attempt = $this->getAttemptedQuestions($topic, 'hard');
@@ -101,6 +100,7 @@ class StudentMastery extends Model
         return [
             'sharedScore' => $summedSharedScore,
             'singleScore' => $summedSingleScore,
+            'improvement' => $this->getLastTwoAttempt($topic),
             'details' => [
                 'easy' => array_merge($attemptEasy, $easy_attempt),
                 'medium' => array_merge($attemptMedium, $medium_attempt),
@@ -123,8 +123,55 @@ class StudentMastery extends Model
         }
         $singlePortion = ($correct / Yii::$app->params['masteryQuestionCount']) * $this->getSinglePercentageValue();
         $sharedPortion = ($correct / Yii::$app->params['masteryQuestionCount']) * $this->studentDifficultyValue[$difficulty];
+
         return ['sharedPortion' => $sharedPortion, 'singlePortion' => $singlePortion];
     }
+
+    private function getLastTwoAttempt($topic)
+    {
+        $last_attempts = QuizSummaryDetails::find()
+            ->select([
+                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as correct'),
+                new Expression('COUNT(quiz_summary_details.id) as attempt'),
+                new Expression("SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id)*100 as score"),
+            ])
+            ->leftJoin('quiz_summary', 'quiz_summary_details.quiz_id = quiz_summary.id')
+            ->where([
+                'quiz_summary_details.topic_id' => $topic,
+                'quiz_summary.submit' => 1,
+                'quiz_summary_details.student_id' => $this->student_id,
+                'quiz_summary.student_id' => $this->student_id
+            ])
+            ->groupBy('quiz_summary_details.quiz_id')
+            ->orderBy(['submit_at' => SORT_DESC])
+            ->limit(2)
+            ->asArray()
+            ->all();
+
+        $value = $this->getImprovementPercentage($last_attempts);
+
+        return $value;
+    }
+
+    private function getImprovementPercentage($attempts)
+    {
+        $direction = null;
+        $improvement = null;
+        if (count($attempts) <= 1) {
+            $direction = null;
+            $improvement = null;
+        } else {
+            $improvement = $attempts[0]['correct'] - $attempts[1]['correct'];
+            if ($improvement > 0) {
+                $direction = 'up';
+            } else {
+                $direction = 'down';
+            }
+
+            return ['improvement' => $improvement, 'direction' => $direction];
+        }
+    }
+
 
     /**
      * The highest value when you scored 100% of specified difficulty
