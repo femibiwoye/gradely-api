@@ -81,7 +81,7 @@ class ChildrenController extends ActiveController
     {
         $parent_id = Yii::$app->user->id;
         $students = Parents::find()
-            ->joinWith(['studentClass'])
+            ->with(['studentClass'])
             ->where(['parent_id' => $parent_id])
             ->all();
 
@@ -94,7 +94,7 @@ class ChildrenController extends ActiveController
         }
 
         if (!$students) {
-            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No children available!');
         }
 
         return (new ApiResponse)->success($students, ApiResponse::SUCCESSFUL);
