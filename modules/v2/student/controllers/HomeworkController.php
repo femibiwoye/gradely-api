@@ -210,7 +210,7 @@ class HomeworkController extends ActiveController
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
 
         $model = PracticeMaterial::find()
-            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => ['feed','practice']])
             ->groupBy('practice_material.id');
         $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
             ->andWhere(['feed.class_id' => $studentClassID]);
