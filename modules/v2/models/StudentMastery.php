@@ -100,7 +100,7 @@ class StudentMastery extends Model
         return [
             'sharedScore' => $summedSharedScore,
             'singleScore' => $summedSingleScore,
-            'improvement' => $this->getLastTwoAttempt($topic),
+            //'improvement' => $this->getLastTwoAttempt($topic),
             'details' => [
                 'easy' => array_merge($attemptEasy, $easy_attempt),
                 'medium' => array_merge($attemptMedium, $medium_attempt),
@@ -127,6 +127,12 @@ class StudentMastery extends Model
         return ['sharedPortion' => $sharedPortion, 'singlePortion' => $singlePortion];
     }
 
+    /**
+     * To get the last two assessment and performance different within the last two attempt
+     *
+     * @param $topic
+     * @return array
+     */
     private function getLastTwoAttempt($topic)
     {
         $last_attempts = QuizSummaryDetails::find()
@@ -153,6 +159,11 @@ class StudentMastery extends Model
         return $value;
     }
 
+    /**
+     * Improvement difference within the last tw attempt
+     * @param $attempts
+     * @return array
+     */
     private function getImprovementPercentage($attempts)
     {
         $direction = null;
