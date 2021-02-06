@@ -85,19 +85,26 @@ class StartQuizSummaryForm extends Model
     {
         $topics = ArrayHelper::getColumn(PracticeTopics::find()->where(['practice_id' => $homework->id])->groupBy(['topic_id'])->all(), 'topic_id');
 
-        //This are questions that has been previously attempted by child;
-        // $alreadyAttemptedQuestions = ArrayHelper::getColumn(QuizSummaryDetails::find()->where(['student_id' => $homework->student_id])->groupBy('question_id')->all(), 'question_id');
-
-
         $homeworkData = ['id' => $homework->id, 'title' => $homework->title];
         $questionCount = count($topics) <= 1 ? 5 : 3;
         foreach ($topics as $topic) {
             $topicObject = SubjectTopics::find()->where(['id' => $topic])->one();
+
+            //This are questions that has been previously attempted by child;
+            $alreadyAttemptedQuestions = ArrayHelper::getColumn(QuizSummaryDetails::find()->where(['student_id' => $homework->student_id, 'topic_id' => $topic])->limit($questionCount)->groupBy('question_id')->all(), 'question_id');
+            $easyQuestions = $this->filterSpecificDifficulty($alreadyAttemptedQuestions, $topic, $questionCount, 'easy');
+            $mediumQuestions = $this->filterSpecificDifficulty($alreadyAttemptedQuestions, $topic, $questionCount, 'medium');
+            $hardQuestions = $this->filterSpecificDifficulty($alreadyAttemptedQuestions, $topic, $questionCount, 'hard');
             $questions = array_merge(
-                Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'easy'])->limit($questionCount)->all(),
-                Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'medium'])->limit($questionCount)->all(),
-                Questions::find()->where(['topic_id' => $topic, 'difficulty' => 'hard'])->limit($questionCount)->all()
+                $easyQuestions,
+                $mediumQuestions,
+                $hardQuestions
             );
+
+            $remainingQuestionCount = ($questionCount * 3) - count($questions);
+            if ($remainingQuestionCount > 0) {
+                $questions = array_merge($questions, Questions::find()->where(['topic_id' => $topic])->andWhere(['NOT IN', 'id', ArrayHelper::getColumn($questions, 'id')])->limit($remainingQuestionCount)->orderBy('rand()')->all());
+            }
 
             $this->questions[] = ['topic' => ArrayHelper::toArray($topicObject), 'questions' => $questions];
 
@@ -105,5 +112,18 @@ class StartQuizSummaryForm extends Model
 
         return array_merge($homeworkData, ['type' => count($topics) <= 1 ? 'single' : 'mix', 'topics' => $this->questions]);
 //        }
+    }
+
+    public function filterSpecificDifficulty($alreadyAttemptedQuestions, $topic, $questionCount, $difficulty)
+    {
+        $easyQuestions = Questions::find()->where(['topic_id' => $topic, 'difficulty' => $difficulty])->andWhere(['NOT IN', 'id', $alreadyAttemptedQuestions])->limit($questionCount)->all();
+        $easyCount = count($easyQuestions);
+        if ($easyCount < $questionCount) {
+            $remainingCount = $questionCount - $easyCount;
+            $easyAdditionalQuestions = Questions::find()->where(['topic_id' => $topic, 'difficulty' => $difficulty])->limit($remainingCount)->all();
+            $easyQuestions = array_merge($easyQuestions, $easyAdditionalQuestions);
+        }
+
+        return $easyQuestions;
     }
 }

@@ -80,12 +80,14 @@ class Pricing extends Widget
                     $schoolSubStatus = false;
                     $status = false;
                     $is_school = 0;
+                    $schoolActive = 0;
                     $plan = $user->subscription_plan;
                     if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID])->one()) {
                         $model = Schools::findOne(['id' => $model->school_id]);
                         $schoolSubStatus = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                         $is_school = $schoolSubStatus ? 1 : 0;
                         $plan = $model->subscription_plan;
+                        $schoolActive = 1;
                     }
                     if ($schoolSubStatus || $userStatus) {
                         $status = true;
@@ -99,6 +101,7 @@ class Pricing extends Widget
                         'expiry' => $user->subscription_expiry,
                         'plan' => $plan,
                         'is_school_sub' => $is_school,
+                        'school_active'=>$schoolActive,
                         'days_left' => self::subscriptionDaysLeft(isset($model->subscription_expiry) && strtotime($model->subscription_expiry) > strtotime($user->subscription_expiry) ? $model->subscription_expiry : $user->subscription_expiry)
                     ], $lmsCatchupStatus);
                     return $statusOnly ? $status : $return;
