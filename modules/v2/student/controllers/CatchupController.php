@@ -1054,7 +1054,7 @@ class CatchupController extends ActiveController
 
         $model = new StartQuizSummaryForm;
         if (!$practice_model = $model->getTotalQuestions($homework)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Temp not started!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice not started!');
         }
 
         return (new ApiResponse)->success($practice_model, ApiResponse::SUCCESSFUL, 'Practice started!');

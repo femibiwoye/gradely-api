@@ -81,7 +81,7 @@ class CurriculumController extends ActiveController
     public function actionTopics($subject, $school_class, $global_class, $term = null, $search = null)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        if (SchoolTopic::find()->where(['school_id' => $school])->exists() && empty($term)) {
+        if (SchoolTopic::find()->where(['school_id' => $school->id])->exists() && empty($term)) {
             $models = SchoolTopic::find()
                 ->select([
                     'id',
@@ -95,7 +95,7 @@ class CurriculumController extends ActiveController
                     'position'
                 ])
                 //->with('learningArea')
-                ->where(['school_id' => $school->id, 'class_id' => $school_class, 'subject_id' => $subject])->orderBy(['position'=>SORT_ASC,'week'=>SORT_ASC])->asArray();
+                ->where(['school_id' => $school->id, 'class_id' => $school_class, 'subject_id' => $subject])->orderBy([new \yii\db\Expression('position IS NULL ASC, position ASC, week ASC')])->asArray();
         } else {
             $models = SubjectTopics::find()
                 ->select([
@@ -175,7 +175,7 @@ class CurriculumController extends ActiveController
             return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        return (new ApiResponse)->success(array_merge($model, ['learning' => $model]));
+        return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($model), ['learning' => $model->learningArea]));
     }
 
     public function actionOrderTopic($is_custom, $subject, $school_class)
@@ -200,10 +200,23 @@ class CurriculumController extends ActiveController
             if (!isset($topics[$term]))
                 continue;
             foreach ($topics[$term] as $order => $topic) {
-                $model = SchoolTopic::findOne([$field => $topic['id'], 'class_id' => $school_class, 'subject_id' => $subject]);
-                $model->term = $term;
-                $model->position = $order + 1;
-                $model->save();
+                if (isset($topic['is_new']) && $topic['is_new'] == 1 && $gradelyTopic = SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->one() && !SchoolTopic::find()->where(['topic_id' => $topic['id']])->exists()) {
+                    $newTopic = new SchoolTopic();
+                    $newTopic->topic = $gradelyTopic->topic;
+                    $newTopic->topic_id = $gradelyTopic->id;
+                    $newTopic->school_id = $school->id;
+                    $newTopic->class_id = $school_class;
+                    $newTopic->curriculum_id = $schoolCurriculum;
+                    $newTopic->position = $order + 1;
+                    $newTopic->term = $term;
+                    $newTopic->week = $gradelyTopic->week_number;
+                    $newTopic->save();
+                } else {
+                    $model = SchoolTopic::findOne([$field => $topic['id'], 'class_id' => $school_class, 'subject_id' => $subject]);
+                    $model->term = $term;
+                    $model->position = $order + 1;
+                    $model->save();
+                }
             }
         }
 //            $dbtransaction->commit();
