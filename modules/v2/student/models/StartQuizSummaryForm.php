@@ -8,7 +8,6 @@ use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\SubjectTopics;
 use Yii;
 use yii\base\Model;
-use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\{
     Homeworks,
     QuizSummary,
