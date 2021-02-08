@@ -72,7 +72,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'is_boarded',
             'token',
             'profile' => 'userProfile',
-            'termWeek'
+            'termWeek',
+            'relationshipStatus'
             //'performance' => 'topics'
         ];
 
@@ -115,6 +116,16 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function getTermWeek()
     {
         return Utility::getStudentTermWeek();
+    }
+
+    public function getRelationshipStatus()
+    {
+        if ($this->type == 'student') {
+            return Parents::find()->where(['student_id' => $this->id, 'status' => 1])->exists() ? 1 : 0;
+        } elseif ($this->type == 'parent') {
+            return Parents::find()->where(['parent_id' => $this->id, 'status' => 1])->exists() ? 1 : 0;
+        }
+        return null;
     }
 
     public function getUserPreference()
