@@ -82,7 +82,7 @@ class Pricing extends Widget
                     $is_school = 0;
                     $schoolActive = 0;
                     $plan = $user->subscription_plan;
-                    if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID])->one()) {
+                    if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID, 'is_active_class' => 1])->one()) {
                         $model = Schools::findOne(['id' => $model->school_id]);
                         $schoolSubStatus = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                         $is_school = $schoolSubStatus ? 1 : 0;
@@ -139,7 +139,7 @@ class Pricing extends Widget
 
     private static function StudentsInSchoolCount($id)
     {
-        return StudentSchool::find()->where(['school_id' => $id, 'status' => 1])->count();
+        return StudentSchool::find()->where(['school_id' => $id, 'status' => 1, 'is_active_class' => 1])->count();
     }
 
     private static function StudentLimit($plan)
@@ -181,7 +181,7 @@ class Pricing extends Widget
         $catchup = false;
         if ($subStatus) {
             if ($isSchool && $schoolSubStatus) {
-                $studentSchool = StudentSchool::findOne(['student_id' => $studentID]);
+                $studentSchool = StudentSchool::findOne(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1]);
                 if ($studentSchool->subscription_status == 'basic') {
                     $lms = true;
                 }
