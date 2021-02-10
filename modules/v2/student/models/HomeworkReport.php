@@ -91,9 +91,9 @@ class HomeworkReport extends QuizSummary
                 'qsd.selected',
                 'qsd.selected',
             ])
-            ->where(['hq.homework_id' => $this->homework_id, 'qsd.student_id' => $this->student_id])
             ->innerJoin('questions q', 'q.id = hq.question_id')
             ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id')
+            ->where(['hq.homework_id' => $this->homework_id,'qsd.homework_id' => $this->homework_id, 'qsd.student_id' => $this->student_id])
             ->groupBy('hq.question_id')
             ->asArray()
             ->all();
