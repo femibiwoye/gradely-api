@@ -61,6 +61,7 @@ class StartPracticeForm extends Model
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$homework = $this->createHomework($student_id, $teacher_id)) {
+
                 return false;
             }
 
