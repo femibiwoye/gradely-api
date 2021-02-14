@@ -270,13 +270,13 @@ class GeneralController extends ActiveController
                 ->leftJoin('homeworks', 'homeworks.teacher_id = practice_material.user_id')
                 ->andWhere(['practice_material.filetype' => 'document', 'homeworks.type' => 'lesson', 'homeworks.school_id' => $school_id])
                 ->groupBy('practice_material.id')->orderBy('practice_material.id DESC')
-                //->andWhere('YEARWEEK(`practice_material`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+                ->andWhere('YEARWEEK(`practice_material`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
             ;
         } elseif ($type == 'discussion') {
             $noOrder = true;
             $model = Feed::find()->where(['type' => SharedConstant::FEED_TYPES[0], 'view_by' => ['class', 'all']])
                 ->innerJoin('classes', 'classes.id = feed.class_id')->andWhere(['classes.school_id' => $school_id])
-                //->andWhere('YEARWEEK(`feed`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)') // to be returned
+                ->andWhere('YEARWEEK(`feed`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
             ;
         } elseif ($type == 'live-class') {
             $model = TutorSession::find()
@@ -305,7 +305,7 @@ class GeneralController extends ActiveController
                     'is_school' => 1,
                     'school_teachers.school_id' => $school_id,
                 ])
-                ->andWhere('YEARWEEK(`tutor_session`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)') // to be returned
+                ->andWhere('YEARWEEK(`tutor_session`.`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
                 ->asArray();
         } elseif ($type == 'event') {
             $model = Event::find()

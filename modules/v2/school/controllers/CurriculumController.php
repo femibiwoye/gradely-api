@@ -189,7 +189,7 @@ class CurriculumController extends ActiveController
         $preferenceForm->EnsureAndCreateCurriculum($school); // Check curriculum exist, else create curriculum
         $schoolCurriculum = Utility::SchoolActiveCurriculum($school->id); //Get school active curriculum
         SchoolTopic::SchoolReplicateTopic($school->id, $schoolCurriculum); //Generate all topics if it does not exist
-        if (SchoolTopic::find()->where(['school_id' => $school])->exists() && $is_custom == 0)
+        if (SchoolTopic::find()->where(['school_id' => $school->id])->exists() && $is_custom == 0)
             $field = 'topic_id';
         else
             $field = 'id';
