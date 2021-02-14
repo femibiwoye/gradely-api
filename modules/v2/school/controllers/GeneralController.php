@@ -257,12 +257,12 @@ class GeneralController extends ActiveController
 
         if ($type == 'homework') {
             $model = Homeworks::find()
-                ->where(['type' => 'homework', 'tag' => 'homework', 'school_id' => $school_id])
+                ->where(['type' => 'homework', 'tag' => 'homework', 'school_id' => $school_id,'publish_status'=>1])
                 ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
 
         } elseif ($type == 'exam') {
             $model = Homeworks::find()
-                ->where(['type' => 'homework', 'tag' => 'exam', 'school_id' => $school_id])
+                ->where(['type' => 'homework', 'tag' => 'exam', 'school_id' => $school_id,'publish_status'=>1])
                 ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
         } elseif ($type == 'note') {
             $noOrder = true;
