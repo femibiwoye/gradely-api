@@ -133,7 +133,7 @@ class Questions extends \yii\db\ActiveRecord
             unset($question[array_search('option_d', $question)]);
             unset($question[array_search('option_e', $question)]);
             unset($question[array_search('answer', $question)]);
-        }elseif ($this->type == 'short' || $this->type == 'bool') {
+        }elseif ($this->type == 'short') {
             unset($question[array_search('option_a', $question)]);
             unset($question[array_search('option_b', $question)]);
             unset($question[array_search('option_c', $question)]);
