@@ -45,7 +45,7 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject', 'gradely-users-statistics','school-auth']
+            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject', 'gradely-users-statistics', 'school-auth']
         ];
 
         return $behaviors;
@@ -219,15 +219,19 @@ class GeneralController extends Controller
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
     }
 
-    public function actionSubject()
+    public function actionSubject($description = null)
     {
 
+        $select = [
+            'id',
+            'slug',
+            'name'
+        ];
+
         $examType = Subjects::find()
-            ->select([
-                'id',
-                'slug',
-                'name'
-            ])
+            ->select(
+                $description != 1 ? $select : array_merge($select, ['description'])
+            )
             ->where(['school_id' => null]);
 
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
@@ -263,7 +267,7 @@ class GeneralController extends Controller
 
     public function actionSchoolAuth($sch)
     {
-        if(!$school = Schools::find()->select(['id','name','slug','logo','banner','tagline'])->where(['slug'=>$sch])->asArray()->one()){
+        if (!$school = Schools::find()->select(['id', 'name', 'slug', 'logo', 'banner', 'tagline'])->where(['slug' => $sch])->asArray()->one()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid school');
         }
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL);
