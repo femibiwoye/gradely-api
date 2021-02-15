@@ -58,7 +58,7 @@ class Questions extends \yii\db\ActiveRecord
             [['class_id', 'subject_id', 'question', 'topic_id', 'difficulty', 'duration', 'answer'], 'required', 'on' => 'create-short'],
             [['answer'], 'integer', 'on' => 'create-bool'],
             [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category', 'image'], 'string'],
-            [['created_at','score'], 'safe'],
+            [['created_at', 'score'], 'safe'],
             //[['answer'], 'string', 'max' => 1],
             [['comprehension_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comprehension::className(), 'targetAttribute' => ['comprehension_id' => 'id']],
         ];
@@ -133,9 +133,17 @@ class Questions extends \yii\db\ActiveRecord
             unset($question[array_search('option_d', $question)]);
             unset($question[array_search('option_e', $question)]);
             unset($question[array_search('answer', $question)]);
-        }elseif ($this->type == 'short' || $this->type == 'bool') {
+        } elseif ($this->type == 'short') {
             unset($question[array_search('option_a', $question)]);
             unset($question[array_search('option_b', $question)]);
+            unset($question[array_search('option_c', $question)]);
+            unset($question[array_search('option_d', $question)]);
+            unset($question[array_search('option_e', $question)]);
+            unset($question[array_search('file_upload', $question)]);
+            unset($question[array_search('word_limit', $question)]);
+        } elseif ($this->type == 'bool') {
+            $this->option_a = '1';
+            $this->option_b = '0';
             unset($question[array_search('option_c', $question)]);
             unset($question[array_search('option_d', $question)]);
             unset($question[array_search('option_e', $question)]);

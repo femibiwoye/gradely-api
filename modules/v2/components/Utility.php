@@ -662,7 +662,7 @@ class Utility extends ActiveRecord
             unset($model['option_e']);
             unset($model['answer']);
             unset($model['score']);
-        } elseif ($model['type'] == 'short' || $model['type'] == 'bool') {
+        } elseif ($model['type'] == 'short') {
             unset($model['option_a']);
             unset($model['option_b']);
             unset($model['option_c']);
