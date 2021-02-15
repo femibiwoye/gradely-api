@@ -38,7 +38,6 @@ class InputNotification extends Model
                     $notModel->action_id = $notification->action_id;
                     if (!$notModel->save())
                         return false;
-
                 }
                 return true;
             }
