@@ -202,7 +202,7 @@ class InvitesController extends ActiveController
             //TODO Add teacher subjects to them.
 
             $notification = new InputNotification();
-            $notification->NewNotification('teacher_accept_school_invitation_school', [['invitation_id', $model->id], ['teacher_id' => Yii::$app->user->id]]);
+            $notification->NewNotification('teacher_accept_school_invitation_school', [['invitation_id', $model->id], ['teacher_id', Yii::$app->user->id]]);
 
         } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
 

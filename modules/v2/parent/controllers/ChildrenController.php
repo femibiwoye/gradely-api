@@ -254,7 +254,7 @@ class ChildrenController extends ActiveController
             'status' => SharedConstant::VALUE_ONE,
             'parent_id' => Yii::$app->user->id,
         ])
-            ->andWhere(['is not', 'code', null])
+            //->andWhere(['is not', 'code', null])
             ->one();
 
         if (!$user)
@@ -265,6 +265,7 @@ class ChildrenController extends ActiveController
 
         if (!$user->code)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
+
 
 
         $parent = new Parents();
@@ -339,7 +340,7 @@ class ChildrenController extends ActiveController
 
             //Notification that parent add child
             $notification = new InputNotification();
-            $notification->NewNotification('parent_adds_student', [['student_id', $user->id], ['parent_id' => $parent->parent_id], ['password' => $model->password]]);
+            $notification->NewNotification('parent_adds_student', [['student_id', $user->id], ['parent_id' , Yii::$app->user->id], ['password', $model->password]]);
         }
         Pricing::ActivateStudentTrial($user->id);
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
