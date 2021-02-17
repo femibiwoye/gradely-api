@@ -219,6 +219,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function updateAccessToken()
     {
         $token = Yii::$app->security->generateRandomString(200);
+        $this->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
+        $this->save();
         $this->token = $token;
         if (!$this->save(false)) {
             return false;
