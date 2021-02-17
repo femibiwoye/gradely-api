@@ -167,7 +167,7 @@ class StudentDetails extends User
     public function getTotalHomeworks()
     {
 
-        $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1,'is_active_class'=>1]);
+        $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1, 'is_active_class' => 1]);
 
         if (Yii::$app->user->identity->type == 'teacher') {
             $condition = ['teacher_id' => Yii::$app->user->id];
@@ -336,8 +336,12 @@ class StudentDetails extends User
         else
             $term = Utility::getStudentTermWeek('term', $this->id);
 
+
         $studentAnalytics = new StudentAnalytics();
         $subject_id = isset($this->getSelectedSubject()->id) ? $this->getSelectedSubject()->id : null;
+
+        return $subject_id;
+
         return $result = $studentAnalytics->Analytics($this, $subject_id, $term);
     }
 
@@ -419,7 +423,10 @@ class StudentDetails extends User
 
     public function getClassSubjects($subject_id = null)
     {
+
         $studentID = $this->id;
+
+        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1])->groupBy('subject_id')->all(), 'subject_id');
         $subjects = Subjects::find()
             ->alias('s')
             ->select([
@@ -429,9 +436,9 @@ class StudentDetails extends User
                 //'s.description',
                 //'s.image',
             ])
-            ->innerJoin('student_school ss', "ss.student_id = $studentID AND ss.status = 1")
-            ->innerJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id')
-            ->where(['s.status' => 1, 'cs.status' => 1]);
+            ->leftJoin('student_school ss', "ss.student_id = $studentID AND ss.status = 1")
+            ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id')
+            ->where(['s.status' => 1, 'cs.status' => 1])->orWhere(['s.id' => $subjectIDS]);
 
         if (!empty($subject_id))
             $subjects = $subjects->andWhere(['s.id' => $subject_id]);
