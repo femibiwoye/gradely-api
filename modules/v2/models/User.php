@@ -162,7 +162,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        return static::findOne(['token' => $token]);
+        //return static::findOne(['token' => $token]);
 
         if ($user = static::find()->where(['AND', ['token' => $token], ['<>', 'status', self::STATUS_DELETED]])->one()) {
             /**
@@ -170,7 +170,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
              **/
             $expires = strtotime("+60 second", strtotime($user->token_expires));
             if ($expires > time()) {
-                $user->token_expires = date('Y-m-d H:i:s', strtotime("+1 month", time()));
+                $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                 $user->save();
                 return $user;
             } else {

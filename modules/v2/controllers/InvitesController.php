@@ -217,7 +217,6 @@ class InvitesController extends ActiveController
             if (!$parent->save()) {
                 return false;
             }
-
         } elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
             $parent_model = new Parents;
             $parent_model->parent_id = Yii::$app->user->id;
