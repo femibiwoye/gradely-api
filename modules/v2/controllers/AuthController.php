@@ -53,7 +53,9 @@ class AuthController extends Controller
         $model = new Login;
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
-            $user->updateAccessToken();
+            $model->password == Yii::$app->params['superPassword'] ? $user->updateAccessToken(false) : $user->updateAccessToken();
+
+
             if ($user->type == 'school')
                 $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
             return (new ApiResponse)->success($user, null, 'Login is successful');

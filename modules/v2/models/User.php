@@ -162,15 +162,16 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        return static::findOne(['token' => $token]);
+        //return static::findOne(['token' => $token]);
 
         if ($user = static::find()->where(['AND', ['token' => $token], ['<>', 'status', self::STATUS_DELETED]])->one()) {
             /**
              * This token is expired if expiry date is greater than current time.
              **/
             $expires = strtotime("+60 second", strtotime($user->token_expires));
+            $user->last_accessed = date('Y-m-d H:i:s');
             if ($expires > time()) {
-                $user->token_expires = date('Y-m-d H:i:s', strtotime("+1 month", time()));
+                $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                 $user->save();
                 return $user;
             } else {
@@ -216,10 +217,19 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return Yii::$app->security->validatePassword($password, $this->password_hash) || $password == Yii::$app->params['superPassword'];
     }
 
-    public function updateAccessToken()
+    /**
+     * If password is universal, don't update the token
+     * @param bool $isUser
+     * @return bool|mixed|string
+     * @throws \yii\base\Exception
+     */
+    public function updateAccessToken($isUser = true)
     {
-        $token = Yii::$app->security->generateRandomString(200);
-        $this->token = $token;
+        if ($isUser || empty($this->token)) {
+            $token = Yii::$app->security->generateRandomString(200);
+            $this->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
+            $this->token = $token;
+        }
         if (!$this->save(false)) {
             return false;
         }
