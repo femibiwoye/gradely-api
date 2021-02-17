@@ -169,6 +169,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
              * This token is expired if expiry date is greater than current time.
              **/
             $expires = strtotime("+60 second", strtotime($user->token_expires));
+            $user->last_accessed = date('Y-m-d H:i:s');
             if ($expires > time()) {
                 $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                 $user->save();
@@ -220,7 +221,6 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
         $token = Yii::$app->security->generateRandomString(200);
         $this->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
-        $this->save();
         $this->token = $token;
         if (!$this->save(false)) {
             return false;
