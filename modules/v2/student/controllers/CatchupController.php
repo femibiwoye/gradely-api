@@ -525,15 +525,14 @@ class CatchupController extends ActiveController
             ->all();
 
         $attemptStatus = QuizSummary::find()->where(['student_id' => $studentID, 'submit' => 1])->exists() ? true : false;
-        $attemptStatus = ['takenPractice'=>$attemptStatus];
+        $attemptStatus = ['takenPractice' => $attemptStatus];
 
         if (!$model) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not found',$attemptStatus);
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not found', $attemptStatus);
         }
 
 
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' subjects found', null,$attemptStatus);
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' subjects found', null, $attemptStatus);
     }
 
     /**
@@ -693,7 +692,10 @@ class CatchupController extends ActiveController
             ->where(['submit' => 1,
                 'quiz_summary.student_id' => $student_id
             ])
-            ->andWhere(['AND', ['<>', 'type', 'recommendation'], ['<>', 'type', 'catchup']])
+            ->andWhere(['AND',
+                //['<>', 'type', 'recommendation'],
+                ['<>', 'type', 'catchup']
+            ])
             ->innerJoin('quiz_summary_details qsd', 'qsd.quiz_id = quiz_summary.id')
             ->groupBy('subject_id');
         if (!empty($subject)) {
@@ -716,8 +718,13 @@ class CatchupController extends ActiveController
                 ->orderBy('quiz_summary_details.id DESC')
                 ->all();
 
+            //Get 1 new topic that has not been attempted before
+
+
             $oneSubject = Subjects::find()->select(['id', 'slug', 'name', 'status', Yii::$app->params['subjectImage']])
                 ->where(['id' => $model['subject_id']])->asArray()->one();
+
+            $practicedTopicIds = ArrayHelper::getColumn($topics, 'topic_id');
 
             $topicModels = QuizSummaryDetails::find()
                 ->alias('qsd')
@@ -732,7 +739,7 @@ class CatchupController extends ActiveController
                 ])
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
-                ->where(['qsd.topic_id' => ArrayHelper::getColumn($topics, 'topic_id'),
+                ->where(['qsd.topic_id' => $practicedTopicIds,
                     'qsd.student_id' => $student_id,
                     'st.subject_id' => $model['subject_id']])
                 ->orderBy('score')
@@ -740,6 +747,24 @@ class CatchupController extends ActiveController
                 ->groupBy('qsd.topic_id')
                 ->limit(10)
                 ->all();
+
+            if ($oneNewTopic = SubjectTopics::find()
+                ->select([
+                    new Expression('null as score'),
+                    new Expression('null as total'),
+                    new Expression('null as correct'),
+                    'topic',
+                    'id',
+                    'subject_id',
+                    Utility::ImageQuery('subject_topics'),
+                ])
+                ->where(['class_id' => $class_id, 'subject_id' => $model['subject_id']])->andWhere(['NOT IN', 'id', $practicedTopicIds])->asArray()->one()) {
+
+                $topicModels = array_merge([$oneNewTopic],$topicModels);
+            }
+
+
+            //ArrayHelper::getColumn($topicModels,'id');
 
 
 ///This is working, i had to temporarily disable it.
