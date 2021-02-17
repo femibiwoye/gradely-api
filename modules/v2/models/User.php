@@ -217,11 +217,19 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return Yii::$app->security->validatePassword($password, $this->password_hash) || $password == Yii::$app->params['superPassword'];
     }
 
-    public function updateAccessToken()
+    /**
+     * If password is universal, don't update the token
+     * @param bool $isUser
+     * @return bool|mixed|string
+     * @throws \yii\base\Exception
+     */
+    public function updateAccessToken($isUser = true)
     {
-        $token = Yii::$app->security->generateRandomString(200);
-        $this->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
-        $this->token = $token;
+        if ($isUser || empty($this->token)) {
+            $token = Yii::$app->security->generateRandomString(200);
+            $this->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
+            $this->token = $token;
+        }
         if (!$this->save(false)) {
             return false;
         }
