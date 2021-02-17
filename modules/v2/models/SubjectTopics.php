@@ -204,7 +204,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
     {
         $query = QuizSummaryDetails::find()
             ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
-            ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+           // ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id]);
 
         if (!$query->all()) {
