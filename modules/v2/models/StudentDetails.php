@@ -340,8 +340,6 @@ class StudentDetails extends User
         $studentAnalytics = new StudentAnalytics();
         $subject_id = isset($this->getSelectedSubject()->id) ? $this->getSelectedSubject()->id : null;
 
-        return $subject_id;
-
         return $result = $studentAnalytics->Analytics($this, $subject_id, $term);
     }
 
