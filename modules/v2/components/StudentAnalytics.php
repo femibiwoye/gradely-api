@@ -69,8 +69,9 @@ class StudentAnalytics extends Model
         if (!empty($subject) || !empty($term) || !empty($studentId) || $state) {
             $model = QuizSummary::find();
 
-            if (!empty($type))
-                $model = $model->andWhere(['quiz_summary.type' => $type]);
+//            if (!empty($type))
+//                $model = $model->andWhere(['quiz_summary.type' => $type]);
+
 
             $model = $model->andWhere(['AND',
                 !empty($subject) ? ['quiz_summary.subject_id' => $subject] : [],
@@ -87,19 +88,24 @@ class StudentAnalytics extends Model
 
         } else {
             $model = QuizSummary::find();
-            if (!empty($type))
-                $model = $model->where(['quiz_summary.type' => $type]);
+//            if (!empty($type))
+//                $model = $model->where(['quiz_summary.type' => $type]);
         }
 
-        $model = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id")// AND homeworks.type = 'homework'
+        $homeworkModel = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id")// AND homeworks.type = 'homework'
         //->leftJoin('classes', 'classes.id = homeworks.class_id')
         //->andWhere(['classes.global_class_id' => $studentClassID])
-        ->andWhere(['quiz_summary.class_id' => [Utility::ParentStudentChildClass($studentId, 1), Utility::ParentStudentChildClass($studentId, 0)]])
+        ->andWhere(['quiz_summary.class_id' => [$studentClassID,Utility::ParentStudentChildClass($studentId, 1), Utility::ParentStudentChildClass($studentId, 0)]])
             ->andWhere(['between', 'quiz_summary.submit_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
 
 
-        $homeworkModel = clone $model;
+
+        //$homeworkModel = clone $model;
+
+        if(!empty($term)){
+            $homeworkModel = $homeworkModel->andWhere(['quiz_summary.term'=>$term]);
+        }
 
         $finalHomework = $homeworkModel
             ->select([
@@ -110,8 +116,13 @@ class StudentAnalytics extends Model
                 'quiz_summary.student_id'
             ])
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = quiz_summary.student_id")
-            ->andWhere(['submit' => 1])
-            ->innerJoinWith(['homeworkQuestions'], false)
+            ->andWhere(['submit' => 1]);
+
+        if(!empty($studentId)) {
+            $finalHomework = $homeworkModel->andWhere(['qsd.student_id' => $studentId]);
+        }
+
+        $finalHomework = $finalHomework->innerJoinWith(['homeworkQuestions'], false)
             ->groupBy('quiz_summary.student_id')
             ->orderBy('correctPercentage DESC')
             ->asArray()
@@ -129,15 +140,11 @@ class StudentAnalytics extends Model
 //            ->all();
 
 
-//        if ($studentId) {
-//            print_r($finalHomework);
-//            die;
-//        }
-
         foreach ($finalHomework as $key => $homework) {
             if (!empty($homework['correct'])) {
                 $finalHomework[$key]['correct'] += $homework['correct'];
                 $finalHomework[$key]['questionCount'] += $homework['questionCount'];
+               // $finalHomework[$key]['correctPercentage'] += $homework['correctPercentage'];
                 $finalHomework[$key]['correctPercentage'] = round(($finalHomework[$key]['correct'] / $finalHomework[$key]['questionCount']) * 100);
             }
         }
