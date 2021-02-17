@@ -91,12 +91,12 @@ class StudentAnalytics extends Model
                 $model = $model->where(['quiz_summary.type' => $type]);
         }
 
-        $model = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id AND homeworks.type = 'homework'")
-            ->leftJoin('classes', 'classes.id = homeworks.class_id')
-            ->andWhere(['classes.global_class_id' => $studentClassID])
+        $model = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id")// AND homeworks.type = 'homework'
+        //->leftJoin('classes', 'classes.id = homeworks.class_id')
+        //->andWhere(['classes.global_class_id' => $studentClassID])
+        ->andWhere(['quiz_summary.class_id' => [Utility::ParentStudentChildClass($studentId, 1), Utility::ParentStudentChildClass($studentId, 0)]])
             ->andWhere(['between', 'quiz_summary.submit_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
-            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
-        ;
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
 
 
         $homeworkModel = clone $model;
@@ -155,7 +155,6 @@ class StudentAnalytics extends Model
         $studentOverallAndPosition = [0, 0];
 
         if (!empty($student)) {
-
             $classID = Utility::getStudentClass(1, $student->id);
             $classStudentsAggregate = $this->StudentsClassAggregateScores(null, $subject, $term, $type, $state, $classID);
 
