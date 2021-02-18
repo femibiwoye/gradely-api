@@ -4,6 +4,7 @@ namespace app\modules\v2\teacher\models;
 
 use app\modules\v2\components\InputNotification;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\HomeworkSelectedStudent;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeTopics;
 use app\modules\v2\models\StudentSchool;
@@ -34,6 +35,8 @@ class HomeworkForm extends Model
     public $tag;
     public $description;
     public $lesson_description;
+    public $selected_student; //If certain students are selected for the assessment
+    public $selected_student_id; //ID of the selected students if the id above are valid
 
     public function rules()
     {
@@ -42,8 +45,8 @@ class HomeworkForm extends Model
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title'], 'required', 'on' => 'create-lesson'],
             [['title', 'tag'], 'required', 'on' => 'update-homework'],
             //[['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd '],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id'], 'integer'],
-            [['open_date', 'close_date'], 'safe'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'selected_student'], 'integer'],
+            [['open_date', 'close_date', 'selected_student_id'], 'safe'],
             [['title'], 'string', 'max' => 255],
             ['class_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id']],
             ['teacher_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id']],
@@ -54,6 +57,7 @@ class HomeworkForm extends Model
             //validateTopicCurriculum Validates open_date and close_date, tag and topic
             //['topics_id', 'validateTopicCurriculum'],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
+            ['selected_student', 'in', 'range' => [1, 0]],
             [['description', 'lesson_description'], 'string']
         ];
     }
@@ -159,6 +163,26 @@ class HomeworkForm extends Model
                 return false;
             }
 
+            if ($model->selected_student == 1) {
+                if (count($this->selected_student_id) < 1) {
+                    return false;
+                }
+
+                foreach ($this->selected_student_id as $studentID) {
+                    if (!StudentSchool::find()->where(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1, 'class_id' => $model->class_id])->exists()) {
+                        return false;
+                    }
+
+                    $selectStudentModel = new HomeworkSelectedStudent();
+                    $selectStudentModel->student_id = $studentID;
+                    $selectStudentModel->teacher_id = $model->teacher_id;
+                    $selectStudentModel->homework_id = $model->id;
+                    if (!$selectStudentModel->save()) {
+                        false;
+                    }
+                }
+            }
+
             if (!$feed = $this->addFeed($model)) {
                 return false;
             }
@@ -172,7 +196,7 @@ class HomeworkForm extends Model
             }
 
             $dbtransaction->commit();
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             $dbtransaction->rollBack();
             return false;
         }
