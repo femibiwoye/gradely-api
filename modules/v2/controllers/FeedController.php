@@ -146,7 +146,7 @@ class FeedController extends ActiveController
 
 
             $models = $this->modelClass::find()
-                ->where(['class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
+                ->where(['feed.class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
         }
 
         if (Yii::$app->user->identity->type == 'parent' || Yii::$app->user->identity->type == 'student') {
