@@ -243,6 +243,7 @@ class StudentMastery extends Model
                 'term' => $this->getTerm(),
                 'subject_topics.class_id' => $this->getClass(),
                 'status' => 1,
+                'subject_id'=>$this->subject,
                 'school_id' => null,
             ])
             ->all();

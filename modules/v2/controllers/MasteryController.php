@@ -50,6 +50,7 @@ class MasteryController extends Controller
         $model->student_id = Utility::getParentChildID();
         $model->term = Yii::$app->request->get('term');
         $model->class = Yii::$app->request->get('class');
+        $model->subject = Yii::$app->request->get('subject');
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
