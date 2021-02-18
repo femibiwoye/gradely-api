@@ -74,10 +74,12 @@ class HomeworkController extends ActiveController
         $missedModels = StudentHomeworkReport::find()
             ->innerJoin('student_school', "student_school.class_id = homeworks.class_id AND student_school.student_id=$student_id")
             ->leftJoin('quiz_summary qs', "qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1")
+            ->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
             ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
             ->andWhere(['<', 'UNIX_TIMESTAMP(close_date)', time()])
             ->andWhere(['IS', 'qs.homework_id', null])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+            ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]])
             ->all();
 
 //return $models;
@@ -111,10 +113,12 @@ class HomeworkController extends ActiveController
         $models = $this->modelClass::find()
             ->innerJoin('student_school', "student_school.class_id = homeworks.class_id AND student_school.student_id=$student_id")
             ->leftJoin('quiz_summary qs', "qs.homework_id = homeworks.id AND qs.student_id = $student_id AND qs.submit = 1")
+            ->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
             ->where(['homeworks.type' => 'homework', 'homeworks.status' => SharedConstant::VALUE_ONE, 'homeworks.publish_status' => SharedConstant::VALUE_ONE])
             ->andWhere(['<', 'UNIX_TIMESTAMP(open_date)', time()])
             ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()])
             ->andWhere(['IS', 'qs.homework_id', null])
+            ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -210,7 +214,7 @@ class HomeworkController extends ActiveController
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
 
         $model = PracticeMaterial::find()
-            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => ['feed','practice']])
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => ['feed', 'practice']])
             ->groupBy('practice_material.id');
         $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
             ->andWhere(['feed.class_id' => $studentClassID]);
@@ -240,7 +244,7 @@ class HomeworkController extends ActiveController
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
 
         $model = PracticeMaterial::find()
-            ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed','practice']])
+            ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed', 'practice']])
             ->groupBy('practice_material.id');
         $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
             ->andWhere(['feed.class_id' => $studentClassID])

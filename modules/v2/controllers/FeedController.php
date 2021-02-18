@@ -133,7 +133,7 @@ class FeedController extends ActiveController
             }
 
             $models = $this->modelClass::find()
-                ->where(['class_id' => $class_id, 'view_by' => ['all', 'class', 'student']]);
+                ->where(['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']]);
         } elseif (Yii::$app->user->identity->type == 'parent') {
             //The class_id is used as student_id
             $user_id = Yii::$app->user->id;
@@ -147,6 +147,16 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->where(['class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
+        }
+
+        if (Yii::$app->user->identity->type == 'parent' || Yii::$app->user->identity->type == 'student') {
+            $models = $models
+                ->leftjoin('homeworks', "homeworks.id = feed.reference_id")
+                ->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
+                ->andWhere(['OR',
+                    ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()],
+                    ['homeworks.selected_student' => 0]
+                ]);
         }
 
         //To filter by student id
@@ -189,7 +199,7 @@ class FeedController extends ActiveController
         $provider = new ActiveDataProvider([
             'query' => $models->orderBy('id DESC'),
             'pagination' => [
-                'pageSize' => 10,
+                'pageSize' => 20,
                 'validatePage' => false,
             ],
             'sort' => [
