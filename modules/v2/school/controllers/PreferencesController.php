@@ -211,6 +211,22 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    public function actionLinkSubject()
+    {
+        $form = new PreferencesForm(['scenario' => 'link-subject']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (!$model = $form->linkSubject($school)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not linked');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
+
     public function actionRemoveSubject($subject_id)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
