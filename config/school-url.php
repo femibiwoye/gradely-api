@@ -86,6 +86,7 @@ return [
         'GET subjects' => 'subjects', //
         'GET users' => 'users', //
         'POST add-subject' => 'add-subject', //
+        'POST link-subject' => 'link-subject', //
         'PUT activate-user' => 'activate-user', //
         'PUT change-user-role' => 'change-user-role', //
         'PUT deactivate-user' => 'deactivate-user', //
