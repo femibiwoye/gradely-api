@@ -69,6 +69,10 @@ class InvitesController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
+        if(User::find()->where(['email'=>$form->receiver_email])->exists()){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Email already registered, invite a new email');
+        }
+
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
         if (!$model = $form->schoolInviteAdmin($school)) {
@@ -240,6 +244,7 @@ class InvitesController extends ActiveController
     {
         $senderID = Yii::$app->user->identity->type == 'school' ? Schools::findOne(['id' => Utility::getSchoolAccess()])->id : Yii::$app->user->id;
         if ($model = InviteLog::findOne(['id' => $id, 'status' => 0, 'sender_id' => $senderID])) {
+            $model->ResendNotification($model);
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Invitation has been resent');
         } else
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not process your request');
