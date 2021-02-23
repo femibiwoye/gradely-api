@@ -34,6 +34,7 @@ use yii\helpers\ArrayHelper;
  * @property string $created_at
  * @property string|null $reference_type
  * @property int|null $reference_id
+ * @property int $selected_student
  *
  * @property HomeworkQuestions[] $homeworkQuestions
  * @property PracticeTopics[] $practiceTopics
@@ -73,7 +74,7 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id'], 'integer'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id', 'selected_student'], 'integer'],
             [['description', 'access_status', 'type', 'tag'], 'string'],
             [['open_date', 'close_date', 'created_at'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
@@ -142,6 +143,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'expected_students' => 'studentExpectedCount',
             'submitted_students' => 'studentsSubmitted',
             'completion' => 'completedRate',
+            'selected_students' => 'selectedStudents',
             'created_at'
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
@@ -210,7 +212,7 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getStudentExpectedCount()
     {
         return StudentSchool::find()
-            ->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1,'is_active_class'=>1])->count();
+            ->where(['class_id' => $this->class_id, 'school_id' => $this->school_id, 'status' => 1, 'is_active_class' => 1])->count();
     }
 
     public function getStudentsSubmitted()
@@ -218,6 +220,11 @@ class Homeworks extends \yii\db\ActiveRecord
         return QuizSummary::find()
             ->innerJoin('student_school', 'student_school.student_id = quiz_summary.student_id AND student_school.class_id = ' . $this->class_id . ' AND student_school.status = 1')
             ->where(['homework_id' => $this->id, 'submit' => SharedConstant::VALUE_ONE, 'quiz_summary.class_id' => $this->class_id])->count();
+    }
+
+    public function getSelectedStudents()
+    {
+        return $this->hasMany(HomeworkSelectedStudent::className(), ['homework_id' => 'id']);
     }
 
     public function getStrugglingStudents()
@@ -410,7 +417,7 @@ class Homeworks extends \yii\db\ActiveRecord
         } elseif (Yii::$app->user->identity->type == 'parent') {
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'status' => 1, 'student_id' => Yii::$app->request->get('child')])->all(), 'student_id');
 
-            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs, 'status' => 1,'is_active_class'=>1]);
+            $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs, 'status' => 1, 'is_active_class' => 1]);
             if (isset($_GET['class_id']))
                 $studentClass = $studentClass->andWhere(['class_id' => $_GET['class_id']]);
 
@@ -422,8 +429,11 @@ class Homeworks extends \yii\db\ActiveRecord
         }
 
 
-        $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework']])
-            ->andWhere(['>', 'close_date', date("Y-m-d")])
+        $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework']]);
+        if (Yii::$app->user->identity->type == 'parent' || Yii::$app->user->identity->type == 'student') {
+            $homeworks = $homeworks->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()], ['homeworks.selected_student' => 0]]);
+        }
+        $homeworks = $homeworks->andWhere(['>', 'close_date', date("Y-m-d")])
             ->orderBy(['close_date' => SORT_ASC])
             ->all();
 
@@ -488,7 +498,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getClass()
     {
-        return $this->hasOne(Classes::className(),['id'=>'class_id'])->select(['id','class_name']);
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->select(['id', 'class_name']);
     }
 
 }
