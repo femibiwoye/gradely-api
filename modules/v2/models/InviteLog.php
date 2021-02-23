@@ -247,4 +247,19 @@ class InviteLog extends \yii\db\ActiveRecord
         }
         return true;
     }
+
+    public function ResendNotification(InviteLog $model)
+    {
+        if ($model->sender_type == 'school' && $model->receiver_type == 'school') {
+            $notification = new InputNotification();
+            $notification->NewNotification('school_invite_admin', [['invite_id', $model->id], ['user_id', Yii::$app->user->id]]);
+        } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'school') {
+            $notification = new InputNotification();
+            $notification->NewNotification('teacher_invite_school', [['invitation_id', $model->id]]);
+        }elseif ($model->sender_type == 'school' && $model->receiver_type == 'teacher') {
+            $notification = new InputNotification();
+            $notification->NewNotification('school_invite_teacher', [['invitation_id', $model->id]]);
+
+        }
+    }
 }

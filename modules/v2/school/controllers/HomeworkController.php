@@ -62,7 +62,7 @@ class HomeworkController extends ActiveController
         }
 
         $homeworks = $this->modelClass::find()
-            ->where(['class_id' => $class_id, 'type' => 'homework'])
+            ->where(['class_id' => $class_id, 'type' => 'homework','publish_status'=>1])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
             ->orderBy('id DESC');
         if (!$homeworks->exists()) {
