@@ -291,7 +291,7 @@ class ChildrenController extends ActiveController
             $notification = new InputNotification();
             $notification->NewNotification('welcome_' . $user->type, [[$user->type . '_id', $user->id]]);
 
-            Pricing::ActivateStudentTrial($user->id);
+            // Pricing::ActivateStudentTrial($user->id); // Student trial
 
             $dbtransaction->commit();
         } catch (Exception $e) {
@@ -342,7 +342,7 @@ class ChildrenController extends ActiveController
             $notification = new InputNotification();
             $notification->NewNotification('parent_adds_student', [['student_id', $user->id], ['parent_id' , Yii::$app->user->id], ['password', $model->password]]);
         }
-        Pricing::ActivateStudentTrial($user->id);
+        // Pricing::ActivateStudentTrial($user->id); //Trial for students added by student
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
 
     }

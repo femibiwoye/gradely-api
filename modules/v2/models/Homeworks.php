@@ -24,6 +24,7 @@ use yii\helpers\ArrayHelper;
  * @property int|null $topic_id
  * @property int|null $curriculum_id
  * @property int $publish_status
+ * @property string|null $publish_at
  * @property string $access_status
  * @property string|null $open_date
  * @property string|null $close_date
@@ -76,7 +77,7 @@ class Homeworks extends \yii\db\ActiveRecord
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id', 'selected_student'], 'integer'],
             [['description', 'access_status', 'type', 'tag'], 'string'],
-            [['open_date', 'close_date', 'created_at'], 'safe'],
+            [['open_date', 'close_date', 'created_at','publish_at'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
             [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],
         ];

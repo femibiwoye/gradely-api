@@ -314,6 +314,7 @@ class HomeworkController extends ActiveController
 
         if ($model->publish_status == 0) {
             $model->publish_status = 1;
+            $model->publish_at = date('Y-m-d H:i:s');
             if ($model->save() && $this->publishHomeworkFeed($model->id)) {
                 $this->HomeworkNotification($model);
                 //Call success notification

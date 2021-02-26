@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\StudentAnalytics;
 use app\modules\v2\components\Utility;
 use Yii;
@@ -92,7 +93,7 @@ class StudentDetails extends User
             ->joinWith(['childHomework', 'subject']);
 
         if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
-            $model = $model->andWhere(['q.type' => 'homework']);
+            //$model = $model->andWhere(['q.type' => 'homework']);
         }
 
         if (Yii::$app->request->get('subject'))
@@ -226,13 +227,17 @@ class StudentDetails extends User
             $topics = $topics->andWhere(['subject_id' => Yii::$app->request->get('subject')]);
         else
             $topics = $topics->andWhere(['subject_id' => isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null]);
-        if (Yii::$app->request->get('term'))
-            $topics = $topics->andWhere(['term' => Yii::$app->request->get('term')]);
+
+
+            $topics = $topics->andWhere(['term' =>Yii::$app->request->get('term')? strtolower(Yii::$app->request->get('term')):strtolower(Utility::getStudentTermWeek('term', $this->id))]);
+
 
         $topics = $topics
             ->groupBy('id')
             ->asArray()
             ->all();
+
+
 
         $groupPerformance = [];
         foreach ($topics as $topic) {
