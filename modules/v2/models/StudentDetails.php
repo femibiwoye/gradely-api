@@ -93,7 +93,7 @@ class StudentDetails extends User
             ->joinWith(['childHomework', 'subject']);
 
         if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
-            //$model = $model->andWhere(['q.type' => 'homework']);
+            $model = $model->andWhere(['q.type' => 'homework']);
         }
 
         if (Yii::$app->request->get('subject'))
