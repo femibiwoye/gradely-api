@@ -155,7 +155,8 @@ class FeedController extends ActiveController
                 ->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
                 ->andWhere(['OR',
                     ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()],
-                    ['homeworks.selected_student' => 0]
+                    ['homeworks.selected_student' => 0,'feed.reference_id' => null],
+
                 ]);
         }
 
