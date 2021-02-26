@@ -230,7 +230,7 @@ class InvitesController extends ActiveController
                 return false;
             }
         }
-        Pricing::ActivateStudentTrial($model->sender_id);
+        // Pricing::ActivateStudentTrial($model->sender_id); Student trial
         $model->status = SharedConstant::VALUE_ONE;
         if (!$model->save()) {
             return false;
