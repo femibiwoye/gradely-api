@@ -34,6 +34,7 @@ class Recommendation extends Model
             $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
 
+
         if ($classID) {
             $topics = QuizSummaryDetails::find()
                 ->alias('s')
@@ -58,7 +59,6 @@ class Recommendation extends Model
         $topic_id = ArrayHelper::getColumn($topic_id, 'topic_id');
         $topic_id = isset($currentSubject['id']) ? array_merge($topic_id, [$currentSubject['id']]) : $topic_id;
 
-
         //Method 2
         $attempted_topic = QuizSummaryDetails::find()
             ->alias('qsd')
@@ -82,6 +82,18 @@ class Recommendation extends Model
 
         array_multisort(array_column($attempted_topic, 'score'), $attempted_topic);
 
+        $newTopics = SubjectTopics::find()
+            ->select([
+                new Expression("0 as score"),
+                'id',
+                Utility::ImageQuery('subject_topics'),
+                'topic',
+                'subject_id',
+                new Expression("'practice' as type"),
+            ])
+            ->where(['class_id' => Utility::getStudentClass(1,$student)])->andWhere(['NOT IN', 'id', $attempted_topic])->asArray()->one();
+        $attempted_topic_with_new = array_merge([$newTopics],$attempted_topic);
+
         $topicsOnly = ArrayHelper::getColumn($attempted_topic, 'id');
 
         $video = VideoContent::find()
@@ -104,13 +116,9 @@ class Recommendation extends Model
             ->asArray()
             ->all();
 
-        $todayRecommendation = Adaptivity::GenerateStudentSingleMixVideoRecommendations($attempted_topic, $video);
-
-//        $todayRecommendation = array_merge($attempted_topic, $video);
+        $todayRecommendation = Adaptivity::GenerateStudentSingleMixVideoRecommendations($attempted_topic_with_new, $video);
 
         return $this->createRecommendations($todayRecommendation, $student, 'daily');
-
-        //return $todayRecommendation;
     }
 
     private function createRecommendations($recommendations, $student, $category = 'daily')
@@ -122,7 +130,9 @@ class Recommendation extends Model
                     ->andWhere(['IS NOT', 'raw', null])->count();
                 if ($recommendedCount > 0) {
 
-                    Recommendations::updateAll(['created_at' => date('Y-m-d H:i:s')], ['AND', ['student_id' => $student, 'category' => $category, 'is_taken' => 0], ['IS NOT', 'raw', null]]);
+                    //Recommendations::updateAll(['created_at' => date('Y-m-d H:i:s')], ['AND', ['student_id' => $student, 'category' => $category, 'is_taken' => 0], ['IS NOT', 'raw', null]]);
+                    Recommendations::deleteAll(['AND', ['student_id' => $student, 'category' => $category, 'is_taken' => 0], ['IS NOT', 'raw', null]]);
+                    $recommendedCount = 0;
                 }
 
                 foreach ($recommendations as $recommendation) {

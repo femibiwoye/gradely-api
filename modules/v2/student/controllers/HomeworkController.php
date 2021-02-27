@@ -214,16 +214,21 @@ class HomeworkController extends ActiveController
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
 
         $model = PracticeMaterial::find()
-            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => ['feed', 'practice']])
-            ->groupBy('practice_material.id');
-        $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
-            ->andWhere(['feed.class_id' => $studentClassID]);
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => ['feed', 'practice'], 'feed.status' => 1, 'view_by' => ['all', 'class']]);
+        $model = $model
+            ->innerjoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
+            ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
+            ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]]);
 
-        if ($search) {
+        if (!empty($search)) {
             $model = $model->
-            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+            andWhere(['OR',
+                ['like', 'practice_material.title', '%' . $search . '%', false],
+                ['like', 'filename', '%' . $search . '%', false],
+                ['like', 'raw', '%' . $search . '%', false]
+            ]);
         }
-        $model = $model->orderBy(['created_at' => SORT_DESC]);
+        $model = $model->orderBy(['created_at' => SORT_DESC])->groupBy('practice_material.id');
 
         $provider = new ActiveDataProvider([
             'query' => $model,
@@ -246,8 +251,10 @@ class HomeworkController extends ActiveController
         $model = PracticeMaterial::find()
             ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed', 'practice']])
             ->groupBy('practice_material.id');
-        $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
-            ->andWhere(['feed.class_id' => $studentClassID])
+        $model = $model
+            ->innerjoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
+            ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
+            ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]])
             ->andWhere(['between', 'practice_material.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
 
         if ($search) {

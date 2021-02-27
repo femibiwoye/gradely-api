@@ -1279,7 +1279,9 @@ class CatchupController extends ActiveController
             ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
             ->where([
                 'feed.global_class_id' => $classID,
-                'pm.filetype' => 'document']);
+                'pm.filetype' => ['video','document'],
+                'pm.user_id'=>0 // I added this to exclude real user upload.
+            ]);
 
         $query2 = (new \yii\db\Query())
             ->from('video_content vc')

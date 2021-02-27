@@ -102,7 +102,7 @@ class StartQuizSummaryForm extends Model
 
             $remainingQuestionCount = ($questionCount * 3) - count($questions);
             if ($remainingQuestionCount > 0) {
-                $questions = array_merge($questions, Questions::find()->where(['topic_id' => $topic])->andWhere(['NOT IN', 'id', ArrayHelper::getColumn($questions, 'id')])->limit($remainingQuestionCount)->orderBy('rand()')->all());
+                $questions = array_merge($questions, Questions::find()->where(['topic_id' => $topic,'teacher_id'=>null])->andWhere(['NOT IN', 'id', ArrayHelper::getColumn($questions, 'id')])->limit($remainingQuestionCount)->orderBy('rand()')->all());
             }
 
             $this->questions[] = ['topic' => ArrayHelper::toArray($topicObject), 'questions' => $questions];
@@ -115,16 +115,16 @@ class StartQuizSummaryForm extends Model
 
     public function filterSpecificDifficulty($alreadyAttemptedQuestions, $topic, $questionCount, $difficulty)
     {
-        $easyQuestions = ArrayHelper::toArray(Questions::find()->where(['topic_id' => $topic, 'difficulty' => $difficulty])->andWhere(['NOT IN', 'id', $alreadyAttemptedQuestions])->limit($questionCount)->all());
+        $easyQuestions = ArrayHelper::toArray(Questions::find()->where(['topic_id' => $topic, 'difficulty' => $difficulty, 'teacher_id' => null])->andWhere(['NOT IN', 'id', $alreadyAttemptedQuestions])->limit($questionCount)->all());
 
         $easyCount = count($easyQuestions);
         if ($easyCount < $questionCount) {
             $remainingCount = $questionCount - $easyCount;
-            $easyAdditionalQuestions = Questions::find()->where(['topic_id' => $topic, 'difficulty' => $difficulty])->limit($remainingCount)->all();
+            $easyAdditionalQuestions = Questions::find()->where(['topic_id' => $topic, 'difficulty' => $difficulty, 'teacher_id' => null])->limit($remainingCount)->all();
             $easyQuestions = array_merge($easyQuestions, $easyAdditionalQuestions);
             if (count($easyQuestions) < $questionCount) {
                 $remainingCount = $questionCount - count($easyQuestions);
-                $easyAdditionalQuestions = Questions::find()->where(['topic_id' => $topic])->limit($remainingCount)->all();
+                $easyAdditionalQuestions = Questions::find()->where(['topic_id' => $topic, 'teacher_id' => null])->limit($remainingCount)->all();
                 array_walk($easyAdditionalQuestions, function (&$key) use ($difficulty) {
                     return $key->difficulty = $difficulty;
                 });
