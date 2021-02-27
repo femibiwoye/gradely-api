@@ -121,6 +121,8 @@ class QuestionController extends ActiveController
             $model = new Questions(['scenario' => 'create-' . $type]);
             $model->attributes = Yii::$app->request->post();
             $model->teacher_id = $teacher_id;
+            // i added this later, meaning lots of questions had been created by teacher without adding school_id
+            $model->school_id = Utility::getTeacherSchoolID($teacher_id, null);
 
             if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a])->exists()) {
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');

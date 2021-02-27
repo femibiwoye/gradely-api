@@ -90,7 +90,7 @@ class ChildrenController extends ActiveController
                 ->where(['id' => $student->student_id])
                 ->one();
 
-            $students[$k] = array_merge(ArrayHelper::toArray($students[$k]), ['class' => $student->studentClass]);
+            $students[$k] = array_merge(ArrayHelper::toArray($students[$k]), ['user_class' => $student->studentClass]);
         }
 
         if (!$students) {
