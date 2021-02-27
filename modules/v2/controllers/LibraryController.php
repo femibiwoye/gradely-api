@@ -333,15 +333,16 @@ class LibraryController extends ActiveController
 
 
         $model = $this->modelClass::find()
-            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => 'feed'])
-            ->groupBy('practice_material.id');
+            ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => ['feed', 'practice']]);
 
         if ($class_id) {
-            $model = $model->innerJoin('feed', 'feed.user_id = practice_material.user_id')
-                ->andWhere(['feed.class_id' => $class_id]);
+            $model = $model
+                ->innerjoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
+                ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
+                ->andWhere(['OR', ['feed.class_id' => $class_id], ['homeworks.class_id' => $class_id]]);
         }
 
-        if ($search) {
+        if (!empty($search)) {
             $model = $model->
             andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
@@ -371,7 +372,7 @@ class LibraryController extends ActiveController
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $model,
+            'query' => $model->groupBy('practice_material.id'),
             'pagination' => [
                 'pageSize' => 12,
                 'validatePage' => false,
@@ -382,8 +383,6 @@ class LibraryController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
-
-        //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
     /**
@@ -450,7 +449,6 @@ class LibraryController extends ActiveController
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
 
-        //return (new ApiResponse)->success($model->all(), ApiResponse::SUCCESSFUL, 'Record found');
     }
 
     /**
