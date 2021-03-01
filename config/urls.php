@@ -85,6 +85,7 @@ return [
         'POST school-teacher' => 'school-teacher', //
         'POST school-parent' => 'school-parent', //
         'POST teacher-school' => 'teacher-school', //
+        'POST parent-school' => 'parent-school', //
         'GET verify' => 'verify', //
         'PUT resend/<id:\d+>' => 'resend', //
         'DELETE remove/<id:\d+>' => 'remove', //
