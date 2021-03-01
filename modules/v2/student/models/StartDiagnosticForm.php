@@ -109,6 +109,7 @@ class StartDiagnosticForm extends Model
                 ->alias('s')
                 ->innerJoin('questions', 'questions.topic_id = s.id')
                 ->where(['s.term' => $term, 's.class_id' => $globalClass, 's.subject_id' => $subject])
+                ->having('count(questions.id) >= 30')
                 ->asArray()
                 ->orderBy(['s.week_number' => SORT_DESC])
                 ->groupBy('s.week_number');
