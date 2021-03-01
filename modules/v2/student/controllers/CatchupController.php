@@ -754,11 +754,15 @@ class CatchupController extends ActiveController
                     new Expression('null as total'),
                     new Expression('null as correct'),
                     'topic',
-                    'id',
-                    'subject_id',
+                    'subject_topics.id',
+                    'subject_topics.subject_id',
                     Utility::ImageQuery('subject_topics'),
                 ])
-                ->where(['class_id' => $class_id, 'subject_id' => $model['subject_id']])->andWhere(['NOT IN', 'id', $practicedTopicIds])->asArray()->one()) {
+                ->where(['subject_topics.class_id' => $class_id, 'subject_topics.subject_id' => $model['subject_id']])
+                ->andWhere(['NOT IN', 'subject_topics.id', $practicedTopicIds])
+                ->innerJoin('questions q','q.topic_id = subject_topics.id')
+                ->having('count(q.id) >= 30')
+                ->asArray()->one()) {
 
                 $topicModels = array_merge([$oneNewTopic],$topicModels);
             }
@@ -1062,7 +1066,6 @@ class CatchupController extends ActiveController
             ->where(['hm.student_id' => $student_id, 'hm.id' => $practice_id, 'qs.student_id' => $student_id])
             ->innerJoin('quiz_summary qs', 'qs.homework_id = hm.id AND qs.submit=1')
             ->exists()) {
-            $form->addError('practice_id', 'Practice already taken');
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 

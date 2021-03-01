@@ -216,7 +216,7 @@ class HomeworkController extends ActiveController
         $model = PracticeMaterial::find()
             ->andWhere(['practice_material.filetype' => SharedConstant::FEED_TYPES[4], 'practice_material.type' => ['feed', 'practice'], 'feed.status' => 1, 'view_by' => ['all', 'class']]);
         $model = $model
-            ->innerjoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
+            ->leftJoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
             ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]]);
 
@@ -244,15 +244,18 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 
-    public function actionNotes($child_id = null, $term = null, $search = null)
+    public function actionNotes($child_id = null, $class_id = null, $term = null, $search = null)
     {
+        if(!empty($class_id) && empty($child_id)){
+            $child_id = $class_id;
+        }
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
 
         $model = PracticeMaterial::find()
-            ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed', 'practice']])
+            ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed', 'practice'], 'feed.status' => 1, 'view_by' => ['all', 'class']])
             ->groupBy('practice_material.id');
         $model = $model
-            ->innerjoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
+            ->leftJoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
             ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]])
             ->andWhere(['between', 'practice_material.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
