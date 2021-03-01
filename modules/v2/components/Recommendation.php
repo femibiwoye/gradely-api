@@ -34,7 +34,6 @@ class Recommendation extends Model
             $classID = Classes::findOne(['id' => $school_id['class_id']])->global_class_id;
         }
 
-
         if ($classID) {
             $topics = QuizSummaryDetails::find()
                 ->alias('s')
@@ -53,8 +52,11 @@ class Recommendation extends Model
     {
 
         $currentWeekTerm = Utility::getStudentTermWeek(null, $student);
-        $currentSubject = SubjectTopics::find()->select('id')
-            ->where(['AND', ['term' => $currentWeekTerm['term']], ['>=', 'week_number', $currentWeekTerm['week']]])->asArray()->one();
+        $currentSubject = SubjectTopics::find()->select('subject_topics.id')
+            ->where(['AND', ['subject_topics.term' => $currentWeekTerm['term']], ['>=', 'subject_topics.week_number', $currentWeekTerm['week']]])
+            ->innerJoin('questions q','q.topic_id = subject_topics.id')
+            ->having('count(q.id) >= 30')
+            ->asArray()->one();
 
         $topic_id = ArrayHelper::getColumn($topic_id, 'topic_id');
         $topic_id = isset($currentSubject['id']) ? array_merge($topic_id, [$currentSubject['id']]) : $topic_id;
@@ -85,13 +87,17 @@ class Recommendation extends Model
         $newTopics = SubjectTopics::find()
             ->select([
                 new Expression("0 as score"),
-                'id',
+                'subject_topics.id',
                 Utility::ImageQuery('subject_topics'),
                 'topic',
-                'subject_id',
+                'subject_topics.subject_id',
                 new Expression("'practice' as type"),
             ])
-            ->where(['class_id' => Utility::getStudentClass(1,$student)])->andWhere(['NOT IN', 'id', $attempted_topic])->asArray()->one();
+            ->where(['subject_topics.class_id' => Utility::getStudentClass(1,$student)])->andWhere(['NOT IN', 'subject_topics.id', $attempted_topic])
+            ->innerJoin('questions q','q.topic_id = subject_topics.id')
+            ->having('count(q.id) >= 30')
+            ->asArray()->one();
+
         $attempted_topic_with_new = array_merge([$newTopics],$attempted_topic);
 
         $topicsOnly = ArrayHelper::getColumn($attempted_topic, 'id');
