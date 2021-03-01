@@ -218,6 +218,24 @@ class InviteLog extends \yii\db\ActiveRecord
         return false;
     }
 
+    public function parentInviteSchool()
+    {
+        $model = new InviteLog();
+        $model->receiver_email = $this->receiver_email;
+        $model->receiver_name = $this->receiver_name;
+        $model->receiver_phone = $this->receiver_phone;
+        $model->sender_id = $this->sender_id;
+        $model->sender_type = 'parent';
+        $model->receiver_type = 'school';
+        $model->token = Yii::$app->security->generateRandomString(100);
+        if ($model->save()) {
+            /*$notification = new InputNotification();
+            $notification->NewNotification('teacher_invite_school', [['invitation_id', $model->id]]);*/
+            return $model;
+        }
+        return false;
+    }
+
     public function InviteAgain($id)
     {
         if ($id) {

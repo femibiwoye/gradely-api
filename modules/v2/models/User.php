@@ -68,7 +68,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'image' => 'imageUrl',
             'type',
             'email',
-            'class',
+            'class'=>'classDetail',
             'is_boarded',
             'token',
             'profile' => 'userProfile',
@@ -91,6 +91,11 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'created_at',
             'updated_at',
         ];
+    }
+
+    public function getClassDetail()
+    {
+       return Utility::getStudentClass(0,$this->id,true);
     }
 
     public function getTopics()
