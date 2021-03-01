@@ -193,18 +193,21 @@ class Utility extends ActiveRecord
      * @param null $studentID
      * @return int|mixed|string|null
      */
-    public static function getStudentClass($global_id = SharedConstant::VALUE_ZERO, $studentID = null)
+    public static function getStudentClass($global_id = SharedConstant::VALUE_ZERO, $studentID = null, $classFullname = false)
     {
         if (!empty($studentID)) {
             $user = User::findOne(['id' => $studentID, 'type' => 'student']);
             $data = StudentSchool::findOne(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1]);
 
             if (empty($data)) {
-                if (!empty($user))
-                    return $user->class;
+                if (!empty($user)) {
+                    return $classFullname ? GlobalClass::findOne(['id' => $user->class]) : $user->class;
+                }
                 return SharedConstant::VALUE_NULL;
             } elseif ($global_id == SharedConstant::VALUE_ONE) {
                 return $data->class->global_class_id;
+            }elseif($classFullname){
+                return Classes::findOne(['id'=>$data->class_id]);
             } else {
                 return $data->class_id;
             }
