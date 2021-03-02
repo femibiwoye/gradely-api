@@ -7,6 +7,7 @@ use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\GenerateString;
 use Aws\Credentials\Credentials;
 use Aws\Exception\AwsException;
+use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -35,6 +36,7 @@ class AwsController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
+            'except' => ['back-upload']
         ];
 
         return $behaviors;
@@ -187,6 +189,57 @@ class AwsController extends Controller
         file_put_contents($output_file_with_extension, base64_decode($data));
         return $output_file_with_extension;
 
+    }
+
+
+    public function actionBackUpload($folder, $filename, $type = 'thumbnail')
+    {
+        //$generatedFileName = GenerateString::widget(['length' => 50]);
+        if (empty($_FILES['file'])) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'attachment is missing');
+        }
+
+        $fileTmpPath = $_FILES['file']['tmp_name'];
+        $fileName = $_FILES['file']['name'];
+        $fileSize = $_FILES['file']['size'];
+        $fileType = $_FILES['file']['type'];
+        $fileNameCmps = explode(".", $fileName);
+        $fileExtension = strtolower(end($fileNameCmps));
+
+        if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file');
+        }
+
+        $allowedfileExtensions = ['jpg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'];
+        if (in_array($fileExtension, $allowedfileExtensions) === false) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file extension');
+        }
+
+        $mbLimit = 10;
+        $limit = $mbLimit * 1048576;
+        if ($fileSize > $limit) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, "Size cannot be more than {$mbLimit} MB");
+        }
+        $file_Path = $fileTmpPath;
+
+        $bucket = $this->bucketName;
+
+        $key = $folder . "/$type/" . $filename . '.' . $fileExtension;
+
+        try {
+            //Create a S3Client
+            $s3Client = new S3Client($this->config);
+            $result = $s3Client->putObject([
+                'Bucket' => $bucket,
+                'Key' => $key,
+                'SourceFile' => $file_Path,
+            ]);
+
+            return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
+        } catch (S3Exception $e) {
+            return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+        }
     }
 }
 

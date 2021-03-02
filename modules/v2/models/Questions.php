@@ -109,7 +109,7 @@ class Questions extends \yii\db\ActiveRecord
             'option_d',
             'option_e',
             'answer',
-            'image',
+            'image' => 'questionImageUrl',
             //'duration', //Had to add custom duration
             'duration' => 'customDuration',
             'difficulty',
@@ -154,6 +154,18 @@ class Questions extends \yii\db\ActiveRecord
 
 
         return $question;
+    }
+
+    public function getQuestionImageUrl()
+    {
+        if (empty($this->image))
+            $image = null;
+        elseif (strpos($this->image, 'http') !== false)
+            $image = $this->image;
+        else {
+            $image = Yii::$app->params['baseURl'] . '/images/questions/' . $this->image;
+        }
+        return $image;
     }
 
     public function getCustomDuration()
