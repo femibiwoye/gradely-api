@@ -10,6 +10,8 @@ return [
         'DELETE delete-file' => 'delete-file', //
         'GET file-detail' => 'file-detail', //
 
+        'POST back-upload/<folder:[a-z/-]+>' => 'back-upload', //
+
     ]],
 
     //'GET v2/amazon/lists' => 'v2/amazon/list-bucket',//
