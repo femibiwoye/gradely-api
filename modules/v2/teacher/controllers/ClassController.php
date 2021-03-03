@@ -324,7 +324,7 @@ class ClassController extends ActiveController
     {
         $schoolID = $this->SchoolID(Yii::$app->user->id);
         $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
-        $curriculumID = Utility::SchoolActiveCurriculum($schoolID);
+        //$curriculumID = Utility::SchoolActiveCurriculum($schoolID);
         $class_id = Yii::$app->request->get('global_class_id');
         $subject_id = Yii::$app->request->get('subject_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
@@ -348,17 +348,7 @@ class ClassController extends ActiveController
                 }else{
                    $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
                     $topics = SchoolTopic::find()
-                        ->select([
-                            '*',
-                            new Expression('null as slug'),
-                            new Expression('null as description'),
-                            new Expression('week as week_number'),
-                            new Expression("$curriculumID as exam_type_id"),
-                            new Expression("1 as status"),
-                            new Expression("null as image"),
-                        ])
                         ->where(['subject_id'=>$subject_id, 'class_id' => $class->id, 'term' => $term])
-                        ->asArray()
                         ->orderBy(['position' => SORT_ASC])->all();
                 }
                 $model[] = ['term' => $term, 'topics' => $topics];
@@ -372,18 +362,8 @@ class ClassController extends ActiveController
             }else{
                 $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
                 $model = SchoolTopic::find()
-                    ->select([
-                        '*',
-                        new Expression('null as slug'),
-                        new Expression('null as description'),
-                        new Expression('week as week_number'),
-                        new Expression("$curriculumID as exam_type_id"),
-                        new Expression("1 as status"),
-                        new Expression("null as image"),
-                    ])
                     ->where(['subject_id'=>$subject_id, 'class_id' => $class->id])
                     ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
-                    ->asArray()
                     ->all();;
             }
 
@@ -407,12 +387,22 @@ class ClassController extends ActiveController
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
-
-        $model = SubjectTopics::find()
-            ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
-            ->andWhere(['like', 'topic', '%' . $topic . '%', false])
-            ->limit(6)
-            ->all();
+        $schoolID = $this->SchoolID(Yii::$app->user->id);
+        $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
+        if(!$curriculumStatus) {
+            $model = SubjectTopics::find()
+                ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
+                ->andWhere(['like', 'topic', '%' . $topic . '%', false])
+                ->limit(6)
+                ->all();
+        }else{
+            $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
+            $model = SchoolTopic::find()
+                ->where(['class_id' => $class->id, 'subject_id' => $subject_id])
+                ->andWhere(['like', 'topic', '%' . $topic . '%', false])
+                ->limit(6)
+                ->all();
+        }
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');

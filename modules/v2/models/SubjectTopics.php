@@ -110,7 +110,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
 
     public function getLearningArea()
     {
-        return $this->hasMany(LearningArea::className(), ['topic_id' => 'id']);
+        return $this->hasMany(LearningArea::className(), ['topic_id' => 'id'])->andWhere(['is_school'=>0]);
     }
 
     public function getAdditiionalTopic()
