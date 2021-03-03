@@ -701,4 +701,17 @@ class Utility extends ActiveRecord
         }
         return Classes::findOne(['global_class_id' => $id, 'school_id' => $schoolID]);
     }
+
+    public static function SchoolTopicColumns($curriculumID)
+    {
+        return [
+            '*',
+            new Expression('null as slug'),
+            new Expression('null as description'),
+            new Expression('week as week_number'),
+            new Expression("$curriculumID as exam_type_id"),
+            new Expression("1 as status"),
+            new Expression("null as image"),
+        ];
+    }
 }

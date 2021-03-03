@@ -2,8 +2,10 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\school\models\PreferencesForm;
 use Yii;
+use yii\helpers\Inflector;
 
 /**
  * This is the model class for table "school_topic".
@@ -57,6 +59,24 @@ class SchoolTopic extends \yii\db\ActiveRecord
             [['subject_id'], 'exist', 'skipOnError' => true, 'targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']],
             [['topic_id'], 'exist', 'skipOnError' => true, 'targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id']],
         ];
+    }
+
+    public function fields()
+    {
+        $fields = parent::fields();
+
+        $fields['slug'] = function ($model){return Inflector::slug($model->topic);};
+        $fields['image'] = function ($model){return Utility::AbsoluteImage(null, 'topics'); };
+        $fields['catchup_status'] =function ($model){return 0; };
+        $fields['description'] = function ($model){return null; };
+        $fields['week_number'] = function ($model){return $model->week;};
+        $fields['exam_type_id'] = function ($model){return $model->curriculum_id;};
+        $fields['status'] = function ($model){return 1; };
+
+        if ($this->learningArea) {
+            $fields['learning_area'] = 'learningArea';
+        }
+        return $fields;
     }
 
     /**
