@@ -69,7 +69,7 @@ class SchoolTopic extends \yii\db\ActiveRecord
         $fields['image'] = function ($model){return Utility::AbsoluteImage(null, 'topics'); };
         $fields['catchup_status'] =function ($model){return 0; };
         $fields['description'] = function ($model){return null; };
-        $fields['week_number'] = function ($model){return $model->week;};
+        $fields['week_number'] = function ($model){return !empty($model->week)?$model->week:$model->position;};
         $fields['exam_type_id'] = function ($model){return $model->curriculum_id;};
         $fields['status'] = function ($model){return 1; };
 
