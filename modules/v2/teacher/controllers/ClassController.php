@@ -22,6 +22,7 @@ use app\modules\v2\models\{Classes,
     SubjectTopics,
     Questions};
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -323,6 +324,7 @@ class ClassController extends ActiveController
     {
         $schoolID = $this->SchoolID(Yii::$app->user->id);
         $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
+        $curriculumID = Utility::SchoolActiveCurriculum($schoolID);
         $class_id = Yii::$app->request->get('global_class_id');
         $subject_id = Yii::$app->request->get('subject_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
@@ -346,7 +348,17 @@ class ClassController extends ActiveController
                 }else{
                    $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
                     $topics = SchoolTopic::find()
+                        ->select([
+                            '*',
+                            new Expression('null as slug'),
+                            new Expression('null as description'),
+                            new Expression('week as week_number'),
+                            new Expression("$curriculumID as exam_type_id"),
+                            new Expression("1 as status"),
+                            new Expression("null as image"),
+                        ])
                         ->where(['subject_id'=>$subject_id, 'class_id' => $class->id, 'term' => $term])
+                        ->asArray()
                         ->orderBy(['position' => SORT_ASC])->all();
                 }
                 $model[] = ['term' => $term, 'topics' => $topics];
@@ -360,8 +372,18 @@ class ClassController extends ActiveController
             }else{
                 $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
                 $model = SchoolTopic::find()
+                    ->select([
+                        '*',
+                        new Expression('null as slug'),
+                        new Expression('null as description'),
+                        new Expression('week as week_number'),
+                        new Expression("$curriculumID as exam_type_id"),
+                        new Expression("1 as status"),
+                        new Expression("null as image"),
+                    ])
                     ->where(['subject_id'=>$subject_id, 'class_id' => $class->id])
                     ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
+                    ->asArray()
                     ->all();;
             }
 
