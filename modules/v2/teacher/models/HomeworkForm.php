@@ -3,6 +3,7 @@
 namespace app\modules\v2\teacher\models;
 
 use app\modules\v2\components\InputNotification;
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\HomeworkSelectedStudent;
 use app\modules\v2\models\Parents;
@@ -158,6 +159,10 @@ class HomeworkForm extends Model
         try {
             if (!empty($this->lesson_description))
                 $model->description = $this->lesson_description;
+
+            $curriculumStatus = Utility::SchoolActiveCurriculum($model->school_id, true);
+            if ($curriculumStatus)
+                $model->is_custom_topic = 1;
 
             if (!$model->save()) {
                 return false;
