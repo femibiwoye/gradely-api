@@ -206,8 +206,8 @@ class Utility extends ActiveRecord
                 return SharedConstant::VALUE_NULL;
             } elseif ($global_id == SharedConstant::VALUE_ONE) {
                 return $data->class->global_class_id;
-            }elseif($classFullname){
-                return Classes::findOne(['id'=>$data->class_id]);
+            } elseif ($classFullname) {
+                return Classes::findOne(['id' => $data->class_id]);
             } else {
                 return $data->class_id;
             }
@@ -679,13 +679,26 @@ class Utility extends ActiveRecord
         return $model;
     }
 
-    public static function SchoolActiveCurriculum($schoolID)
+    /**
+     * Status determine of it should return the actual value of the curriculum or status of custom curriculum
+     *
+     * @param $schoolID
+     * @param bool $statusOnly
+     * @return bool|int
+     */
+    public static function SchoolActiveCurriculum($schoolID, $statusOnly = false)
     {
         if ($curriculum = SchoolCurriculum::findOne(['school_id' => $schoolID])) {
-            return $curriculum->curriculum_id;
+            return $statusOnly ? true : $curriculum->curriculum_id;
         }
-        return 1;
+        return $statusOnly ? false : 1;
     }
 
-
+    public static function SchoolAlternativeClass($id, $global = false, $schoolID = null)
+    {
+        if ($global) {
+            return GlobalClass::findOne(['id' => $id]);
+        }
+        return Classes::findOne(['global_class_id' => $id, 'school_id' => $schoolID]);
+    }
 }

@@ -7,6 +7,7 @@ use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Remarks;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolTeachers;
+use app\modules\v2\models\SchoolTopic;
 use app\modules\v2\models\StudentDetails;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClassSubjects;
@@ -237,7 +238,7 @@ class ClassController extends ActiveController
 
     private function SchoolID($teacher_id)
     {
-        $model = SchoolTeachers::find()->select('school_id')->where(['teacher_id' => $teacher_id])->one();
+        $model = SchoolTeachers::find()->select('school_id')->where(['teacher_id' => $teacher_id, 'status' => 1])->one();
         return $model->school_id;
     }
 
@@ -320,12 +321,15 @@ class ClassController extends ActiveController
 
     public function actionTopics($term = 0)
     {
+        $schoolID = $this->SchoolID(Yii::$app->user->id);
+        $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
         $class_id = Yii::$app->request->get('global_class_id');
         $subject_id = Yii::$app->request->get('subject_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
         $form->addRule(['class_id', 'subject_id'], 'required');
-        $form->addRule(['class_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
-
+        if (!$curriculumStatus) {
+            $form->addRule(['class_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
+        }
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
@@ -334,18 +338,33 @@ class ClassController extends ActiveController
             $terms = ['first', 'second', 'third'];
             $model = [];
             foreach ($terms as $term) {
-                $model[] = ['term' => $term, 'topics' => SubjectTopics::find()
-                    ->where(['subject_id' => $subject_id, 'class_id' => $class_id, 'term' => $term])
-                    ->orderBy(['week_number' => SORT_ASC])
-                    //->limit(2)
-                    ->all()];
+                if(!$curriculumStatus){
+                   $topics = SubjectTopics::find()
+                        ->where(['subject_id' => $subject_id, 'class_id' => $class_id, 'term' => $term])
+                        ->orderBy(['week_number' => SORT_ASC])
+                        ->all();
+                }else{
+                   $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
+                    $topics = SchoolTopic::find()
+                        ->where(['subject_id'=>$subject_id, 'class_id' => $class->id, 'term' => $term])
+                        ->orderBy(['position' => SORT_ASC])->all();
+                }
+                $model[] = ['term' => $term, 'topics' => $topics];
             }
         } else {
-            $model = SubjectTopics::find()
-                ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
-                ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
-                //->limit(6)
-                ->all();
+            if(!$curriculumStatus){
+                $model = SubjectTopics::find()
+                    ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
+                    ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
+                    ->all();
+            }else{
+                $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
+                $model = SchoolTopic::find()
+                    ->where(['subject_id'=>$subject_id, 'class_id' => $class->id])
+                    ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
+                    ->all();;
+            }
+
         }
 
         if (!$model) {
@@ -451,7 +470,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id,'is_active_class'=>1,'status'=>1]);
+        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'is_active_class' => 1, 'status' => 1]);
         $model->class_id = $class_id;
         if ($model->save())
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
