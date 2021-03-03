@@ -194,8 +194,8 @@ class CurriculumController extends ActiveController
         else
             $field = 'id';
         $terms = ['first', 'second', 'third'];
-//        $dbtransaction = Yii::$app->db->beginTransaction();
-//        try {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
         foreach ($terms as $term) {
             if (!isset($topics[$term]))
                 continue;
@@ -213,17 +213,19 @@ class CurriculumController extends ActiveController
                     $newTopic->save();
                 } else {
                     $model = SchoolTopic::findOne([$field => $topic['id'], 'class_id' => $school_class, 'subject_id' => $subject]);
-                    $model->term = $term;
-                    $model->position = $order + 1;
-                    $model->save();
+                    if($model) {
+                        $model->term = $term;
+                        $model->position = $order + 1;
+                        $model->save();
+                    }
                 }
             }
         }
-//            $dbtransaction->commit();
-//        } catch (\Exception $e) {
-//            $dbtransaction->rollBack();
-//            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
-//        }
+            $dbtransaction->commit();
+        } catch (\Exception $e) {
+            $dbtransaction->rollBack();
+            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Updated');
     }
 
