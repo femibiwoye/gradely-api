@@ -22,6 +22,7 @@ use app\modules\v2\models\{Classes,
     SubjectTopics,
     Questions};
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -323,6 +324,7 @@ class ClassController extends ActiveController
     {
         $schoolID = $this->SchoolID(Yii::$app->user->id);
         $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
+        //$curriculumID = Utility::SchoolActiveCurriculum($schoolID);
         $class_id = Yii::$app->request->get('global_class_id');
         $subject_id = Yii::$app->request->get('subject_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
@@ -385,12 +387,22 @@ class ClassController extends ActiveController
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
-
-        $model = SubjectTopics::find()
-            ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
-            ->andWhere(['like', 'topic', '%' . $topic . '%', false])
-            ->limit(6)
-            ->all();
+        $schoolID = $this->SchoolID(Yii::$app->user->id);
+        $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
+        if(!$curriculumStatus) {
+            $model = SubjectTopics::find()
+                ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
+                ->andWhere(['like', 'topic', '%' . $topic . '%', false])
+                ->limit(6)
+                ->all();
+        }else{
+            $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
+            $model = SchoolTopic::find()
+                ->where(['class_id' => $class->id, 'subject_id' => $subject_id])
+                ->andWhere(['like', 'topic', '%' . $topic . '%', false])
+                ->limit(6)
+                ->all();
+        }
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');

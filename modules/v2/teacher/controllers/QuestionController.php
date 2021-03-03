@@ -4,6 +4,7 @@ namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
+use app\modules\v2\models\SchoolTopic;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
@@ -102,11 +103,17 @@ class QuestionController extends ActiveController
         $answer = Yii::$app->request->post('answer');
         $duration = Yii::$app->request->post('duration');
         $teacher_id = Yii::$app->user->id;
+        $schoolID = Utility::getTeacherSchoolID($teacher_id, null);
         $model = new \yii\base\DynamicModel(compact('class_id', 'difficulty', 'subject_id', 'topic_id', 'answer', 'duration', 'teacher_id', 'homework_id'));
         $model->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id', 'teacher_id' => 'teacher_id']]);
         $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id']]);
         $model->addRule(['subject_id'], 'exist', ['targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']]);
-        $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
+        $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
+        if (!$curriculumStatus) {
+            $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
+        } else {
+            $model->addRule(['topic_id'], 'exist', ['targetClass' => SchoolTopic::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
+        }
         $model->addRule(['difficulty'], 'in', ['range' => ['easy', 'medium', 'hard']]);
         if ($type == 'multiple')
             $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
@@ -122,7 +129,7 @@ class QuestionController extends ActiveController
             $model->attributes = Yii::$app->request->post();
             $model->teacher_id = $teacher_id;
             // i added this later, meaning lots of questions had been created by teacher without adding school_id
-            $model->school_id = Utility::getTeacherSchoolID($teacher_id, null);
+            $model->school_id = $schoolID;
 
             if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a])->exists()) {
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
@@ -137,6 +144,8 @@ class QuestionController extends ActiveController
             $model->exam_type_id = $topic->exam_type_id;
             $model->homework_id = $homework_id;
             $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
+            if ($curriculumStatus)
+                $model->is_custom_topic = 1;
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
             }
