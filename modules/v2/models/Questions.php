@@ -36,6 +36,7 @@ use app\modules\v2\components\SharedConstant;
  * @property string|null $clue This give clue to the question
  * @property string $category
  * @property int|null $comprehension_id
+ * @property int|null $is_custom_topic
  * @property int $status
  * @property string $created_at
  *
@@ -51,14 +52,14 @@ class Questions extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['teacher_id', 'homework_id', 'subject_id', 'school_id', 'topic_id', 'exam_type_id', 'duration', 'comprehension_id', 'status'], 'integer'],
+            [['teacher_id', 'homework_id', 'subject_id', 'school_id', 'topic_id', 'exam_type_id', 'duration', 'comprehension_id', 'status','is_custom_topic'], 'integer'],
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration', 'option_a', 'option_b', 'option_c', 'option_d'], 'required', 'on' => 'create-multiple'],
             [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration'], 'required', 'on' => 'create-bool'],
             [['class_id', 'subject_id', 'question', 'topic_id', 'difficulty', 'duration', 'file_upload', 'word_limit'], 'required', 'on' => 'create-essay'],
             [['class_id', 'subject_id', 'question', 'topic_id', 'difficulty', 'duration', 'answer'], 'required', 'on' => 'create-short'],
             [['answer'], 'integer', 'on' => 'create-bool'],
             [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category', 'image'], 'string'],
-            [['created_at', 'score'], 'safe'],
+            [['created_at', 'score','is_custom_topic'], 'safe'],
             //[['answer'], 'string', 'max' => 1],
             [['comprehension_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comprehension::className(), 'targetAttribute' => ['comprehension_id' => 'id']],
         ];

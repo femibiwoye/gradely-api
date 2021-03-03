@@ -416,7 +416,11 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($form->HomeworkQuestionModels, ApiResponse::SUCCESSFUL, 'Record inserted');
     }
 
-    public function actionQuestion()
+    /**
+     * Not sure what is function is meant for.
+     * @return ApiResponse
+     */
+    /*public function actionQuestion()
     {
         $model = new Questions;
         $model->attributes = Yii::$app->request->post();
@@ -430,5 +434,5 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record saved');
-    }
+    }*/
 }
