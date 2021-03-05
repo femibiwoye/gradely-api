@@ -688,6 +688,9 @@ class Utility extends ActiveRecord
      */
     public static function SchoolActiveCurriculum($schoolID, $statusOnly = false)
     {
+        if ($statusOnly) {
+            return SchoolCurriculum::find()->leftJoin('exam_type et', 'et.id = school_curriculum.curriculum_id')->where(['et.school_id' => $schoolID])->exists();
+        }
         if ($curriculum = SchoolCurriculum::findOne(['school_id' => $schoolID])) {
             return $statusOnly ? true : $curriculum->curriculum_id;
         }
