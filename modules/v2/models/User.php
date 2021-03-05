@@ -298,6 +298,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
         return $this->hasMany(Classes::className(), ['id' => 'class_id'])
             ->leftJoin('schools s', 's.id = classes.school_id')
+            ->innerJoin('teacher_class tc','tc.class_id = classes.id AND tc.status = 1 AND tc.school_id = s.id')
             ->select(['classes.*', 's.name school_name'])
             ->asArray()
             ->via('teacherClass');
