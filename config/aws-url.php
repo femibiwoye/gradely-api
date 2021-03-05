@@ -10,7 +10,7 @@ return [
         'DELETE delete-file' => 'delete-file', //
         'GET file-detail' => 'file-detail', //
 
-        'POST back-upload/<folder:[a-z/-]+>' => 'back-upload', //
+        'POST back-upload/<folder:[a-z0-9/-]+>' => 'back-upload', //
 
     ]],
 
