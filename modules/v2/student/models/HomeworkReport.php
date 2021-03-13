@@ -82,7 +82,8 @@ class HomeworkReport extends QuizSummary
                 'q.option_c',
                 'q.option_d',
                 'q.answer',
-                'q.image',
+                //'q.image',
+                \Yii::$app->params['questionImage'],
                 'q.type',
                 'q.difficulty',
                 'q.duration',
@@ -92,8 +93,8 @@ class HomeworkReport extends QuizSummary
                 'qsd.selected',
             ])
             ->innerJoin('questions q', 'q.id = hq.question_id')
-            ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id')
-            ->where(['hq.homework_id' => $this->homework_id,'qsd.homework_id' => $this->homework_id, 'qsd.student_id' => $this->student_id])
+            ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id AND qsd.homework_id = ' . $this->homework_id. ' AND qsd.student_id = ' . $this->student_id)
+            ->where(['hq.homework_id' => $this->homework_id])
             ->groupBy('hq.question_id')
             ->asArray()
             ->all();
