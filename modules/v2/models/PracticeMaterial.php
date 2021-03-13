@@ -78,7 +78,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'downloadable',
             'download_count',
             'isOwner',
-            'referenceToken',
+            'referenceObject',
             'thumbnail' => 'materialThumbnail',
             'token',
             'updated_at',
@@ -223,12 +223,12 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         return ucfirst($this->getUploadTerm()) . ' Term, Week ' . $this->getUploadWeek();
     }
 
-    public function getReferenceToken()
+    public function getReferenceObject()
     {
         if ($this->type == 'practice') {
-            return $this->hasOne(Feed::className(), ['reference_id' => 'practice_id'])->one()->token;
+            return $this->hasOne(Feed::className(), ['reference_id' => 'practice_id']);
         } else {
-            return $this->hasOne(Feed::className(), ['id' => 'practice_id'])->one()->token;
+            return $this->hasOne(Feed::className(), ['id' => 'practice_id'])->select(['token','class_id'])->asArray()->one();
         }
     }
 
