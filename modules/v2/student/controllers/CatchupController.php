@@ -761,7 +761,7 @@ class CatchupController extends ActiveController
                 ->where(['subject_topics.class_id' => $class_id, 'subject_topics.subject_id' => $model['subject_id']])
                 ->andWhere(['NOT IN', 'subject_topics.id', $practicedTopicIds])
                 ->innerJoin('questions q','q.topic_id = subject_topics.id')
-                ->having('count(q.id) >= 30')
+                ->having('count(q.id) >= '.Yii::$app->params['topicQuestionsMin'])
                 ->asArray()->one()) {
 
                 $topicModels = array_merge([$oneNewTopic],$topicModels);

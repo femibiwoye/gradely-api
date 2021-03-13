@@ -50,12 +50,11 @@ class Recommendation extends Model
 
     public function PracticeVideoRecommendation($topic_id, $student)
     {
-
         $currentWeekTerm = Utility::getStudentTermWeek(null, $student);
         $currentSubject = SubjectTopics::find()->select('subject_topics.id')
             ->where(['AND', ['subject_topics.term' => $currentWeekTerm['term']], ['>=', 'subject_topics.week_number', $currentWeekTerm['week']]])
             ->innerJoin('questions q','q.topic_id = subject_topics.id')
-            ->having('count(q.id) >= 30')
+            ->having('count(q.id) >= '.Yii::$app->params['topicQuestionsMin'])
             ->asArray()->one();
 
         $topic_id = ArrayHelper::getColumn($topic_id, 'topic_id');
@@ -95,7 +94,7 @@ class Recommendation extends Model
             ])
             ->where(['subject_topics.class_id' => Utility::getStudentClass(1,$student)])->andWhere(['NOT IN', 'subject_topics.id', $attempted_topic])
             ->innerJoin('questions q','q.topic_id = subject_topics.id')
-            ->having('count(q.id) >= 30')
+            ->having('count(q.id) >= '.Yii::$app->params['topicQuestionsMin'])
             ->asArray()->one();
 
         $attempted_topic_with_new = array_merge([$newTopics],$attempted_topic);
