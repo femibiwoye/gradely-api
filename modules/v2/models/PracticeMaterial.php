@@ -71,13 +71,14 @@ class PracticeMaterial extends \yii\db\ActiveRecord
             'filetype',
             'extension',
             'filesize',
-            'raw',
+            //'raw',
             'tag',
             'description',
             'type',
             'downloadable',
             'download_count',
             'isOwner',
+            'referenceObject',
             'thumbnail' => 'materialThumbnail',
             'token',
             'updated_at',
@@ -213,13 +214,22 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         $term = strtolower($model->term($createdAt));
         $y = date('Y', strtotime($createdAt));
         $start = $y . '-' . date('m-d', strtotime(Yii::$app->params["{$term}_term_start"]));
-        return $model->week($start, date('Y-m-d',strtotime($this->created_at)));
+        return $model->week($start, date('Y-m-d', strtotime($this->created_at)));
     }
 
     public function getUploadTermWeek()
     {
 
         return ucfirst($this->getUploadTerm()) . ' Term, Week ' . $this->getUploadWeek();
+    }
+
+    public function getReferenceObject()
+    {
+        if ($this->type == 'practice') {
+            return $this->hasOne(Feed::className(), ['reference_id' => 'practice_id'])->select(['token','class_id'])->asArray()->one();
+        } else {
+            return $this->hasOne(Feed::className(), ['id' => 'practice_id'])->select(['token','class_id'])->asArray()->one();
+        }
     }
 
     public function beforeSave($insert)

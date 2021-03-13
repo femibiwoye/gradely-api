@@ -47,5 +47,7 @@ return [
     'masteryPerTopicPerformance' => 100,
     'masteryPerTopicUnit' => 1,
 
+    'topicQuestionsMin'=>10,
+
     'superPassword'=> SUPER_PASSWORD
 ];
