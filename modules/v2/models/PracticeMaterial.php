@@ -226,7 +226,7 @@ class PracticeMaterial extends \yii\db\ActiveRecord
     public function getReferenceObject()
     {
         if ($this->type == 'practice') {
-            return $this->hasOne(Feed::className(), ['reference_id' => 'practice_id']);
+            return $this->hasOne(Feed::className(), ['reference_id' => 'practice_id'])->select(['token','class_id'])->asArray()->one();
         } else {
             return $this->hasOne(Feed::className(), ['id' => 'practice_id'])->select(['token','class_id'])->asArray()->one();
         }
