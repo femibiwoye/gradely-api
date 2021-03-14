@@ -44,7 +44,7 @@ jobs:
         s3-filename: ['gradely-aws-codedeploy-${{ github.sha }}']
 
 
-    needs: TestPHP
+    needs: buildAndTest
     steps:
       - uses: actions/checkout@v2
 
