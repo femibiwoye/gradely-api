@@ -22,7 +22,7 @@ jobs:
 
       # Initialize PHP
       - name: PHP ${{ matrix.php-version }} ${{ matrix.composer-options }}
-        uses: actions/setup-php@v2
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
 
