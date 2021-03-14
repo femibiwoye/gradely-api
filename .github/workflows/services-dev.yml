@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         php-version: [7.4]
-        composer-options: ['', '--prefer-lowest']
+#        composer-options: ['', '--prefer-lowest']
 
     steps:
       - uses: actions/checkout@v2
@@ -44,10 +44,23 @@ jobs:
         s3-filename: ['gradely-aws-codedeploy-${{ github.sha }}']
 
 
-    needs: Test
+    needs: TestPHP
     steps:
       - uses: actions/checkout@v2
 
+      # Initialize PHP
+      - name: PHP ${{ matrix.php-version }} ${{ matrix.composer-options }}
+        uses: actions/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      # Install project dependencies, test and build
+      - name: Update composer
+        run: |
+          composer update
+
+
+      # Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
