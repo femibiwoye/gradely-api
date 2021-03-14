@@ -43,6 +43,7 @@ jobs:
         s3-bucket: ['gradely-aws-codedeploy']
         s3-filename: ['gradely-aws-codedeploy-${{ github.sha }}']
 
+
       # Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
