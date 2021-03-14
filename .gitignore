@@ -7,7 +7,7 @@ web/index.php
 web/index-test.php
 composer.lock
 runtime
-.github
+# .github
 
 # phpstorm project files
 .idea
