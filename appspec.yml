@@ -6,6 +6,6 @@ files:
     retain: true
 hooks:
   ApplicationStart:
-    - location: scripts/start-app.sh
+    - location: vagrant/scripts/start-app.sh
       timeout: 300
       runas: root
