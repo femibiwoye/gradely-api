@@ -1,5 +1,5 @@
 #!/bin/bash
 
-composer update
+#composer update
 # cd /var/www/php/test/tapi.gradely.ng
 # docker-compose up -d
