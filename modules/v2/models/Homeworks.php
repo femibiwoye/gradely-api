@@ -132,6 +132,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'is_closed' => 'isClosed',
             'questionCount',
             'duration',
+            'is_proctor',
             'questionsDuration',
             'score',
             'status',
