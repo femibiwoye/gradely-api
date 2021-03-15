@@ -311,7 +311,8 @@ class GeneralController extends ActiveController
                 ->asArray();
         } elseif ($type == 'event') {
             $model = Event::find()
-                ->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)');
+                //->andWhere('YEARWEEK(`created_at`, 1) = YEARWEEK(CURDATE(), 1)')
+            ;
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
