@@ -117,6 +117,7 @@ class Questions extends \yii\db\ActiveRecord
             'type',
             'topic_id',
             'explanation',
+            'video_explanation',
             'comprehension',
             'comprehension_id',
             'topic' => 'questionTopic',
