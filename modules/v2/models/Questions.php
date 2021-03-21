@@ -61,6 +61,11 @@ class Questions extends \yii\db\ActiveRecord
             [['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'type', 'difficulty', 'explanation', 'clue', 'category', 'image'], 'string'],
             [['created_at', 'score', 'is_custom_topic'], 'safe'],
             //[['answer'], 'string', 'max' => 1],
+
+            [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration', 'option_a', 'option_b', 'option_c', 'option_d'], 'required', 'on' => 'update-multiple'],
+            [['class_id', 'subject_id', 'question', 'answer', 'topic_id', 'difficulty', 'duration'], 'required', 'on' => 'update-bool'],
+            [['class_id', 'subject_id', 'question', 'topic_id', 'difficulty', 'duration', 'file_upload', 'word_limit'], 'required', 'on' => 'update-essay'],
+            [['class_id', 'subject_id', 'question', 'topic_id', 'difficulty', 'duration', 'answer'], 'required', 'on' => 'update-short'],
             [['comprehension_id'], 'exist', 'skipOnError' => true, 'targetClass' => Comprehension::className(), 'targetAttribute' => ['comprehension_id' => 'id']],
         ];
     }
