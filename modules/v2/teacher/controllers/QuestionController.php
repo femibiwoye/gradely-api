@@ -231,6 +231,10 @@ class QuestionController extends ActiveController
             ->where(['questions.id' => $question_id])
             ->asArray()
             ->one();
+        if ($model['is_custom_topic'] == 1) {
+            $topic = SchoolTopic::findOne(['id' => $model['topic_id']]);
+            $model = array_merge($model, ['topic'=>isset($topic->topic)?$topic->topic:null]);
+        }
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
