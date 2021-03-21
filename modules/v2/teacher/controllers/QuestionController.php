@@ -140,15 +140,23 @@ class QuestionController extends ActiveController
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
             }
-            $topic = SubjectTopics::findOne(['id' => $topic_id]);
-            $model->exam_type_id = $topic->exam_type_id;
+
+            if ($curriculumStatus) {
+                $model->is_custom_topic = 1;
+                $topic = SchoolTopic::findOne(['id' => $topic_id]);
+                $examID = $topic->curriculum_id;
+            } else {
+                $topic = SubjectTopics::findOne(['id' => $topic_id]);
+                $examID = $topic->exam_type_id;
+            }
+            $model->exam_type_id = $examID;
             $model->homework_id = $homework_id;
             $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
-            if ($curriculumStatus)
-                $model->is_custom_topic = 1;
+
             if (!$model->save()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
             }
+
 
             if (!empty($homework_id)) {
                 $assignQuestion = new HomeworkQuestions();
@@ -166,7 +174,6 @@ class QuestionController extends ActiveController
             $dbtransaction->rollBack();
             return false;
         }
-
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question saved');
     }
 
