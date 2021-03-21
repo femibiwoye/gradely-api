@@ -96,6 +96,7 @@ class GeneralController extends ActiveController
         ///Take practice appears on both
         //Invite school school for parent
         //Invite parent for student
+        //return Yii::$app->user->identity->type.' - '.Yii::$app->user->id;
         $studentID = Utility::getParentChildID();
 
         $takePractice = QuizSummary::find()->where(['student_id' => $studentID, 'submit' => 1])->exists();
