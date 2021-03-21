@@ -363,7 +363,7 @@ class ClassController extends ActiveController
                 $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
                 $model = SchoolTopic::find()
                     ->where(['subject_id'=>$subject_id, 'class_id' => $class->id])
-                    ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
+                    ->orderBy(['term' => SORT_ASC, 'week' => SORT_ASC])
                     ->all();;
             }
 

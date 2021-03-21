@@ -1,0 +1,90 @@
+name: Services
+
+on:
+  push:
+    branches:
+      - dev
+  # pull_request:
+  #   branches:
+  #     - test
+
+jobs:
+  buildAndTest:
+    name: CI Pipeline
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [7.4]
+#        composer-options: ['', '--prefer-lowest']
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Initialize PHP
+      - name: PHP ${{ matrix.php-version }} ${{ matrix.composer-options }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      # Install project dependencies, test and build
+      - name: Update composer
+        run: |
+          composer update
+
+  deploy:
+    name: CD Pipeline
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [7.4]
+        appname: ['gradely-aws-codedeploy']
+        application-deploy-name: ['GradelyReferralTest']
+        deploy-group: ['GradelyMainAPIDevBranch']
+        s3-bucket: ['gradely-aws-codedeploy']
+        s3-filename: ['gradely-aws-codedeploy-${{ github.sha }}']
+
+
+    needs: buildAndTest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Initialize PHP
+      - name: PHP ${{ matrix.php-version }} ${{ matrix.composer-options }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      # Install project dependencies, test and build
+      - name: Update composer
+        run: |
+          composer update
+
+
+      # Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      # Deploy push to AWS S3
+      - name: AWS Deploy push
+        run: |
+          aws deploy push \
+          --application-name ${{ matrix.application-deploy-name }} \
+          --description "This is a revision for the ${{ matrix.appname }}-${{ github.sha }}" \
+          --ignore-hidden-files \
+          --s3-location s3://${{ matrix.s3-bucket }}/${{ matrix.s3-filename }}.zip \
+          --source .
+
+      # Create deployment to CodeDeploy
+      - name: AWS Create Deployment
+        run: |
+          aws deploy create-deployment \
+           --application-name ${{ matrix.application-deploy-name }} \
+           --application-name ${{ matrix.application-deploy-name }} \
+           --deployment-config-name CodeDeployDefault.OneAtATime \
+           --deployment-group-name ${{ matrix.deploy-group }} \
+           --file-exists-behavior OVERWRITE \
+           --s3-location bucket=${{ matrix.s3-bucket }},key=${{ matrix.s3-filename }}.zip,bundleType=zip \
