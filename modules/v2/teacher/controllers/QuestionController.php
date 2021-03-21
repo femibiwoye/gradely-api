@@ -281,6 +281,7 @@ class QuestionController extends ActiveController
         }
 
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
+        $model->scenario = 'update-' . $model->type;
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not found or you have no edit privilege to this question');
         }
