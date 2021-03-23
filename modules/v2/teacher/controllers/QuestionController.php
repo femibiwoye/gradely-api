@@ -12,6 +12,7 @@ use Yii;
 use app\modules\v2\models\{Homeworks, ApiResponse, HomeworkQuestions, Questions};
 use app\modules\v2\teacher\models\{HomeworkQuestionsForm};
 use app\modules\v2\components\SharedConstant;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
 
@@ -191,7 +192,21 @@ class QuestionController extends ActiveController
         }
 
         $model = Questions::find()
-            ->where(['subject_id' => $subject_id, 'class_id' => $class_id, 'topic_id' => $topic_id])->andWhere(['<>', 'topic_id', 0]);
+            ->where(['subject_id' => $subject_id, 'class_id' => $class_id])->andWhere(['<>', 'topic_id', 0]);
+
+        $schoolID = Utility::getTeacherSchoolID(Yii::$app->user->id);
+        $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
+        $custom_topic_id = null;
+        if ($curriculumStatus) {
+            $custom_topic = SchoolTopic::findOne(['id' => $topic_id, 'school_id' => $schoolID, 'subject_id' => $subject_id]);
+            $custom_topic_id = ArrayHelper::getValue($custom_topic,'topic_id',null);
+
+            $model = $model->andWhere(['OR', ['topic_id' => $topic_id, 'is_custom_topic' => 1], ['topic_id'=>$custom_topic_id,'is_custom_topic'=>0]]);
+        }else{
+            $model = $model->andWhere(['topic_id' => $topic_id, 'is_custom_topic' => 0]);
+        }
+
+
 
         if (!$model->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -233,7 +248,7 @@ class QuestionController extends ActiveController
             ->one();
         if ($model['is_custom_topic'] == 1) {
             $topic = SchoolTopic::findOne(['id' => $model['topic_id']]);
-            $model = array_merge($model, ['topic'=>isset($topic->topic)?$topic->topic:null]);
+            $model = array_merge($model, ['topic' => isset($topic->topic) ? $topic->topic : null]);
         }
 
         if (!$model) {
