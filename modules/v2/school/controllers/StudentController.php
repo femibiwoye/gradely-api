@@ -230,7 +230,7 @@ class StudentController extends ActiveController
         $dataProvider = new ActiveDataProvider([
             'query' => $models,
             'pagination' => [
-                'pageSize' => 5, // Revert to 20
+                'pageSize' => 20,
                 'validatePage' => false,
             ],
         ]);
