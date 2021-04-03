@@ -15,6 +15,7 @@ $learningUrl = require 'learning-url.php';
 $awsUrl = require 'aws-url.php';
 $commandUrl = require 'command-url.php';
 $testUrl = require 'test-url.php';
+$smsUrl = require 'sms-url.php';
 
 $config = [
     'id' => 'gradely-v2',
@@ -85,12 +86,13 @@ $config = [
         'dblive' => $db['dblive'],
         'db_test' => $db['db_test'],
         'notification' => $db['main'],
+        'sms' => $db['sms'],
 
         'urlManager' => [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl, $commandUrl, $testUrl),
+            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl, $commandUrl, $testUrl,$smsUrl),
         ],
 
     ],

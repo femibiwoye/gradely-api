@@ -1,0 +1,19 @@
+<?php
+
+return [
+
+    //Tutor
+    'POST v2/sms/class/map-class-subject' => 'v2/sms/class/map-class-subject',
+    'GET v2/sms/class/get-class-subjects' => 'v2/sms/class/get-class-subjects',
+
+    'POST v2/sms/class/create-class-arm' => 'v2/sms/class/create-class-arm',
+    'PUT v2/sms/class/update-class-arm' => 'v2/sms/class/update-class-arm',
+    'GET v2/sms/class/get-global-class-arms' => 'v2/sms/class/get-global-class-arms',
+
+
+    'POST v2/sms/teacher/assign-subject-to-teacher' => 'v2/sms/teacher/assign-subject-to-teacher', //
+    'POST v2/sms/teacher/assign-subjects-to-teacher' => 'v2/sms/teacher/assign-subjects-to-teacher', //
+    'DELETE v2/sms/teacher/remove-teacher-from-class' => 'v2/sms/teacher/remove-class-teacher', //
+    'DELETE v2/sms/teacher/remove-teacher-from-school' => 'v2/sms/teacher/remove-teacher-school', //
+    'DELETE v2/sms/teacher/remove-teacher-subject' => 'v2/sms/teacher/remove-teacher-subject', //
+];
