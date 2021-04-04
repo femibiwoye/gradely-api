@@ -38,6 +38,7 @@ use app\modules\v2\components\SharedConstant;
  * @property string|null $oauth_uid
  * @property string|null $last_accessed Last time the website was accessed
  * @property int $is_boarded
+ * @property string|null $mode This is used to know if student is in catchup practice or exam mode
  *
  * @property Catchup[] $catchups
  * @property ClassAttendance[] $classAttendances

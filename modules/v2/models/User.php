@@ -73,6 +73,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'token',
             'profile' => 'userProfile',
             'termWeek',
+            'mode',
             'relationshipStatus'
             //'performance' => 'topics'
         ];

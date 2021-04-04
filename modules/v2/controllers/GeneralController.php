@@ -214,7 +214,7 @@ class GeneralController extends Controller
                 'slug',
                 'title'
             ])
-            ->where(['e.school_id' => null]);
+            ->where(['e.school_id' => null,'is_exam'=>0]);
 
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
     }
