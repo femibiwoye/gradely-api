@@ -9,10 +9,13 @@ use app\modules\v2\exam\components\ExamUtility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\Subjects;
+use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\UserModel;
 use app\modules\v2\sms\models\StudentExamConfig;
+use Symfony\Component\CssSelector\Node\SelectorNode;
 use Yii;
 use yii\filters\AccessControl;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 
 
@@ -165,6 +168,21 @@ class ExamController extends ActiveController
             $dbtransaction->rollBack();
             return $this->addError('students', $e->getMessage());
         }
+    }
+
+
+    public function actionStudentExamTopics()
+    {
+        $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
+        $models = SubjectTopics::find()
+            ->alias('st')
+            ->select(['st.id'])
+            ->innerJoin('questions q', 'q.topic_id = st.id')
+            ->innerJoin('exam_type et', 'et.id = q.exam_type_id')
+            ->where(['q.category' => 'exam', 'et.is_exam' => 1,'et.class'=>$category])
+            ->asArray()->all();
+
+        return (new ApiResponse)->success(ArrayHelper::getColumn($models,'id'));
     }
 
 
