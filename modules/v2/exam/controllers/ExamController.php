@@ -118,8 +118,8 @@ class ExamController extends ActiveController
 
     public function actionConfigureExam()
     {
-        $exam = Yii::$app->request->post('exams');
-        $subject = Yii::$app->request->post('subjects');
+        $exam = Yii::$app->request->post('exam');
+        $subject = Yii::$app->request->post('subject');
         $model = new \yii\base\DynamicModel(compact('exam', 'subject'));
         $model->addRule(['exam', 'subject'], 'required');
         if (!$model->validate()) {
@@ -177,9 +177,9 @@ class ExamController extends ActiveController
         $models = SubjectTopics::find()
             ->alias('st')
             ->select(['st.id'])
-            ->innerJoin('questions q', 'q.topic_id = st.id')
+            ->leftJoin('questions q', 'q.topic_id = st.id')
             ->innerJoin('exam_type et', 'et.id = q.exam_type_id')
-            ->where(['q.category' => 'exam', 'et.is_exam' => 1,'et.class'=>$category])
+            //->where(['q.category' => 'exam', 'et.is_exam' => 1,'et.class'=>$category])
             ->asArray()->all();
 
         return (new ApiResponse)->success(ArrayHelper::getColumn($models,'id'));
