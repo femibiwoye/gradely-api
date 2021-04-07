@@ -171,7 +171,7 @@ class ExamController extends ActiveController
     }
 
 
-    public function actionStudentExamTopics()
+    public function actionStudentExamTopics($subject_id)
     {
         $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
         $models = SubjectTopics::find()
@@ -179,7 +179,8 @@ class ExamController extends ActiveController
             ->select(['st.id'])
             ->leftJoin('questions q', 'q.topic_id = st.id')
             ->innerJoin('exam_type et', 'et.id = q.exam_type_id')
-            //->where(['q.category' => 'exam', 'et.is_exam' => 1,'et.class'=>$category])
+            ->where(['st.subject_id'=>$subject_id])
+            //->where(['q.category' => 'exam', 'et.is_exam' => 1,'et.class'=>$category,'st.subject_id'=>$subject_id])
             ->asArray()->all();
 
         return (new ApiResponse)->success(ArrayHelper::getColumn($models,'id'));
