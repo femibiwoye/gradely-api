@@ -16,4 +16,7 @@ return [
     'DELETE v2/sms/teacher/remove-teacher-from-class' => 'v2/sms/teacher/remove-class-teacher', //
     'DELETE v2/sms/teacher/remove-teacher-from-school' => 'v2/sms/teacher/remove-teacher-school', //
     'DELETE v2/sms/teacher/remove-teacher-subject' => 'v2/sms/teacher/remove-teacher-subject', //
+
+
+    'POST v2/sms/signup/<type:[a-z]+>' => 'v2/sms/auth/signup', //
 ];
