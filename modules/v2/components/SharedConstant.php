@@ -64,4 +64,6 @@ class SharedConstant
     const MIX_PRACTICE_QUESTION_COUNT = 3;
 
     const DB_CONNECTION_NAME = ['db', 'db_test','dblive'];
+    const EXAM_MODE_USER_TYPE = ['parent', 'student'];
+    const EXAM_MODES = ['practice', 'exam'];
 }

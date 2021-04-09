@@ -84,7 +84,7 @@ class PreferencesController extends ActiveController
             ->alias('e')
             ->select(['e.*', new Expression('CASE WHEN s.curriculum_id IS NULL THEN 0 ELSE 1 END as active')])
             ->leftJoin('school_curriculum s', "s.curriculum_id = e.id AND s.school_id = $school->id")
-            ->where(['OR', ['e.school_id' => null], ['e.school_id' => $school->id]]);
+            ->where(['OR', ['e.school_id' => null], ['e.school_id' => $school->id]])->andWhere(['e.is_exam'=>0]);
 
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL, $examType->count() . ' classes found');
     }
@@ -127,7 +127,7 @@ class PreferencesController extends ActiveController
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        if (!ExamType::find()->where(['id' => $form->curriculum_id])->andWhere(['OR', ['school_id' => null], ['school_id' => $school->id]])->exists()) {
+        if (!ExamType::find()->where(['id' => $form->curriculum_id,'is_exam'=>0])->andWhere(['OR', ['school_id' => null], ['school_id' => $school->id]])->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid curriculum!');
         }
         $curriculum = SchoolCurriculum::find()->where(['school_id' => $school->id]);

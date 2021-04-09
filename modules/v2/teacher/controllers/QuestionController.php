@@ -206,8 +206,6 @@ class QuestionController extends ActiveController
             $model = $model->andWhere(['topic_id' => $topic_id, 'is_custom_topic' => 0]);
         }
 
-
-
         if (!$model->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }

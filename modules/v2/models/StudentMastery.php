@@ -17,13 +17,14 @@ class StudentMastery extends Model
     public $term;
     public $class;
     public $subject;
+    public $mode;
     private $studentDifficultyValue;
 
     public function rules()
     {
         return [
             [['class', 'subject'], 'integer'],
-            ['term', 'string'],
+            [['term','mode'], 'string'],
             ['term', 'in', 'range' => ['first', 'second', 'third']]
         ];
     }

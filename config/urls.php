@@ -110,4 +110,8 @@ return [
     'GET v2/report/mastery-report' => 'v2/report/topic-performance',
 
     'GET v2/mastery/topics' => 'v2/mastery/topics', //
+
+
+    'GET v2/tour' => 'v2/tour', //
+    'PUT v2/tour' => 'v2/tour/update' //
 ];

@@ -19,6 +19,8 @@ use yii\behaviors\SluggableBehavior;
  * @property int|null $school_id
  * @property int $approved If approved is one, it means it should be available for every school on the platform
  * @property int|null $approved_by ID of the admin that approved it
+ * @property int|null $is_exam
+ * @property string $class
  * @property string $created_at
  * @property string|null $updated_at
  *

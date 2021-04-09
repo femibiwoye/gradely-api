@@ -53,6 +53,14 @@ return ['db' => [
             $event->sender->createCommand("SET time_zone='+01:00';")->execute();
         },
     ],
+
+    'sms' => [
+        'class' => 'yii\db\Connection',
+        'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . SMS_DATABASE,
+        'username' => USERNAME,
+        'password' => PASSWORD,
+        'charset' => 'utf8',
+    ],
     'cache' => [
         'class' => 'yii\caching\FileCache',
     ],
