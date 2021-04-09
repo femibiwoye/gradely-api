@@ -73,7 +73,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Class id must be an array');
         }
 
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
 
 
         if (ClassSubjects::find()->where(['class_id' => $class_id, 'school_id' => $school->id, 'subject_id' => $subject_id, 'status' => 1])->count() >= $class_id) {
@@ -109,7 +109,7 @@ class ClassController extends ActiveController
 
     public function actionGetClassSubjects($class_id)
     {
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $class = ClassSubjects::find()->where(['class_id' => $class_id, 'school_id' => $school->id, 'status' => 1])->all();
         return (new ApiResponse)->success($class, ApiResponse::SUCCESSFUL);
     }
@@ -120,7 +120,7 @@ class ClassController extends ActiveController
     public function actionCreateClassArm()
     {
 
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
 
         $form = new ClassForm(['scenario' => ClassForm::SCENERIO_CREATE_CLASS]);
         $form->attributes = Yii::$app->request->post();
@@ -144,7 +144,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $classModel = Classes::find()->where(['school_id' => $school->id, 'id' => $form->id]);
         if (!$classModel->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This is not a valid class!');
@@ -159,7 +159,7 @@ class ClassController extends ActiveController
 
     public function actionGetGlobalClassArms($class_id)
     {
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $classModel = Classes::find()->where(['school_id' => $school->id, 'global_class_id' => $class_id])->all();
 
         return (new ApiResponse)->success($classModel);
