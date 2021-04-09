@@ -59,7 +59,7 @@ class TeacherController extends ActiveController
     {
         $class_id = Yii::$app->request->post('class_id');
         $teacher_id = Yii::$app->request->post('teacher_id');
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id', 'teacher_id'));
         $model->addRule(['class_id', 'school_id', 'teacher_id'], 'required');
@@ -84,7 +84,7 @@ class TeacherController extends ActiveController
     public function actionRemoveTeacherSchool()
     {
         $teacher_id = Yii::$app->request->post('teacher_id');
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id'));
         $model->addRule(['school_id', 'teacher_id'], 'required');
@@ -116,7 +116,7 @@ class TeacherController extends ActiveController
         $teacher_id = Yii::$app->request->post('teacher_id');
         $class_id = Yii::$app->request->post('class_id');
         $subject_id = Yii::$app->request->post('subject_id');
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('school_id', 'teacher_id', 'class_id', 'subject_id'));
         $model->addRule(['school_id', 'teacher_id', 'class_id', 'subject_id'], 'required');
@@ -139,7 +139,7 @@ class TeacherController extends ActiveController
         $subjects = Yii::$app->request->post('subjects');
         $class_id = Yii::$app->request->post('class_id');
         $teacher_id = Yii::$app->request->post('teacher_id');
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id', 'subjects', 'teacher_id'));
         $model->addRule(['class_id', 'school_id', 'subjects', 'teacher_id'], 'required');
@@ -183,7 +183,7 @@ class TeacherController extends ActiveController
         $subjects = Yii::$app->request->post('subjects');
         $class_id = Yii::$app->request->post('class_id');
         $teacher_id = Yii::$app->request->post('teacher_id');
-        $school = Schools::findOne(['id' => SmsAuthentication::checkStatus()]);
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id', 'subjects', 'teacher_id'));
         $model->addRule(['class_id', 'school_id', 'subjects', 'teacher_id'], 'required');
