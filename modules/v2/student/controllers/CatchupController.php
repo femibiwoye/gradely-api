@@ -1335,10 +1335,13 @@ class CatchupController extends ActiveController
     public function actionGame($token)
     {
         $game = Games::find()->select([
+            'game_id',
             'slug',
             'game_title', 'provider', 'image', 'token',
+            new Expression('CONCAT("https://partners.9ijakids.com/index.php/play?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&userPassport=support@gradely.ng&action=play&gameID=",game_id) as game'),
+            new Expression('"https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png" as logo'),
             new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 1) as likes'),
-            new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes')
+            new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes'),
         ])
             ->where(['token' => $token])
             ->asArray()
@@ -1346,7 +1349,16 @@ class CatchupController extends ActiveController
         if (!$game) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid token');
         }
-        return (new ApiResponse)->success($game);
+
+
+        $myLike = GameLike::find()->where(['user_id' => Utility::getParentChildID(), 'game_id' => $game['game_id']])->one();
+        if (!empty($myLike)) {
+            $status = $myLike->status == 1 ? "like" : "dislike";
+        } else {
+            $status = null;
+        }
+        unset($game['game_id']);
+        return (new ApiResponse)->success(array_merge($game, ['mylike' => $status]));
     }
 
     public function actionGameLink($token)
