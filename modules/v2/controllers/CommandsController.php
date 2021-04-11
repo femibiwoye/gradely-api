@@ -9,6 +9,10 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
+use app\modules\v2\models\games\Games;
+use app\modules\v2\models\games\Group;
+use app\modules\v2\models\games\Level;
+use app\modules\v2\models\games\Subject;
 use app\modules\v2\models\GenerateString;
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\Recommendations;
@@ -210,6 +214,66 @@ class CommandsController extends Controller
 //    {
 //        return Pricing::SchoolAddStudentSubscribe([207]);
 //    }
+
+
+    public function actionGames()
+    {
+        $url = 'https://partners.9ijakids.com/index.php?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&action=catalog';
+        $curl = curl_init("$url");
+
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31'
+        );
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+            //'Authorization: Bearer ' . Yii::$app->params['wizItUpKey'],
+            'Content-Type: application/json',
+            "Cache-Control: no-cache",
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $models = json_decode($response);
+
+//        foreach ($models as $item) {
+//            if (Subject::find()->where(['name' => $item->Subject])->exists() || empty($item->Subject)) {
+//                continue;
+//            }
+//
+//            $model = new Subject();
+//            $model->name = $item->Subject;
+//            $model->description = $item->Description;
+//            $model->save();
+//        }
+
+        foreach ($models as $item) {
+            if (Games::find()->where(['game_title' => $item->GameTitle])->exists()) {
+                continue;
+            }
+
+            $model = new Games();
+            $model->category_name = $item->CategoryName;
+            $model->group = $item->Group;
+            $model->level = $item->Level;
+            $model->subject = $item->Subject;
+            $model->topic = $item->Topic;
+            $model->game_id = $item->GameID;
+            $model->topic = $item->Topic;
+            $model->game_title = $item->GameTitle;
+            $model->description = $item->GameDescription;
+            $model->image = $item->GameImage;
+            $model->provider = '9ijakids.com';
+            $token = GenerateString::widget(['length' => 30]);
+            if (Games::find()->where(['token' => $token])->exists()) {
+                $model->token = GenerateString::widget(['length' => 30]);
+            }
+            $model->token = $token;
+            $model->save();
+        }
+    }
 
 
 }
