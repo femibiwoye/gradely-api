@@ -162,7 +162,7 @@ class ExamController extends ActiveController
                 }
             }
             $dbtransaction->commit();
-            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question saved');
+            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Exam selected is configured');
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
             return $this->addError('students', $e->getMessage());
