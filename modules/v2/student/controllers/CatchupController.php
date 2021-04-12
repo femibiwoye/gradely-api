@@ -1338,8 +1338,8 @@ class CatchupController extends ActiveController
                 new Expression('"game" as filetype'),
 //                new Expression('CONCAT("https://partners.9ijakids.com/index.php/play?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&userPassport=support@gradely.ng&action=play&gameID=",game_id) as game'),
                 new Expression('"https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png" as logo'),
-                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 1) as likes'),
-                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes'),
+//                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 1) as likes'),
+//                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes'),
             ])
             ->asArray()
             ->where(['status' => 1])
