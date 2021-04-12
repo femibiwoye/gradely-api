@@ -1329,7 +1329,28 @@ class CatchupController extends ActiveController
             ],
         ]);
 
-        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
+
+         $games = Games::find()
+            ->select([
+                'game_id',
+                'slug',
+                'game_title', 'provider', 'image', 'token',
+                new Expression('"game" as filetype'),
+                new Expression('CONCAT("https://partners.9ijakids.com/index.php/play?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&userPassport=support@gradely.ng&action=play&gameID=",game_id) as game'),
+                new Expression('"https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png" as logo'),
+                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 1) as likes'),
+                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes'),
+            ])
+            ->asArray()
+            ->where(['status' => 1])
+            ->orderBy('rand()')
+            ->limit(2)->all();
+
+        $explore = array_merge($provider->getModels(), $games);
+
+        $explore = array_splice($explore, 0, $all == 0 ? 12 : 20);
+        shuffle($explore);
+        return (new ApiResponse)->success($explore, ApiResponse::SUCCESSFUL, null, $provider);
     }
 
     public function actionGame($token)
