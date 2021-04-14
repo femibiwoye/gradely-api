@@ -33,4 +33,6 @@ return [
 
     //Homework
     'GET v2/sms/class-homework' => 'v2/sms/homework/class-homework', //
+    'GET v2/sms/homework-review/<homework_id:\d+>' => 'v2/sms/homework/homework-review', //
+    'GET v2/sms/homework-performance/<homework_id:\d+>' => 'v2/sms/homework/homework-performance', //
 ];
