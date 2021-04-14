@@ -3,8 +3,6 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\models\ApiResponse;
-use app\modules\v2\models\TourUsers;
-use app\modules\v2\models\User;
 use app\modules\v2\models\UserTour;
 use Yii;
 use yii\rest\Controller;

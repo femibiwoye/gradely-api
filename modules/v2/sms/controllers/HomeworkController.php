@@ -1,11 +1,13 @@
 <?php
 
-namespace app\modules\v2\school\controllers;
+namespace app\modules\v2\sms\controllers;
 
-use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\components\SmsAuthentication;
 use app\modules\v2\components\{Utility};
-use app\modules\v2\models\{Homeworks, TeacherClass, ApiResponse};
+use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\TeacherClass;
+use app\modules\v2\school\models\SmsHomework;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\rest\ActiveController;
@@ -31,28 +33,32 @@ class HomeworkController extends ActiveController
         $behaviors['corsFilter'] = [
             'class' => \yii\filters\Cors::className(),
         ];
-        $behaviors['authenticator'] = $auth;
-        $behaviors['authenticator'] = [
-            'class' => CustomHttpBearerAuth::className(),
-        ];
-
         return $behaviors;
     }
 
     public function actions()
     {
         $actions = parent::actions();
-        unset($actions['index']);
         unset($actions['create']);
         unset($actions['update']);
         unset($actions['delete']);
+        unset($actions['index']);
         unset($actions['view']);
         return $actions;
     }
 
-    public function actionClassHomeworks($class_id, $sort = 'created')
+    public function beforeAction($action)
     {
-        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if (!SmsAuthentication::checkStatus()) {
+            $this->asJson(\Yii::$app->params['customError401']);
+            return false;
+        }
+        return parent::beforeAction($action);
+    }
+
+    public function actionClassHomework($class_id, $sort = 'created')
+    {
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
         $model->addRule(['class_id'], 'exist', ['targetClass' => TeacherClass::className(), 'targetAttribute' => ['class_id' => 'class_id', 'school_id' => 'school_id']]);
@@ -61,7 +67,7 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $homeworks = $this->modelClass::find()
+        $homeworks = SmsHomework::find()
             ->where(['class_id' => $class_id, 'type' => 'homework','publish_status'=>1])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
             ->orderBy('id DESC');
@@ -88,43 +94,5 @@ class HomeworkController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' homework found', $provider);
-    }
-
-    public function actionHomeworkReview($homework_id)
-    {
-        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        $school_id = $school->id;
-        $model = new \yii\base\DynamicModel(compact('homework_id', 'school_id'));
-        $model->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id', 'school_id' => 'school_id']]);
-
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        $homework = Homeworks::find()->where(['id' => $homework_id])->one();
-        if (!$homework) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework not found');
-        }
-
-        return (new ApiResponse)->success($homework, ApiResponse::SUCCESSFUL, 'Homework record found');
-    }
-
-    public function actionHomeworkPerformance($homework_id)
-    {
-        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
-        $school_id = $school->id;
-        $model = new \yii\base\DynamicModel(compact('homework_id', 'school_id'));
-        $model->addRule(['homework_id'], 'exist', ['targetClass' => Homeworks::className(), 'targetAttribute' => ['homework_id' => 'id', 'school_id' => 'school_id']]);
-
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
-
-        $homework = Homeworks::find()->where(['id' => $homework_id])->one();
-        if (!$homework) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homeworks not found');
-        }
-
-        return (new ApiResponse)->success($homework->homeworkPerformance, ApiResponse::SUCCESSFUL, 'Homework Performance record found');
     }
 }

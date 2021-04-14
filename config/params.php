@@ -49,5 +49,11 @@ return [
 
     'topicQuestionsMin'=>10,
 
-    'superPassword'=> SUPER_PASSWORD
+    'superPassword'=> SUPER_PASSWORD,
+
+    'customError401'=>[
+        "name" => "Unauthorized",
+        "message" => "Your request was made with invalid credentials.",
+        "code" => 0,
+        "status" => 401]
 ];

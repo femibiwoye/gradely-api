@@ -108,7 +108,7 @@ class StartDiagnosticForm extends Model
             $topic = SubjectTopics::find()
                 ->alias('s')
                 ->innerJoin('questions', 'questions.topic_id = s.id')
-                ->where(['s.term' => $term, 's.class_id' => $globalClass, 's.subject_id' => $subject])
+                ->where(['s.term' => $term, 's.class_id' => $globalClass, 's.subject_id' => $subject,'questions.teacher_id'=>null])
                 ->having('count(questions.id) >= '.Yii::$app->params['topicQuestionsMin'])
                 ->asArray()
                 ->orderBy(['s.week_number' => SORT_DESC])

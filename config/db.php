@@ -53,6 +53,24 @@ return ['db' => [
             $event->sender->createCommand("SET time_zone='+01:00';")->execute();
         },
     ],
+    'game' => [
+        'class' => 'yii\db\Connection',
+        'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . DATABASE_GAME,
+        'username' => NOTIFICATION_USERNAME,
+        'password' => NOTIFICATION_PASSWORD,
+        'charset' => 'utf8',
+        'on afterOpen' => function ($event) {
+            $event->sender->createCommand("SET time_zone='+01:00';")->execute();
+        },
+    ],
+
+    'sms' => [
+        'class' => 'yii\db\Connection',
+        'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . SMS_DATABASE,
+        'username' => USERNAME,
+        'password' => PASSWORD,
+        'charset' => 'utf8',
+    ],
     'cache' => [
         'class' => 'yii\caching\FileCache',
     ],

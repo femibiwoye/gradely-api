@@ -15,6 +15,9 @@ $learningUrl = require 'learning-url.php';
 $awsUrl = require 'aws-url.php';
 $commandUrl = require 'command-url.php';
 $testUrl = require 'test-url.php';
+$smsUrl = require 'sms-url.php';
+$examUrl = require 'exam-url.php';
+$gameUrl = require 'game-url.php';
 
 $config = [
     'id' => 'gradely-v2',
@@ -36,7 +39,7 @@ $config = [
             'format' => \yii\web\Response::FORMAT_JSON,
             'on beforeSend' => function ($event) {
                 $response = $event->sender;
-                if ($response->statusCode > 400 && is_array($response->data)) {
+                if ($response->statusCode > 401 && is_array($response->data)) {
                     //Save the error to db so that it will be logged
 
                     \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => $response->data['name'], 'raw' => json_encode($response->data)]);
@@ -85,12 +88,14 @@ $config = [
         'dblive' => $db['dblive'],
         'db_test' => $db['db_test'],
         'notification' => $db['main'],
+        'sms' => $db['sms'],
+        'game' => $db['game'],
 
         'urlManager' => [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl, $commandUrl, $testUrl),
+            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl, $commandUrl, $testUrl,$smsUrl,$examUrl,$gameUrl),
         ],
 
     ],

@@ -116,7 +116,6 @@ class StartQuizSummaryForm extends Model
     public function filterSpecificDifficulty($alreadyAttemptedQuestions, $topic, $questionCount, $difficulty)
     {
         $easyQuestions = ArrayHelper::toArray(Questions::find()->where(['topic_id' => $topic, 'difficulty' => $difficulty, 'teacher_id' => null])->andWhere(['NOT IN', 'id', $alreadyAttemptedQuestions])->limit($questionCount)->all());
-
         $easyCount = count($easyQuestions);
         if ($easyCount < $questionCount) {
             $remainingCount = $questionCount - $easyCount;

@@ -182,7 +182,7 @@ class StudentController extends ActiveController
             ->where(['school_id' => $school->id]);
 
         if (!$classes->exists()) {
-            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No parent available!');
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No student available!');
         }
 
         $models = StudentSchool::find()

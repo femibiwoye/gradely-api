@@ -41,6 +41,12 @@ class Module extends \yii\base\Module
             ],
             'learning' => [
                 'class' => 'app\modules\v2\learning\Module',
+            ],
+            'sms' => [
+                'class' => 'app\modules\v2\sms\Module',
+            ],
+            'exam' => [
+                'class' => 'app\modules\v2\exam\Module',
             ]
         ];
 
