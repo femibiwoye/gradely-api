@@ -55,5 +55,7 @@ return [
         "name" => "Unauthorized",
         "message" => "Your request was made with invalid credentials.",
         "code" => 0,
-        "status" => 401]
+        "status" => 401],
+
+    'appBase'=>APP_BASE_URL
 ];
