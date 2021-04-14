@@ -77,6 +77,20 @@ class AuthController extends ActiveController
         $user->updateAccessToken();
         if ($user->type == 'student') {
             $this->NewStudent(Yii::$app->request->post('class_code'), $user->id);
+
+            $parentID = Yii::$app->request->post('parent_id');
+            if(!empty($parentID)){
+                if(User::find()->where(['id'=>$parentID,'type'=>'parent'])->exists()) {
+                    $parent = new Parents();
+                    $parent->parent_id = $parentID;
+                    $parent->student_id = $user->id;
+                    $parent->status = 1;
+                    $parent->inviter = 'sms';
+                    $parent->role = Yii::$app->request->post('relationship');
+                    $parent->save();
+                }
+            }
+
         } elseif ($user->type == 'teacher') {
             $class_code = Yii::$app->request->post('class_code');
             $this->AddTeacher($class_code, $user->id);
@@ -85,7 +99,6 @@ class AuthController extends ActiveController
             $relationship = Yii::$app->request->post('relationship');
             $this->ConnectStudentCode($studentCode, $relationship, $user->id);
         }
-
 
         return (new ApiResponse)->success($user, null, 'You have successfully signed up as a ' . $type);
     }
