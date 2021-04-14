@@ -7,12 +7,11 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\exam\components\ExamUtility;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\exam\StudentExamConfig;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\UserModel;
-use app\modules\v2\sms\models\StudentExamConfig;
-use Symfony\Component\CssSelector\Node\SelectorNode;
 use Yii;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
@@ -74,7 +73,7 @@ class ExamController extends ActiveController
     public function actionList()
     {
         $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
-        $model = ExamType::find()->where(['is_exam' => 1, 'class' => $category])->select(['name', 'slug', 'title', 'description'])->all();
+        $model = ExamType::find()->where(['is_exam' => 1, 'class' => $category])->select(['id','name', 'slug', 'title', 'description'])->all();
         return (new ApiResponse)->success($model);
     }
 
@@ -163,7 +162,7 @@ class ExamController extends ActiveController
                 }
             }
             $dbtransaction->commit();
-            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question saved');
+            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Exam selected is configured');
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
             return $this->addError('students', $e->getMessage());

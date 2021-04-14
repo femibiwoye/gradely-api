@@ -6,6 +6,7 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SignupForm;
+use app\modules\v2\models\UserTypeAppPermission;
 use Yii;
 use app\modules\v2\models\{Login, User, ApiResponse, PasswordResetRequestForm, ResetPasswordForm};
 use yii\helpers\ArrayHelper;
@@ -157,6 +158,13 @@ class AuthController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED, 'Token is required');
 
         $token = Yii::$app->request->post('token');
+
+        if (Yii::$app->request->post('appname')) {
+            $user = User::find()->where(['token' => $token])->one();
+            return ['status'=>empty($user)?false:true,'can_access'=>UserTypeAppPermission::find()->where(['app_name'=>Yii::$app->request->post('appname'), 'status'=>1, 'user_type'=>$user->type])->exists()?true:false];
+        }
+
+
         return User::find()->where(['token' => $token])->exists() ? true : false;
     }
 

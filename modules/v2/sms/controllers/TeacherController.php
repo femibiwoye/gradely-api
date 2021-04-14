@@ -12,7 +12,10 @@ use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\SchoolTeachers;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
+use app\modules\v2\models\UserModel;
 use Yii;
+use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 
 
@@ -253,5 +256,46 @@ class TeacherController extends ActiveController
         $model->status = 1;
         return $model->save();
 
+    }
+
+    public function actionTeachers($class_id = null)
+    {
+
+        if ($class_id) {
+            $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+            $school_id = $school->id;
+            $model = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
+            $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id' => 'school_id']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+            }
+
+            $model = UserModel::find()
+                ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id AND teacher_class.status=1')
+                ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school_id . ' AND school_teachers.status=1')
+                ->where(['user.type' => 'teacher', 'teacher_class.class_id' => $class_id])
+                ->with(['teacherClassesList', 'teacherSubjectList'])->groupBy(['user.id']);
+        } else {
+            $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+            $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 1])->all();
+            $model = UserModel::find()->where(['type' => 'teacher', 'user.id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
+                ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school->id . ' AND school_teachers.status=1')
+                ->with(['teacherClassesList', 'teacherSubjectList'])
+                ->groupBy(['user.id']);
+        }
+
+        $teachers = new ActiveDataProvider([
+            'query' => $model,
+            'sort' => [
+                'attributes' => ['id', 'firstname', 'lastname', 'email'],
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                    'firstname' => SORT_ASC,
+                ]
+            ],
+            'pagination' => ['pageSize' => 20]
+        ]);
+
+        return (new ApiResponse)->success($teachers->getModels(), null, null, $teachers);
     }
 }

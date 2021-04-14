@@ -4,6 +4,7 @@ namespace app\modules\v2\models;
 
 
 use app\modules\v2\components\Adaptivity;
+use app\modules\v2\components\SmsAuthentication;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\db\Expression;
@@ -262,7 +263,7 @@ class UserModel extends User
      */
     public function getTeacherClasses()
     {
-        if (Yii::$app->user->identity->type == 'school')
+        if (isset(Yii::$app->user->identity->type) && Yii::$app->user->identity->type == 'school')
             return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->andWhere(['status' => 1, 'school_id' => Schools::findOne(['id' => Utility::getSchoolAccess()])->id]);
         else
             return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id']);
@@ -347,8 +348,12 @@ class UserModel extends User
             $return = $this->hasMany(TeacherClassSubjects::className(), ['teacher_id' => 'id'])->where(['status' => 1]);
 
 
-        if (Yii::$app->user->identity->type == 'school') {
+        if (isset(Yii::$app->user->identity->type) && Yii::$app->user->identity->type == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $school_id = $school->id;
+            $return = $return->andWhere(['school_id' => $school_id]);
+        }elseif (isset($_GET['school_key']) && isset($_GET['school_secret_key'])) {
+            $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
             $school_id = $school->id;
             $return = $return->andWhere(['school_id' => $school_id]);
         }

@@ -3,12 +3,13 @@
 namespace app\modules\v2\sms\controllers;
 
 use app\modules\v2\components\SmsAuthentication;
-use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
+use app\modules\v2\models\StudentSchool;
 use Yii;
+use yii\data\ActiveDataProvider;
 use yii\db\Expression;
 use yii\rest\ActiveController;
 
@@ -155,4 +156,74 @@ class SchoolController extends ActiveController
     }
 
 
+    public function actionStudents($student = null, $class = null, $license = null)
+    {
+
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $classes = StudentSchool::find()
+            ->where(['school_id' => $school->id]);
+
+        if (!$classes->exists()) {
+            return (new ApiResponse)->success(null, ApiResponse::NO_CONTENT, 'No student available!');
+        }
+
+        $models = StudentSchool::find()
+            ->alias('ss')
+            ->select([
+                'u.id',
+                'u.firstname student_firstname',
+                'u.lastname student_lastname',
+                'u.image student_image',
+                'u.lastname student_lastname',
+                'pu.id parent_id',
+                'pu.firstname parent_firstname',
+                'pu.lastname parent_lastname',
+                'pu.phone parent_phone',
+                'pu.email parent_email',
+                'p.role relationship',
+                'pu.image parent_image',
+                'ss.subscription_status',
+                'cl.class_name',
+            ])
+            ->innerJoin('user u', 'u.id = ss.student_id')
+            ->leftJoin('parents p', 'p.student_id = ss.student_id AND p.status = 1')
+            ->leftJoin('user pu', 'pu.id = p.parent_id AND p.status = 1')
+            ->leftJoin('classes cl', 'cl.id = ss.class_id')
+            ->where(['ss.school_id' => $school->id, 'ss.status' => 1, 'ss.is_active_class' => 1]);
+
+        if (!empty($class)) {
+            $models = $models->andWhere(['cl.id' => $class]);
+        }
+
+        if (!empty($student)) {
+            $models = $models->andFilterWhere(['OR', ['like', 'u.lastname', '%' . $student . '%', false],
+                ['like', 'u.firstname', '%' . $student . '%', false],
+                ['like', 'u.code', '%' . $student . '%', false]]);
+        }
+
+        if (!empty($license) && $license != 'all') {
+            if ($license == 'disable')
+                $license = null;
+            $models = $models->andWhere(['ss.subscription_status' => $license]);
+        }
+
+        $models = $models->groupBy('u.id')->asArray();
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $models,
+            'pagination' => [
+                'pageSize' => 20,
+                'validatePage' => false,
+            ],
+        ]);
+
+
+//        $return = [
+//            'students' => $dataProvider->getModels(),
+//            'license' => Utility::SchoolStudentSubscriptionDetails($school)
+//        ];
+
+        return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
+
+    }
 }

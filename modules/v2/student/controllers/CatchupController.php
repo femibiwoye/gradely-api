@@ -11,6 +11,9 @@ use app\modules\v2\models\Classes;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\FeedLike;
 use app\modules\v2\models\FileLog;
+use app\modules\v2\models\games\GameLike;
+use app\modules\v2\models\games\GameLog;
+use app\modules\v2\models\games\Games;
 use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeTopics;
@@ -760,11 +763,11 @@ class CatchupController extends ActiveController
                 ])
                 ->where(['subject_topics.class_id' => $class_id, 'subject_topics.subject_id' => $model['subject_id']])
                 ->andWhere(['NOT IN', 'subject_topics.id', $practicedTopicIds])
-                ->innerJoin('questions q','q.topic_id = subject_topics.id')
-                ->having('count(q.id) >= '.Yii::$app->params['topicQuestionsMin'])
+                ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
+                ->having('count(q.id) >= ' . Yii::$app->params['topicQuestionsMin'])
                 ->asArray()->one()) {
 
-                $topicModels = array_merge([$oneNewTopic],$topicModels);
+                $topicModels = array_merge([$oneNewTopic], $topicModels);
             }
 
 
@@ -1282,8 +1285,8 @@ class CatchupController extends ActiveController
             ->innerJoin('feed', "feed.id = pm.practice_id AND pm.type = 'feed'")
             ->where([
                 'feed.global_class_id' => $classID,
-                'pm.filetype' => ['video','document'],
-                'pm.user_id'=>0 // I added this to exclude real user upload.
+                'pm.filetype' => ['video', 'document'],
+                'pm.user_id' => 0 // I added this to exclude real user upload.
             ]);
 
         $query2 = (new \yii\db\Query())
@@ -1326,6 +1329,107 @@ class CatchupController extends ActiveController
             ],
         ]);
 
+//
+//         $games = Games::find()
+//            ->select(
+//
+//            [
+//            'game_id as id',
+//                    new Expression('game_title as title'),
+//                    new Expression("'game' as extension"),
+//                    new Expression('"game" as filetype'),
+//                    new Expression('null as filesize'),
+//                    new Expression('null as url'),
+//                    new Expression("0 as downloadable"),
+//                    new Expression('image as thumbnail'),
+//                    new Expression('token'),
+//                    new Expression("provider AS creator_name"),
+//                    new Expression("'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png' as creator_image"),
+//                    new Expression("null as creator_id"),
+//                    "created_at"
+//                ])
+//
+//            ->asArray()
+//            ->where(['status' => 1])
+//            ->orderBy('rand()')
+//            ->limit(2)->all();
+//
+//        $explore = array_merge($provider->getModels(), $games);
+//
+//        $explore = array_splice($explore, 0, $all == 0 ? 12 : 20);
+//        shuffle($explore);
+
+//        return (new ApiResponse)->success($explore, ApiResponse::SUCCESSFUL, null, $provider);
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
+    }
+
+    public function actionGame($token)
+    {
+        $game = Games::find()->select([
+            'game_id',
+            'slug',
+            'game_title', 'provider', 'image', 'token',
+            new Expression('CONCAT("https://partners.9ijakids.com/index.php/play?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&userPassport=support@gradely.ng&action=play&gameID=",game_id) as game'),
+            new Expression('"https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png" as logo'),
+            new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 1) as likes'),
+            new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes'),
+        ])
+            ->where(['token' => $token])
+            ->asArray()
+            ->one();
+        if (!$game) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid token');
+        }
+
+
+        $myLike = GameLike::find()->where(['user_id' => Utility::getParentChildID(), 'game_id' => $game['game_id']])->one();
+        if (!empty($myLike)) {
+            $status = $myLike->status == 1 ? "like" : "dislike";
+        } else {
+            $status = null;
+        }
+        unset($game['game_id']);
+        return (new ApiResponse)->success(array_merge($game, ['mylike' => $status]));
+    }
+
+    public function actionGameLink($token)
+    {
+        if (!$game = Games::findOne(['token' => $token])) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid token');
+        }
+
+        $model = new GameLog();
+        $model->game_id = $game->game_id;
+        $model->user_id = Utility::getParentChildID();
+        $model->save();
+
+        $link = "https://partners.9ijakids.com/index.php/play?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&userPassport=support@gradely.ng&action=play&gameID=" . $game->game_id;
+        return (new ApiResponse)->success($link);
+    }
+
+    public function actionGameLike($token, $like)
+    {
+        if (!$game = Games::findOne(['token' => $token])) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid token');
+        }
+        $studentID = Utility::getParentChildID();
+        if (!GameLike::findOne(['game_id' => $game->game_id, 'user_id' => $studentID])) {
+            $model = new GameLike();
+            $model->user_id = $studentID;
+            $model->game_id = $game->game_id;
+            $model->status = $like;
+            if ($model->save()) {
+                return (new ApiResponse)->success(true);
+            }
+        } else {
+            $model = GameLike::findOne(['game_id' => $game->game_id, 'user_id' => $studentID]);
+            if ($model->status != $like) {
+                $model->status = $like;
+                if ($model->save()) {
+                    return (new ApiResponse)->success(true);
+                }
+            }
+            return (new ApiResponse)->success(false);
+        }
     }
 }
