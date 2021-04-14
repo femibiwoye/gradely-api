@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     //Tutor
     'POST v2/sms/class/map-class-subject' => 'v2/sms/class/map-class-subject',
     'GET v2/sms/class/get-class-subjects' => 'v2/sms/class/get-class-subjects',
@@ -9,7 +8,6 @@ return [
     'POST v2/sms/class/create-class-arm' => 'v2/sms/class/create-class-arm',
     'PUT v2/sms/class/update-class-arm' => 'v2/sms/class/update-class-arm',
     'GET v2/sms/class/get-global-class-arms' => 'v2/sms/class/get-global-class-arms',
-
 
     'POST v2/sms/teacher/assign-subject-to-teacher' => 'v2/sms/teacher/assign-subject-to-teacher', //
     'POST v2/sms/teacher/assign-subjects-to-teacher' => 'v2/sms/teacher/assign-subjects-to-teacher', //
@@ -19,6 +17,9 @@ return [
 
 
     'POST v2/sms/signup/<type:[a-z]+>' => 'v2/sms/auth/signup', //
+    'POST v2/sms/login/<id:\d+>' => 'v2/sms/auth/login', //
+
+    'POST v2/sms/validate' => 'v2/sms/validate/validate', //
 
 
     'GET v2/sms/school' => 'v2/sms/school/school', //
