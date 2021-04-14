@@ -57,6 +57,13 @@ class AuthController extends ActiveController
         return parent::beforeAction($action);
     }
 
+    public function actionLogin($id)
+    {
+        if ($user = User::find()->where(['id' => $id])->andWhere(['<>', 'status', 0])->one()) {
+            return (new ApiResponse)->success(Yii::$app->params['appBase'] .'sms/login/'. $user->updateAccessToken());
+        }
+        return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'User does not exist or cannot be accessed by your school');
+    }
 
     public function actionSignup($type)
     {
@@ -79,8 +86,8 @@ class AuthController extends ActiveController
             $this->NewStudent(Yii::$app->request->post('class_code'), $user->id);
 
             $parentID = Yii::$app->request->post('parent_id');
-            if(!empty($parentID)){
-                if(User::find()->where(['id'=>$parentID,'type'=>'parent'])->exists()) {
+            if (!empty($parentID)) {
+                if (User::find()->where(['id' => $parentID, 'type' => 'parent'])->exists()) {
                     $parent = new Parents();
                     $parent->parent_id = $parentID;
                     $parent->student_id = $user->id;
@@ -169,7 +176,6 @@ class AuthController extends ActiveController
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher added successfully');
     }
 
-
     public function ConnectStudentCode($studentCode, $relationship, $parentID)
     {
 
@@ -234,7 +240,6 @@ class AuthController extends ActiveController
         }
 
         return (new ApiResponse)->success($user, ApiResponse::SUCCESSFUL, 'Parent Child saved');
-
     }
 
 
