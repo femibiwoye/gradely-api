@@ -1331,16 +1331,37 @@ class CatchupController extends ActiveController
 
 
          $games = Games::find()
-            ->select([
-                'game_id',
-                'slug',
-                'game_title', 'provider', 'image', 'token',
-                new Expression('"game" as filetype'),
-//                new Expression('CONCAT("https://partners.9ijakids.com/index.php/play?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&userPassport=support@gradely.ng&action=play&gameID=",game_id) as game'),
-                new Expression('"https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png" as logo'),
-//                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 1) as likes'),
-//                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes'),
-            ])
+            ->select(
+//                [
+//                'game_id',
+//                'slug',
+//                'game_title', 'provider', 'image', 'token',
+//                new Expression('"game" as filetype'),
+////                new Expression('CONCAT("https://partners.9ijakids.com/index.php/play?partnerId=247807&accessToken=5f63d1c5-3f00-4fa5-b096-9ffd&userPassport=support@gradely.ng&action=play&gameID=",game_id) as game'),
+//                new Expression('"https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png" as logo'),
+////                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 1) as likes'),
+////                new Expression('(SELECT count(*) FROM game_like gl where gl.game_id = games.game_id AND gl.status = 0) as dislikes'),
+//
+//
+//
+//            ]
+
+            [
+            'game_id as id',
+                    new Expression('game_title as title'),
+                    new Expression("'game' as extension"),
+                    new Expression('"game" as filetype'),
+                    new Expression('null as filesize'),
+                    new Expression('null as url'),
+                    new Expression("0 as downloadable"),
+                    new Expression('image as thumbnail'),
+                    new Expression('token'),
+                    new Expression("provider AS creator_name"),
+                    new Expression("'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png' as creator_image"),
+                    new Expression("null as creator_id"),
+                    "created_at"
+                ])
+
             ->asArray()
             ->where(['status' => 1])
             ->orderBy('rand()')

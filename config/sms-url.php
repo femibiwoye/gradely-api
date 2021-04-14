@@ -25,4 +25,12 @@ return [
     'GET v2/sms/school/subjects' => 'v2/sms/school/subjects', //
     'GET v2/sms/school/classes' => 'v2/sms/school/classes', //
     'GET v2/sms/school/class-subjects' => 'v2/sms/school/class-subjects', //
+
+
+    'GET v2/sms/teachers' => 'v2/sms/teacher/teachers', //
+    'GET v2/sms/students' => 'v2/sms/school/students', //
+
+
+    //Homework
+    'GET v2/sms/class-homework' => 'v2/sms/homework/class-homework', //
 ];
