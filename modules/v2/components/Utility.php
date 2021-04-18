@@ -568,6 +568,32 @@ class Utility extends ActiveRecord
         return $class_id;
     }
 
+    /**
+     * This is used to validate student relationship and check class.
+     * Parent -> Student
+     * School -> Class -> Student
+     * Teacher -> Class -> Student
+     * Student
+     *
+     * @param null $child_id
+     * @param int $globalIDStatus
+     * @return int|mixed|string|null
+     */
+    public static function StudentChildClass($child_id = null, $globalIDStatus = 1)
+    {
+        $type = Yii::$app->user->identity->type;
+        if ($type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
+            $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
+        } elseif($type == 'teacher' && StudentSchool::find()->where(['student_id'=>$child_id,'school_id'=>Utility::getTeacherSchoolID(Yii::$app->user->id)])->exists()){
+            $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
+        }elseif($type == 'school' && StudentSchool::find()->where(['student_id'=>$child_id,'school_id'=>Utility::getSchoolAccess(Yii::$app->user->id)])->exists()){
+            $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
+        } else
+            $class_id = Utility::getStudentClass($globalIDStatus);
+
+        return $class_id;
+    }
+
     public static function GetNextPreviousTerm($term)
     {
         switch ($term) {
