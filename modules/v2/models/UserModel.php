@@ -139,6 +139,7 @@ class UserModel extends User
             $fields['assessmentTopicsPerformance'] = 'assessmentTopicsPerformance';
             $fields['recommendations'] = 'recommendation';
             $fields['quizSummary'] = 'homeworkQuizSummary';
+            $fields['quizSummaryScore'] = 'studentScore';
             $fields['proctor'] = 'proctor';
         }
 
@@ -368,20 +369,23 @@ class UserModel extends User
 
     public function getAssessmentTopicsPerformance()
     {
+        $homeworkID = Yii::$app->request->get('id');
         return $this->hasMany(QuizSummaryDetails::className(), ['student_id' => 'id'])
             ->alias('qsd')
-            ->select([new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(hq.id))*100) as score'), 'qsd.topic_id',
+            ->select([new Expression('round((SUM(case when qsd.selected = qsd.answer AND hq.id = '.$homeworkID.' then 1 else 0 end)/COUNT(hq.id))*100) as score'),
+                'q.topic_id',
                 new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = ' . Yii::$app->user->id . ' AND status = "pending" AND subject_id = qus.subject_id group by student_id) then 1 else 0 end) as is_recommended'),
-                'SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct',
+                'SUM(case when qsd.selected = q.answer AND qsd.homework_id=hq.homework_id then 1 else 0 end) as correct',
                 'COUNT(hq.id) as questionCount',
                 'st.topic as topic',
-                'qsd.homework_id as homework_id',
+                'hq.homework_id as homework_id',
             ])
             ->innerJoin('homework_questions hq', 'hq.homework_id=qsd.homework_id')
             ->innerJoin('quiz_summary qus', "qus.id = qsd.quiz_id AND qus.type = 'homework'")
-            ->innerJoin('subject_topics st', 'st.id=qsd.topic_id')
-            ->where(['qsd.homework_id' => Yii::$app->request->get('id')])
-            ->groupBy(['qsd.topic_id'])
+            ->innerJoin('questions q', 'q.id=hq.question_id')
+            ->innerJoin('subject_topics st', 'st.id=q.topic_id')
+            ->where(['hq.homework_id'=>$homeworkID])
+            ->groupBy(['q.topic_id'])
             ->orderBy('score ASC')
             ->asArray();
     }
@@ -496,6 +500,10 @@ class UserModel extends User
             ->andWhere(['homework_id' => Yii::$app->request->get('id'), 'submit' => 1]);
     }
 
+    public function getStudentScore()
+    {
+        return ArrayHelper::getValue($this->homeworkQuizSummary,'score',null);
+    }
 
     public function getProctor()
     {

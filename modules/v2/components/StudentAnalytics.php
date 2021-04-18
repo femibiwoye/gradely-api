@@ -72,13 +72,11 @@ class StudentAnalytics extends Model
 //            if (!empty($type))
 //                $model = $model->andWhere(['quiz_summary.type' => $type]);
 
-
             $model = $model->andWhere(['AND',
                 !empty($subject) ? ['quiz_summary.subject_id' => $subject] : [],
                 !empty($term) ? ['term' => $term] : [],
                 !empty($studentId) ? ['quiz_summary.student_id' => $studentId] : []
             ]);
-
 
             if ($state) {
                 $myState = UserProfile::findOne(['user_id' => $studentId]);
@@ -95,7 +93,7 @@ class StudentAnalytics extends Model
         $homeworkModel = $model->innerJoin('homeworks', "homeworks.id = quiz_summary.homework_id")// AND homeworks.type = 'homework'
         //->leftJoin('classes', 'classes.id = homeworks.class_id')
         //->andWhere(['classes.global_class_id' => $studentClassID])
-        ->andWhere(['quiz_summary.class_id' => [$studentClassID,Utility::ParentStudentChildClass($studentId, 1), Utility::ParentStudentChildClass($studentId, 0)]])
+        ->andWhere(['quiz_summary.class_id' => [$studentClassID,Utility::StudentChildClass($studentId, 1), Utility::StudentChildClass($studentId, 0)]])
             ->andWhere(['between', 'quiz_summary.submit_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
 
@@ -116,11 +114,14 @@ class StudentAnalytics extends Model
                 'quiz_summary.student_id'
             ])
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = quiz_summary.student_id")
-            ->andWhere(['submit' => 1]);
+//            ->andWhere(['submit' => 1])
+        ;
 
         if(!empty($studentId)) {
             $finalHomework = $homeworkModel->andWhere(['qsd.student_id' => $studentId]);
         }
+
+
 
         $finalHomework = $finalHomework->innerJoinWith(['homeworkQuestions'], false)
             ->groupBy('quiz_summary.student_id')
@@ -138,7 +139,6 @@ class StudentAnalytics extends Model
 //            ->andWhere(['submit' => 1])
 //            ->asArray()
 //            ->all();
-
 
         foreach ($finalHomework as $key => $homework) {
             if (!empty($homework['correct'])) {
@@ -166,8 +166,8 @@ class StudentAnalytics extends Model
             $classStudentsAggregate = $this->StudentsClassAggregateScores(null, $subject, $term, $type, $state, $classID);
 
             if (!empty($classStudentsAggregate)) {
-
                 $studentAggregate = $this->StudentsClassAggregateScores($student->id, $subject, $term, $type, $state, $classID);
+
 
                 $modelAggregate = $classStudentsAggregate;
                 $classStudentsAggregate = ArrayHelper::getColumn($classStudentsAggregate, 'correctPercentage');
