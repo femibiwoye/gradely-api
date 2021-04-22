@@ -12,7 +12,7 @@ class GetSpecificData extends Model
     {
         $currDate = date('m-d', strtotime($currentDate));
         $y = date('Y', strtotime($currentDate));
-        $term = null;
+        $term = 'First';
         if(date('m-d', strtotime(Yii::$app->params['first_term_start'])) <= $currDate && date('m-d', strtotime(Yii::$app->params['first_term_end'])) >= $currDate) {
             $term = 'First';
         }

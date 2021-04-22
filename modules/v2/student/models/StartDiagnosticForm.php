@@ -41,8 +41,8 @@ class StartDiagnosticForm extends Model
         if (!Subjects::find()->where(['id' => $this->subject_id, 'diagnostic' => 1])->exists()) {
             return $this->addError('subject_id', 'Subject not available for diagnostic');
         }
-
-        if (QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'type' => 'diagnostic', 'submit' => 1,'subject_id'=>$this->subject_id])->exists()) {
+        $mode = Utility::getChildMode($this->subject_id);
+        if (QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'type' => 'diagnostic', 'submit' => 1,'subject_id'=>$this->subject_id,'mode'=>$mode])->exists()) {
             return $this->addError('subject_id', 'Diagnostic already taken');
         }
 
@@ -53,8 +53,6 @@ class StartDiagnosticForm extends Model
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-
-
             $globalClass = Utility::getStudentClass(SharedConstant::VALUE_ONE);
             if (empty($globalClass)) {
                 return false;

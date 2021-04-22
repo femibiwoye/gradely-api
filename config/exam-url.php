@@ -12,4 +12,6 @@ return [
     'POST v2/exam/configure-exam' => 'v2/exam/exam/configure-exam',
 
     'GET v2/exam/student-exam-topics' => 'v2/exam/exam/student-exam-topics',
+    'GET v2/exam/exams' => 'v2/exam/exam/exams',
+    'GET v2/exam/subjects' => 'v2/exam/exam/subjects',
 ];

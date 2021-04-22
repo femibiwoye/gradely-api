@@ -33,6 +33,7 @@ use yii\helpers\ArrayHelper;
  * @property string|null $tag Tag is used to identify homework sub category. Maybe it is an homework, quiz or exam
  * @property int $status
  * @property string $created_at
+ * @property string $mode
  * @property string|null $reference_type
  * @property int|null $reference_id
  * @property int|null $is_custom_topic
@@ -78,7 +79,7 @@ class Homeworks extends \yii\db\ActiveRecord
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id', 'selected_student','is_custom_topic','is_proctor'], 'integer'],
-            [['description', 'access_status', 'type', 'tag'], 'string'],
+            [['description', 'access_status', 'type', 'tag','mode'], 'string'],
             [['open_date', 'close_date', 'created_at','publish_at','is_custom_topic'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
             [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],

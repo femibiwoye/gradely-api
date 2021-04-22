@@ -520,14 +520,41 @@ class CatchupController extends ActiveController
         }
 
         $studentID = Utility::getParentChildID();
-        $model = Subjects::find()
-            ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.submit = 1 AND student_id = $studentID")
-            ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
-            ->andWhere(['is', 'qs.subject_id', null])
-            ->groupBy('id')
-            ->all();
+        $mode = Utility::getChildMode($studentID);
+        if ($mode == SharedConstant::EXAM_MODES[1]) {
+            $subjects = [];
+            foreach (Utility::StudentExamSubjectID($studentID, 'exam_id') as $exam) {
 
-        $attemptStatus = QuizSummary::find()->where(['student_id' => $studentID, 'submit' => 1])->exists() ? true : false;
+                $model = Subjects::find()
+                    ->select([
+                        'subjects.*',
+                        new Expression('"exam" AS mode'),
+                        'et.name AS exam_name'
+                        //new Expression('CONCAT("https://gradly.s3.eu-west-2.amazonaws.com/exams/",exam_id) as mode'),
+                    ])
+                    ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'exam' AND qs.submit = 1 AND student_id = $studentID")
+                    ->leftJoin('exam_type et', "et.id = $exam")
+                    ->where(['status' => 1, 'subjects.id' => Utility::StudentExamSubjectID($studentID), 'subjects.school_id' => null])
+                    ->andWhere(['is', 'qs.subject_id', null])
+                    ->groupBy('subjects.id')
+                    ->asArray()
+                    ->all();
+                $subjects = array_merge($subjects, $model);
+
+            }
+            $model = $subjects;
+        } else {
+            $model = Subjects::find()
+                ->select(['subjects.*', new Expression('"practice" AS mode')])
+                ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'practice' AND qs.submit = 1 AND student_id = $studentID")
+                ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
+                ->andWhere(['is', 'qs.subject_id', null])
+                ->groupBy('id')
+                ->asArray()
+                ->all();
+        }
+
+        $attemptStatus = QuizSummary::find()->where(['student_id' => $studentID, 'submit' => 1, 'mode' => $mode])->exists() ? true : false;
         $attemptStatus = ['takenPractice' => $attemptStatus];
 
         if (!$model) {
@@ -548,7 +575,9 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Permission not allowed');
         }
 
+
         $student_id = Utility::getParentChildID();
+        $mode = Utility::getChildMode($student_id);
         $models = QuizSummary::find()
             ->alias('qs')
             ->select([
@@ -567,7 +596,7 @@ class CatchupController extends ActiveController
             ->innerJoin('homework_questions hq', 'hq.homework_id = qs.homework_id')
             ->where([
                 'qs.student_id' => $student_id,
-                'submit' => SharedConstant::VALUE_ONE])
+                'submit' => SharedConstant::VALUE_ONE, 'mode' => $mode])
             ->andWhere(['<>', 'type', SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->orderBy(['submit_at' => SORT_DESC])
             ->groupBy(['qs.id'])
@@ -688,12 +717,13 @@ class CatchupController extends ActiveController
         }
 
         $class_id = Utility::ParentStudentChildClass($child);
-        $student_id = $studentID = Utility::getParentChildID();
-
+        $student_id = Utility::getParentChildID();
+        $mode = Utility::getChildMode($student_id);
         $models = QuizSummary::find()
             ->select('subject_id')
             ->where(['submit' => 1,
-                'quiz_summary.student_id' => $student_id
+                'quiz_summary.student_id' => $student_id,
+                'mode' => $mode
             ])
             ->andWhere(['AND',
                 //['<>', 'type', 'recommendation'],
@@ -711,7 +741,7 @@ class CatchupController extends ActiveController
         foreach ($models as $model) {
             $topics = QuizSummaryDetails::find()
                 ->select('quiz_summary_details.topic_id')
-                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id")// AND quiz_summary.type != 'recommendation'
+                ->innerJoin('quiz_summary', "quiz_summary.id = quiz_summary_details.quiz_id AND quiz_summary.mode = '$mode'")// AND quiz_summary.type != 'recommendation'
                 ->innerJoin('subject_topics st', "st.id = quiz_summary_details.topic_id")
                 ->where([
                     'quiz_summary.subject_id' => $model['subject_id'],
@@ -742,6 +772,8 @@ class CatchupController extends ActiveController
                 ])
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
+                ->innerJoin('quiz_summary', "quiz_summary.id = qsd.quiz_id AND quiz_summary.mode = '$mode'")
+
                 ->where(['qsd.topic_id' => $practicedTopicIds,
                     'qsd.student_id' => $student_id,
                     'st.subject_id' => $model['subject_id']])
@@ -985,6 +1017,14 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
         }
 
+        $mode = Utility::getChildMode(Yii::$app->user->id);
+        if($mode) {
+            if(!Yii::$app->request->has('exam_id')){
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
+            }
+            $model->exam_id = Yii::$app->request->post('exam_id');
+        }
+
         if (!$homework_model = $model->initializePractice()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice Initialization failed');
         }
@@ -1010,11 +1050,20 @@ class CatchupController extends ActiveController
 
         $topicIDs = ArrayHelper::getColumn($diagnosticTopics, 'id');
 
+        $mode = Utility::getChildMode(Yii::$app->user->id);
         // Initialize the practice
         $startPractice = new StartPracticeForm();
         $startPractice->type = 'mix';
         $startPractice->topic_ids = $topicIDs;
         $startPractice->practice_type = 'diagnostic';
+        if($mode) {
+            if(!Yii::$app->request->has('exam_id')){
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
+            }
+            $startPractice->exam_id = Yii::$app->request->post('exam_id');
+        }
+
+
         if (!$homework_model = $startPractice->initializePractice()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Diagnostic Topics Initialization failed');
         }
@@ -1330,11 +1379,11 @@ class CatchupController extends ActiveController
         ]);
 
 
-         $games = Games::find()
+        $games = Games::find()
             ->select(
 
-            [
-            'game_id as id',
+                [
+                    'game_id as id',
                     new Expression('game_title as title'),
                     new Expression("'game' as extension"),
                     new Expression('"game" as filetype'),
@@ -1348,7 +1397,6 @@ class CatchupController extends ActiveController
                     new Expression("null as creator_id"),
                     "created_at"
                 ])
-
             ->asArray()
             ->where(['status' => 1])
             ->orderBy('rand()')

@@ -2,7 +2,9 @@
 
 namespace app\modules\v2\exam\components;
 
+use app\modules\v2\models\exam\StudentExamConfig;
 use yii\db\ActiveRecord;
+use yii\helpers\ArrayHelper;
 
 class ExamUtility extends ActiveRecord
 {
