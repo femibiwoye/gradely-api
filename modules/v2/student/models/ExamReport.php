@@ -11,6 +11,7 @@ use app\modules\v2\models\QuizSummary;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\SubjectTopics;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 
 class ExamReport extends QuizSummary
@@ -111,10 +112,25 @@ class ExamReport extends QuizSummary
 
     public function getTopics()
     {
+        //$topics = PracticeTopics::find()->select(['topic_id'])->where(['practice_id'=>$this->homework_id])->all();
+        //ArrayHelper::getColumn($topics, 'topic_id')
         return SubjectTopics::find()
             ->alias('st')
+            ->select([
+                'st.id',
+                'topic',
+                'slug',
+                new Expression('COUNT(case when qsd.topic_id = st.id then 1 else 0 end) as questionCount'),
+                new Expression('SUM(case when qsd.selected = qsd.answer AND qsd.topic_id = st.id then 1 else 0 end) as questionCorrect'),
+                new Expression('round((SUM(case when qsd.selected = qsd.answer AND qsd.topic_id = st.id then 1 else 0 end)/COUNT(case when qsd.topic_id = st.id then 1 else 0 end))*100) as score')
+            ])
             ->innerJoin('practice_topics pt', 'pt.topic_id = st.id')
+            ->innerJoin('homework_questions hq', 'hq.homework_id = pt.practice_id')
+            ->innerJoin('questions q', 'q.id = hq.question_id AND hq.homework_id = ' . $this->homework_id)
+            ->leftJoin('quiz_summary_details qsd', 'qsd.homework_id = pt.practice_id')
             ->where(['pt.practice_id' => $this->homework_id])
+            ->groupBy('st.id')
+            ->asArray()
             ->all();
     }
 
@@ -146,6 +162,6 @@ class ExamReport extends QuizSummary
     {
         $model = ArrayHelper::getColumn(QuizSummaryDetails::find()->select(['time_spent'])->where(['quiz_id' => $this->id])->all(), 'time_spent');
 
-        return array_sum($model)/count($model);
+        return array_sum($model) / count($model);
     }
 }
