@@ -1381,7 +1381,6 @@ class CatchupController extends ActiveController
 
         $games = Games::find()
             ->select(
-
                 [
                     'game_id as id',
                     new Expression('game_title as title'),
@@ -1404,8 +1403,8 @@ class CatchupController extends ActiveController
 
         $explore = array_merge($provider->getModels(), $games);
 
-        $explore = array_splice($explore, 0, $all == 0 ? 12 : 20);
         shuffle($explore);
+        $explore = array_splice($explore, 0, $all == 0 ? 12 : 20);
 
         return (new ApiResponse)->success($explore, ApiResponse::SUCCESSFUL, null, $provider);
         //return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
