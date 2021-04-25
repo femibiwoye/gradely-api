@@ -97,6 +97,10 @@ class ExamController extends ActiveController
      */
     public function actionUpdateMode()
     {
+        if (!in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
+        }
+
         $mode = Yii::$app->request->post('mode');
         $model = new \yii\base\DynamicModel(compact('mode'));
         $model->addRule(['mode'], 'required');
@@ -105,7 +109,8 @@ class ExamController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $studentID = Utility::getParentChildID();
+//        $studentID = Utility::getParentChildID();
+        $studentID = Yii::$app->user->id;
 
         if (UserModel::updateAll(['mode' => $mode], ['id' => $studentID])) {
             return (new ApiResponse)->success(true, null, 'Mode updated');
@@ -117,6 +122,10 @@ class ExamController extends ActiveController
 
     public function actionConfigureExam()
     {
+        if (Yii::$app->user->identity->type != 'student') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
+        }
+
         $exam = Yii::$app->request->post('exam');
         $subject = Yii::$app->request->post('subject');
         $model = new \yii\base\DynamicModel(compact('exam', 'subject'));

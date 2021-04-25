@@ -188,7 +188,10 @@ class Utility extends ActiveRecord
 
     public static function getChildMode($studentID)
     {
-        return ArrayHelper::getValue(User::findOne(['id'=>$studentID]),'mode','practice');
+        if (Yii::$app->user->identity->type == 'parent') {
+            return ArrayHelper::getValue(User::findOne(['id' => Yii::$app->user->id]), 'mode', 'practice');
+        }
+        return ArrayHelper::getValue(User::findOne(['id' => $studentID]), 'mode', 'practice');
     }
 
     /**
@@ -590,9 +593,9 @@ class Utility extends ActiveRecord
         $type = Yii::$app->user->identity->type;
         if ($type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
-        } elseif($type == 'teacher' && StudentSchool::find()->where(['student_id'=>$child_id,'school_id'=>Utility::getTeacherSchoolID(Yii::$app->user->id)])->exists()){
+        } elseif ($type == 'teacher' && StudentSchool::find()->where(['student_id' => $child_id, 'school_id' => Utility::getTeacherSchoolID(Yii::$app->user->id)])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
-        }elseif($type == 'school' && StudentSchool::find()->where(['student_id'=>$child_id,'school_id'=>Utility::getSchoolAccess(Yii::$app->user->id)])->exists()){
+        } elseif ($type == 'school' && StudentSchool::find()->where(['student_id' => $child_id, 'school_id' => Utility::getSchoolAccess(Yii::$app->user->id)])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
         } else
             $class_id = Utility::getStudentClass($globalIDStatus);
@@ -755,59 +758,36 @@ class Utility extends ActiveRecord
      * @param $studentID
      * @return array
      */
-    public static function StudentExamSubjectID($studentID,$field='subject_id')
+    public static function StudentExamSubjectID($studentID, $field = 'subject_id')
     {
-        return ArrayHelper::getColumn(StudentExamConfig::find()->where(['status' => 1, 'student_id' => $studentID])->select([$field])->groupBy($field)->all(),$field);
+        return ArrayHelper::getColumn(StudentExamConfig::find()->where(['status' => 1, 'student_id' => $studentID])->select([$field])->groupBy($field)->all(), $field);
     }
 
     public static function GradeIndicator($grad)
     {
-        if ($grad < 65)
-        {
+        if ($grad < 65) {
             $grad = 'F';
-        }
-        else if ($grad<= 66 && $grad >=65)
-        {
+        } else if ($grad <= 66 && $grad >= 65) {
             $grad = 'D';
-        }
-        else if ($grad <= 69 && $grad >=67)
-        {
+        } else if ($grad <= 69 && $grad >= 67) {
             $grad = 'D+';
-        }
-        else if ($grad <= 73 && $grad >=70)
-        {
+        } else if ($grad <= 73 && $grad >= 70) {
             $grad = 'C-';
-        }
-        else if ($grad <= 76 && $grad >=74)
-        {
+        } else if ($grad <= 76 && $grad >= 74) {
             $grad = 'C';
-        }
-        else if ($grad<= 79 && $grad >=77 )
-        {
+        } else if ($grad <= 79 && $grad >= 77) {
             $grad = 'C+';
-        }
-        else if ($grad <= 83 && $grad >=80)
-        {
+        } else if ($grad <= 83 && $grad >= 80) {
             $grad = 'B-';
-        }
-        else if ($grad <= 86 && $grad >=84)
-        {
+        } else if ($grad <= 86 && $grad >= 84) {
             $grad = 'B';
-        }
-        else if ($grad <= 89 && $grad >=87)
-        {
+        } else if ($grad <= 89 && $grad >= 87) {
             $grad = 'B+';
-        }
-        else if ($grad <= 93 && $grad >=90)
-        {
+        } else if ($grad <= 93 && $grad >= 90) {
             $grad = 'A-';
-        }
-        else if ($grad <= 96 && $grad >=94)
-        {
+        } else if ($grad <= 96 && $grad >= 94) {
             $grad = 'A';
-        }
-        else if ($grad >= 97)
-        {
+        } else if ($grad >= 97) {
             $grad = 'A+';
         }
 
