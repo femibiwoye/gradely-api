@@ -122,7 +122,7 @@ class ExamController extends ActiveController
 
     public function actionConfigureExam()
     {
-        if (Yii::$app->user->identity->type != 'student') {
+        if (Yii::$app->user->identity->type != 'student' && Yii::$app->user->identity->type != 'parent') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
         }
 
