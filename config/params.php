@@ -47,15 +47,18 @@ return [
     'masteryPerTopicPerformance' => 100,
     'masteryPerTopicUnit' => 1,
 
-    'topicQuestionsMin'=>10,
+    'topicQuestionsMin' => 10,
 
-    'superPassword'=> SUPER_PASSWORD,
+    'superPassword' => SUPER_PASSWORD,
 
-    'customError401'=>[
+    'customError401' => [
         "name" => "Unauthorized",
         "message" => "Your request was made with invalid credentials.",
         "code" => 0,
         "status" => 401],
 
-    'appBase'=>APP_BASE_URL
+    'appBase' => APP_BASE_URL,
+
+    'practiceQuestionCount' => ['single' => 5, 'mix' => 3],
+    'examQuestionCount' => ['single' => 8, 'mix' => 5]
 ];

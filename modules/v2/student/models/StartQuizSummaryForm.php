@@ -83,9 +83,11 @@ class StartQuizSummaryForm extends Model
     public function getTotalQuestions(Homeworks $homework)
     {
         $topics = ArrayHelper::getColumn(PracticeTopics::find()->where(['practice_id' => $homework->id])->groupBy(['topic_id'])->all(), 'topic_id');
+        $mode = Utility::getChildMode($homework->student_id);
 
         $homeworkData = ['id' => $homework->id, 'title' => $homework->title];
-        $questionCount = count($topics) <= 1 ? 5 : 3;
+        $questionCountObject = Yii::$app->params[$mode.'QuestionCount'];
+        $questionCount = count($topics) <= 1 ? $questionCountObject['single'] : $questionCountObject['mix'];
         foreach ($topics as $topic) {
             $topicObject = SubjectTopics::find()->where(['id' => $topic])->one();
 
@@ -109,7 +111,7 @@ class StartQuizSummaryForm extends Model
 
         }
 
-        return array_merge($homeworkData, ['type' => count($topics) <= 1 ? 'single' : 'mix', 'topics' => $this->questions]);
+        return array_merge($homeworkData, ['type' => count($topics) <= 1 ? 'single' : 'mix', 'topics' => $this->questions,'questionLogicCount'=>$questionCountObject]);
 //        }
     }
 
