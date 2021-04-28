@@ -171,7 +171,7 @@ class ExamController extends ActiveController
                 }
             }
 
-            $user = UserModel::findOne(['id' => Utility::getParentChildID()]);
+            $user = UserModel::findOne(['id' => Yii::$app->user->id]);
             $user->mode = SharedConstant::EXAM_MODES[1];
             $user->save();
 
