@@ -3,6 +3,7 @@
 namespace app\modules\v2\student\controllers;
 
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\StudentDetailsExam;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use app\modules\v2\teacher\models\UpdateTeacherForm;
@@ -159,7 +160,14 @@ class ProfileController extends ActiveController
     public function actionReport($remark = 0)
     {
         $studentID = Utility::getParentChildID();
-        $model = StudentDetails::findOne(['id' => $studentID]);
+
+        $mode = Utility::getChildMode($studentID);
+
+        if($mode == 'exam'){
+            $model = StudentDetailsExam::findOne(['id' => $studentID]);
+        }else {
+            $model = StudentDetails::findOne(['id' => $studentID]);
+        }
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student report not found');
         }
