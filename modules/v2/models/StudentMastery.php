@@ -51,6 +51,15 @@ class StudentMastery extends Model
         ], $this->getTopicDetails());
     }
 
+    public function getPerformanceSummary()
+    {
+        $this->getUpdateInitValues();
+        return [
+            'total' => $this->getTotalTopics(),
+            'singleTotal' => $this->getSinglePercentageValue(),
+        ];
+    }
+
     /**
      * Return topics lists with details and summed correct value
      * @return array

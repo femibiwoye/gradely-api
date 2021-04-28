@@ -48,7 +48,8 @@ class StudentDetails extends User
             'completion_rate' => 'totalHomeworks',
             'positions' => 'statistics',
             'performance' => 'performance',
-            'feeds' => 'feeds'
+            'feeds' => 'feeds',
+            'mastery'
         ];
     }
 
@@ -464,5 +465,18 @@ class StudentDetails extends User
     private function topicPerformanceMini($data)
     {
         return ['title' => $data->topic, 'id' => $data->id];
+    }
+
+    public function getMastery()
+    {
+        $model = new StudentMastery();
+        $model->student_id = $this->id;
+        $model->term = Yii::$app->request->get('term');
+        $model->subject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
+        $model->mode = Utility::getChildMode($this->id);;
+        if (!$model->validate()) {
+            return ['total'=>0,'score'=>0,'percentage'=>0];
+        }
+        return $model->getPerformanceSummary();
     }
 }
