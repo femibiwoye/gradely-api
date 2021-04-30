@@ -154,11 +154,13 @@ class FeedController extends ActiveController
                 ->leftjoin('homeworks', "homeworks.id = feed.reference_id")
                 ->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
                 ->andWhere(['OR',
-                    ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()],
-                    ['homeworks.selected_student' => 0],
-                    ['feed.reference_id' => null],
+                    ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()], //if the assessment is dependent of selected students
+                    ['homeworks.selected_student' => 0], //if the assessment is not dependent of selected students
+//                    ['feed.reference_id' => null], // I commented this when student are not seeing teacher lesson notes
+                    ['homeworks.reference_id' => null], // I added this when student are not seeing teacher lesson notes
 
-                ]);
+                ])
+            ;
         }
 
         //To filter by student id
