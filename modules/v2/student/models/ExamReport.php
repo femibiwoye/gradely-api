@@ -120,7 +120,7 @@ class ExamReport extends QuizSummary
                 'st.id',
                 'topic',
                 'slug',
-                new Expression('COUNT(case when qsd.topic_id = st.id then 1 else 0 end) as questionCount'),
+                new Expression('COUNT(case when qsd.topic_id = st.id AND hq.homework_id = ' . $this->homework_id.' then 1 else 0 end) as questionCount'),
                 new Expression('SUM(case when qsd.selected = qsd.answer AND qsd.topic_id = st.id then 1 else 0 end) as questionCorrect'),
                 new Expression('round((SUM(case when qsd.selected = qsd.answer AND qsd.topic_id = st.id then 1 else 0 end)/COUNT(case when qsd.topic_id = st.id then 1 else 0 end))*100) as score')
             ])
