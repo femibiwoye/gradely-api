@@ -70,7 +70,7 @@ class StartPracticeForm extends Model
             }
 
             $dbtransaction->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $dbtransaction->rollBack();
             return false;
         }

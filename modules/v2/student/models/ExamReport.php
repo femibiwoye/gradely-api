@@ -127,8 +127,8 @@ class ExamReport extends QuizSummary
             ->innerJoin('practice_topics pt', 'pt.topic_id = st.id')
             ->innerJoin('homework_questions hq', 'hq.homework_id = pt.practice_id')
             ->innerJoin('questions q', 'q.id = hq.question_id AND hq.homework_id = ' . $this->homework_id)
-            ->leftJoin('quiz_summary_details qsd', 'qsd.homework_id = pt.practice_id')
-            ->where(['pt.practice_id' => $this->homework_id,'qsd.homework_id'=>$this->homework_id])
+            ->leftJoin('quiz_summary_details qsd', 'qsd.homework_id = pt.practice_id AND qsd.homework_id = ' . $this->homework_id)
+            ->where(['pt.practice_id' => $this->homework_id])
             ->groupBy('st.id')
             ->asArray()
             ->all();
@@ -150,7 +150,7 @@ class ExamReport extends QuizSummary
 
     public function getTimeSpent()
     {
-        return strtotime($this->submit_at) - strtotime($this->created_at);
+        return strtotime($this->submit_at) - strtotime($this->getHomework()->created_at);
     }
 
     public function getGradeIndicator()
