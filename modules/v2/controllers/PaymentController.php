@@ -90,7 +90,7 @@ class PaymentController extends ActiveController
     public function actionPaymentPlans($type)
     {
         $form = new \yii\base\DynamicModel(compact('type'));
-        $form->addRule(['type'], 'in', ['range' => ['catchup', 'tutor']]);
+        $form->addRule(['type'], 'in', ['range' => ['catchup', 'tutor','bundle']]);
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
