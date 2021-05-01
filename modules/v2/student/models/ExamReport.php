@@ -120,16 +120,19 @@ class ExamReport extends QuizSummary
                 'st.id',
                 'topic',
                 'slug',
-                new Expression('COUNT(case when qsd.topic_id = st.id AND hq.homework_id = ' . $this->homework_id.' then 1 else 0 end) as questionCount'),
-                new Expression('SUM(case when qsd.selected = qsd.answer AND qsd.topic_id = st.id then 1 else 0 end) as questionCorrect'),
-                new Expression('round((SUM(case when qsd.selected = qsd.answer AND qsd.topic_id = st.id then 1 else 0 end)/COUNT(case when qsd.topic_id = st.id then 1 else 0 end))*100) as score')
+                new Expression('(SELECT COUNT(1) FROM quiz_summary_details qsds WHERE qsds.topic_id = st.id AND qsds.quiz_id = '.$this->id.') AS questionCount'),
+                new Expression('(SELECT COUNT(1) FROM quiz_summary_details qsds WHERE qsds.topic_id = st.id AND qsds.selected = qsds.answer AND qsds.quiz_id = '.$this->id.') AS questionCorrect'),
+//                new Expression('(SELECT COUNT(1) FROM quiz_summary_details WHERE quiz_summary_details.topic_id = st.id AND quiz_summary_details.homework_id = "1736" AND quiz_summary_details.quiz_id = "1835") AS questionCount'),
+                //new Expression('COUNT(case when qsd.topic_id = st.id AND qsd.homework_id = '.$this->homework_id.' AND qsd.quiz_id = '.$this->id.' then 1 else 0 end) as questionCount'),
+//                new Expression('SUM(case when qsd.selected = qsd.answer AND qsd.topic_id = st.id then 1 else 0 end) as questionCorrect'),
+//                new Expression('round((questionCorrect/questionCount)*100) as score')
             ])
             ->innerJoin('practice_topics pt', 'pt.topic_id = st.id')
             ->innerJoin('homework_questions hq', 'hq.homework_id = pt.practice_id')
             ->innerJoin('questions q', 'q.id = hq.question_id AND hq.homework_id = ' . $this->homework_id)
-            ->leftJoin('quiz_summary_details qsd', 'qsd.homework_id = pt.practice_id AND qsd.homework_id = ' . $this->homework_id)
+            ->leftJoin('quiz_summary_details qsd', 'qsd.homework_id = pt.practice_id')
             ->where(['pt.practice_id' => $this->homework_id])
-            ->groupBy('st.id')
+            ->groupBy(['st.id','qsd.topic_id'])
             ->asArray()
             ->all();
     }
