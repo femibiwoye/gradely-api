@@ -461,8 +461,7 @@ class StudentDetails extends User
 
     public function getClassSubjects($subject_id = null)
     {
-
-        $studentID = $this->id;
+        $studentID = Utility::getParentChildID();
 
         $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1])->groupBy('subject_id')->all(), 'subject_id');
         $subjects = Subjects::find()
