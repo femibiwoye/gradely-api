@@ -162,7 +162,7 @@ class HomeworkController extends ActiveController
         $student_id = Utility::getParentChildID();
 
         $mode = Utility::getChildMode($student_id);
-        if($mode != 'exam') { // This should be returned to ==
+        if($mode == 'exam') {
             $model = ExamReport::findOne([
                 'student_id' => $student_id,
                 'homework_id' => $id, 'submit' => 1]);
