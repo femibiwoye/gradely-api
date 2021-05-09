@@ -529,7 +529,8 @@ class CatchupController extends ActiveController
                     ->select([
                         'subjects.*',
                         new Expression('"exam" AS mode'),
-                        'et.name AS exam_name'
+                        'et.name AS exam_name',
+                        'et.id AS exam_id'
                         //new Expression('CONCAT("https://gradly.s3.eu-west-2.amazonaws.com/exams/",exam_id) as mode'),
                     ])
                     ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'exam' AND qs.submit = 1 AND student_id = $studentID")
