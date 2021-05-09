@@ -40,6 +40,7 @@ class StudentDetailsExam extends User
             'class_name' => 'className',
             'topics' => 'topicBreakdown',
             'selectedSubject' => 'selectedSubject',
+            'selectedExam' => 'selectedExam',
             'performance' => 'performance',
             'mastery',
             'studyTime',
@@ -284,6 +285,23 @@ class StudentDetailsExam extends User
             $subject = isset($this->getClassSubjects()[0]) ? $this->getClassSubjects()[0] : null;
         }
         return $subject;
+    }
+
+    public function getSelectedExam()
+    {
+        $studentID = Utility::getParentChildID();
+        if ($examID = Yii::$app->request->get('exam_id')) {
+            $model = ExamType::find()
+                ->select(['id', 'name', 'title', 'slug'])
+                ->where(['id' => $examID])
+                ->one();
+        } else {
+            $model = ExamType::find()
+                ->select(['id', 'name', 'title', 'slug'])
+                ->where(['id' => Utility::StudentExamSubjectID($studentID, 'exam_id')])
+                ->one();
+        }
+        return $model;
     }
 
     public function getMastery()
