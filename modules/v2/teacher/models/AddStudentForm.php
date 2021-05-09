@@ -4,6 +4,8 @@ namespace app\modules\v2\teacher\models;
 
 use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\Pricing;
+use app\modules\v2\components\Utility;
+use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
 use Yii;
 use yii\base\Model;
@@ -113,6 +115,7 @@ class AddStudentForm extends Model
                 array_push($this->added_students, $student);
             }
 
+            /********** Send notification start **********/
             $notification = new InputNotification();
             $notification->NewNotification('teacher_adds_student', [
                 ['teacher_id', Yii::$app->user->id],
@@ -120,6 +123,8 @@ class AddStudentForm extends Model
                 ['password', $this->password],
                 ['class_id', $this->class_id]
             ]);
+            /********* Send notification end **********/
+
             $studentsID = ArrayHelper::getColumn($this->added_students, 'id');
             Pricing::SchoolAddStudentSubscribe($studentsID);
 
@@ -165,6 +170,25 @@ class AddStudentForm extends Model
                 if (!$model->save(false)) {
                     return false;
                 }
+
+                if (Yii::$app->user->identity->type == 'school') {
+                    $schoolName = Schools::findOne(['id' => Utility::getSchoolAccess(Yii::$app->user->id)]);
+                } else {
+                    $schoolName = Schools::findOne(['id' => Utility::getTeacherSchoolID(Yii::$app->user->id)]);
+                }
+
+                if ($schoolName) {
+
+                    $notification = new InputNotification();
+                    $notification->NewNotification('invite_parent', [
+                        ['school_name', $schoolName->name],
+                        ['invite_token', $model->token],
+                        ['student_id', $model->sender_id],
+                        ['child_name', $user->firstname],
+                        ['email', $model->receiver_email]
+                    ]);
+                }
+
             }
         }
 

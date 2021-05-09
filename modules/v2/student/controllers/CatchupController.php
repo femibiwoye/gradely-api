@@ -1057,7 +1057,7 @@ class CatchupController extends ActiveController
         $startPractice->topic_ids = $topicIDs;
         $startPractice->practice_type = 'diagnostic';
         if($mode == 'exam') {
-            if(!Yii::$app->request->get('exam_id')){
+            if(!Yii::$app->request->post('exam_id')){
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
             }
             $startPractice->exam_id = Yii::$app->request->post('exam_id');
