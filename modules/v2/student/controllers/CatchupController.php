@@ -523,8 +523,7 @@ class CatchupController extends ActiveController
         $mode = Utility::getChildMode($studentID);
         if ($mode == SharedConstant::EXAM_MODES[1]) {
             $subjects = [];
-            foreach (Utility::StudentExamSubjectID($studentID, 'exam_id') as $exam) {
-
+            foreach (Utility::StudentExamSubjectID($studentID, 'exam_id') as $key => $exam) {
                 $model = Subjects::find()
                     ->select([
                         'subjects.*',
@@ -533,13 +532,15 @@ class CatchupController extends ActiveController
                         'et.id AS exam_id'
                         //new Expression('CONCAT("https://gradly.s3.eu-west-2.amazonaws.com/exams/",exam_id) as mode'),
                     ])
-                    ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'exam' AND qs.submit = 1 AND student_id = $studentID")
+                    ->leftJoin('homeworks', "homeworks.subject_id = subjects.id AND homeworks.type = 'diagnostic' AND homeworks.mode = 'exam' AND homeworks.student_id = $studentID AND homeworks.exam_type_id = $exam")
+                    ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'exam' AND qs.submit = 1 AND qs.student_id = $studentID AND qs.homework_id = homeworks.id AND homeworks.exam_type_id = $exam")
                     ->leftJoin('exam_type et', "et.id = $exam")
-                    ->where(['status' => 1, 'subjects.id' => Utility::StudentExamSubjectID($studentID), 'subjects.school_id' => null])
-                    ->andWhere(['is', 'qs.subject_id', null])
+                    ->where(['subjects.status' => 1, 'subjects.id' => Utility::StudentExamSubjectID($studentID), 'subjects.school_id' => null, 'et.id' => Utility::StudentExamSubjectID($studentID, 'exam_id')])
+                    ->andWhere(['AND', ['is', 'qs.subject_id', null], ['is', 'homeworks.exam_type_id', null]])
                     ->groupBy('subjects.id')
                     ->asArray()
                     ->all();
+
                 $subjects = array_merge($subjects, $model);
 
             }
@@ -774,7 +775,6 @@ class CatchupController extends ActiveController
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = qsd.quiz_id AND quiz_summary.mode = '$mode'")
-
                 ->where(['qsd.topic_id' => $practicedTopicIds,
                     'qsd.student_id' => $student_id,
                     'st.subject_id' => $model['subject_id']])
@@ -1019,8 +1019,8 @@ class CatchupController extends ActiveController
         }
 
         $mode = Utility::getChildMode(Yii::$app->user->id);
-        if($mode == 'exam') {
-            if(!Yii::$app->request->get('exam_id')){
+        if ($mode == 'exam') {
+            if (!Yii::$app->request->get('exam_id')) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
             }
             $model->exam_id = Yii::$app->request->post('exam_id');
@@ -1057,8 +1057,8 @@ class CatchupController extends ActiveController
         $startPractice->type = 'mix';
         $startPractice->topic_ids = $topicIDs;
         $startPractice->practice_type = 'diagnostic';
-        if($mode == 'exam') {
-            if(!Yii::$app->request->post('exam_id')){
+        if ($mode == 'exam') {
+            if (!Yii::$app->request->post('exam_id')) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
             }
             $startPractice->exam_id = Yii::$app->request->post('exam_id');
