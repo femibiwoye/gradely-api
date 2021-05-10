@@ -64,8 +64,6 @@ class StartDiagnosticForm extends Model
                     ->groupBy('s.id')
                     ->limit(5)
                     ->all();
-                print_r($topics);
-                die;
 
             } else {
 
