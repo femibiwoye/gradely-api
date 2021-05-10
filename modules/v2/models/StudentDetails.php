@@ -473,7 +473,7 @@ class StudentDetails extends User
                 //'s.description',
                 //'s.image',
             ])
-            ->leftJoin('student_school ss', "ss.student_id = $studentID AND ss.status = 1")
+            ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
             ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
             ->where(['s.status' => 1])->orWhere(['s.id' => $subjectIDS]);
 
