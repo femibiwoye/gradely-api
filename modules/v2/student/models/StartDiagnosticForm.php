@@ -58,12 +58,14 @@ class StartDiagnosticForm extends Model
                 $topics = SubjectTopics::find()
                     ->alias('s')
                     ->innerJoin('questions', 'questions.topic_id = s.id AND questions.category = "exam"')
-                    ->where(['s.subject_id' => $this->subject_id, 'questions.teacher_id' => null, 's.exam_type_id' => Yii::$app->request->post('exam_id')])
+                    ->where(['s.subject_id' => $this->subject_id, 'questions.teacher_id' => null, 'questions.exam_type_id' => Yii::$app->request->post('exam_id')])
                     ->having('count(questions.id) >= ' . Yii::$app->params['topicQuestionsMin'])
                     ->asArray()
                     ->groupBy('s.id')
                     ->limit(5)
                     ->all();
+                print_r($topics);
+                die;
 
             } else {
 
