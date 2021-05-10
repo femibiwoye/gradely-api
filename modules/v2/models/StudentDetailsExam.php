@@ -255,7 +255,7 @@ class StudentDetailsExam extends User
 
         $studentID = $this->id;
 
-        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1])->groupBy('subject_id')->all(), 'subject_id');
+        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1,'mode'=>'exam'])->groupBy('subject_id')->all(), 'subject_id');
         $subjects = Subjects::find()
             ->alias('s')
             ->select([
@@ -310,7 +310,7 @@ class StudentDetailsExam extends User
         $model->student_id = $this->id;
         $model->term = Yii::$app->request->get('term');
         $model->subject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
-        $model->mode = Utility::getChildMode($this->id);;
+        $model->mode = Utility::getChildMode($this->id);
         if (!$model->validate()) {
             return ['total' => 0, 'score' => 0, 'percentage' => 0];
         }
