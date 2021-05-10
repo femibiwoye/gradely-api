@@ -1235,6 +1235,7 @@ class CatchupController extends ActiveController
             $quizSummary->term = Utility::getStudentTermWeek('term');
             $quizSummary->total_questions = count($attempts);
             $quizSummary->type = $homework->type;
+            $quizSummary->mode = $homework->mode;
             if (!$quizSummary->validate()) {
                 return (new ApiResponse)->error($quizSummary->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice not validated');
             }

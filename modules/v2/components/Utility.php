@@ -186,6 +186,17 @@ class Utility extends ActiveRecord
         return null;
     }
 
+    public static function getChildParentIDs($studentID = null, $parentID = null)
+    {
+        $studentID = !empty($studentID) ? $studentID : Yii::$app->user->id;
+        if (empty($parentID))
+            $model = Parents::find()->select(['parent_id'])->where(['student_id' => $studentID, 'status' => 1])->all();
+        elseif (!empty($parentID))
+            $model = Parents::find()->select(['parent_id'])->where(['student_id' => $studentID, 'parent_id' => $parentID, 'status' => 1])->all();
+
+        return ArrayHelper::getColumn($model,'parent_id');
+    }
+
     public static function getChildMode($studentID)
     {
         if (Yii::$app->user->identity->type == 'parent') {
