@@ -311,6 +311,9 @@ class StudentDetailsExam extends User
         $model->term = Yii::$app->request->get('term');
         $model->subject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
         $model->mode = Utility::getChildMode($this->id);
+        if($model->mode == 'exam') {
+            $model->exam = isset($this->getSelectedExam()['id']) ? $this->getSelectedExam()['id'] : null;
+        }
         if (!$model->validate()) {
             return ['total' => 0, 'score' => 0, 'percentage' => 0];
         }
@@ -372,10 +375,12 @@ class StudentDetailsExam extends User
             //->alias('q')
             ->select([
                 new Expression('SUM(correct) score'),
-                'student_id'
+                'quiz_summary.student_id'
             ])
+            ->leftJoin('homeworks h','h.id = quiz_summary.homework_id')
             ->with(['student'])
-            ->where(['submit' => 1, 'mode' => $mode])->groupBy('student_id')
+            ->where(['submit' => 1, 'quiz_summary.mode' => $mode,'quiz_summary.subject_id'=>$this->selectedSubject->id, 'h.exam_type_id'=>$this->selectedExam->id])->groupBy('student_id')
+
             ->orderBy('score DESC')
             ->limit(5)
             ->asArray()
