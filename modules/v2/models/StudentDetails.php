@@ -232,7 +232,7 @@ class StudentDetails extends User
     public function getTopicBreakdown()
     {
         $userType = Yii::$app->user->identity->type;
-        $this->getTopicBreakdownModel($this->id, $userType);
+        return $this->getTopicBreakdownModel($this->id, $userType);
     }
 
     public function getTopicBreakdownModel($studentID,$userType)

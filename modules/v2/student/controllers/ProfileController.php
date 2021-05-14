@@ -168,6 +168,7 @@ class ProfileController extends ActiveController
         }else {
             $model = StudentDetails::findOne(['id' => $studentID]);
         }
+
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student report not found');
         }
