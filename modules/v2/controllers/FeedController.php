@@ -2,11 +2,13 @@
 
 namespace app\modules\v2\controllers;
 
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
+use app\modules\v2\models\UserModel;
 use app\modules\v2\teacher\models\PostForm;
 use frontend\components\GoogleCalendar;
 use frontend\modules\teachers\models\User;
@@ -154,9 +156,10 @@ class FeedController extends ActiveController
                 ->leftjoin('homeworks', "homeworks.id = feed.reference_id")
                 ->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
                 ->andWhere(['OR',
-                    ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()],
-                    ['homeworks.selected_student' => 0],
-                    ['feed.reference_id' => null],
+                    ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()], //if the assessment is dependent of selected students
+                    ['homeworks.selected_student' => 0], //if the assessment is not dependent of selected students
+//                    ['feed.reference_id' => null], // I commented this when student are not seeing teacher lesson notes
+                    ['homeworks.reference_id' => null], // I added this when student are not seeing teacher lesson notes
 
                 ]);
         }
@@ -237,6 +240,24 @@ class FeedController extends ActiveController
         if (!$model->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Comment not added');
         }
+
+        /** @var Student comment sends notification $notification */
+        if (Yii::$app->user->identity->type == 'student') {
+            $parentIDs = Utility::getChildParentIDs();
+            foreach (UserModel::findAll(['id' => $parentIDs]) as $parent) {
+                $notification = new InputNotification();
+                $notification->NewNotification('child_comment_parent', [
+                    ['email', $parent->email],
+                    ['parent_id', $parent->id],
+                    ['student_id', Yii::$app->user->id],
+                    ['post_token', $model->feed->token],
+                    ['parent_name', $parent->firstname],
+                    ['child_name', Yii::$app->user->identity->firstname],
+                    ['comment_id', $model->id]
+                ]);
+            }
+        }
+        /** Send notification end */
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Comment added');
     }

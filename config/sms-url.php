@@ -24,6 +24,7 @@ return [
 
     'GET v2/sms/school' => 'v2/sms/school/school', //
     'GET v2/sms/school/subjects' => 'v2/sms/school/subjects', //
+    'POST v2/sms/school/subject' => 'v2/sms/school/add-subject', //
     'GET v2/sms/school/classes' => 'v2/sms/school/classes', //
     'GET v2/sms/school/class-subjects' => 'v2/sms/school/class-subjects', //
 

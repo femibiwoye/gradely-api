@@ -258,7 +258,7 @@ class TeacherController extends ActiveController
 
     }
 
-    public function actionTeachers($class_id = null)
+    public function actionTeachers($class_id = null, $teacher = null)
     {
 
         if ($class_id) {
@@ -278,10 +278,24 @@ class TeacherController extends ActiveController
         } else {
             $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
             $teachersID = SchoolTeachers::find()->where(['school_id' => $school->id, 'status' => 1])->all();
-            $model = UserModel::find()->where(['type' => 'teacher', 'user.id' => ArrayHelper::getColumn($teachersID, 'teacher_id')])
-                ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school->id . ' AND school_teachers.status=1')
+
+
+            $model = UserModel::find()
+                ->where(['type' => 'teacher', 'user.id' => ArrayHelper::getColumn($teachersID, 'teacher_id')]);
+
+            if (!empty($teacher)) {
+                if (filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+                    $model = $model->where(['email' => $teacher]);
+                } else
+                    $model = $model->where(['user.id' => $teacher]);
+            }
+            $model = $model->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school->id . ' AND school_teachers.status=1')
                 ->with(['teacherClassesList', 'teacherSubjectList'])
                 ->groupBy(['user.id']);
+
+            if (!empty($teacher)) {
+                return (new ApiResponse)->success($model->one());
+            }
         }
 
         $teachers = new ActiveDataProvider([

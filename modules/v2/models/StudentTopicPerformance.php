@@ -91,16 +91,16 @@ class StudentTopicPerformance extends Model
             ->andWhere(['questions.difficulty' => 'easy'])
             ->asArray()
             ->one();
-
-        $medium_attempts = $this->getAttemptedQuestions($topic)
-            ->andWhere(['questions.difficulty' => 'medium'])
-            ->asArray()
-            ->one();
-
-        $hard_attempts = $this->getAttemptedQuestions($topic)
-            ->andWhere(['questions.difficulty' => 'hard'])
-            ->asArray()
-            ->one();
+//
+//        $medium_attempts = $this->getAttemptedQuestions($topic)
+//            ->andWhere(['questions.difficulty' => 'medium'])
+//            ->asArray()
+//            ->one();
+//
+//        $hard_attempts = $this->getAttemptedQuestions($topic)
+//            ->andWhere(['questions.difficulty' => 'hard'])
+//            ->asArray()
+//            ->one();
 
         $hard_attempts_score = $this->getTotalScore($easy_attempts, 'hard');
         $medium_attempts_score = $this->getTotalScore($easy_attempts, 'medium');

@@ -90,12 +90,12 @@ class PaymentController extends ActiveController
     public function actionPaymentPlans($type)
     {
         $form = new \yii\base\DynamicModel(compact('type'));
-        $form->addRule(['type'], 'in', ['range' => ['catchup', 'tutor']]);
+        $form->addRule(['type'], 'in', ['range' => ['catchup', 'tutor','bundle']]);
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
-        $model = PaymentPlan::find()->where(['type' => $type])->all();
+        $model = PaymentPlan::find()->where(['type' => $type])->limit(3)->all();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }

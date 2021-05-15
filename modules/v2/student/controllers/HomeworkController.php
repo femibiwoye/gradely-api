@@ -12,6 +12,7 @@ use app\modules\v2\models\Remarks;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\{Homeworks, ApiResponse};
 
+use app\modules\v2\student\models\ExamReport;
 use app\modules\v2\student\models\HomeworkReport;
 use app\modules\v2\student\models\StudentHomeworkReport;
 use Yii;
@@ -160,9 +161,18 @@ class HomeworkController extends ActiveController
     {
         $student_id = Utility::getParentChildID();
 
-        $model = HomeworkReport::findOne([
-            'student_id' => $student_id,
-            'homework_id' => $id, 'submit' => 1]);
+        $mode = Utility::getChildMode($student_id);
+        if($mode == 'exam') {
+            $model = ExamReport::findOne([
+                'student_id' => $student_id,
+                'homework_id' => $id, 'submit' => 1]);
+        }else{
+
+            $model = HomeworkReport::findOne([
+                'student_id' => $student_id,
+                'homework_id' => $id, 'submit' => 1]);
+        }
+
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework report not found');

@@ -178,6 +178,7 @@ class PreferencesController extends ActiveController
             ->innerJoin('subjects', "subjects.id = s.subject_id")
             ->leftJoin('homeworks h', "h.subject_id = s.subject_id AND h.school_id = s.school_id")
             ->groupBy(['s.subject_id'])
+            ->orderBy('subjects.name')
             ->asArray();
 
         if (!$mySubjects->exists()) {

@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\base\Model;
@@ -19,12 +20,13 @@ class StudentMastery extends Model
     public $subject;
     public $mode;
     private $studentDifficultyValue;
+    public $exam;
 
     public function rules()
     {
         return [
-            [['class', 'subject'], 'integer'],
-            [['term','mode'], 'string'],
+            [['class', 'subject', 'exam'], 'integer'],
+            [['term', 'mode'], 'string'],
             ['term', 'in', 'range' => ['first', 'second', 'third']]
         ];
     }
@@ -51,11 +53,21 @@ class StudentMastery extends Model
         ], $this->getTopicDetails());
     }
 
+    public function getPerformanceSummary()
+    {
+        $this->getUpdateInitValues();
+        return [
+            'total' => $this->getTotalTopics(),
+            'singleTotal' => $this->getSinglePercentageValue(),
+            'score' => $this->getTopicDetails(true)
+        ];
+    }
+
     /**
      * Return topics lists with details and summed correct value
      * @return array
      */
-    private function getTopicDetails()
+    private function getTopicDetails($examMode = false)
     {
         $topics = [];
         foreach ($this->getAllAccessibleTopics() as $topic) {
@@ -71,8 +83,9 @@ class StudentMastery extends Model
 
             $topics[] = $topic_array;
         }
+
         $score = array_sum(ArrayHelper::getColumn(ArrayHelper::getColumn($topics, 'performance'), 'singleScore'));
-        return ['score' => $score, 'topics' => $topics];
+        return ($examMode) ? $score : ['score' => $score, 'topics' => $topics];
     }
 
     /**
@@ -206,19 +219,29 @@ class StudentMastery extends Model
 
         $masteryPerTopicPerformance = $this->getSinglePercentageValue();
 
-        return QuizSummaryDetails::find()
+        $model = QuizSummaryDetails::find()
             ->select([
                 new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as correct'),
                 new Expression('COUNT(quiz_summary_details.id) as attempt'),
                 new Expression("(SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id))*{$masteryPerTopicPerformance} as score"),
-            ])
-            ->innerJoin('questions', 'questions.id = quiz_summary_details.question_id')
-            ->where([
+            ]);
+        if($this->mode == 'exam'){
+            $model = $model
+                ->innerJoin('quiz_summary qs',"qs.id = quiz_summary_details.quiz_id AND qs.mode = 'exam'")
+                ->innerJoin('questions', "questions.id = quiz_summary_details.question_id AND questions.category = 'exam'");
+        }else {
+            $model = $model
+                ->innerJoin('quiz_summary qs',"qs.id = quiz_summary_details.quiz_id AND qs.mode != 'exam'")
+                ->innerJoin('questions', "questions.id = quiz_summary_details.question_id AND questions.category != 'exam'");
+        }
+            $model = $model->where([
                 'quiz_summary_details.topic_id' => $topic_id,
-                'student_id' => $this->student_id,
+                'quiz_summary_details.student_id' => $this->student_id,
                 'questions.difficulty' => $difficulty
             ])->asArray()
             ->one();
+
+        return $model;
     }
 
     /**
@@ -238,16 +261,25 @@ class StudentMastery extends Model
      */
     private function getAllAccessibleTopics()
     {
+        $mode = Utility::getChildMode($this->student_id);
         $topics = SubjectTopics::find()
-            ->select(['id', 'topic', 'term', 'subject_id', 'week_number', 'class_id'])
-            ->where([
+            ->select(['subject_topics.id', 'topic', 'subject_topics.term', 'subject_topics.subject_id', 'week_number', 'subject_topics.class_id']);
+        if ($mode == SharedConstant::EXAM_MODES[1]) {
+            $topics = $topics
+                ->innerJoin('questions', "questions.category = '$mode' AND questions.topic_id = subject_topics.id")
+                ->where([
+                    'questions.exam_type_id' => $this->exam, 'subject_topics.subject_id' => $this->subject
+                ]);
+        } else {
+            $topics = $topics->where([
                 'term' => $this->getTerm(),
                 'subject_topics.class_id' => $this->getClass(),
                 'status' => 1,
-                'subject_id'=>$this->subject,
+                'subject_id' => $this->subject,
                 'school_id' => null,
-            ])
-            ->all();
+            ]);
+        }
+        $topics = $topics->all();
 
         return $topics;
     }

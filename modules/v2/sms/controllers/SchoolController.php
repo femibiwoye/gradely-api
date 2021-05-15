@@ -3,11 +3,13 @@
 namespace app\modules\v2\sms\controllers;
 
 use app\modules\v2\components\SmsAuthentication;
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\school\models\PreferencesForm;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\db\Expression;
@@ -225,5 +227,23 @@ class SchoolController extends ActiveController
 
         return (new ApiResponse)->success($dataProvider->getModels(), ApiResponse::SUCCESSFUL, $models->count(), $dataProvider);
 
+    }
+
+
+    public function actionAddSubject()
+    {
+        $form = new PreferencesForm(['scenario' => 'add-subject']);
+        $form->attributes = Yii::$app->request->post();
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $model = $form->addSubject($school, false);
+        if (empty($model)) {
+            return (new ApiResponse)->error($form->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not created');
+        }
+
+        return (new ApiResponse)->success($model);
     }
 }
