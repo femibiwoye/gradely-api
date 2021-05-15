@@ -239,7 +239,8 @@ class SchoolController extends ActiveController
         }
 
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
-        if (!$model = $form->addSubject($school)) {
+        $model = $form->addSubject($school, false);
+        if (empty($model)) {
             return (new ApiResponse)->error($form->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject not created');
         }
 

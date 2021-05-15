@@ -1403,13 +1403,13 @@ class CatchupController extends ActiveController
             ->orderBy('rand()')
             ->limit(2)->all();
 
-        $explore = array_merge($provider->getModels(), $games);
+//        $explore = array_merge($provider->getModels(), $games);
+//
+//        shuffle($explore);
+//        $explore = array_splice($explore, 0, $all == 0 ? 12 : 20);
 
-        shuffle($explore);
-        $explore = array_splice($explore, 0, $all == 0 ? 12 : 20);
-
-        return (new ApiResponse)->success($explore, ApiResponse::SUCCESSFUL, null, $provider);
-        //return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
+        //return (new ApiResponse)->success($explore, ApiResponse::SUCCESSFUL, null, $provider);
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, null, $provider);
     }
 
     public function actionGame($token)

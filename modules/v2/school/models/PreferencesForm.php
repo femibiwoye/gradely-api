@@ -96,24 +96,24 @@ class PreferencesForm extends Model
      * @param $school
      * @return bool|void
      */
-    public function addSubject($school)
+    public function addSubject($school, $true = true)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
 
             if (Subjects::find()->where(['name' => $this->name, 'status' => 1])->exists()) {
-                return $this->addError('name','Subject already exist');
+                return $this->addError('name', 'Subject already exist');
             }
 
             $newModel = new Subjects();
             $newModel->school_id = $school->id;
             $newModel->attributes = $this->attributes;
-            if(!$newModel->save()){
-                return $this->addError('name','Not saved');
+            if (!$newModel->save()) {
+                return $this->addError('name', 'Not saved');
             }
 
             $dbtransaction->commit();
-            return true;
+            return $true ? true : $newModel;
 
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
