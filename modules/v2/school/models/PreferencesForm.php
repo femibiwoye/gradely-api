@@ -96,37 +96,25 @@ class PreferencesForm extends Model
      * @param $school
      * @return bool|void
      */
-    public function addSubject($school, $classes)
+    public function addSubject($school, $true = true)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            $count = Classes::find()->where(['id' => $classes, 'school_id' => $school->id])->count();
-            if (is_array($classes) && count($classes) == $count) {
-                $newModel = new Subjects();
-                $newModel->school_id = $school->id;
-                $newModel->attributes = $this->attributes;
-                $newModel->save();
 
-                $modelSch = new SchoolSubject();
-                $modelSch->school_id = $school->id;
-                $modelSch->subject_id = $newModel->id;
-                if (!$modelSch->save()) {
-                    return false;
-                }
-
-                foreach ($classes as $key => $class) {
-                    $model = new ClassSubjects();
-                    $model->class_id = $class;
-                    $model->school_id = $school->id;
-                    $model->subject_id = $newModel->id;
-                    if (!$model->save()) {
-                        return false;
-                    }
-                }
-                $dbtransaction->commit();
-                return true;
+            if (Subjects::find()->where(['name' => $this->name, 'status' => 1])->exists()) {
+                return $this->addError('name', 'Subject already exist');
             }
-            return false;
+
+            $newModel = new Subjects();
+            $newModel->school_id = $school->id;
+            $newModel->attributes = $this->attributes;
+            if (!$newModel->save()) {
+                return $this->addError('name', 'Not saved');
+            }
+
+            $dbtransaction->commit();
+            return $true ? true : $newModel;
+
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
             return $this->addError('name', $e->getMessage());

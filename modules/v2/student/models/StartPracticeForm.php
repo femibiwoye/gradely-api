@@ -29,6 +29,7 @@ class StartPracticeForm extends Model
     public $practice_type;
     public $reference_id;
     public $reference_type;
+    public $exam_id;
     private $questions_duration = SharedConstant::VALUE_ZERO;
 
     public function rules()
@@ -37,7 +38,7 @@ class StartPracticeForm extends Model
             [['topic_ids', 'type', 'practice_type'], 'required'],
             [['topic_ids', 'type', 'reference_type', 'reference_id', 'practice_type'], 'required', 'on' => 'create-practice'],
             [['topic_ids'], 'each', 'rule' => ['integer']],
-            [['reference_id'],'integer'],
+            [['reference_id', 'exam_id'], 'integer'],
             ['type', 'in', 'range' => [SharedConstant::MIX_TYPE_ARRAY, SharedConstant::SINGLE_TYPE_ARRAY]],
             ['reference_type', 'in', 'range' => SharedConstant::REFERENCE_TYPE],
             ['type', 'validateType'],
@@ -61,7 +62,6 @@ class StartPracticeForm extends Model
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
             if (!$homework = $this->createHomework($student_id, $teacher_id)) {
-
                 return false;
             }
 
@@ -70,7 +70,7 @@ class StartPracticeForm extends Model
             }
 
             $dbtransaction->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $dbtransaction->rollBack();
             return false;
         }
@@ -127,6 +127,17 @@ class StartPracticeForm extends Model
                 $homework->class_id = $hwork->class_id;
             }
         }
+        if (Yii::$app->user->identity->type == 'student') {
+            $mode = Utility::getChildMode($homework->student_id);
+            $homework->mode = $mode;
+        }
+
+        if (!empty($this->exam_id)) {
+            $homework->exam_type_id = $this->exam_id;
+        } else {
+            $homework->exam_type_id = $topic->exam_type_id;
+        }
+
         if ($this->reference_type == 'daily') {
             $homework->class_id = Utility::getStudentClass(1);
         }
@@ -139,7 +150,7 @@ class StartPracticeForm extends Model
 
         $homework->type = $this->practice_type;
 
-        $homework->exam_type_id = $topic->exam_type_id;
+
         if (!$homework->save()) {
             return false;
         }

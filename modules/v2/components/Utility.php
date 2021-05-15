@@ -4,6 +4,7 @@ namespace app\modules\v2\components;
 
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\exam\StudentExamConfig;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
@@ -183,6 +184,25 @@ class Utility extends ActiveRecord
             return Yii::$app->user->id;
 
         return null;
+    }
+
+    public static function getChildParentIDs($studentID = null, $parentID = null)
+    {
+        $studentID = !empty($studentID) ? $studentID : Yii::$app->user->id;
+        if (empty($parentID))
+            $model = Parents::find()->select(['parent_id'])->where(['student_id' => $studentID, 'status' => 1])->all();
+        elseif (!empty($parentID))
+            $model = Parents::find()->select(['parent_id'])->where(['student_id' => $studentID, 'parent_id' => $parentID, 'status' => 1])->all();
+
+        return ArrayHelper::getColumn($model,'parent_id');
+    }
+
+    public static function getChildMode($studentID)
+    {
+        if (Yii::$app->user->identity->type == 'parent') {
+            return ArrayHelper::getValue(User::findOne(['id' => Yii::$app->user->id]), 'mode', 'practice');
+        }
+        return ArrayHelper::getValue(User::findOne(['id' => $studentID]), 'mode', 'practice');
     }
 
     /**
@@ -584,9 +604,9 @@ class Utility extends ActiveRecord
         $type = Yii::$app->user->identity->type;
         if ($type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
-        } elseif($type == 'teacher' && StudentSchool::find()->where(['student_id'=>$child_id,'school_id'=>Utility::getTeacherSchoolID(Yii::$app->user->id)])->exists()){
+        } elseif ($type == 'teacher' && StudentSchool::find()->where(['student_id' => $child_id, 'school_id' => Utility::getTeacherSchoolID(Yii::$app->user->id)])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
-        }elseif($type == 'school' && StudentSchool::find()->where(['student_id'=>$child_id,'school_id'=>Utility::getSchoolAccess(Yii::$app->user->id)])->exists()){
+        } elseif ($type == 'school' && StudentSchool::find()->where(['student_id' => $child_id, 'school_id' => Utility::getSchoolAccess(Yii::$app->user->id)])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
         } else
             $class_id = Utility::getStudentClass($globalIDStatus);
@@ -742,5 +762,47 @@ class Utility extends ActiveRecord
             new Expression("1 as status"),
             new Expression("null as image"),
         ];
+    }
+
+    /**
+     * This returns the ID of exams which the student is active in
+     * @param $studentID
+     * @return array
+     */
+    public static function StudentExamSubjectID($studentID, $field = 'subject_id')
+    {
+        return ArrayHelper::getColumn(StudentExamConfig::find()->where(['status' => 1, 'student_id' => $studentID])->select([$field])->groupBy($field)->all(), $field);
+    }
+
+    public static function GradeIndicator($grad)
+    {
+        if ($grad < 65) {
+            $grad = 'F';
+        } else if ($grad <= 66 && $grad >= 65) {
+            $grad = 'D';
+        } else if ($grad <= 69 && $grad >= 67) {
+            $grad = 'D+';
+        } else if ($grad <= 73 && $grad >= 70) {
+            $grad = 'C-';
+        } else if ($grad <= 76 && $grad >= 74) {
+            $grad = 'C';
+        } else if ($grad <= 79 && $grad >= 77) {
+            $grad = 'C+';
+        } else if ($grad <= 83 && $grad >= 80) {
+            $grad = 'B-';
+        } else if ($grad <= 86 && $grad >= 84) {
+            $grad = 'B';
+        } else if ($grad <= 89 && $grad >= 87) {
+            $grad = 'B+';
+        } else if ($grad <= 93 && $grad >= 90) {
+            $grad = 'A-';
+        } else if ($grad <= 96 && $grad >= 94) {
+            $grad = 'A';
+        } else if ($grad >= 97) {
+            $grad = 'A+';
+        }
+
+        return $grad;
+
     }
 }

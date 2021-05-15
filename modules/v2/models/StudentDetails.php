@@ -48,7 +48,8 @@ class StudentDetails extends User
             'completion_rate' => 'totalHomeworks',
             'positions' => 'statistics',
             'performance' => 'performance',
-            'feeds' => 'feeds'
+            'feeds' => 'feeds',
+            'mastery'
         ];
     }
 
@@ -94,6 +95,8 @@ class StudentDetails extends User
 
         if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
             $model = $model->andWhere(['q.type' => 'homework']);
+        } else {
+            $model = $model->andWhere(['q.mode' => Utility::getChildMode($this->id)]);
         }
 
         if (Yii::$app->request->get('subject'))
@@ -168,7 +171,8 @@ class StudentDetails extends User
     public function getTotalHomeworks()
     {
 
-        $class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1, 'is_active_class' => 1]);
+        $userType = Yii::$app->user->identity->type;
+        //$class = StudentSchool::findOne(['student_id' => $this->id, 'status' => 1, 'is_active_class' => 1]);
 
         if (Yii::$app->user->identity->type == 'teacher') {
             $condition = ['teacher_id' => Yii::$app->user->id];
@@ -186,6 +190,11 @@ class StudentDetails extends User
             ->where(['AND', $condition, [/*'class_id' => $class->class_id,*/ 'status' => 1, 'type' => 'homework']]);
         if (Yii::$app->request->get('subject'))
             $homeworkCount = $homeworkCount->andWhere(['homeworks.subject_id' => Yii::$app->request->get('subject')]);
+
+        if (in_array($userType, SharedConstant::EXAM_MODE_USER_TYPE)) {
+            $homeworkCount = $homeworkCount->andWhere(['homeworks.mode' => Utility::getChildMode($this->id)]);
+        }
+
         $homeworkCount = $homeworkCount->count();
 
         $studentCount = QuizSummary::find()
@@ -197,6 +206,10 @@ class StudentDetails extends User
             $studentCount = $studentCount->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
         if (Yii::$app->request->get('term'))
             $studentCount = $studentCount->andWhere(['q.term' => Yii::$app->request->get('term')]);
+
+        if (in_array($userType, SharedConstant::EXAM_MODE_USER_TYPE)) {
+            $studentCount = $studentCount->andWhere(['homeworks.mode' => Utility::getChildMode($this->id)]);
+        }
 
         $studentCount = $studentCount->count();
 
@@ -218,7 +231,13 @@ class StudentDetails extends User
 
     public function getTopicBreakdown()
     {
-        $classID = Utility::getStudentClass(1, $this->id);;
+        $userType = Yii::$app->user->identity->type;
+        return $this->getTopicBreakdownModel($this->id, $userType);
+    }
+
+    public function getTopicBreakdownModel($studentID,$userType)
+    {
+        $classID = Utility::getStudentClass(1, $studentID);;
 
         $topics = SubjectTopics::find()
             ->andWhere(['class_id' => $classID]);
@@ -229,7 +248,7 @@ class StudentDetails extends User
             $topics = $topics->andWhere(['subject_id' => isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null]);
 
 
-            $topics = $topics->andWhere(['term' =>Yii::$app->request->get('term')? strtolower(Yii::$app->request->get('term')):strtolower(Utility::getStudentTermWeek('term', $this->id))]);
+        $topics = $topics->andWhere(['term' => Yii::$app->request->get('term') ? strtolower(Yii::$app->request->get('term')) : strtolower(Utility::getStudentTermWeek('term', $studentID))]);
 
 
         $topics = $topics
@@ -238,12 +257,17 @@ class StudentDetails extends User
             ->all();
 
 
-
         $groupPerformance = [];
         foreach ($topics as $topic) {
             $topic = $topic['id'];
             $summary = QuizSummaryDetails::find()
-                ->where(['topic_id' => $topic, 'student_id' => $this->id]);
+                ->where(['quiz_summary_details.topic_id' => $topic, 'quiz_summary_details.student_id' => $studentID]);
+
+            if (in_array($userType, SharedConstant::EXAM_MODE_USER_TYPE)) {
+                $summary = $summary
+                    ->leftJoin('quiz_summary qz','qz.id = quiz_summary_details.quiz_id')
+                    ->andWhere(['qz.mode' => Utility::getChildMode($studentID)]);
+            }
 
             $totalAttempt = $summary->count();
             $correctAttempt = $summary->andWhere(['=', 'selected', new Expression('`answer`')])->count();
@@ -292,9 +316,9 @@ class StudentDetails extends User
         $hard_questions = SharedConstant::VALUE_ZERO;
         $score = [];
         $recent_attempts = $summary
-            ->where(['student_id' => $this->id, 'topic_id' => $topic])
+            ->where(['quiz_summary_details.student_id' => $this->id, 'quiz_summary_details.topic_id' => $topic])
             //->groupBy('quiz_id')
-            ->orderBy(['topic_id' => SORT_DESC])
+            ->orderBy(['quiz_summary_details.topic_id' => SORT_DESC])
             ->limit(2);
 
         foreach ($recent_attempts->all() as $recent_attempt) {
@@ -366,13 +390,24 @@ class StudentDetails extends User
 
     public function getPerformance()
     {
+        return $this->getPerformanceModel($this->id);
+    }
+
+    public function getPerformanceModel($studentID)
+    {
         $excellence = [];
         $averages = [];
         $struggling = [];
 
         $activeTopics = QuizSummaryDetails::find()->select(['qsd.topic_id'])
             ->alias('qsd')
-            ->where(['qsd.student_id' => $this->id]);
+            ->where(['qsd.student_id' => $studentID]);
+
+        if (in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
+            $activeTopics = $activeTopics
+                ->leftJoin('quiz_summary qz','qz.id = qsd.quiz_id')
+                ->andWhere(['qz.mode' => Utility::getChildMode($studentID)]);
+        }
 
         if (isset($_GET['term'])) {
             $term = $_GET['term'];
@@ -401,11 +436,11 @@ class StudentDetails extends User
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
-                    if ($data->getResult($this->id, $data->id) >= 75) {
+                    if ($data->getResult($studentID, $data->id) >= 75) {
                         $excellence[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($this->id, $data->id) >= 50 && $data->getResult($this->id, $data->id) < 75) {
+                    } elseif ($data->getResult($studentID, $data->id) >= 50 && $data->getResult($studentID, $data->id) < 75) {
                         $averages[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($this->id, $data->id) < 50) {
+                    } elseif ($data->getResult($studentID, $data->id) < 50) {
                         $struggling[] = $this->topicPerformanceMini($data);
                     }
                 }
@@ -426,8 +461,7 @@ class StudentDetails extends User
 
     public function getClassSubjects($subject_id = null)
     {
-
-        $studentID = $this->id;
+        $studentID = Utility::getParentChildID();
 
         $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1])->groupBy('subject_id')->all(), 'subject_id');
         $subjects = Subjects::find()
@@ -439,7 +473,7 @@ class StudentDetails extends User
                 //'s.description',
                 //'s.image',
             ])
-            ->leftJoin('student_school ss', "ss.student_id = $studentID AND ss.status = 1")
+            ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
             ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
             ->where(['s.status' => 1])->orWhere(['s.id' => $subjectIDS]);
 
@@ -464,5 +498,18 @@ class StudentDetails extends User
     private function topicPerformanceMini($data)
     {
         return ['title' => $data->topic, 'id' => $data->id];
+    }
+
+    public function getMastery()
+    {
+        $model = new StudentMastery();
+        $model->student_id = $this->id;
+        $model->term = Yii::$app->request->get('term');
+        $model->subject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
+        $model->mode = Utility::getChildMode($this->id);;
+        if (!$model->validate()) {
+            return ['total' => 0, 'score' => 0, 'percentage' => 0];
+        }
+        return $model->getPerformanceSummary();
     }
 }

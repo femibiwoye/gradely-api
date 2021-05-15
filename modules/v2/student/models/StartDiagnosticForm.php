@@ -41,8 +41,8 @@ class StartDiagnosticForm extends Model
         if (!Subjects::find()->where(['id' => $this->subject_id, 'diagnostic' => 1])->exists()) {
             return $this->addError('subject_id', 'Subject not available for diagnostic');
         }
-
-        if (QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'type' => 'diagnostic', 'submit' => 1,'subject_id'=>$this->subject_id])->exists()) {
+        $mode = Utility::getChildMode(Yii::$app->user->id);
+        if (QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'type' => 'diagnostic', 'submit' => 1, 'subject_id' => $this->subject_id, 'mode' => $mode])->exists()) {
             return $this->addError('subject_id', 'Diagnostic already taken');
         }
 
@@ -54,16 +54,29 @@ class StartDiagnosticForm extends Model
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
 
+            if (Yii::$app->user->identity->mode == 'exam') {
+                $topics = SubjectTopics::find()
+                    ->alias('s')
+                    ->innerJoin('questions', 'questions.topic_id = s.id AND questions.category = "exam"')
+                    ->where(['s.subject_id' => $this->subject_id, 'questions.teacher_id' => null, 'questions.exam_type_id' => Yii::$app->request->post('exam_id')])
+                    ->having('count(questions.id) >= ' . Yii::$app->params['topicQuestionsMin'])
+                    ->asArray()
+                    ->groupBy('s.id')
+                    ->limit(5)
+                    ->all();
 
-            $globalClass = Utility::getStudentClass(SharedConstant::VALUE_ONE);
-            if (empty($globalClass)) {
-                return false;
+            } else {
+
+                $globalClass = Utility::getStudentClass(SharedConstant::VALUE_ONE);
+                if (empty($globalClass)) {
+                    return false;
+                }
+
+                $termWeek = Utility::getStudentTermWeek();
+
+                $topics = $this->diagnosticTopics($globalClass, $this->subject_id, $termWeek);
+
             }
-
-            $termWeek = Utility::getStudentTermWeek();
-
-            $topics = $this->diagnosticTopics($globalClass, $this->subject_id, $termWeek);
-
             $dbtransaction->commit();
 
             return $topics;
@@ -107,9 +120,9 @@ class StartDiagnosticForm extends Model
 
             $topic = SubjectTopics::find()
                 ->alias('s')
-                ->innerJoin('questions', 'questions.topic_id = s.id')
-                ->where(['s.term' => $term, 's.class_id' => $globalClass, 's.subject_id' => $subject,'questions.teacher_id'=>null])
-                ->having('count(questions.id) >= '.Yii::$app->params['topicQuestionsMin'])
+                ->innerJoin('questions', 'questions.topic_id = s.id AND questions.category != "exam"')
+                ->where(['s.term' => $term, 's.class_id' => $globalClass, 's.subject_id' => $subject, 'questions.teacher_id' => null])
+                ->having('count(questions.id) >= ' . Yii::$app->params['topicQuestionsMin'])
                 ->asArray()
                 ->orderBy(['s.week_number' => SORT_DESC])
                 ->groupBy('s.week_number');

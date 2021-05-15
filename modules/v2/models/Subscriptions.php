@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\InputNotification;
 use app\paystack\Paystack;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -181,9 +182,31 @@ class Subscriptions extends \yii\db\ActiveRecord
             // Payment already made
             return ['message' => 'Already paid', 'model' => $this->SubscriptionWithCard($model)];
         }
-        return ['message' => 'Payment not successful', 'model' => $this->SubscriptionWithCard($model)];
 
+        /******** Payment failed Notification start *********/
+        $userModel = UserModel::findOne(['id'=>$model->user_id]);
+        $notification = new InputNotification();
+        $notification->NewNotification('parent_payment_declined', [
+            ['parent_id', $model->user_id],
+            ['subscription_id', $model->id],
+            ['parent_name', $userModel->firstname],
+            //['card_type', $modelPaymentDetails->firstname],
+            ['payment_description', $model->paymentPlan->description],
+            ['amount', $model->total],
+            ['date', $model->created_at],
+            ['email', $userModel->email],
+        ]);
+
+        /******** Payment failed Notification end *********/
+
+        return ['message' => 'Payment not successful', 'model' => $this->SubscriptionWithCard($model)];
     }
+
+    public function getPaymentPlan()
+    {
+        return $this->hasOne(PaymentPlan::className(),['id'=>'payment_plan_id']);
+    }
+
 
     public function SubscriptionWithCard(Subscriptions $model)
     {

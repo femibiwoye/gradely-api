@@ -73,7 +73,7 @@ class ExamController extends ActiveController
     public function actionList()
     {
         $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
-        $model = ExamType::find()->where(['is_exam' => 1, 'class' => $category])->select(['id','name', 'slug', 'title', 'description'])->all();
+        $model = ExamType::find()->where(['is_exam' => 1, 'class' => $category])->select(['id', 'name', 'slug', 'title', 'description'])->all();
         return (new ApiResponse)->success($model);
     }
 
@@ -97,6 +97,10 @@ class ExamController extends ActiveController
      */
     public function actionUpdateMode()
     {
+        if (!in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
+        }
+
         $mode = Yii::$app->request->post('mode');
         $model = new \yii\base\DynamicModel(compact('mode'));
         $model->addRule(['mode'], 'required');
@@ -105,7 +109,8 @@ class ExamController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $studentID = Utility::getParentChildID();
+//        $studentID = Utility::getParentChildID();
+        $studentID = Yii::$app->user->id;
 
         if (UserModel::updateAll(['mode' => $mode], ['id' => $studentID])) {
             return (new ApiResponse)->success(true, null, 'Mode updated');
@@ -117,6 +122,10 @@ class ExamController extends ActiveController
 
     public function actionConfigureExam()
     {
+        if (Yii::$app->user->identity->type != 'student' && Yii::$app->user->identity->type != 'parent') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access');
+        }
+
         $exam = Yii::$app->request->post('exam');
         $subject = Yii::$app->request->post('subject');
         $model = new \yii\base\DynamicModel(compact('exam', 'subject'));
@@ -161,6 +170,11 @@ class ExamController extends ActiveController
                     $model->save();
                 }
             }
+
+            $user = UserModel::findOne(['id' => Yii::$app->user->id]);
+            $user->mode = SharedConstant::EXAM_MODES[1];
+            $user->save();
+
             $dbtransaction->commit();
             return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Exam selected is configured');
         } catch (\Exception $e) {
@@ -178,12 +192,41 @@ class ExamController extends ActiveController
             ->select(['st.id'])
             ->leftJoin('questions q', 'q.topic_id = st.id')
             ->innerJoin('exam_type et', 'et.id = q.exam_type_id')
-            ->where(['st.subject_id'=>$subject_id])
-            //->where(['q.category' => 'exam', 'et.is_exam' => 1,'et.class'=>$category,'st.subject_id'=>$subject_id]) // To be returned
+            ->where(['st.subject_id' => $subject_id])
+            ->where(['q.category' => 'exam', 'et.is_exam' => 1, 'et.class' => $category, 'st.subject_id' => $subject_id])
             ->asArray()->all();
 
-        return (new ApiResponse)->success(ArrayHelper::getColumn($models,'id'));
+        return (new ApiResponse)->success(ArrayHelper::getColumn($models, 'id'));
     }
 
+    /**
+     * Student report filter options. For exam list
+     * @return ApiResponse
+     */
+    public function actionExams()
+    {
+        $studentID = Utility::getParentChildID();
+
+        $model = ExamType::find()
+            ->select(['id', 'name', 'title', 'slug'])
+            ->where(['id' => Utility::StudentExamSubjectID($studentID, 'exam_id')])
+            ->all();
+        return (new ApiResponse)->success($model);
+    }
+
+    /**
+     * Student report filter options. For subject list
+     * @return ApiResponse
+     */
+    public function actionSubjects()
+    {
+        $studentID = Utility::getParentChildID();
+
+        $model = Subjects::find()
+            ->select(['id', 'name', 'slug'])
+            ->where(['id' => Utility::StudentExamSubjectID($studentID, 'subject_id')])
+            ->all();
+        return (new ApiResponse)->success($model);
+    }
 
 }
