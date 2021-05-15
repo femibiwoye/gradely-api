@@ -1381,27 +1381,27 @@ class CatchupController extends ActiveController
         ]);
 
 
-        $games = Games::find()
-            ->select(
-                [
-                    'game_id as id',
-                    new Expression('game_title as title'),
-                    new Expression("'game' as extension"),
-                    new Expression('"game" as filetype'),
-                    new Expression('null as filesize'),
-                    new Expression('null as url'),
-                    new Expression("0 as downloadable"),
-                    new Expression('image as thumbnail'),
-                    new Expression('token'),
-                    new Expression("provider AS creator_name"),
-                    new Expression("'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png' as creator_image"),
-                    new Expression("null as creator_id"),
-                    "created_at"
-                ])
-            ->asArray()
-            ->where(['status' => 1])
-            ->orderBy('rand()')
-            ->limit(2)->all();
+//        $games = Games::find()
+//            ->select(
+//                [
+//                    'game_id as id',
+//                    new Expression('game_title as title'),
+//                    new Expression("'game' as extension"),
+//                    new Expression('"game" as filetype'),
+//                    new Expression('null as filesize'),
+//                    new Expression('null as url'),
+//                    new Expression("0 as downloadable"),
+//                    new Expression('image as thumbnail'),
+//                    new Expression('token'),
+//                    new Expression("provider AS creator_name"),
+//                    new Expression("'https://gradly.s3.eu-west-2.amazonaws.com/placeholders/9ijakid-logo.png' as creator_image"),
+//                    new Expression("null as creator_id"),
+//                    "created_at"
+//                ])
+//            ->asArray()
+//            ->where(['status' => 1])
+//            ->orderBy('rand()')
+//            ->limit(2)->all();
 
 //        $explore = array_merge($provider->getModels(), $games);
 //
