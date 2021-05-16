@@ -30,6 +30,7 @@ return [
 
 
     'GET v2/sms/teachers' => 'v2/sms/teacher/teachers', //
+    'GET v2/sms/teachers/find-teacher' => 'v2/sms/teacher/find-teacher', //
     'GET v2/sms/students' => 'v2/sms/school/students', //
 
 
