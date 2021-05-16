@@ -38,7 +38,9 @@ class TourController extends Controller
      */
     public function actionIndex()
     {
-        $model = UserTour::find()->where(['user_id' => Yii::$app->user->id])->select(['name', 'type'])->all();
+        $model = ['name'=>'welcome_school','type'=>'school']; //Temporary solution
+
+        //$model = UserTour::find()->where(['user_id' => Yii::$app->user->id])->select(['name', 'type'])->all();
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
