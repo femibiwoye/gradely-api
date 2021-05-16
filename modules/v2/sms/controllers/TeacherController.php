@@ -12,6 +12,7 @@ use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\SchoolTeachers;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
+use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
 use yii\data\ActiveDataProvider;
@@ -311,5 +312,26 @@ class TeacherController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($teachers->getModels(), null, null, $teachers);
+    }
+
+    public function actionFindTeacher($teacher)
+    {
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $school_id = $school->id;
+        $model = User::find()
+            ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id AND teacher_class.status=1')
+            ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school_id . ' AND school_teachers.status=1')
+            ->where(['user.type' => 'teacher'])
+            ->groupBy(['user.id']);
+        if (filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
+            $model = $model->where(['email' => $teacher]);
+        } else
+            $model = $model->where(['user.id' => $teacher]);
+
+        if($model = $model->one()){
+           $model = array_merge(ArrayHelper::toArray($model),['token'=>null]);
+        }
+
+        return (new ApiResponse)->success($model);
     }
 }
