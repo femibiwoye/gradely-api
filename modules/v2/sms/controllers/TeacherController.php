@@ -7,6 +7,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\ClassSubjects;
+use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\SchoolTeachers;
@@ -319,19 +320,25 @@ class TeacherController extends ActiveController
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
         $model = User::find()
-            ->innerJoin('teacher_class', 'teacher_class.teacher_id = user.id AND teacher_class.status=1')
-            ->innerJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.school_id = ' . $school_id . ' AND school_teachers.status=1')
-            ->where(['user.type' => 'teacher'])
-            ->groupBy(['user.id']);
+            //->leftJoin('teacher_class', 'teacher_class.teacher_id = user.id AND teacher_class.status=1')
+//            ->leftJoin('school_teachers', 'school_teachers.teacher_id = user.id AND school_teachers.status=1')
+//            ->leftJoin('school_admin', 'school_admin.user_id = user.id AND school_admin.status=1')
+            ->where(['user.type' => ['teacher', 'school']]);
+//            ->andWhere(['AND', ['school_teachers.school_id' => $school_id], ['school_admin.school_id' => $school_id]])
+//            ->groupBy(['user.id']);
         if (filter_var($teacher, FILTER_VALIDATE_EMAIL)) {
             $model = $model->where(['email' => $teacher]);
         } else
             $model = $model->where(['user.id' => $teacher]);
-
-        if($model = $model->one()){
-           $model = array_merge(ArrayHelper::toArray($model),['token'=>null]);
+        if ($model = $model->one()) {
+            if (SchoolTeachers::find()->where(['teacher_id' => $model->id, 'status' => 1, 'school_id' => $school_id])->exists() || SchoolAdmin::find()->where(['user_id' => $model->id, 'status' => 1, 'school_id' => $school_id])->exists()) {
+                $model = array_merge(ArrayHelper::toArray($model), ['token' => null]);
+                return (new ApiResponse)->success($model);
+            }
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'You cannot access this record');
         }
+        return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'User not found');
 
-        return (new ApiResponse)->success($model);
+
     }
 }
