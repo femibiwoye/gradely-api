@@ -255,7 +255,7 @@ class StudentDetailsExam extends User
 
         $studentID = $this->id;
 
-        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1,'mode'=>'exam'])->groupBy('subject_id')->all(), 'subject_id');
+        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1, 'mode' => 'exam'])->groupBy('subject_id')->all(), 'subject_id');
         $subjects = Subjects::find()
             ->alias('s')
             ->select([
@@ -311,7 +311,7 @@ class StudentDetailsExam extends User
         $model->term = Yii::$app->request->get('term');
         $model->subject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
         $model->mode = Utility::getChildMode($this->id);
-        if($model->mode == 'exam') {
+        if ($model->mode == 'exam') {
             $model->exam = isset($this->getSelectedExam()['id']) ? $this->getSelectedExam()['id'] : null;
         }
         if (!$model->validate()) {
@@ -354,9 +354,10 @@ class StudentDetailsExam extends User
     public function getLeaderBoard()
     {
 
-        $mode = Utility::getChildMode($this->id);
+        if (isset($this->selectedSubject->id)) {
+            $mode = Utility::getChildMode($this->id);
 
-        // This look promising
+            // This look promising
 //        $connection = Yii::$app->getDb();
 //        $command = $connection->createCommand("
 //                SELECT id, student_id, SUM(correct) correct, FIND_IN_SET(correct, (
@@ -371,20 +372,22 @@ class StudentDetailsExam extends User
 //        return $result = $command->queryAll();
 
 
-        $model = QuizSummary::find()
-            //->alias('q')
-            ->select([
-                new Expression('SUM(correct) score'),
-                'quiz_summary.student_id'
-            ])
-            ->leftJoin('homeworks h','h.id = quiz_summary.homework_id')
-            ->with(['student'])
-            ->where(['submit' => 1, 'quiz_summary.mode' => $mode,'quiz_summary.subject_id'=>$this->selectedSubject->id, 'h.exam_type_id'=>$this->selectedExam->id])->groupBy('student_id')
-
-            ->orderBy('score DESC')
-            ->limit(5)
-            ->asArray()
-            ->all();
-        return $model;
+            $model = QuizSummary::find()
+                //->alias('q')
+                ->select([
+                    new Expression('SUM(correct) score'),
+                    'quiz_summary.student_id'
+                ])
+                ->leftJoin('homeworks h', 'h.id = quiz_summary.homework_id')
+                ->with(['student'])
+                ->where(['submit' => 1, 'quiz_summary.mode' => $mode, 'quiz_summary.subject_id' => $this->selectedSubject->id, 'h.exam_type_id' => $this->selectedExam->id])->groupBy('student_id')
+                ->orderBy('score DESC')
+                ->limit(5)
+                ->asArray()
+                ->all();
+            return $model;
+        } else {
+            return null;
+        }
     }
 }
