@@ -35,6 +35,7 @@ class HomeworkForm extends Model
     public $homework_model;
     public $tag;
     public $description;
+    public $is_proctor;
     public $lesson_description;
     public $selected_student; //If certain students are selected for the assessment
     public $selected_student_id; //ID of the selected students if the id above are valid
@@ -46,7 +47,7 @@ class HomeworkForm extends Model
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'title'], 'required', 'on' => 'create-lesson'],
             [['title', 'tag'], 'required', 'on' => 'update-homework'],
             //[['open_date', 'close_date'], 'date', 'format' => 'yyyy-mm-dd '],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'selected_student'], 'integer'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'selected_student','is_proctor'], 'integer'],
             [['open_date', 'close_date', 'selected_student_id'], 'safe'],
             [['title'], 'string', 'max' => 255],
             ['class_id', 'exist', 'targetClass' => TeacherClassSubjects::className(), 'targetAttribute' => ['class_id' => 'class_id', 'teacher_id' => 'teacher_id', 'school_id' => 'school_id']],
