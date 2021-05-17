@@ -84,7 +84,8 @@ class StudentMastery extends Model
             $topics[] = $topic_array;
         }
 
-        $score = array_sum(ArrayHelper::getColumn(ArrayHelper::getColumn($topics, 'performance'), 'singleScore'));
+//        $score = array_sum(ArrayHelper::getColumn(ArrayHelper::getColumn($topics, 'performance'), 'singleScore'));
+        $score = array_sum(ArrayHelper::getColumn(ArrayHelper::getColumn($topics, 'performance'), 'sharedScore'));
         return ($examMode) ? $score : ['score' => $score, 'topics' => $topics];
     }
 
