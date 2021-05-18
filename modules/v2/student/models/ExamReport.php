@@ -120,6 +120,7 @@ class ExamReport extends QuizSummary
                 'st.id',
                 'topic',
                 'slug',
+                Utility::ImageQuery('st'),
                 new Expression('(SELECT COUNT(1) FROM quiz_summary_details qsds WHERE qsds.topic_id = st.id AND qsds.quiz_id = '.$this->id.') AS questionCount'),
                 new Expression('(SELECT COUNT(1) FROM quiz_summary_details qsds WHERE qsds.topic_id = st.id AND qsds.selected = qsds.answer AND qsds.quiz_id = '.$this->id.') AS questionCorrect'),
 //                new Expression('(SELECT COUNT(1) FROM quiz_summary_details WHERE quiz_summary_details.topic_id = st.id AND quiz_summary_details.homework_id = "1736" AND quiz_summary_details.quiz_id = "1835") AS questionCount'),
