@@ -324,10 +324,10 @@ class StudentDetailsExam extends User
     {
         $mode = Utility::getChildMode($this->id);
         $model = QuizSummary::find()->select([
-            new Expression('SUM(TIME_TO_SEC(TIMEDIFF(created_at,submit_at))) exam_time')
-        ])->where(['student_id' => $this->id, 'mode' => $mode, 'submit_at' => 1])->asArray()->one();
+            new Expression('SUM(TIME_TO_SEC(TIMEDIFF(submit_at,created_at))) exam_time')
+        ])->where(['student_id' => $this->id, 'mode' => $mode, 'submit' => 1])->asArray()->one();
 
-        return $model['exam_time'];
+        return $model;
     }
 
     public function getGradeScore()
