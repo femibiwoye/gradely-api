@@ -327,7 +327,7 @@ class StudentDetailsExam extends User
             new Expression('SUM(TIME_TO_SEC(TIMEDIFF(submit_at,created_at))) exam_time')
         ])->where(['student_id' => $this->id, 'mode' => $mode, 'submit' => 1])->asArray()->one();
 
-        return $model;
+        return $model['exam_time'];
     }
 
     public function getGradeScore()
