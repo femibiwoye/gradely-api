@@ -381,7 +381,7 @@ class StudentDetailsExam extends User
                     new Expression('SUM(correct) score'),
                     'quiz_summary.student_id',
                     new Expression("(SELECT count(*) FROM quiz_summary qs WHERE h.exam_type_id = $examID AND qs.student_id = quiz_summary.student_id AND qs.subject_id = $subject_id) as practice_count"),
-                    'schools.name'
+                    'schools.name as school_name'
                 ])
                 ->leftJoin('homeworks h', 'h.id = quiz_summary.homework_id')
                 ->leftJoin('student_school', 'student_school.student_id = quiz_summary.student_id')
