@@ -371,21 +371,36 @@ class StudentDetailsExam extends User
 //
 //        return $result = $command->queryAll();
 
+            $subject_id = $this->selectedSubject->id;
+            $examID = $this->selectedExam->id;
 
-            $model = QuizSummary::find()
+
+            $models = QuizSummary::find()
                 //->alias('q')
                 ->select([
                     new Expression('SUM(correct) score'),
-                    'quiz_summary.student_id'
+                    'quiz_summary.student_id',
+                    new Expression("(SELECT count(*) FROM quiz_summary qs WHERE h.exam_type_id = $examID AND qs.student_id = quiz_summary.student_id AND qs.subject_id = $subject_id) as practice_count"),
+                    'schools.name'
                 ])
                 ->leftJoin('homeworks h', 'h.id = quiz_summary.homework_id')
+                ->leftJoin('student_school', 'student_school.student_id = quiz_summary.student_id')
+                ->leftJoin('schools', 'schools.id = student_school.school_id')
                 ->with(['student'])
-                ->where(['submit' => 1, 'quiz_summary.mode' => $mode, 'quiz_summary.subject_id' => $this->selectedSubject->id, 'h.exam_type_id' => $this->selectedExam->id])->groupBy('student_id')
+                ->where(['submit' => 1, 'quiz_summary.mode' => $mode, 'quiz_summary.subject_id' => $subject_id, 'h.exam_type_id' => $examID])->groupBy('student_id')
                 ->orderBy('score DESC')
                 ->limit(5)
                 ->asArray()
                 ->all();
-            return $model;
+
+            $leaderboard = [];
+            $directions = ['up', 'down'];
+            foreach ($models as $model) {
+                shuffle($directions);
+                $leaderboard[] = array_merge($model, ['is_me' => $this->id == $model['student_id'] ? true : false, 'improvement' => ['direction' => $directions[0], 'count' => mt_rand(1, 10)]]);
+
+            }
+            return $leaderboard;
         } else {
             return null;
         }
