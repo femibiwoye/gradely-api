@@ -112,6 +112,16 @@ class PreferencesForm extends Model
                 return $this->addError('name', 'Not saved');
             }
 
+            $schoolSubject = new SchoolSubject();
+            $schoolSubject->school_id = $newModel->school_id;
+            $schoolSubject->subject_id = $newModel->id;
+            $schoolSubject->status = 1;
+            if (!$schoolSubject->save()) {
+                return $this->addError('name', 'Could not connect new subject to school');
+            }
+
+
+
             $dbtransaction->commit();
             return $true ? true : $newModel;
 
