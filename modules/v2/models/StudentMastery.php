@@ -262,15 +262,14 @@ class StudentMastery extends Model
      */
     private function getAllAccessibleTopics()
     {
-
         $mode = Utility::getChildMode($this->student_id);
         $topics = SubjectTopics::find()
             ->select(['subject_topics.id', 'topic', 'subject_topics.term', 'subject_topics.subject_id', 'week_number', 'subject_topics.class_id']);
         if ($mode == SharedConstant::EXAM_MODES[1]) {
             $topics = $topics
-                ->innerJoin('questions', "questions.category = '$mode' AND questions.topic_id = subject_topics.id")
+                ->innerJoin('questions', "questions.topic_id = subject_topics.id AND questions.category = '$mode' AND questions.exam_type_id = $this->exam")
                 ->where([
-                    'questions.exam_type_id' => $this->exam, 'subject_topics.subject_id' => $this->subject
+                    'subject_topics.subject_id' => $this->subject
                 ]);
         } else {
             $topics = $topics->where([
