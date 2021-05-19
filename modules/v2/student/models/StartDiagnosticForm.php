@@ -42,6 +42,15 @@ class StartDiagnosticForm extends Model
             return $this->addError('subject_id', 'Subject not available for diagnostic');
         }
         $mode = Utility::getChildMode(Yii::$app->user->id);
+        if($mode == 'exam'){
+            $exam = Yii::$app->request->post('exam_id');
+            if (QuizSummary::find()
+                ->innerJoin(['homeworks h',"h.exam_type_id = $exam AND h.id = quiz_summary.homework_id"])
+                ->where(['quiz_summary.student_id' => Yii::$app->user->id, 'quiz_summary.type' => 'diagnostic', 'submit' => 1, 'quiz_summary.subject_id' => $this->subject_id, 'quiz_summary.mode' => $mode])
+                ->exists()) {
+                return $this->addError('subject_id', 'Exam diagnostic already taken');
+            }
+        }
         if (QuizSummary::find()->where(['student_id' => Yii::$app->user->id, 'type' => 'diagnostic', 'submit' => 1, 'subject_id' => $this->subject_id, 'mode' => $mode])->exists()) {
             return $this->addError('subject_id', 'Diagnostic already taken');
         }
