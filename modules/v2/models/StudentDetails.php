@@ -259,15 +259,6 @@ class StudentDetails extends User
                 ->asArray()
                 ->all();
         }else{
-//            $topics = QuizSummaryDetails::find()
-//                ->alias('qsd')
-//                ->select(['qsd.topic_id AS id'])
-//                ->leftJoin('homeworks h','h.id = qsd.homework_id')
-//                ->where(['qsd.student_id' => $studentID,'h.mode'=>'exam','exam_type_id'=>$examID])
-//            ->groupBy('qsd.topic_id')
-//                ->asArray()
-//            ->all();
-
             $topics = SubjectTopics::find()
                 ->select(['subject_topics.id AS id'])
                     ->leftJoin('questions', "questions.topic_id = subject_topics.id")
@@ -276,7 +267,6 @@ class StudentDetails extends User
                         'questions.category'=>$mode,
                         'questions.exam_type_id'=>$examID
                     ])->asArray()->all();
-
         }
 
 
@@ -296,7 +286,11 @@ class StudentDetails extends User
             if (in_array($userType, SharedConstant::EXAM_MODE_USER_TYPE)) {
                 $summary = $summary
                     ->leftJoin('homeworks h','h.id = quiz_summary_details.homework_id')
-                    ->andWhere(['h.mode' => Utility::getChildMode($studentID),'h.exam_type_id'=>$examID]);
+                    ->andWhere(['h.mode' => Utility::getChildMode($studentID)]);
+
+                if($mode == 'exam'){
+                    $summary = $summary->andWhere(['h.exam_type_id'=>$examID]);
+                }
             }
 
             //$totalAttempt = $summary->count();
@@ -353,6 +347,8 @@ class StudentDetails extends User
             //->groupBy('quiz_id')
             ->orderBy(['quiz_summary_details.topic_id' => SORT_DESC])
             ->limit(2);
+
+        //SELECT MONTH(date) AS MONTH, WEEK(date) AS WEEK, DATE_FORMAT(date, %Y-%m-%d) AS DATE, job AS JOB, person AS PERSON GROUP BY WEEK(date);
 
         foreach ($recent_attempts->all() as $recent_attempt) {
             if ($recent_attempt->selected != $recent_attempt->answer) {
