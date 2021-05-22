@@ -235,50 +235,83 @@ class StudentDetails extends User
         return $this->getTopicBreakdownModel($this->id, $userType);
     }
 
-    public function getTopicBreakdownModel($studentID,$userType)
+    public function getTopicBreakdownModel($studentID,$userType, $examID = null)
     {
-        $classID = Utility::getStudentClass(1, $studentID);;
+        $mode = Yii::$app->request->get('mode');
+        $subjectID = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
+        if($mode != 'exam') {
+            $classID = Utility::getStudentClass(1, $studentID);
 
-        $topics = SubjectTopics::find()
-            ->andWhere(['class_id' => $classID]);
+            $topics = SubjectTopics::find()
+                ->andWhere(['class_id' => $classID]);
 
-        if (Yii::$app->request->get('subject'))
-            $topics = $topics->andWhere(['subject_id' => Yii::$app->request->get('subject')]);
-        else
-            $topics = $topics->andWhere(['subject_id' => isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null]);
-
-
-        $topics = $topics->andWhere(['term' => Yii::$app->request->get('term') ? strtolower(Yii::$app->request->get('term')) : strtolower(Utility::getStudentTermWeek('term', $studentID))]);
+            if (Yii::$app->request->get('subject'))
+                $topics = $topics->andWhere(['subject_id' => Yii::$app->request->get('subject')]);
+            else
+                $topics = $topics->andWhere(['subject_id' => $subjectID]);
 
 
-        $topics = $topics
-            ->groupBy('id')
-            ->asArray()
-            ->all();
+            $topics = $topics->andWhere(['term' => Yii::$app->request->get('term') ? strtolower(Yii::$app->request->get('term')) : strtolower(Utility::getStudentTermWeek('term', $studentID))]);
+
+
+            $topics = $topics
+                ->groupBy('id')
+                ->asArray()
+                ->all();
+        }else{
+//            $topics = QuizSummaryDetails::find()
+//                ->alias('qsd')
+//                ->select(['qsd.topic_id AS id'])
+//                ->leftJoin('homeworks h','h.id = qsd.homework_id')
+//                ->where(['qsd.student_id' => $studentID,'h.mode'=>'exam','exam_type_id'=>$examID])
+//            ->groupBy('qsd.topic_id')
+//                ->asArray()
+//            ->all();
+
+            $topics = SubjectTopics::find()
+                ->select(['subject_topics.id AS id'])
+                    ->leftJoin('questions', "questions.topic_id = subject_topics.id")
+                    ->where([
+                        'subject_topics.subject_id' => $subjectID,
+                        'questions.category'=>$mode,
+                        'questions.exam_type_id'=>$examID
+                    ])->asArray()->all();
+
+        }
 
 
         $groupPerformance = [];
         foreach ($topics as $topic) {
+            $this->hard_questions = 0;
+            $this->medium_questions = 0;
+            $this->easy_questions = 0;
+            $this->score = 0;
+            $this->improvement = null;
+            $this->direction = null;
+
             $topic = $topic['id'];
             $summary = QuizSummaryDetails::find()
                 ->where(['quiz_summary_details.topic_id' => $topic, 'quiz_summary_details.student_id' => $studentID]);
 
             if (in_array($userType, SharedConstant::EXAM_MODE_USER_TYPE)) {
                 $summary = $summary
-                    ->leftJoin('quiz_summary qz','qz.id = quiz_summary_details.quiz_id')
-                    ->andWhere(['qz.mode' => Utility::getChildMode($studentID)]);
+                    ->leftJoin('homeworks h','h.id = quiz_summary_details.homework_id')
+                    ->andWhere(['h.mode' => Utility::getChildMode($studentID),'h.exam_type_id'=>$examID]);
             }
 
-            $totalAttempt = $summary->count();
-            $correctAttempt = $summary->andWhere(['=', 'selected', new Expression('`answer`')])->count();
-            $this->getQuestionsDifficulty($summary, $topic);
-            $topicScore = ($correctAttempt / ($totalAttempt == 0 ? 1 : $totalAttempt)) * 100;
+            //$totalAttempt = $summary->count();
+            //$correctAttempt = $summary->andWhere(['=', 'selected', new Expression('`answer`')])->count();
+            $this->getQuestionsDifficulty($summary, $topic,$studentID);
+            //$topicScore = ($correctAttempt / ($totalAttempt == 0 ? 1 : $totalAttempt)) * 100;
 
-            $statistics = ['score' => round($topicScore), 'attempted' => $totalAttempt, 'correct' => $correctAttempt, 'improvement' => null, 'direction' => null]; //Direction is up|down
+            //$statistics = ['score' => round($topicScore), 'attempted' => $totalAttempt, 'correct' => $correctAttempt, 'improvement' => null, 'direction' => null]; //Direction is up|down
             $topic_progress = ['hard' => $this->hard_questions, 'medium' => $this->medium_questions, 'easy' => $this->easy_questions, 'score' => round($this->score), 'improvement' => $this->improvement, 'direction' => $this->direction];
             $topicDetails = SubjectTopics::findOne(['id' => $topic]);
 
-            $groupPerformance[] = array_merge(ArrayHelper::toArray($topicDetails), ['statistics' => $statistics, 'topic_progress' => $topic_progress]);
+            $groupPerformance[] = array_merge(ArrayHelper::toArray($topicDetails), [
+                //'statistics' => $statistics,
+                'topic_progress' => $topic_progress
+            ]);
         }
         return $groupPerformance;
     }
@@ -289,9 +322,9 @@ class StudentDetails extends User
         return isset($model->difficulty) ? $model->difficulty : SharedConstant::QUESTION_DIFFICULTY[2];
     }
 
-    public function getQuestionsDifficulty($summary, $topic)
+    public function getQuestionsDifficulty($summary, $topic, $studentID)
     {
-        $this->getRecentAttempts($summary, $topic);
+        $this->getRecentAttempts($summary, $topic,$studentID);
         $correctAttempts = $summary->andWhere(['=', 'selected', new Expression('`answer`')])->all();
         foreach ($correctAttempts as $correctAttempt) {
             if ($this->getQuestion($correctAttempt->question_id) == SharedConstant::QUESTION_DIFFICULTY[0]) {
@@ -309,14 +342,14 @@ class StudentDetails extends User
         $this->score = round($this->easy_score + $this->medium_score + $this->hard_score);
     }
 
-    public function getRecentAttempts($summary, $topic)
+    public function getRecentAttempts($summary, $topic,$studentID)
     {
         $easy_questions = SharedConstant::VALUE_ZERO;
         $medium_questions = SharedConstant::VALUE_ZERO;
         $hard_questions = SharedConstant::VALUE_ZERO;
         $score = [];
         $recent_attempts = $summary
-            ->where(['quiz_summary_details.student_id' => $this->id, 'quiz_summary_details.topic_id' => $topic])
+            ->where(['quiz_summary_details.student_id' => $studentID, 'quiz_summary_details.topic_id' => $topic])
             //->groupBy('quiz_id')
             ->orderBy(['quiz_summary_details.topic_id' => SORT_DESC])
             ->limit(2);

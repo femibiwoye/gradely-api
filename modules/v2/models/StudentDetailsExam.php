@@ -85,7 +85,9 @@ class StudentDetailsExam extends User
     {
         $topicBreakdown = new StudentDetails();
         $userType = Yii::$app->user->identity->type;
-        return $topicBreakdown->getTopicBreakdownModel($this->id, $userType);
+
+        $examID = isset($this->selectedExam->id)?$this->selectedExam->id:null;
+        return $topicBreakdown->getTopicBreakdownModel($this->id, $userType,$examID);
     }
 
     public function getQuestion($question_id)
@@ -323,9 +325,15 @@ class StudentDetailsExam extends User
     public function getStudyTime()
     {
         $mode = Utility::getChildMode($this->id);
-        $model = QuizSummary::find()->select([
-            new Expression('SUM(TIME_TO_SEC(TIMEDIFF(submit_at,created_at))) exam_time')
-        ])->where(['student_id' => $this->id, 'mode' => $mode, 'submit' => 1])->asArray()->one();
+        $model = QuizSummary::find()
+            ->leftJoin('homeworks h','h.id = quiz_summary.homework_id')
+            ->select([
+            new Expression('SUM(TIME_TO_SEC(TIMEDIFF(quiz_summary.submit_at,quiz_summary.created_at))) exam_time'),
+            //new Expression('SEC_TO_TIME(SUM(TIME_TO_SEC(submit_at) - TIME_TO_SEC(created_at))) exam_time')
+        ])->where(['quiz_summary.student_id' => $this->id, 'quiz_summary.mode' => $mode, 'submit' => 1,
+            'quiz_summary.subject_id'=>isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null,
+            'h.exam_type_id'=> isset($this->getSelectedExam()['id']) ? $this->getSelectedExam()['id'] : null
+        ])->asArray()->one();
 
         return $model['exam_time'];
     }
