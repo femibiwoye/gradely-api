@@ -226,20 +226,22 @@ class StudentMastery extends Model
                 new Expression('COUNT(quiz_summary_details.id) as attempt'),
                 new Expression("(SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id))*{$masteryPerTopicPerformance} as score"),
             ]);
-        if($this->mode == 'exam'){
+        if ($this->mode == 'exam') {
             $model = $model
-                ->innerJoin('quiz_summary qs',"qs.id = quiz_summary_details.quiz_id AND qs.mode = 'exam'")
-                ->innerJoin('questions', "questions.id = quiz_summary_details.question_id AND questions.category = 'exam'");
-        }else {
+                ->leftJoin('homeworks h', "h.id = quiz_summary_details.homework_id")
+                ->leftJoin('questions', "questions.id = quiz_summary_details.question_id")
+                ->andWhere(['qs.mode' => 'exam','questions.category'=>'exam']);
+
+        } else {
             $model = $model
-                ->innerJoin('quiz_summary qs',"qs.id = quiz_summary_details.quiz_id AND qs.mode != 'exam'")
+                ->innerJoin('quiz_summary qs', "qs.id = quiz_summary_details.quiz_id AND qs.mode != 'exam'")
                 ->innerJoin('questions', "questions.id = quiz_summary_details.question_id AND questions.category != 'exam'");
         }
-            $model = $model->where([
-                'quiz_summary_details.topic_id' => $topic_id,
-                'quiz_summary_details.student_id' => $this->student_id,
-                'questions.difficulty' => $difficulty
-            ])->asArray()
+        $model = $model->where([
+            'quiz_summary_details.topic_id' => $topic_id,
+            'quiz_summary_details.student_id' => $this->student_id,
+            'questions.difficulty' => $difficulty
+        ])->asArray()
             ->one();
 
         return $model;
@@ -270,8 +272,8 @@ class StudentMastery extends Model
                 ->leftJoin('questions', "questions.topic_id = subject_topics.id")
                 ->where([
                     'subject_topics.subject_id' => $this->subject,
-                    'questions.category'=>$mode,
-                    'questions.exam_type_id'=>$this->exam
+                    'questions.category' => $mode,
+                    'questions.exam_type_id' => $this->exam
                 ]);
         } else {
             $topics = $topics->where([
