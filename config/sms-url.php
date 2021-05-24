@@ -29,6 +29,9 @@ return [
     'GET v2/sms/school/class-subjects' => 'v2/sms/school/class-subjects', //
 
 
+    'PUT v2/sms/class/update-student-class' => 'v2/sms/class/update-student-class', //
+
+
     'GET v2/sms/teachers' => 'v2/sms/teacher/teachers', //
     'GET v2/sms/teachers/find-teacher' => 'v2/sms/teacher/find-teacher', //
     'GET v2/sms/students' => 'v2/sms/school/students', //
