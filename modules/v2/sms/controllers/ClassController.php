@@ -10,6 +10,7 @@ use app\modules\v2\models\ClassSubjects;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\SchoolTeachers;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
@@ -163,5 +164,31 @@ class ClassController extends ActiveController
         $classModel = Classes::find()->where(['school_id' => $school->id, 'global_class_id' => $class_id])->all();
 
         return (new ApiResponse)->success($classModel);
+    }
+
+    public function actionUpdateStudentClass()
+    {
+        $student_id = Yii::$app->request->post('student_id');
+        $class_id = Yii::$app->request->post('class_id');
+
+
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $school_id = $school->id;
+
+
+        $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id'));
+        $model->addRule(['student_id', 'class_id'], 'required');
+        $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id', 'school_id']]);
+        $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'class_id' => 'id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'is_active_class' => 1, 'status' => 1]);
+        $model->class_id = $class_id;
+        if ($model->save())
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
 }
