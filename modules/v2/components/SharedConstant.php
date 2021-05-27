@@ -66,4 +66,5 @@ class SharedConstant
     const DB_CONNECTION_NAME = ['db', 'db_test','dblive'];
     const EXAM_MODE_USER_TYPE = ['parent', 'student'];
     const EXAM_MODES = ['practice', 'exam'];
+    const QUESTION_FORMAT = ['multiple', 'bool'];
 }
