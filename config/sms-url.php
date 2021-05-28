@@ -8,6 +8,7 @@ return [
     'POST v2/sms/class/create-class-arm' => 'v2/sms/class/create-class-arm',
     'PUT v2/sms/class/update-class-arm' => 'v2/sms/class/update-class-arm',
     'GET v2/sms/class/get-global-class-arms' => 'v2/sms/class/get-global-class-arms',
+    'GET v2/sms/class/class-teacher-subjects' => 'v2/sms/class/class-teacher-subjects',
 
     'POST v2/sms/teacher/assign-subject-to-teacher' => 'v2/sms/teacher/assign-subject-to-teacher', //
     'POST v2/sms/teacher/assign-subjects-to-teacher' => 'v2/sms/teacher/assign-subjects-to-teacher', //
@@ -27,6 +28,9 @@ return [
     'POST v2/sms/school/subject' => 'v2/sms/school/add-subject', //
     'GET v2/sms/school/classes' => 'v2/sms/school/classes', //
     'GET v2/sms/school/class-subjects' => 'v2/sms/school/class-subjects', //
+
+
+    'PUT v2/sms/class/update-student-class' => 'v2/sms/class/update-student-class', //
 
 
     'GET v2/sms/teachers' => 'v2/sms/teacher/teachers', //

@@ -3,15 +3,12 @@
 namespace app\modules\v2\sms\controllers;
 
 use app\modules\v2\components\SmsAuthentication;
-use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\ClassSubjects;
 use app\modules\v2\models\Schools;
-use app\modules\v2\models\SchoolSubject;
-use app\modules\v2\models\SchoolTeachers;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
-use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
@@ -110,7 +107,55 @@ class ClassController extends ActiveController
     public function actionGetClassSubjects($class_id)
     {
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
-        $class = ClassSubjects::find()->where(['class_id' => $class_id, 'school_id' => $school->id, 'status' => 1])->all();
+        $class = ClassSubjects::find()
+            ->select([
+                'classes.id',
+                'classes.class_name',
+                'classes.class_code',
+                'subjects.name',
+                'class_subjects.class_id',
+                'class_subjects.subject_id'
+            ])
+            ->innerJoin('classes', 'classes.id = class_subjects.class_id')
+            ->innerJoin('subjects', 'subjects.id = class_subjects.subject_id')
+            ->where([
+                'class_id' => $class_id,
+                'class_subjects.school_id' => $school->id, 'class_subjects.status' => 1])->asArray()->all();
+
+        if (!$class) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No new record');
+        }
+        return (new ApiResponse)->success($class, ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionClassTeacherSubjects($class_id)
+    {
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $class = TeacherClassSubjects::find()
+            ->alias('tcs')
+            ->select([
+                'classes.id',
+                'classes.class_name',
+                'classes.class_code',
+                'subjects.name',
+                'user.firstname',
+                'user.lastname',
+                'user.image',
+                'tcs.class_id',
+                'tcs.subject_id',
+                'tcs.teacher_id'
+            ])
+            ->innerJoin('classes', 'classes.id = tcs.class_id')
+            ->innerJoin('subjects', 'subjects.id = tcs.subject_id')
+            ->innerJoin('user', 'user.id = tcs.teacher_id')
+            ->where([
+                'tcs.class_id' => $class_id,
+                'tcs.school_id' => $school->id,
+                'tcs.status' => 1])->asArray()->all();
+
+        if (!$class) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No new record');
+        }
         return (new ApiResponse)->success($class, ApiResponse::SUCCESSFUL);
     }
 
@@ -163,5 +208,31 @@ class ClassController extends ActiveController
         $classModel = Classes::find()->where(['school_id' => $school->id, 'global_class_id' => $class_id])->all();
 
         return (new ApiResponse)->success($classModel);
+    }
+
+    public function actionUpdateStudentClass()
+    {
+        $student_id = Yii::$app->request->post('student_id');
+        $class_id = Yii::$app->request->post('class_id');
+
+
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $school_id = $school->id;
+
+
+        $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id'));
+        $model->addRule(['student_id', 'class_id'], 'required');
+        $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id', 'school_id']]);
+        $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'class_id' => 'id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'is_active_class' => 1, 'status' => 1]);
+        $model->class_id = $class_id;
+        if ($model->save())
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
+        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
 }
