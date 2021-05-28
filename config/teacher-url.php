@@ -57,6 +57,7 @@ return [
     'GET v2/teacher/question' => 'v2/teacher/question/view', //
     'PUT v2/teacher/homework/homework-questions/<homework_id:\d+>' => 'v2/teacher/question/homework-questions', //
     'POST v2/teacher/question/<type:[a-z/]+>' => 'v2/teacher/question/create', //
+    'POST v2/teacher/upload-questions' => 'v2/teacher/question/upload-questions', //
     'DELETE v2/teacher/question' => 'v2/teacher/question/delete', //
     'PUT v2/teacher/question/<id:\d+>' => 'v2/teacher/question/update', //
 

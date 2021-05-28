@@ -221,7 +221,7 @@ class StudentController extends ActiveController
 
         if (!empty($license) && $license != 'all') {
             if ($license == 'disable')
-                $license = null;
+                $license = [null, ''];
             $models = $models->andWhere(['ss.subscription_status' => $license]);
         }
 

@@ -305,12 +305,14 @@ class CatchupController extends ActiveController
      */
     public function actionVideosWatched($child = null, $all = 0)
     {
-        $class_id = Utility::ParentStudentChildClass($child);
         $studentID = Utility::getParentChildID();
+
         $file_log = FileLog::find()
             ->where([
-                'is_completed' => SharedConstant::VALUE_ONE, 'user_id' => $studentID,
-                'type' => SharedConstant::TYPE_VIDEO, 'class_id' => $class_id
+                'is_completed' => SharedConstant::VALUE_ONE,
+                'user_id' => $studentID,
+                'type' => SharedConstant::TYPE_VIDEO,
+                'class_id' => [Utility::ParentStudentChildClass($child),Utility::ParentStudentChildClass($child,0)]
             ])
             ->groupBy('file_id')
             ->orderBy('id DESC');
