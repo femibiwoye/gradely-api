@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Remarks;
@@ -53,7 +54,7 @@ class ClassController extends ActiveController
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::className(),
             'authMethods' => [
-                HttpBearerAuth::className(),
+                CustomHttpBearerAuth::className(),
             ],
         ];
 

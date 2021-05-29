@@ -86,9 +86,10 @@ class StudentDetailsExam extends User
         $topicBreakdown = new StudentDetails();
         $userType = Yii::$app->user->identity->type;
 
-        $examID = isset($this->selectedExam->id)?$this->selectedExam->id:null;
-        return $topicBreakdown->getTopicBreakdownModel($this->id, $userType,$examID);
+        $examID = isset($this->selectedExam->id) ? $this->selectedExam->id : null;
+        return $topicBreakdown->getTopicBreakdownModel($this->id, $userType, $examID);
     }
+
 
     public function getQuestion($question_id)
     {
@@ -116,13 +117,20 @@ class StudentDetailsExam extends User
         $this->score = round($this->easy_score + $this->medium_score + $this->hard_score);
     }
 
+
+    /**
+     * THis ios a backup for improvement
+     * @param $summary
+     * @param $topic
+     * @return bool
+     */
     public function getRecentAttempts($summary, $topic)
     {
         $easy_questions = SharedConstant::VALUE_ZERO;
         $medium_questions = SharedConstant::VALUE_ZERO;
         $hard_questions = SharedConstant::VALUE_ZERO;
         $score = [];
-        $recent_attempts = $summary
+        $recent_attempts = $summary->select(['quiz_summary_details.id'])
             ->where(['quiz_summary_details.student_id' => $this->id, 'quiz_summary_details.topic_id' => $topic])
             //->groupBy('quiz_id')
             ->orderBy(['quiz_summary_details.topic_id' => SORT_DESC])
@@ -306,13 +314,13 @@ class StudentDetailsExam extends User
         return $model;
     }
 
-    public function getMastery()
+    public function getMastery($studentID = null)
     {
         $model = new StudentMastery();
-        $model->student_id = $this->id;
+        $model->student_id = !empty($studentID) ? $studentID : $this->id;
         $model->term = Yii::$app->request->get('term');
         $model->subject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
-        $model->mode = Utility::getChildMode($this->id);
+        $model->mode = Utility::getChildMode($model->student_id);
         if ($model->mode == 'exam') {
             $model->exam = isset($this->getSelectedExam()['id']) ? $this->getSelectedExam()['id'] : null;
         }
@@ -326,14 +334,14 @@ class StudentDetailsExam extends User
     {
         $mode = Utility::getChildMode($this->id);
         $model = QuizSummary::find()
-            ->leftJoin('homeworks h','h.id = quiz_summary.homework_id')
+            ->leftJoin('homeworks h', 'h.id = quiz_summary.homework_id')
             ->select([
-            new Expression('SUM(TIME_TO_SEC(TIMEDIFF(quiz_summary.submit_at,quiz_summary.created_at))) exam_time'),
-            //new Expression('SEC_TO_TIME(SUM(TIME_TO_SEC(submit_at) - TIME_TO_SEC(created_at))) exam_time')
-        ])->where(['quiz_summary.student_id' => $this->id, 'quiz_summary.mode' => $mode, 'submit' => 1,
-            'quiz_summary.subject_id'=>isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null,
-            'h.exam_type_id'=> isset($this->getSelectedExam()['id']) ? $this->getSelectedExam()['id'] : null
-        ])->asArray()->one();
+                new Expression('SUM(TIME_TO_SEC(TIMEDIFF(quiz_summary.submit_at,quiz_summary.created_at))) exam_time'),
+                //new Expression('SEC_TO_TIME(SUM(TIME_TO_SEC(submit_at) - TIME_TO_SEC(created_at))) exam_time')
+            ])->where(['quiz_summary.student_id' => $this->id, 'quiz_summary.mode' => $mode, 'submit' => 1,
+                'quiz_summary.subject_id' => isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null,
+                'h.exam_type_id' => isset($this->getSelectedExam()['id']) ? $this->getSelectedExam()['id'] : null
+            ])->asArray()->one();
 
         return $model['exam_time'];
     }
@@ -380,7 +388,7 @@ class StudentDetailsExam extends User
 //        return $result = $command->queryAll();
 
             $subject_id = $this->selectedSubject->id;
-            $examID = isset($this->selectedExam->id)?$this->selectedExam->id:null;
+            $examID = isset($this->selectedExam->id) ? $this->selectedExam->id : null;
 
 
             $models = QuizSummary::find()
@@ -402,10 +410,28 @@ class StudentDetailsExam extends User
                 ->all();
 
             $leaderboard = [];
-            $directions = ['up', 'down'];
+            //$directions = ['up', 'down'];
             foreach ($models as $model) {
-                shuffle($directions);
-                $leaderboard[] = array_merge($model, ['is_me' => $this->id == $model['student_id'] ? true : false, 'improvement' => ['direction' => $directions[0], 'count' => mt_rand(1, 10)]]);
+
+
+               $improvement = QuizSummary::find()
+                    ->select(['created_at', 'homework_id'])
+                    ->where(['student_id' => $model['student_id'], 'mode' => 'exam'])
+                    ->andWhere(['>', 'created_at', new Expression('DATE_SUB(NOW(), INTERVAL 2 WEEK)')])
+                    ->asArray()
+                    ->all();
+
+                $masteryModel = new StudentMastery();
+                $improvementValues = $masteryModel->getImprovementEntry($improvement);
+
+               // shuffle($directions);
+                $masteryScore = $this->getMastery($model['student_id']);
+                $masteryScore = ($masteryScore['score'] / $masteryScore['total']) * 100;
+                $leaderboard[] = array_merge($model, [
+                    'score' => round($masteryScore, 2),
+                    'is_me' => $this->id == $model['student_id'] ? true : false,
+                    'improvement' => $improvementValues// ['direction' => $improvementValues['direction'], 'count' => $improvementValues['improvement']]
+                ]);
 
             }
             return $leaderboard;

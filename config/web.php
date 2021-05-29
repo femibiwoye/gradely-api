@@ -90,6 +90,7 @@ $config = [
         'notification' => $db['main'],
         'sms' => $db['sms'],
         'game' => $db['game'],
+        'handler' => $db['handler'],
 
         'urlManager' => [
             'enablePrettyUrl' => true,

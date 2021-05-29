@@ -230,7 +230,7 @@ class StudentMastery extends Model
             $model = $model
                 ->leftJoin('homeworks h', "h.id = quiz_summary_details.homework_id")
                 ->leftJoin('questions', "questions.id = quiz_summary_details.question_id")
-                ->andWhere(['qs.mode' => 'exam','questions.category'=>'exam']);
+                ->andWhere(['qs.mode' => 'exam', 'questions.category' => 'exam']);
 
         } else {
             $model = $model
@@ -325,4 +325,126 @@ class StudentMastery extends Model
         }
         return $this->term;
     }
+
+
+    public function TopicImprovementQuestions($questionsObjects)
+    {
+        $uniqueTopicId = array_unique(ArrayHelper::getColumn($questionsObjects, 'topic_id'));
+        $topicPerformance = 0;
+        foreach ($uniqueTopicId as $topicID) {
+            $topicPerformance = $topicPerformance + $this->TopicImprovement($questionsObjects, $topicID, true);
+        }
+
+
+        return $topicPerformance > 0 ? round($topicPerformance / count($uniqueTopicId)) : 0;
+    }
+
+    public function TopicImprovement($questionsObjects, $topicID, $scoreOnly = false)
+    {
+
+        $scoreHolder = [];
+        $easy_questions[$topicID] = 0;
+        $medium_questions[$topicID] = 0;
+        $hard_questions[$topicID] = 0;
+        foreach ($questionsObjects as $kindex => $recent_attempt) {
+            if ($topicID != $recent_attempt['topic_id']) {
+                continue;
+            }
+            if ($recent_attempt['selected'] != $recent_attempt['answer']) {
+                continue;
+            }
+
+            if ($recent_attempt['difficulty'] == SharedConstant::QUESTION_DIFFICULTY[0]) {
+                $hard_questions[$topicID]++;
+            } elseif ($recent_attempt['difficulty'] == SharedConstant::QUESTION_DIFFICULTY[1]) {
+                $medium_questions[$topicID]++;
+            } elseif ($recent_attempt['difficulty'] == SharedConstant::QUESTION_DIFFICULTY[2]) {
+                $easy_questions[$topicID] = +1;
+            }
+        }
+
+        $easy_score = ((($easy_questions[$topicID] / 6) * 100) * 40) / 100;
+        $medium_score = ((($medium_questions[$topicID] / 6) * 100) * 30) / 100;
+        $hard_score = ((($hard_questions[$topicID] / 6) * 100) * 30) / 100;
+        array_push($scoreHolder, (($easy_score > 40 ? 40 : $easy_score) + ($medium_score > 30 ? 30 : $medium_score) + ($hard_score > 30 ? 30 : $hard_score)));
+
+        return $scoreOnly ? array_sum($scoreHolder) : ['hard' => round($hard_score), 'medium' => round($medium_score), 'easy' => round($easy_score), 'score' => round(array_sum($scoreHolder))];
+    }
+
+
+    public function getImprovementEntry($models)
+    {
+        $formerWeek = [];
+        $currentWeek = [];
+        $scoreLastWeek = null;
+        $scoreThisWeek = null;
+        foreach ($models as $model) {
+            if ($model['created_at'] <= date('Y-m-d', strtotime('-1 week'))) {
+                $formerWeek[] = $model['homework_id'];
+            } else {
+                $currentWeek[] = $model['homework_id'];
+            }
+        }
+
+        $questionsObjects = QuizSummaryDetails::find()
+            ->alias('qsd')
+            ->select([
+                'q.difficulty',
+                'qsd.question_id AS question_id',
+                'qsd.id as id',
+                'qsd.selected',
+                'qsd.answer',
+                'qsd.topic_id',
+            ])
+            ->leftJoin('questions q', 'qsd.question_id = q.id')
+            ->where(['qsd.homework_id' => $formerWeek])
+            ->andWhere(['=', 'selected', new Expression('`qsd`.`answer`')])
+            ->orderBy('qsd.topic_id')
+            ->asArray()
+            ->all();
+
+        if (count($questionsObjects) > 0)
+            $scoreLastWeek = $this->TopicImprovementQuestions($questionsObjects);
+
+
+        $questionsObjects2 = QuizSummaryDetails::find()
+            ->alias('qsd')
+            ->select([
+                'q.difficulty',
+                'qsd.question_id AS question_id',
+                'qsd.id as id',
+                'qsd.selected',
+                'qsd.answer',
+                'qsd.topic_id',
+            ])
+            ->leftJoin('questions q', 'qsd.question_id = q.id')
+            ->where(['qsd.homework_id' => $currentWeek])
+            ->andWhere(['=', 'selected', new Expression('`qsd`.`answer`')])
+            ->orderBy('qsd.topic_id')
+            ->asArray()
+            ->all();
+
+
+        if (count($questionsObjects2) > 0)
+            $scoreThisWeek = $this->TopicImprovementQuestions($questionsObjects2);
+
+
+        if (empty($scoreLastWeek) || empty($scoreThisWeek)) {
+            $direction = null;
+            $improvement = null;
+        } else {
+            if ($scoreThisWeek > $scoreLastWeek) {
+                $direction = 'up';
+                $difference = $scoreThisWeek - $scoreLastWeek;
+                $improvement = ceil(($difference * 10) / 100);
+            } else {
+                $direction = 'down';
+                $difference = $scoreLastWeek = $scoreThisWeek;
+                $improvement = ceil(($difference * 10) / 100);
+            }
+        }
+
+        return ['direction' => $direction, 'improvement' => $improvement];
+    }
+
 }

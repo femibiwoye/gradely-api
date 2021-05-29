@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\teacher\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\teacher\models\{TeacherUpdateEmailForm, TeacherUpdatePasswordForm, UpdateTeacherForm};
@@ -31,7 +32,7 @@ class ProfileController extends ActiveController
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::className(),
             'authMethods' => [
-                HttpBearerAuth::className(),
+                CustomHttpBearerAuth::className(),
             ],
         ];
 

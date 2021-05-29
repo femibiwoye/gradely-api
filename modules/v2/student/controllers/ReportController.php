@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\student\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use Yii;
 use app\modules\v2\models\{ApiResponse, StudentAdditionalTopics};
 use app\modules\v2\components\SharedConstant;
@@ -26,7 +27,7 @@ class ReportController extends ActiveController
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::className(),
             'authMethods' => [
-                HttpBearerAuth::className(),
+                CustomHttpBearerAuth::className(),
             ],
         ];
         return $behaviors;
