@@ -109,7 +109,7 @@ class ClassController extends ActiveController
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $class = ClassSubjects::find()
             ->select([
-                'classes.id',
+                //'classes.id',
                 'classes.class_name',
                 'classes.class_code',
                 'subjects.name',
@@ -134,7 +134,7 @@ class ClassController extends ActiveController
         $class = TeacherClassSubjects::find()
             ->alias('tcs')
             ->select([
-                'classes.id',
+                //'classes.id',
                 'classes.class_name',
                 'classes.class_code',
                 'subjects.name',
@@ -151,7 +151,9 @@ class ClassController extends ActiveController
             ->where([
                 'tcs.class_id' => $class_id,
                 'tcs.school_id' => $school->id,
-                'tcs.status' => 1])->asArray()->all();
+                'tcs.status' => 1])
+            ->groupBy('tcs.id')
+            ->asArray()->all();
 
         if (!$class) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No new record');
