@@ -71,6 +71,13 @@ return ['db' => [
         'password' => PASSWORD,
         'charset' => 'utf8',
     ],
+    'handler' => [
+        'class' => 'yii\db\Connection',
+        'dsn' => 'mysql:host=' . HOST . ';port=' . PORT . ';dbname=' . HANDLER_DATABASE,
+        'username' => USERNAME,
+        'password' => PASSWORD,
+        'charset' => 'utf8',
+    ],
     'cache' => [
         'class' => 'yii\caching\FileCache',
     ],
