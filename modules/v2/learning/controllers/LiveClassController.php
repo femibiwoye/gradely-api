@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\learning\controllers;
 
+use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\LogError;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
@@ -46,7 +47,7 @@ class LiveClassController extends Controller
 
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
-            'class' => HttpBearerAuth::className(),
+            'class' => CustomHttpBearerAuth::className(),
             'except' => ['update-live-class-video'],
         ];
 

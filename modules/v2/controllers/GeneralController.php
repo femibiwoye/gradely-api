@@ -9,6 +9,7 @@ use app\modules\v2\models\Avatar;
 use app\modules\v2\models\Country;
 use app\modules\v2\models\ExamType;
 use app\modules\v2\models\GlobalClass;
+use app\modules\v2\models\handler\SessionLogger;
 use app\modules\v2\models\notifications\InappNotification;
 use app\modules\v2\models\notifications\NotificationOutLogging;
 use app\modules\v2\models\Parents;
@@ -214,7 +215,7 @@ class GeneralController extends Controller
                 'slug',
                 'title'
             ])
-            ->where(['e.school_id' => null,'is_exam'=>0]);
+            ->where(['e.school_id' => null, 'is_exam' => 0]);
 
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
     }
@@ -256,13 +257,17 @@ class GeneralController extends Controller
         $studentCount = User::find()->where(['type' => 'student'])->count();
         $teacherCount = User::find()->where(['type' => 'teacher'])->count();
 
+        $sessions = SessionLogger::find()
+            ->select([
+                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+            ])->asArray()->one();
 
         $result = [
-            'learningMinutes' => round(time() / 3200), //$learningMinutes,
+            'learningMinutes' => (int)$sessions['difference'], //$learningMinutes,
             'teacherCount' => (int)$teacherCount,
             'studentCount' => (int)$studentCount,
         ];
-        return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success($result + 507022, ApiResponse::SUCCESSFUL);
     }
 
     public function actionSchoolAuth($sch)
