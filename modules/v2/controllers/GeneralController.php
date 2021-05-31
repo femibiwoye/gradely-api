@@ -263,11 +263,11 @@ class GeneralController extends Controller
             ])->asArray()->one();
 
         $result = [
-            'learningMinutes' => (int)$sessions['difference'], //$learningMinutes,
+            'learningMinutes' => (int)$sessions['difference'] + 507022, //$learningMinutes,
             'teacherCount' => (int)$teacherCount,
             'studentCount' => (int)$studentCount,
         ];
-        return (new ApiResponse)->success($result + 507022, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
     }
 
     public function actionSchoolAuth($sch)
