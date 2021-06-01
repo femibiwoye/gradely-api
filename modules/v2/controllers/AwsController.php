@@ -95,7 +95,7 @@ class AwsController extends Controller
             $fileExtension = strtolower(end($fileNameCmps));
 
             if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file');
+                return (new ApiResponse)->error($_FILES['file']['error'], ApiResponse::VALIDATION_ERROR, 'Invalid file');
             }
 
             $allowedfileExtensions = ['jpg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'];
