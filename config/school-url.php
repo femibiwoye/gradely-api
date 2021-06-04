@@ -98,7 +98,9 @@ return [
         'PUT reset-calendar' => 'reset-calendar', //
         'GET subject-curriculum' => 'subject-curriculum', //
 
-        'POST assign-class-subjects' => 'assign-class-subjects' //
+        'POST assign-class-subjects' => 'assign-class-subjects', //
+
+        'PUT subject/<subject_id:\d+>' => 'edit-subject', //
     ]],
 
     'GET v2/school/curriculum/topics' => 'v2/school/curriculum/topics', //

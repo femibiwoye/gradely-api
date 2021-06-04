@@ -12,6 +12,7 @@ use Yii;
  * @property int $subject_id
  * @property int $status
  * @property string $created_at
+ * @property string $subject_name
  *
  * @property Schools $school
  * @property Subjects $subject
@@ -34,6 +35,7 @@ class SchoolSubject extends \yii\db\ActiveRecord
         return [
             [['school_id', 'subject_id'], 'required'],
             [['school_id', 'subject_id', 'status'], 'integer'],
+            [['subject_name'], 'string'],
             [['created_at'], 'safe'],
             [['school_id'], 'exist', 'skipOnError' => true, 'targetClass' => Schools::className(), 'targetAttribute' => ['school_id' => 'id']],
             [['subject_id'], 'exist', 'skipOnError' => true, 'targetClass' => Subjects::className(), 'targetAttribute' => ['subject_id' => 'id']],
