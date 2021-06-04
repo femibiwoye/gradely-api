@@ -231,7 +231,7 @@ class PreferencesController extends ActiveController
         }
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         if ($model = SchoolSubject::find()->where(['school_id' => $school->id, 'subject_id' => $subject_id])->one()) {
-            $model->subject_name = $subjectName;
+            $model->custom_subject_name = $subjectName;
             if ($model->save())
                 return (new ApiResponse)->success($model);
 
