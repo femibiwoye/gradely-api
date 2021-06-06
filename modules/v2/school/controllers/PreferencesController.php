@@ -84,7 +84,7 @@ class PreferencesController extends ActiveController
             ->alias('e')
             ->select(['e.*', new Expression('CASE WHEN s.curriculum_id IS NULL THEN 0 ELSE 1 END as active')])
             ->leftJoin('school_curriculum s', "s.curriculum_id = e.id AND s.school_id = $school->id")
-            ->where(['OR', ['e.school_id' => null], ['e.school_id' => $school->id]])->andWhere(['e.is_exam'=>0]);
+            ->where(['OR', ['e.school_id' => null], ['e.school_id' => $school->id]])->andWhere(['e.is_exam' => 0]);
 
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL, $examType->count() . ' classes found');
     }
@@ -127,7 +127,7 @@ class PreferencesController extends ActiveController
 
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        if (!ExamType::find()->where(['id' => $form->curriculum_id,'is_exam'=>0])->andWhere(['OR', ['school_id' => null], ['school_id' => $school->id]])->exists()) {
+        if (!ExamType::find()->where(['id' => $form->curriculum_id, 'is_exam' => 0])->andWhere(['OR', ['school_id' => null], ['school_id' => $school->id]])->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid curriculum!');
         }
         $curriculum = SchoolCurriculum::find()->where(['school_id' => $school->id]);
@@ -187,6 +187,11 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($mySubjects->all(), ApiResponse::SUCCESSFUL, $mySubjects->count() . ' subjects found');
     }
 
+    /**
+     * This is the details of the subject
+     * @param $subject_id
+     * @return ApiResponse
+     */
     public function actionSubjectDetails($subject_id)
     {
         if ($model = Subjects::findOne(['id' => $subject_id, 'status' => 1]))
@@ -212,6 +217,28 @@ class PreferencesController extends ActiveController
         return (new ApiResponse)->success($model);
     }
 
+    /**
+     * Edit the name of the subject for school only.
+     *
+     * @param $subject_id
+     * @return ApiResponse
+     */
+    public function actionEditSubject($subject_id)
+    {
+        $subjectName = Yii::$app->request->post('subject_name');
+        if (empty($subjectName)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject name is required');
+        }
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        if ($model = SchoolSubject::find()->where(['school_id' => $school->id, 'subject_id' => $subject_id])->one()) {
+            $model->custom_subject_name = $subjectName;
+            if ($model->save())
+                return (new ApiResponse)->success($model);
+
+        } else
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject does not exist');
+    }
+
     public function actionLinkSubject()
     {
         $form = new PreferencesForm(['scenario' => 'link-subject']);
@@ -232,7 +259,7 @@ class PreferencesController extends ActiveController
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        $model = SchoolSubject::find()->where(['school_id' => $school->id, 'id' => $subject_id]);
+        $model = SchoolSubject::find()->where(['school_id' => $school->id, 'subject_id' => $subject_id]);
         if (!$model->exists())
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subject does not exist');
 

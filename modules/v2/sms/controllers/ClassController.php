@@ -10,6 +10,7 @@ use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
+use app\modules\v2\models\User;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
 use yii\rest\ActiveController;
@@ -237,4 +238,44 @@ class ClassController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
+  
+    public function actionJoinClass()
+    {
+        $student_id = Yii::$app->request->post('student_id');
+        $class_id = Yii::$app->request->post('class_id');
+        $password = Yii::$app->request->post('password');
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $school_id = $school->id;
+//        return Classes::findAll(['school_id'=>$school_id]);
+        $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id', 'password'));
+        $model->addRule(['student_id', 'class_id', 'password'], 'required');
+        $model->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id'=>'id']]);
+        $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'class_id' => 'id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+
+        if (StudentSchool::find()->where(['school_id' => $school_id, 'student_id' => $student_id])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student already in school');
+        }
+
+        $student = User::findOne(['id' => $student_id, 'type' => 'student']);
+        if (!$student || !Yii::$app->security->validatePassword($password, $student->password_hash)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student does not exist or password does not match');
+        }
+;
+        $newStudent = new StudentSchool();
+        $newStudent->student_id = $student_id;
+        $newStudent->class_id = $class_id;
+        $newStudent->school_id = $school_id;
+        $newStudent->status = 1;
+        if (!$newStudent->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Request not successful');
+        }
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL);
+
+    }
+
 }
