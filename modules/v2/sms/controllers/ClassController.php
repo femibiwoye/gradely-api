@@ -238,7 +238,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
-
+  
     public function actionJoinClass()
     {
         $student_id = Yii::$app->request->post('student_id');
