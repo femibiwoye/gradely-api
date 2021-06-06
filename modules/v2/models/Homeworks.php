@@ -122,33 +122,33 @@ class Homeworks extends \yii\db\ActiveRecord
             'title',
             'description',
             'subject',
-            'teacher',
-            'class_id',
-            'class',
-            'school_id',
-            'exam_type_id',
-            'slug',
-            'open_date',
-            'close_date',
-            'is_taken' => 'isTaken',
-            'is_closed' => 'isClosed',
-            'questionCount',
-            'duration',
-            'is_proctor',
-            'questionsDuration',
-            'score',
-            'status',
-            'tag',
-            'activeStatus' => 'statusMessage', //this is used for student to know if homework is open, expired or closed
-            'expiry_status' => 'expiryStatus',
-            'publish_status' => 'publishStatus',
-            'topics',
-            'attachments',
-            'average',
-            'expected_students' => 'studentExpectedCount',
-            'submitted_students' => 'studentsSubmitted',
-            'completion' => 'completedRate',
-            'selected_students' => 'selectedStudents',
+//            'teacher',
+//            'class_id',
+//            'class',
+//            'school_id',
+//            'exam_type_id',
+//            'slug',
+//            'open_date',
+//            'close_date',
+//            'is_taken' => 'isTaken',
+//            'is_closed' => 'isClosed',
+//            'questionCount',
+//            'duration',
+//            'is_proctor',
+//            'questionsDuration',
+//            'score',
+//            'status',
+//            'tag',
+//            'activeStatus' => 'statusMessage', //this is used for student to know if homework is open, expired or closed
+//            'expiry_status' => 'expiryStatus',
+//            'publish_status' => 'publishStatus',
+//            'topics',
+//            'attachments',
+//            'average',
+//            'expected_students' => 'studentExpectedCount',
+//            'submitted_students' => 'studentsSubmitted',
+//            'completion' => 'completedRate',
+//            'selected_students' => 'selectedStudents',
             'created_at'
             //'has_question' => 'homeworkHasQuestion'
 //            'questions' => 'homeworkQuestions',
@@ -363,7 +363,13 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getSubject()
     {
-        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+        $model= $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+
+        $model = $model->select(['subjects.id','subjects.slug','subjects.description',"IFNULL(ss.custom_subject_name,subjects.name) as name"])
+            ->leftJoin('school_subject ss','ss.subject_id = subjects.id')
+                ->where(['ss.status' => 1,'ss.school_id'=>$this->school_id])
+            ;
+        return $model;
     }
 
     public function getQuizSummary()

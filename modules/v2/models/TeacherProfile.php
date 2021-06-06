@@ -37,7 +37,12 @@ class TeacherProfile extends User
             ->where(['school_id' => $school->id, 'teacher_id' => $this->id, 'status' => 1])
             ->groupBy(['subject_id'])
             ->all(), 'subject_id');
-        return Subjects::find()->where(['id' => $subjects])->select(['id', 'slug', 'name'])->all();
+        return Subjects::find()
+            ->alias('s')
+            ->leftJoin('school_subject ss','ss.subject_id = s.id')
+            ->select(['s.id', 's.slug', "IFNULL(ss.custom_subject_name,s.name) as name",])
+            ->where(['s.id' => $subjects,'ss.school_id'=>$school->id])
+            ->all();
     }
 
     public function getClasses()
