@@ -246,7 +246,6 @@ class ClassController extends ActiveController
         $password = Yii::$app->request->post('password');
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
-//        return Classes::findAll(['school_id'=>$school_id]);
         $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id', 'password'));
         $model->addRule(['student_id', 'class_id', 'password'], 'required');
         $model->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id'=>'id']]);
@@ -265,7 +264,7 @@ class ClassController extends ActiveController
         if (!$student || !Yii::$app->security->validatePassword($password, $student->password_hash)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student does not exist or password does not match');
         }
-;
+
         $newStudent = new StudentSchool();
         $newStudent->student_id = $student_id;
         $newStudent->class_id = $class_id;
