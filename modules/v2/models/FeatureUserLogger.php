@@ -13,14 +13,14 @@ use Yii;
  * @property string $type
  * @property string|null $created_at
  */
-class UserTour extends \yii\db\ActiveRecord
+class FeatureUserLogger extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'user_tour';
+        return 'feature_user_logger';
     }
 
     /**
