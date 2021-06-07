@@ -39,9 +39,9 @@ class TeacherProfile extends User
             ->all(), 'subject_id');
         return Subjects::find()
             ->alias('s')
-            ->leftJoin('school_subject ss','ss.subject_id = s.id')
+            ->leftJoin('school_subject ss',"ss.subject_id = s.id AND ss.school_id = {$school->id}")
             ->select(['s.id', 's.slug', "IFNULL(ss.custom_subject_name,s.name) as name",])
-            ->where(['s.id' => $subjects,'ss.school_id'=>$school->id])
+            ->where(['s.id' => $subjects])
             ->all();
     }
 
@@ -58,7 +58,12 @@ class TeacherProfile extends User
                 ->where(['school_id' => $class->school_id, 'teacher_id' => $this->id, 'status' => 1, 'class_id' => $class->id])
                 ->groupBy(['subject_id'])
                 ->all(), 'subject_id');
-            $returns[] = array_merge(ArrayHelper::toArray($class), ['subjects' => Subjects::find()->where(['id' => $subjects])->select(['id', 'slug', 'name'])->all()]);
+            $returns[] = array_merge(ArrayHelper::toArray($class), ['subjects' => Subjects::find()
+                ->alias('s')
+                ->leftJoin('school_subject ss',"ss.subject_id = s.id AND ss.school_id = {$school->id}")
+                ->select(['s.id', 's.slug', "IFNULL(ss.custom_subject_name,s.name) as name",])
+                ->where(['s.id' => $subjects])
+                ->all()]);
         }
         
         return $returns;

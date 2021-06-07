@@ -91,7 +91,8 @@ class CalenderController extends ActiveController
                 'homeworks.title',
                 'homeworks.subject_id',
                 'homeworks.class_id',
-                'subjects.name as subject_name',
+                //'subjects.name as subject_name',
+                "IFNULL(ss.custom_subject_name,subjects.name) as subject_name",
                 'classes.class_name',
                 'homeworks.created_at',
                 'homeworks.close_date as datetime',
@@ -107,6 +108,7 @@ class CalenderController extends ActiveController
             ->innerJoin('school_teachers', 'school_teachers.teacher_id = homeworks.teacher_id')
             ->innerJoin('subjects', 'subjects.id = homeworks.subject_id')
             ->innerJoin('classes', 'classes.id = homeworks.class_id')
+            ->leftJoin('school_subject ss', "ss.subject_id = subjects.id AND ss.school_id = $school_id")
             ->where([
                 'school_teachers.school_id' => $school_id,
                 'homeworks.publish_status' => 1
