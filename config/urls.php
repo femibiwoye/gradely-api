@@ -112,6 +112,6 @@ return [
     'GET v2/mastery/topics' => 'v2/mastery/topics', //
 
 
-    'GET v2/tour' => 'v2/tour', //
-    'PUT v2/tour' => 'v2/tour/update' //
+    'GET v2/feature-user-logger' => 'v2/feature-user-logger', //
+    'PUT v2/feature-user-logger' => 'v2/feature-user-logger/update' //
 ];

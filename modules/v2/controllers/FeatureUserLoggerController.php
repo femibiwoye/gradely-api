@@ -3,7 +3,7 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\models\ApiResponse;
-use app\modules\v2\models\UserTour;
+use app\modules\v2\models\FeatureUserLogger;
 use Yii;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
@@ -12,7 +12,7 @@ use yii\filters\auth\HttpBearerAuth;
 /**
  * Auth controller
  */
-class TourController extends Controller
+class FeatureUserLoggerController extends Controller
 {
     public function behaviors()
     {
@@ -38,17 +38,17 @@ class TourController extends Controller
      */
     public function actionIndex()
     {
-        $model = ['name'=>'welcome_school','type'=>'school']; //Temporary solution
+       /// $model = ['name'=>'welcome_school','type'=>'school']; //Temporary solution
 
-        //$model = UserTour::find()->where(['user_id' => Yii::$app->user->id])->select(['name', 'type'])->all();
+        $model = FeatureUserLogger::find()->where(['user_id' => Yii::$app->user->id])->select(['name', 'type'])->all();
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 
     public function actionUpdate($name, $type)
     {
         $user = Yii::$app->user;
-        if (!UserTour::find()->where(['name' => $name, 'user_id' => $user->id, 'type' => ['all', $user->identity->type]])->exists()) {
-            $model = new UserTour();
+        if (!FeatureUserLogger::find()->where(['name' => $name, 'user_id' => $user->id, 'type' => ['all', $user->identity->type]])->exists()) {
+            $model = new FeatureUserLogger();
             $model->user_id = $user->id;
             $model->type = $type;
             $model->name = $name;

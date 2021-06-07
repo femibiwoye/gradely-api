@@ -165,7 +165,8 @@ class PreferencesController extends ActiveController
                 's.school_id',
                 'subjects.id as subject_id',
                 'subjects.slug',
-                'subjects.name',
+                //'subjects.name',
+                "IFNULL(s.custom_subject_name,subjects.name) as name",
                 'subjects.description',
                 //'count(d.class_id) class_subject_count',
                 //'count(c.id) teacher_class_count'

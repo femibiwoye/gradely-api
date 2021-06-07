@@ -363,7 +363,13 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getSubject()
     {
-        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+        $model= $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+
+        $model = $model->select(['subjects.id','subjects.slug','subjects.description',"IFNULL(ss.custom_subject_name,subjects.name) as name"])
+            ->leftJoin('school_subject ss','ss.subject_id = subjects.id')
+                ->where(['ss.status' => 1,'ss.school_id'=>$this->school_id])
+            ;
+        return $model;
     }
 
     public function getQuizSummary()

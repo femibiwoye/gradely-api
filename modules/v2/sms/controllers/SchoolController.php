@@ -69,8 +69,9 @@ class SchoolController extends ActiveController
 //                's.school_id',
                 'subjects.id as subject_id',
                 'subjects.slug',
-                'subjects.name',
+//                'subjects.name',
                 'subjects.description',
+                "IFNULL(s.custom_subject_name,subjects.name) as name",
                 //'count(d.class_id) class_subject_count',
                 //'count(c.id) teacher_class_count'
 //                new Expression('CASE WHEN h.subject_id IS NULL THEN 1 ELSE 0 END as can_delete'),
