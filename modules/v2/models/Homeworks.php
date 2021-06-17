@@ -78,9 +78,9 @@ class Homeworks extends \yii\db\ActiveRecord
     {
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
-            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id', 'selected_student','is_custom_topic','is_proctor'], 'integer'],
-            [['description', 'access_status', 'type', 'tag','mode'], 'string'],
-            [['open_date', 'close_date', 'created_at','publish_at','is_custom_topic'], 'safe'],
+            [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id', 'selected_student', 'is_custom_topic', 'is_proctor'], 'integer'],
+            [['description', 'access_status', 'type', 'tag', 'mode'], 'string'],
+            [['open_date', 'close_date', 'created_at', 'publish_at', 'is_custom_topic'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
             [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],
         ];
@@ -363,12 +363,12 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getSubject()
     {
-        $model= $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
-
-        $model = $model->select(['subjects.id','subjects.slug','subjects.description',"IFNULL(ss.custom_subject_name,subjects.name) as name"])
-            ->leftJoin('school_subject ss','ss.subject_id = subjects.id')
-                ->where(['ss.status' => 1,'ss.school_id'=>$this->school_id])
-            ;
+        $model = $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+        if (isset($this->school_id) && $this->school_id > 0) {
+            $model = $model->select(['subjects.id', 'subjects.slug', 'subjects.description', "IFNULL(ss.custom_subject_name,subjects.name) as name"])
+                ->leftJoin('school_subject ss', 'ss.subject_id = subjects.id')
+                ->where(['ss.status' => 1, 'ss.school_id' => $this->school_id]);
+        }
         return $model;
     }
 
