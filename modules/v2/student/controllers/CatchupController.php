@@ -544,7 +544,6 @@ class CatchupController extends ActiveController
                     ->all();
 
                 $subjects = array_merge($subjects, $model);
-
             }
             $model = $subjects;
         } else {

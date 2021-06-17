@@ -102,24 +102,26 @@ class PreferencesForm extends Model
         try {
 
             if (Subjects::find()->where(['name' => $this->name, 'status' => 1])->exists()) {
+               $newModel = Subjects::find()->where(['name' => $this->name, 'status' => 1])->one();
+            } else {
+                $newModel = new Subjects();
+                $newModel->school_id = $school->id;
+                $newModel->attributes = $this->attributes;
+                if (!$newModel->save()) {
+                    return $this->addError('name', 'Not saved');
+                }
+            }
+            if (SchoolSubject::find()->where(['school_id' => $school->id, 'subject_id' => $newModel->id, 'status' => 1])->exists()) {
                 return $this->addError('name', 'Subject already exist');
             }
 
-            $newModel = new Subjects();
-            $newModel->school_id = $school->id;
-            $newModel->attributes = $this->attributes;
-            if (!$newModel->save()) {
-                return $this->addError('name', 'Not saved');
-            }
-
             $schoolSubject = new SchoolSubject();
-            $schoolSubject->school_id = $newModel->school_id;
+            $schoolSubject->school_id = $school->id;
             $schoolSubject->subject_id = $newModel->id;
             $schoolSubject->status = 1;
             if (!$schoolSubject->save()) {
                 return $this->addError('name', 'Could not connect new subject to school');
             }
-
 
 
             $dbtransaction->commit();
@@ -145,7 +147,6 @@ class PreferencesForm extends Model
                         return false;
                     }
                 }
-
 
                 foreach ($this->classes as $key => $class) {
                     if (!ClassSubjects::find()->where(['school_id' => $school->id, 'subject_id' => $this->subject_id, 'class_id' => $class])->exists()) {
