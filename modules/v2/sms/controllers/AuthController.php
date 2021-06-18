@@ -10,6 +10,8 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Parents;
+use app\modules\v2\models\Schools;
+use app\modules\v2\models\SchoolTeachers;
 use app\modules\v2\models\SignupForm;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\TeacherClass;
@@ -60,7 +62,7 @@ class AuthController extends ActiveController
     public function actionLogin($id)
     {
         if ($user = User::find()->where(['id' => $id])->andWhere(['<>', 'status', 0])->one()) {
-            return (new ApiResponse)->success(Yii::$app->params['appBase'] .'sms/login/'. $user->updateAccessToken());
+            return (new ApiResponse)->success(Yii::$app->params['appBase'] . 'sms/login/' . $user->updateAccessToken());
         }
         return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'User does not exist or cannot be accessed by your school');
     }
@@ -70,6 +72,7 @@ class AuthController extends ActiveController
         if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
             return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'This is an unknown user type');
         }
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
 
         $form = new SignupForm(['scenario' => "$type-signup"]);
         $form->attributes = Yii::$app->request->post();
@@ -100,7 +103,18 @@ class AuthController extends ActiveController
 
         } elseif ($user->type == 'teacher') {
             $class_code = Yii::$app->request->post('class_code');
+
+            if (!SchoolTeachers::find()->where(['school_id' => $school->id, 'teacher_id' => $user->id])->exists()) {
+                $model = new SchoolTeachers();
+                $model->school_id = $school->id;
+                $model->teacher_id = $user->id;
+                $model->status = 1;
+                $model->save();
+            }
+
             $this->AddTeacher($class_code, $user->id);
+
+
         } elseif ($user->type == 'parent') {
             $studentCode = Yii::$app->request->post('student_code');
             $relationship = Yii::$app->request->post('relationship');
@@ -171,7 +185,7 @@ class AuthController extends ActiveController
         if (!$model->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher is not successfully added!');
         }
-        $model->addSchoolTeacher(1);
+        //$model->addSchoolTeacher(1);
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher added successfully');
     }
@@ -243,4 +257,30 @@ class AuthController extends ActiveController
     }
 
 
+    public function actionConnectNewTeacher()
+    {
+        $teacherId = Yii::$app->request->post('teacher_id');
+        if (empty($teacherId)) {
+            return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'Teacher id is required');
+        }
+
+        if (!User::find()->where(['id' => $teacherId, 'type' => 'teacher'])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'Teacher does not exist');
+        }
+
+        if (SchoolTeachers::find()->where(['teacher_id' => $teacherId, 'status' => 1])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'Already connected to a school');
+        }
+
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $model = new SchoolTeachers();
+        $model->school_id = $school->id;
+        $model->teacher_id = $teacherId;
+        $model->status = 1;
+        if ($model->save()) {
+            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Successfully added!');
+        }
+
+        return (new ApiResponse)->error(false, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+    }
 }

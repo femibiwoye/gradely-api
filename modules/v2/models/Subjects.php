@@ -5,6 +5,7 @@ namespace app\modules\v2\models;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\behaviors\SluggableBehavior;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "subjects".
@@ -52,9 +53,25 @@ class Subjects extends \yii\db\ActiveRecord
     public function fields()
     {
         $fields = parent::fields();
-        $fields['image'] = function ($model) {
-            return Utility::AbsoluteImage($model->image,'subjects');
-        };
+        $type = Yii::$app->user->identity->type;
+        if ($type == 'student' || $type == 'parent') {
+            $studentID = Utility::getParentChildID();
+            $mode = Utility::getChildMode($studentID);
+            if ($mode == 'exam') {
+                $fields['mode'] = function ($model) {
+                    return 'exam';
+                };
+            } else {
+                $fields['mode'] = function ($model) {
+                    return 'practice';
+                };
+            }
+        }
+        {
+            $fields['image'] = function ($model) {
+                return Utility::AbsoluteImage($model->image, 'subjects');
+            };
+        }
         return $fields;
     }
 
