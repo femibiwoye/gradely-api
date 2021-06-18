@@ -194,7 +194,7 @@ class Utility extends ActiveRecord
         elseif (!empty($parentID))
             $model = Parents::find()->select(['parent_id'])->where(['student_id' => $studentID, 'parent_id' => $parentID, 'status' => 1])->all();
 
-        return ArrayHelper::getColumn($model,'parent_id');
+        return ArrayHelper::getColumn($model, 'parent_id');
     }
 
     public static function getChildMode($studentID)
@@ -439,6 +439,17 @@ class Utility extends ActiveRecord
             'school_name' => $schoolName,
             'has_school' => $hasSchool
         ];
+    }
+
+    /**
+     * THis return the id of the student school
+     * @param null $child
+     * @return StudentSchool|null
+     */
+    public static function StudentSchoolId($child = null)
+    {
+        $model = StudentSchool::findOne(['student_id' => $child, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1]);
+        return !empty($model) ? $model : null;
     }
 
     public function generateRecommendation($quiz_id)

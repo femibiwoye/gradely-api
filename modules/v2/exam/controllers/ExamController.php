@@ -73,7 +73,7 @@ class ExamController extends ActiveController
     public function actionList()
     {
         $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
-        $model = ExamType::find()->where(['is_exam' => 1, 'class' => $category])->select(['id', 'name', 'slug', 'title', 'description'])->all();
+        $model = ExamType::find()->where(['is_exam' => 1, 'class' => $category, 'slug' => ['bece', 'common-entrance']])->select(['id', 'name', 'slug', 'title', 'description'])->all();
         return (new ApiResponse)->success($model);
     }
 

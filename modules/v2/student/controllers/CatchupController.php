@@ -8,17 +8,20 @@ use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Recommendation;
 use app\modules\v2\models\Classes;
+use app\modules\v2\models\ExamType;
 use app\modules\v2\models\Feed;
 use app\modules\v2\models\FeedLike;
 use app\modules\v2\models\FileLog;
 use app\modules\v2\models\games\GameLike;
 use app\modules\v2\models\games\GameLog;
 use app\modules\v2\models\games\Games;
+use app\modules\v2\models\games\Subject;
 use app\modules\v2\models\HomeworkQuestions;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeTopics;
 use app\modules\v2\models\Questions;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\SubjectImage;
 use app\modules\v2\models\VideoAssign;
 use app\modules\v2\models\VideoContent;
 use app\modules\v2\student\models\StartDiagnosticForm;
@@ -312,7 +315,7 @@ class CatchupController extends ActiveController
                 'is_completed' => SharedConstant::VALUE_ONE,
                 'user_id' => $studentID,
                 'type' => SharedConstant::TYPE_VIDEO,
-                'class_id' => [Utility::ParentStudentChildClass($child),Utility::ParentStudentChildClass($child,0)]
+                'class_id' => [Utility::ParentStudentChildClass($child), Utility::ParentStudentChildClass($child, 0)]
             ])
             ->groupBy('file_id')
             ->orderBy('id DESC');
@@ -527,33 +530,39 @@ class CatchupController extends ActiveController
             $subjects = [];
             foreach (Utility::StudentExamSubjectID($studentID, 'exam_id') as $key => $exam) {
                 $model = Subjects::find()
-                    ->select([
-                        'subjects.*',
-                        new Expression('"exam" AS mode'),
-                        'et.name AS exam_name',
-                        'et.id AS exam_id'
-                        //new Expression('CONCAT("https://gradly.s3.eu-west-2.amazonaws.com/exams/",exam_id) as mode'),
-                    ])
+//                    ->select([
+//                        'subjects.*',
+//                        new Expression('"exam" AS mode'),
+//                        'et.name AS exam_name',
+//                        'et.id AS exam_id'
+//                        //new Expression('CONCAT("https://gradly.s3.eu-west-2.amazonaws.com/exams/",exam_id) as mode'),
+//                    ])
                     ->leftJoin('homeworks', "homeworks.subject_id = subjects.id AND homeworks.type = 'diagnostic' AND homeworks.mode = 'exam' AND homeworks.student_id = $studentID AND homeworks.exam_type_id = $exam")
                     ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'exam' AND qs.submit = 1 AND qs.student_id = $studentID AND qs.homework_id = homeworks.id AND homeworks.exam_type_id = $exam")
                     ->leftJoin('exam_type et', "et.id = $exam")
                     ->where(['subjects.status' => 1, 'subjects.id' => Utility::StudentExamSubjectID($studentID), 'subjects.school_id' => null, 'et.id' => Utility::StudentExamSubjectID($studentID, 'exam_id')])
                     ->andWhere(['AND', ['is', 'qs.subject_id', null], ['is', 'homeworks.exam_type_id', null]])
                     ->groupBy('subjects.id')
-                    ->asArray()
+                    //->asArray()
                     ->all();
 
+                foreach ($model as $index => $item) {
+                    $examModel = ExamType::find()->select(['id exam_id', 'name exam_name'])->where(['id' => $exam])->asArray()->one();
+                    $examImg = SubjectImage::findOne(['subject_id' => $item->id, 'exam_id' => $exam]);
+                    $item->image = Utility::AbsoluteImage(isset($examImg->image)?$examImg->image:null, 'subject');
+                    $model[$index] = array_merge(ArrayHelper::toArray($item), $examModel);
+                }
                 $subjects = array_merge($subjects, $model);
             }
             $model = $subjects;
         } else {
             $model = Subjects::find()
-                ->select(['subjects.*', new Expression('"practice" AS mode')])
+                //->select(['subjects.*', new Expression('"practice" AS mode')])
                 ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'practice' AND qs.submit = 1 AND student_id = $studentID")
                 ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
                 ->andWhere(['is', 'qs.subject_id', null])
                 ->groupBy('id')
-                ->asArray()
+                //->asArray()
                 ->all();
         }
 
