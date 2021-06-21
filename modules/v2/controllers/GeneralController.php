@@ -254,18 +254,46 @@ class GeneralController extends Controller
      */
     public function actionGradelyUsersStatistics()
     {
-//        $studentCount = User::find()->where(['type' => 'student'])->count();
-//        $teacherCount = User::find()->where(['type' => 'teacher'])->count();
-//
-//        $sessions = SessionLogger::find()
-//            ->select([
-//                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
-//            ])->asArray()->one();
+        $studentCount = User::find()->where(['type' => 'student'])->count();
+        $teacherCount = User::find()->where(['type' => 'teacher'])->count();
+
+        $sessions = SessionLogger::find()
+            ->select([
+                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+            ])->asArray()->one();
+
+        $studentOnly = SessionLogger::find()
+            ->select([
+                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+            ])
+            ->where(['type' => 'student'])->asArray()->one();
+
+        $studentTeacher = SessionLogger::find()
+            ->select([
+                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+            ])
+            ->where(['type' => ['student', 'teacher']])->asArray()->one();
+
+        $studentTeacherLearning = SessionLogger::find()
+            ->select([
+                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+            ])
+            ->where(['type' => ['student', 'teacher']])
+            ->andFilterWhere(['OR', ['like', 'url', '%catchup%', false],
+                ['like', 'url', '%homework%', false],
+                ['like', 'url', '%practice%', false]
+                ])
+            ->asArray()->one();
 
         $result = [
-            'learningMinutes' => '500k+', //(int)$sessions['difference'] + 507022, //$learningMinutes,
-            'teacherCount' => '1.5k+', //(int)$teacherCount,
-            'studentCount' => '10k+' //(int)$studentCount,
+            'learningMinutes' => (int)$sessions['difference'] + 507022, //$learningMinutes,
+            'teacherCount' => (int)$teacherCount,
+            'studentCount' => (int)$studentCount,
+
+
+            'studentOnly' => (int)$studentOnly['difference'],
+            'studentTeacher' => (int)$studentTeacher['difference'],
+            'studentTeacherLearning'=>(int)$studentTeacherLearning['difference']
         ];
         return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
     }
