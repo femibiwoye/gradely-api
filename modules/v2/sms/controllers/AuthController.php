@@ -103,7 +103,6 @@ class AuthController extends ActiveController
 
         } elseif ($user->type == 'teacher') {
             $class_code = Yii::$app->request->post('class_code');
-
             if (!SchoolTeachers::find()->where(['school_id' => $school->id, 'teacher_id' => $user->id])->exists()) {
                 $model = new SchoolTeachers();
                 $model->school_id = $school->id;
@@ -111,10 +110,7 @@ class AuthController extends ActiveController
                 $model->status = 1;
                 $model->save();
             }
-
             $this->AddTeacher($class_code, $user->id);
-
-
         } elseif ($user->type == 'parent') {
             $studentCode = Yii::$app->request->post('student_code');
             $relationship = Yii::$app->request->post('relationship');
