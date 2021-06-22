@@ -257,22 +257,22 @@ class GeneralController extends Controller
         $studentCount = User::find()->where(['type' => 'student'])->count();
         $teacherCount = User::find()->where(['type' => 'teacher'])->count();
 
-        $sessions = SessionLogger::find()
-            ->select([
-                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
-            ])->asArray()->one();
-
-        $studentOnly = SessionLogger::find()
-            ->select([
-                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
-            ])
-            ->where(['type' => 'student'])->asArray()->one();
-
-        $studentTeacher = SessionLogger::find()
-            ->select([
-                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
-            ])
-            ->where(['type' => ['student', 'teacher']])->asArray()->one();
+//        $sessions = SessionLogger::find()
+//            ->select([
+//                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+//            ])->asArray()->one();
+//
+//        $studentOnly = SessionLogger::find()
+//            ->select([
+//                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+//            ])
+//            ->where(['type' => 'student'])->asArray()->one();
+//
+//        $studentTeacher = SessionLogger::find()
+//            ->select([
+//                'SUM(TIMESTAMPDIFF(SECOND, created_at, updated_at)) AS difference'
+//            ])
+//            ->where(['type' => ['student', 'teacher']])->asArray()->one();
 
         $studentTeacherLearning = SessionLogger::find()
             ->select([
@@ -286,14 +286,14 @@ class GeneralController extends Controller
             ->asArray()->one();
 
         $result = [
-            'learningMinutes' => (int)$sessions['difference'] + 507022, //$learningMinutes,
+            'learningMinutes' => (int)$studentTeacherLearning['difference'], //(int)$sessions['difference'] + 507022, //$learningMinutes,
             'teacherCount' => (int)$teacherCount,
             'studentCount' => (int)$studentCount,
 
-
-            'studentOnly' => (int)$studentOnly['difference'],
-            'studentTeacher' => (int)$studentTeacher['difference'],
-            'studentTeacherLearning'=>(int)$studentTeacherLearning['difference']
+//This was used to test
+//            'studentOnly' => (int)$studentOnly['difference'],
+//            'studentTeacher' => (int)$studentTeacher['difference'],
+//            'studentTeacherLearning'=>(int)$studentTeacherLearning['difference']
         ];
         return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
     }
