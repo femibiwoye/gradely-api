@@ -65,6 +65,11 @@ class Parents extends \yii\db\ActiveRecord
         return $this->hasOne(UserModel::className(), ['id' => 'student_id']);
     }
 
+    public function getParentProfile()
+    {
+        return $this->hasOne(UserModel::className(), ['id' => 'parent_id']);
+    }
+
     public function getStudentClass()
     {
         return $this->hasOne(Classes::className(), ['id' => 'class_id'])->via('studentSchool');

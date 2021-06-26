@@ -59,4 +59,9 @@ class TutorSessionParticipant extends \yii\db\ActiveRecord
     {
         return $this->hasOne(TutorSession::className(), ['id' => 'session_id']);
     }
+
+    public function getStudentProfile()
+    {
+        return $this->hasOne(User::className(), ['id' => 'student_id']);
+    }
 }
