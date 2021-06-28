@@ -508,6 +508,7 @@ class ClassController extends ActiveController
             ->alias('tc')
             ->select([
                 'c.class_name',
+                'c.class_code',
                 'tc.class_id'
             ])
             ->innerJoin('classes c', 'c.id = tc.class_id')
