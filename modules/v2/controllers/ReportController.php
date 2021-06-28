@@ -309,7 +309,7 @@ class ReportController extends ActiveController
 
 
         if (!($userType == 'teacher' && TeacherClassSubjects::find()->where(['teacher_id' => $userID, 'status' => 1, 'class_id' => $class_id])->exists()) && !($userType == 'school' && Classes::find()->where(['school_id' => Utility::getSchoolAccess(), 'id' => $class_id])->exists())) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid request');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access to this class');
         }
 
         $students = StudentSchool::find()
