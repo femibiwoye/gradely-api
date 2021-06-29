@@ -74,50 +74,71 @@ class AuthController extends ActiveController
         }
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
 
-        $form = new SignupForm(['scenario' => "$type-signup"]);
-        $form->attributes = Yii::$app->request->post();
-        if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
-        }
+        try {
+            $form = new SignupForm(['scenario' => "$type-signup"]);
+            $form->attributes = Yii::$app->request->post();
+            if (!$form->validate()) {
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+            }
+            $dbtransaction = Yii::$app->db->beginTransaction();
 
-        if (!$user = $form->signup($type)) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'User is not created successfully');
-        }
-
-        $user->updateAccessToken();
-        if ($user->type == 'student') {
-            $this->NewStudent(Yii::$app->request->post('class_code'), $user->id);
-
-            $parentID = Yii::$app->request->post('parent_id');
-            if (!empty($parentID)) {
-                if (User::find()->where(['id' => $parentID, 'type' => 'parent'])->exists()) {
-                    $parent = new Parents();
-                    $parent->parent_id = $parentID;
-                    $parent->student_id = $user->id;
-                    $parent->status = 1;
-                    $parent->inviter = 'sms';
-                    $parent->role = Yii::$app->request->post('relationship');
-                    $parent->save();
-                }
+            if (!$user = $form->signup($type)) {
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'User is not created successfully');
             }
 
-        } elseif ($user->type == 'teacher') {
-            $class_code = Yii::$app->request->post('class_code');
-            if (!SchoolTeachers::find()->where(['school_id' => $school->id, 'teacher_id' => $user->id])->exists()) {
-                $model = new SchoolTeachers();
+            $user->updateAccessToken();
+            if ($user->type == 'student') {
+//                $this->NewStudent(Yii::$app->request->post('class_code'), $user->id);
+                $classCode = Yii::$app->request->post('class_code');
+                $class = Classes::findOne(['class_code' => Yii::$app->request->post('class_code'), 'school_id' => $school->id]);
+                $model = new StudentSchool;
+                $model->student_id = $user->id;
                 $model->school_id = $school->id;
-                $model->teacher_id = $user->id;
+                $model->class_id = isset($class->id) ? $class->id : null;
+                $model->invite_code = $classCode;
                 $model->status = 1;
-                $model->save();
-            }
-            $this->AddTeacher($class_code, $user->id);
-        } elseif ($user->type == 'parent') {
-            $studentCode = Yii::$app->request->post('student_code');
-            $relationship = Yii::$app->request->post('relationship');
-            $this->ConnectStudentCode($studentCode, $relationship, $user->id);
-        }
+                if (!$model->validate()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+                }
+                if (!$model->save(false)) {
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not joined saved');
+                }
 
-        return (new ApiResponse)->success($user, null, 'You have successfully signed up as a ' . $type);
+                $parentID = Yii::$app->request->post('parent_id');
+                if (!empty($parentID)) {
+                    if (User::find()->where(['id' => $parentID, 'type' => 'parent'])->exists()) {
+                        $parent = new Parents();
+                        $parent->parent_id = $parentID;
+                        $parent->student_id = $user->id;
+                        $parent->status = 1;
+                        $parent->inviter = 'sms';
+                        $parent->role = Yii::$app->request->post('relationship');
+                        $parent->save();
+                    }
+                }
+
+            } elseif ($user->type == 'teacher') {
+                $class_code = Yii::$app->request->post('class_code');
+                if (!SchoolTeachers::find()->where(['school_id' => $school->id, 'teacher_id' => $user->id])->exists()) {
+                    $model = new SchoolTeachers();
+                    $model->school_id = $school->id;
+                    $model->teacher_id = $user->id;
+                    $model->status = 1;
+                    $model->save();
+                }
+                $this->AddTeacher($class_code, $user->id);
+            } elseif ($user->type == 'parent') {
+                $studentCode = Yii::$app->request->post('student_code');
+                $relationship = Yii::$app->request->post('relationship');
+                $this->ConnectStudentCode($studentCode, $relationship, $user->id);
+            }
+            $dbtransaction->commit();
+            return (new ApiResponse)->success($user, null, 'You have successfully signed up as a ' . $type);
+
+        } catch (\Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
+        }
     }
 
     /**
@@ -128,19 +149,19 @@ class AuthController extends ActiveController
      */
     public function NewStudent($classCode, $studentID)
     {
-        if (!$classCode) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class code is required');
-        }
+//        if (!$classCode) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class code is required');
+//        }
 
         $class = Classes::findOne(['class_code' => $classCode]);
-        if (!$class) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
-        }
-
+//        if (!$class) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+//        }
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $model = new StudentSchool;
         $model->student_id = $studentID;
-        $model->school_id = $class->school_id;
-        $model->class_id = $class->id;
+        $model->school_id = $school->id;
+        $model->class_id = isset($class->id) ? $class->id : null;
         $model->invite_code = $classCode;
         $model->status = 1;
         if (!$model->validate()) {
@@ -149,7 +170,6 @@ class AuthController extends ActiveController
         if (!$model->save(false)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not joined saved');
         }
-
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student joined the class');
     }
 

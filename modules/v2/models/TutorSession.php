@@ -127,7 +127,7 @@ class TutorSession extends \yii\db\ActiveRecord
         ];
     }
 
-    public function scheduleClass($model)
+    public function scheduleClass(TutorSession $model)
     {
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
@@ -140,6 +140,17 @@ class TutorSession extends \yii\db\ActiveRecord
                 return false;
             }
 
+            $notification = new InputNotification();
+            $notification->NewNotification('live_class_scheduled_teacher', [
+                ['live_class_id', $model->id],
+                ['teacher_name', $model->requester->firstname . ' ' . $model->requester->lastname],
+                ['live_class_title', $model->title],
+                ['subject', $model->subject->name],
+                ['class', $model->classObject->class_name],
+                ['date', date('d M, Y', strtotime($model->created_at))],
+                ['time', date('h:i:s', strtotime($model->created_at))],
+                ['email', $model->requester->email]
+            ]);
 
             /**
              * Send google calendar notification
@@ -261,5 +272,25 @@ class TutorSession extends \yii\db\ActiveRecord
     public function getTutorSessionParticipant()
     {
         return $this->hasMany(TutorSessionParticipant::className(), ['session_id' => 'id']);
+    }
+
+    public function getRequester()
+    {
+        return $this->hasOne(User::className(), ['id' => 'requester_id']);
+    }
+
+    public function getSubject()
+    {
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+    }
+
+    public function getClassObject()
+    {
+        return $this->hasOne(Classes::className(), ['id' => 'class']);
+    }
+
+    public function getStudentProfile()
+    {
+        return $this->hasOne(User::className(), ['id' => 'student_id']);
     }
 }

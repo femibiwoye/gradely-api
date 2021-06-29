@@ -124,7 +124,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return Utility::getStudentTermWeek();
     }
 
-    public function getRelationshipStatus()
+    public function getrelationshipStatus()
     {
         if ($this->type == 'student') {
             return Parents::find()->where(['student_id' => $this->id, 'status' => 1])->exists() ? 1 : 0;

@@ -7,6 +7,7 @@ use app\modules\v2\components\Utility;
 use app\modules\v2\models\HomeworkReport;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Questions;
+use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\Remarks;
 use app\modules\v2\models\ReportError;
 use app\modules\v2\models\Schools;
@@ -14,6 +15,7 @@ use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
+use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
@@ -24,6 +26,7 @@ use app\modules\v2\models\{Homeworks,
     StudentAdditionalTopics,
     StudentTopicPerformance};
 use app\modules\v2\components\SharedConstant;
+use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -282,5 +285,116 @@ class ReportController extends ActiveController
         }
 
         return (new ApiResponse)->success($model->getPerformance(), ApiResponse::SUCCESSFUL, 'Topic Performance Record found');
+    }
+
+
+    public function actionGetClassReport()
+    {
+        $class_id = Yii::$app->request->post('class_id');
+        $subject_id = Yii::$app->request->post('subject_id');
+        $session = Yii::$app->request->post('session');
+        $term = Yii::$app->request->post('term');
+        $ca = Yii::$app->request->post('ca');
+        $exam = Yii::$app->request->post('exam');
+        $user = Yii::$app->user;
+        $userID = $user->id;
+        $userType = $user->identity->type;
+
+        $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'session', 'term', 'ca', 'exam'));
+        $form->addRule(['class_id', 'subject_id', 'session', 'term', 'ca', 'exam'], 'required');
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+        }
+
+
+        if (!($userType == 'teacher' && TeacherClassSubjects::find()->where(['teacher_id' => $userID, 'status' => 1, 'class_id' => $class_id])->exists()) && !($userType == 'school' && Classes::find()->where(['school_id' => Utility::getSchoolAccess(), 'id' => $class_id])->exists())) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access to this class');
+        }
+
+        $students = StudentSchool::find()
+            ->select([
+                'student_id',
+                new Expression("CONCAT(user.firstname,' ',user.lastname) student_name"),
+                'image',
+            ])
+            ->innerJoin('user', 'user.id = student_school.student_id')
+            ->where(['class_id' => $class_id, 'student_school.status' => 1, 'is_active_class' => 1, 'current_class' => 1])
+            ->asArray()
+            ->all();
+        $models = [];
+        $examModel = [];
+        foreach ($ca as $item) {
+            $temp = QuizSummary::find()
+                ->alias('qs')
+                ->select([
+                    'qs.class_id',
+                    'qs.subject_id',
+                    'qs.id',
+                    'qs.homework_id',
+                    'qs.student_id',
+                    'qs.correct',
+                    'qs.total_questions',
+                    new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as score'),
+
+                ])
+                ->leftJoin('homeworks h', "qs.homework_id = h.id")
+                ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term, 'qs.homework_id' => $item['assessment_id'], 'h.tag' => 'homework',
+                ])
+                ->asArray()
+                ->groupBy('qs.id')
+                ->all();
+
+            $models[] = ['index' => $item['index'], 'data' => $temp];
+        }
+
+
+        foreach ($exam as $item) {
+            $temp = QuizSummary::find()
+                ->alias('qs')
+                ->select([
+                    'qs.class_id',
+                    'qs.subject_id',
+                    'qs.id',
+                    'qs.homework_id',
+                    'qs.student_id',
+                    'qs.correct',
+                    'qs.total_questions',
+                    new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as score'),
+
+                ])
+                ->leftJoin('homeworks h', "qs.homework_id = h.id")
+                ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term, 'qs.homework_id' => $item['assessment_id'], 'h.tag' => 'exam',
+                ])
+                ->asArray()
+                ->groupBy('qs.id')
+                ->all();
+
+            $examModel[] = ['index' => $item['index'], 'data' => $temp];
+        }
+
+
+        foreach ($students as $key => $student) {
+            $canew = [];
+            foreach ($models as $kkkey=>$model) {
+                foreach ($model['data'] as $kkey => $each) {
+                    if ($each['student_id'] == $student['student_id']) {
+                        $canew[] = [$model['index']=>(int)$each['score']];
+                    }
+                }
+            }
+            $examNew = [];
+            foreach ($examModel as $kkkey=>$model) {
+                foreach ($model['data'] as $kkey => $each) {
+                    if ($each['student_id'] == $student['student_id']) {
+                        $examNew[] = [$model['index']=>(int)$each['score']];
+                    }
+                }
+            }
+            $students[$key] = array_merge($student, ['ca' => $canew,'exam'=>$examNew]);
+
+        }
+        return $students;
+
     }
 }
