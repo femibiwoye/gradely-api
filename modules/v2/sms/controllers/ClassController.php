@@ -248,7 +248,7 @@ class ClassController extends ActiveController
         $school_id = $school->id;
         $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id', 'password'));
         $model->addRule(['student_id', 'class_id', 'password'], 'required');
-        $model->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id'=>'id']]);
+        $model->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']]);
         $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'class_id' => 'id']]);
 
         if (!$model->validate()) {

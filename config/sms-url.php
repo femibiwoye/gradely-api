@@ -45,5 +45,8 @@ return [
 
     'POST v2/sms/student/join-class' => 'v2/sms/class/join-class', //
     'POST v2/sms/school/link-subject-to-school' => 'v2/sms/school/link-subject', //
-    'POST v2/sms/school/map-orphan-teacher' => 'v2/sms/auth/connect-new-teacher' //
+    'POST v2/sms/school/map-orphan-teacher' => 'v2/sms/auth/connect-new-teacher', //
+
+    //Report
+    'GET v2/sms/report/get-class-report' => 'v2/sms/report/get-class-report' //
 ];
