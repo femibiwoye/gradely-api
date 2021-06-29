@@ -78,8 +78,8 @@ class ReportController extends ActiveController
         $students = StudentSchool::find()
             ->select([
                 'student_id',
-                new Expression("CONCAT(user.firstname,' ',user.lastname) student_name"),
-                'image',
+//                new Expression("CONCAT(user.firstname,' ',user.lastname) student_name"),
+//                'image',
             ])
             ->innerJoin('user', 'user.id = student_school.student_id')
             ->where(['class_id' => $class_id, 'student_school.status' => 1, 'is_active_class' => 1, 'current_class' => 1])
