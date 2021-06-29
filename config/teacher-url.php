@@ -30,6 +30,9 @@ return [
     'GET v2/teacher/classes/group-classes' => 'v2/teacher/class/group-classes',
     'PUT v2/teacher/student/update-class' => 'v2/teacher/class/update-class', //
 
+    'GET v2/teacher/classes-subjects' => 'v2/teacher/class/classes-subjects',
+
+
 
     //Homework Class
     'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework', //

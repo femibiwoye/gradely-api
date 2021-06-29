@@ -11,6 +11,7 @@ use app\modules\v2\models\SchoolTeachers;
 use app\modules\v2\models\SchoolTopic;
 use app\modules\v2\models\StudentDetails;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\models\UserModel;
 use Yii;
@@ -341,29 +342,29 @@ class ClassController extends ActiveController
             $terms = ['first', 'second', 'third'];
             $model = [];
             foreach ($terms as $term) {
-                if(!$curriculumStatus){
-                   $topics = SubjectTopics::find()
+                if (!$curriculumStatus) {
+                    $topics = SubjectTopics::find()
                         ->where(['subject_id' => $subject_id, 'class_id' => $class_id, 'term' => $term])
                         ->orderBy(['week_number' => SORT_ASC])
                         ->all();
-                }else{
-                   $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
+                } else {
+                    $class = Utility::SchoolAlternativeClass($class_id, false, $schoolID);
                     $topics = SchoolTopic::find()
-                        ->where(['subject_id'=>$subject_id, 'class_id' => $class->id, 'term' => $term])
+                        ->where(['subject_id' => $subject_id, 'class_id' => $class->id, 'term' => $term])
                         ->orderBy(['position' => SORT_ASC])->all();
                 }
                 $model[] = ['term' => $term, 'topics' => $topics];
             }
         } else {
-            if(!$curriculumStatus){
+            if (!$curriculumStatus) {
                 $model = SubjectTopics::find()
                     ->where(['subject_id' => $subject_id, 'class_id' => $class_id])
                     ->orderBy(['term' => SORT_ASC, 'week_number' => SORT_ASC])
                     ->all();
-            }else{
-                $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
+            } else {
+                $class = Utility::SchoolAlternativeClass($class_id, false, $schoolID);
                 $model = SchoolTopic::find()
-                    ->where(['subject_id'=>$subject_id, 'class_id' => $class->id])
+                    ->where(['subject_id' => $subject_id, 'class_id' => $class->id])
                     ->orderBy(['term' => SORT_ASC, 'week' => SORT_ASC])
                     ->all();;
             }
@@ -390,14 +391,14 @@ class ClassController extends ActiveController
         }
         $schoolID = $this->SchoolID(Yii::$app->user->id);
         $curriculumStatus = Utility::SchoolActiveCurriculum($schoolID, true);
-        if(!$curriculumStatus) {
+        if (!$curriculumStatus) {
             $model = SubjectTopics::find()
                 ->where(['class_id' => $class_id, 'subject_id' => $subject_id])
                 ->andWhere(['like', 'topic', '%' . $topic . '%', false])
                 ->limit(6)
                 ->all();
-        }else{
-            $class = Utility::SchoolAlternativeClass($class_id,false,$schoolID);
+        } else {
+            $class = Utility::SchoolAlternativeClass($class_id, false, $schoolID);
             $model = SchoolTopic::find()
                 ->where(['class_id' => $class->id, 'subject_id' => $subject_id])
                 ->andWhere(['like', 'topic', '%' . $topic . '%', false])
@@ -488,5 +489,58 @@ class ClassController extends ActiveController
         if ($model->save())
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
+    }
+
+
+    /**
+     * This fetches all teacher classes and subjects to each class
+     * @return ApiResponse
+     */
+    public function actionClassesSubjects()
+    {
+        $session = [
+            ["slug" => "2019-2020", 'name' => '2019/2020'],
+            ["slug" => "2020-2021", 'name' => '2020/2021'],
+        ];
+
+        $classesSubject = [];
+        $classes = TeacherClass::find()
+            ->alias('tc')
+            ->select([
+                'c.class_name',
+                'c.class_code',
+                'tc.class_id'
+            ])
+            ->innerJoin('classes c', 'c.id = tc.class_id')
+            ->where(['tc.teacher_id' => Yii::$app->user->id,'status'=>1])
+            ->groupBy('tc.class_id')
+            ->asArray()
+            ->all();
+
+        $subjects = TeacherClassSubjects::find()
+            ->alias('tcs')
+            ->select([
+                's.name',
+                's.id subject_id',
+                'tcs.class_id'
+            ])
+            ->innerJoin('subjects s', 's.id = tcs.subject_id')
+            ->where(['tcs.teacher_id' => Yii::$app->user->id,'tcs.status'=>1])
+            ->asArray()
+            ->all();
+
+        foreach ($classes as $class) {
+            $subjectList = [];
+            foreach ($subjects as $subject) {
+                if ($class['class_id'] == $subject['class_id']) {
+                    $subjectList[] = $subject;
+                    }
+            }
+            $classesSubject[] = array_merge($class, ['subjects'=>$subjectList]);
+        }
+
+        $response = ['classes' => $classesSubject, 'sessions' => $session];
+
+        return (new ApiResponse)->success($response, ApiResponse::SUCCESSFUL);
     }
 }

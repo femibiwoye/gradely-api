@@ -347,21 +347,30 @@ class HomeworkController extends ActiveController
 //                return false;
 //        }
 
-        $notification = new InputNotification();
-        $notification->NewNotification('teacher_create_homework_teacher', [['homework_id', $model->id]]);
-
-
-        //Get all the students in that class
-        $classStudent = StudentSchool::find()->where(['class_id' => $model->class_id, 'status' => 1,'is_active_class'=>1])->exists();
-
-        //foreach ($classStudents as $classStudent){
-
-        if ($classStudent) {
+        if ($model->tag == 'exam') {
             $notification = new InputNotification();
-            $notification->NewNotification('teacher_create_homework_student', [['homework_id', $model->id]]);
-            $notification->NewNotification('teacher_create_homework_parent', [['homework_id', $model->id]]);
-        }
+            $notification->NewNotification('exam_scheduled_parent', [
+                ['parent_name', $parent->parentProfile->firstname . ' ' . $parent->parentProfile->lastname],
+                ['child_name', $student->firstname . ' ' . $student->lastname],
+                ['subject', $tutorSession->subject->name],
+                ['duration', $tutorSession->classObject->class_name],
+                ['email', $parent->parentProfile->email]
+            ]);
+        } else {
+            $notification = new InputNotification();
+            $notification->NewNotification('teacher_create_homework_teacher', [['homework_id', $model->id]]);
 
+            //Get all the students in that class
+            $classStudent = StudentSchool::find()->where(['class_id' => $model->class_id, 'status' => 1, 'is_active_class' => 1])->exists();
+
+            //foreach ($classStudents as $classStudent){
+
+            if ($classStudent) {
+                $notification = new InputNotification();
+                $notification->NewNotification('teacher_create_homework_student', [['homework_id', $model->id]]);
+                $notification->NewNotification('teacher_create_homework_parent', [['homework_id', $model->id]]);
+            }
+        }
 
         // }
     }

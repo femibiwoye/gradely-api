@@ -3,9 +3,11 @@
 namespace app\modules\v2\teacher\controllers;
 
 use app\modules\v2\components\CustomHttpBearerAuth;
+use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\HomeworkQuestions;
+use app\modules\v2\models\Parents;
 use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SubjectTopics;
@@ -129,6 +131,8 @@ class CatchupController extends ActiveController
                 if (!$this->tutorSessionParticipant($this->students, $model->id)) {
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Remedial participant could not be saved');
                 }
+            } else {
+                $this->sendRemedialSession($model->studentProfile);
             }
 
             if (!$this->tutorSessionTiming($model->id)) {
@@ -137,12 +141,31 @@ class CatchupController extends ActiveController
 
 
             $dbtransaction->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $dbtransaction->rollBack();
             return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Tutor session record failed');
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Tutor session record generated');
+    }
+
+    //Send notifications
+    private function sendRemedialSession(User $student, $tutorSession)
+    {
+        if ($student->relationshipStatus) {
+            $parents = Parents::find()->where(['student_id' => $student->id, 'status' => 1])->all();
+            foreach ($parents as $parent) {
+                $notification = new InputNotification();
+                $notification->NewNotification('scheduled_remedial_class_parent', [
+                    ['parent_name', $parent->parentProfile->firstname . ' ' . $parent->parentProfile->lastname],
+                    ['child_name', $student->firstname . ' ' . $student->lastname],
+                    ['subject', $tutorSession->subject->name],
+                    ['class', $tutorSession->classObject->class_name],
+                    ['teacher_name', $tutorSession->requester->firstname . ' ' . $tutorSession->requester->lastname],
+                    ['email', $parent->parentProfile->email]
+                ]);
+            }
+        }
     }
 
     private function tutorSessionParticipant($students, $session_id)
@@ -154,6 +177,7 @@ class CatchupController extends ActiveController
             if (!$model->save()) {
                 return false;
             }
+            $this->sendRemedialSession($model->studentProfile);
         }
 
         return true;

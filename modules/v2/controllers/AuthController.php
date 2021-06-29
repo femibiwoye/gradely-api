@@ -178,6 +178,7 @@ class AuthController extends Controller
             }
             return [
                 'status' => empty($user) ? false : true,
+                'user_id'=> $user->id,
                 'user_type' => $user->type,
                 'school' => $extraModel->asArray()->one()
             ];
