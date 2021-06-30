@@ -193,7 +193,7 @@ class ClassReport extends Model
 //            $improvementValues = $masteryModel->getImprovementEntry($improvement);
 
             // shuffle($directions);
-            $studentFinal[] = array_merge($student, ['mastery' => $this->getMastery($student['id']), 'improvement' => 3, 'direction' => 'up']);
+            $studentFinal[] = array_merge($student, ['mastery' => array_merge($this->getMastery($student['id']), ['improvement' => 3, 'direction' => 'up'])]);
         }
         return $studentFinal;
     }
