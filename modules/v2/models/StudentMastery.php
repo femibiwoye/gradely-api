@@ -267,7 +267,7 @@ class StudentMastery extends Model
         $mode = Utility::getChildMode($this->student_id);
         $topics = SubjectTopics::find()
             ->select(['subject_topics.id', 'topic', 'subject_topics.term', 'subject_topics.subject_id', 'week_number', 'subject_topics.class_id']);
-        if ($mode == SharedConstant::EXAM_MODES[1]) {
+        if (in_array(Yii::$app->user->identity->type,['student','parent']) && $mode == SharedConstant::EXAM_MODES[1]) {
             $topics = $topics
                 ->leftJoin('questions', "questions.topic_id = subject_topics.id")
                 ->where([
@@ -285,7 +285,6 @@ class StudentMastery extends Model
             ]);
         }
         $topics = $topics->all();
-
         return $topics;
     }
 

@@ -7,6 +7,7 @@ use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentMastery;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\{Subjects, SubjectTopics, QuizSummaryDetails, VideoContent};
 use app\modules\v2\models\TeacherClass;
@@ -44,6 +45,13 @@ class ClassReport extends Model
             'topic_list' => $this->topicList,
             'studentStat' => $this->studentStat,
             'topicPerformance' => $this->topicClassPerformance
+        ];
+    }
+
+    public function getClassStudentPerformanceReport()
+    {
+        return [
+            'studentStat' => $this->student,
         ];
     }
 
@@ -149,7 +157,7 @@ class ClassReport extends Model
      * This is to get performances of students in excellence, struggling and average
      * @return array
      */
-    public function getStudentStat()
+    public function getStudent()
     {
         $class = Yii::$app->request->get('class_id');
         if (isset($this->currentSubject->id)) {
@@ -162,46 +170,46 @@ class ClassReport extends Model
         $students = User::find()
             ->select([
                 'user.id',
-//                'user.firstname',
-//                'user.lastname',
-//                'user.email',
-//                Utility::ImageQuery('user', 'users'),
-//                'user.type',
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                // new Expression('COUNT(qsd.id) as attempt'),
-                //new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'),
+                new Expression("CONCAT(user.firstname,' ',user.lastname) as fullname"),
+                'user.code',
+                'user.image',
+                Utility::ImageQuery('user', 'users'),
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as average_score'),
             ])
             ->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1 AND sc.is_active_class = 1 AND sc.current_class = 1")
-            ->innerJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'")
-            ->innerJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id")
+            ->leftJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'")
+            ->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id")
             ->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
             ->groupBy('user.id')
-            ->orderBy('score')
+            ->orderBy('average_score DESC')
             ->asArray()
             ->all();
 
-//        $excellence = [];
-//        $average = [];
-//        $struggling = [];
-        $excellence = 0;
-        $average = 0;
-        $struggling = 0;
-
+        $studentFinal = [];
         foreach ($students as $student) {
-            if ($student['score'] >= 75) {
-                //$excellence[] = $student;
-                $excellence++;
-            } elseif ($student['score'] >= 40 && $student['score'] < 75) {
-                $average++;
-            } elseif ($student['score'] >= 0 && $student['score'] < 40) {
-                $struggling++;
-            }
+
+            $masteryModel = new StudentMastery();
+//            $improvementValues = $masteryModel->getImprovementEntry($improvement);
+
+            // shuffle($directions);
+            $studentFinal[] = array_merge($student, ['mastery' => $this->getMastery($student['id']), 'improvement' => 3, 'direction' => 'up']);
         }
+        return $studentFinal;
+    }
 
-        $studentsCount = StudentSchool::find()->where(['class_id' => $class, 'status' => SharedConstant::VALUE_ONE, 'is_active_class' => 1, 'current_class' => 1])->count();
-        $strugglingExtra = $studentsCount - ($struggling + $excellence + $average);
+    public function getMastery($studentID = null)
+    {
+        $model = new StudentMastery();
+        $model->student_id = !empty($studentID) ? $studentID : $this->id;
+        $model->term = Yii::$app->request->get('term');
+        $model->subject = isset($this->currentSubject['id']) ? $this->currentSubject['id'] : null;
+        $model->class = Classes::findOne(['id' => Yii::$app->request->get('class_id')])->global_class_id;
 
-        return ['studentsCount' => (int)$studentsCount, 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling + $strugglingExtra];
+        if (!$model->validate()) {
+            return ['total' => 0, 'score' => 0, 'percentage' => 0];
+        }
+        return $model->getPerformanceSummary();
     }
 
     public function getTopicClassPerformance()
