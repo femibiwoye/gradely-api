@@ -50,9 +50,7 @@ class ClassReport extends Model
 
     public function getClassStudentPerformanceReport()
     {
-        return [
-            'studentStat' => $this->student,
-        ];
+        return $this->student;
     }
 
     public function getSubjects()
