@@ -231,13 +231,17 @@ class ClassReport extends Model
                 'user.code',
                 'user.image',
                 Utility::ImageQuery('user', 'users'),
-//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
-                new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as average_score'),
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as average_score'),
+                //new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as average_score'),
             ])
             ->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1 AND sc.is_active_class = 1 AND sc.current_class = 1")
-            ->leftJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'")
-            ->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id")
-            ->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
+            ->leftJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'");
+        if ($topicID = Yii::$app->request->get('topic_id')) {
+            $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id AND qsd.topic_id = $topicID");
+        }else{
+            $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id");
+        }
+        $students = $students->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
             ->groupBy('user.id')
             ->orderBy('average_score DESC')
             ->asArray()
