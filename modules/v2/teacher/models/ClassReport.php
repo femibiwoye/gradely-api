@@ -157,6 +157,65 @@ class ClassReport extends Model
      * This is to get performances of students in excellence, struggling and average
      * @return array
      */
+    public function getStudentStat()
+    {
+        $class = Yii::$app->request->get('class_id');
+        if (isset($this->currentSubject->id)) {
+            $subject_id = $this->currentSubject->id;
+        } else {
+            $subject_id = null;
+        }
+        $term = $this->currentTerm;
+
+        $students = User::find()
+            ->select([
+                'user.id',
+//                'user.firstname',
+//                'user.lastname',
+//                'user.email',
+//                Utility::ImageQuery('user', 'users'),
+//                'user.type',
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+                // new Expression('COUNT(qsd.id) as attempt'),
+                //new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'),
+            ])
+            ->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1 AND sc.is_active_class = 1 AND sc.current_class = 1")
+            ->innerJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'")
+            ->innerJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id")
+            ->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
+            ->groupBy('user.id')
+            ->orderBy('score')
+            ->asArray()
+            ->all();
+
+//        $excellence = [];
+//        $average = [];
+//        $struggling = [];
+        $excellence = 0;
+        $average = 0;
+        $struggling = 0;
+
+        foreach ($students as $student) {
+            if ($student['score'] >= 75) {
+                //$excellence[] = $student;
+                $excellence++;
+            } elseif ($student['score'] >= 40 && $student['score'] < 75) {
+                $average++;
+            } elseif ($student['score'] >= 0 && $student['score'] < 40) {
+                $struggling++;
+            }
+        }
+
+        $studentsCount = StudentSchool::find()->where(['class_id' => $class, 'status' => SharedConstant::VALUE_ONE, 'is_active_class' => 1, 'current_class' => 1])->count();
+        $strugglingExtra = $studentsCount - ($struggling + $excellence + $average);
+
+        return ['studentsCount' => (int)$studentsCount, 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling + $strugglingExtra];
+    }
+
+    /**
+     * This is for student mastery in class or single topic
+     * @return array
+     */
     public function getStudent()
     {
         $class = Yii::$app->request->get('class_id');
