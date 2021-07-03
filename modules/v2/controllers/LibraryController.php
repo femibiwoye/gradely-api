@@ -485,17 +485,39 @@ class LibraryController extends ActiveController
         $id = Yii::$app->request->get('class_id');
         $subject = Yii::$app->request->get('subject');
         $term = Yii::$app->request->get('term');
-        $date = Yii::$app->request->get('date');
-        $model = new \yii\base\DynamicModel(compact('id', 'subject', 'term', 'date'));
+        $model = new \yii\base\DynamicModel(compact('id', 'subject', 'term'));
         $model->addRule(['id'], 'required')
             ->addRule(['id'], 'integer')
-            ->addRule(['term', 'date', 'subject'], 'string');
+            ->addRule(['term', 'subject'], 'string');
 
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
         $model = (new ClassReport)->getClassPerformanceReport();
+
+        if (!$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+        }
+
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Record found');
+    }
+
+    public function actionClassStudentPerformanceReport()
+    {
+        $id = Yii::$app->request->get('class_id');
+        $subject = Yii::$app->request->get('subject');
+        $term = Yii::$app->request->get('term');
+        $model = new \yii\base\DynamicModel(compact('id', 'subject', 'term'));
+        $model->addRule(['id'], 'required')
+            ->addRule(['id'], 'integer')
+            ->addRule(['term', 'subject'], 'string');
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
+
+        $model = (new ClassReport)->getClassStudentPerformanceReport();
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
