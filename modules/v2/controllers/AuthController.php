@@ -170,7 +170,7 @@ class AuthController extends Controller
                 if ($user->type == 'parent') {
                     $extraModel = $school->where(['id' => Utility::StudentSchoolId(Utility::getChildParentIDs($_GET['child'], $user->id))]);
                 } elseif ($user->type == 'teacher') {
-                    $extraModel = $school->where(['id' => Utility::getTeacherSchoolID($user->id)]);
+                    $extraModel = $school->where(['id' => Utility::getTeacherSchoolID($user->id,false, Yii::$app->request->post('class_id'))]);
                 } elseif ($user->type == 'student') {
                     $extraModel = $school->where(['id' => Utility::StudentSchoolId($user->id)]);
                 } else {

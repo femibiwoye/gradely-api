@@ -363,9 +363,13 @@ class Utility extends ActiveRecord
         return $image;
     }
 
-    public static function getTeacherSchoolID($teacher_id, $failReturn = false)
+    public static function getTeacherSchoolID($teacher_id, $failReturn = false, $class_id = null)
     {
-        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);
+        if (!empty($class_id)) {
+            $model = TeacherClass::findOne(['teacher_id' => $teacher_id, 'status' => 1, 'class_id' => $class_id]);
+        } else {
+            $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);
+        }
         if (!$model) {
             return $failReturn;
         }
