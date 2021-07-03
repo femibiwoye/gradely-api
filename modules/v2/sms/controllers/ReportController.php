@@ -96,15 +96,14 @@ class ReportController extends ActiveController
                     'qs.id',
                     'qs.homework_id',
                     'qs.student_id',
-                    //'qs.correct',
+                    'qs.type',
+                    'qs.term',
+                    'subjects.name',
                     'qs.total_questions',
                     'qs.teacher_id',
                     new Expression("CONCAT(user.firstname,' ',user.lastname) as teacher_name"),
-                    new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as average_score'),
+                    new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as score'),
                     'qs.created_at',
-                    'qs.type',
-                    'qs.term',
-                    'subjects.name'
 
                 ])
                 ->leftJoin('homeworks h', "qs.homework_id = h.id")
@@ -127,13 +126,13 @@ class ReportController extends ActiveController
             $canew = [];
             foreach ($models as $kkkey=>$each) {
                     if ($each['data']['student_id'] == $student['student_id']) {
-                        $canew[] = ["report_index"=>$each['index'],"report_score"=>(int)$each['data']['average_score'],'type'=>'ca'];
+                        //$canew[] = ["report_index"=>$each['index'],"report_score"=>(int)$each['data']['average_score'],'type'=>'ca'];
                 }
             }
 
-            $students[$key] = array_merge($student,$item, [
-                'scores' => $canew,
-            ]);
+            $students[$key] = array_merge($student,$item
+               // , ['scores' => $canew,]
+            );
 
         }
         return (new ApiResponse)->success($students, ApiResponse::SUCCESSFUL);
