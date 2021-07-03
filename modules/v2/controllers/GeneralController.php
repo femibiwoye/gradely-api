@@ -286,7 +286,7 @@ class GeneralController extends Controller
             ->asArray()->one();
 
         $result = [
-            'learningMinutes' => (int)$studentTeacherLearning['difference'], //(int)$sessions['difference'] + 507022, //$learningMinutes,
+            'learningMinutes' => 500000+ floor((int)$studentTeacherLearning['difference']/60), //(int)$sessions['difference'] + 507022, //$learningMinutes,
             'teacherCount' => (int)$teacherCount,
             'studentCount' => (int)$studentCount,
 
