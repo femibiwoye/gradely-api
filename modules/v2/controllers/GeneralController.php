@@ -282,7 +282,7 @@ class GeneralController extends Controller
             ->andFilterWhere(['OR', ['like', 'url', '%catchup%', false],
                 ['like', 'url', '%homework%', false],
                 ['like', 'url', '%practice%', false]
-                ])
+            ])
             ->asArray()->one();
 
         $result = [
@@ -305,6 +305,5 @@ class GeneralController extends Controller
         }
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL);
     }
-
 }
 
