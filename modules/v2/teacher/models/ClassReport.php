@@ -7,6 +7,7 @@ use app\modules\v2\components\SessionTermOnly;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentMastery;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\{Subjects, SubjectTopics, QuizSummaryDetails, VideoContent};
 use app\modules\v2\models\TeacherClass;
@@ -47,6 +48,11 @@ class ClassReport extends Model
         ];
     }
 
+    public function getClassStudentPerformanceReport()
+    {
+        return $this->student;
+    }
+
     public function getSubjects()
     {
 //        return Subjects::find()
@@ -68,8 +74,8 @@ class ClassReport extends Model
 
     public function getCurrentSubject()
     {
-        if (Yii::$app->request->get('subject') && !empty(Yii::$app->request->get('subject'))) {
-            return Subjects::findOne(['slug' => Yii::$app->request->get('subject')]);
+        if (Yii::$app->request->get('subject_id') && !empty(Yii::$app->request->get('subject_id'))) {
+            return Subjects::findOne(['id' => Yii::$app->request->get('subject_id')]);
         }
 
         return $this->subjects ? $this->subjects[0] : null;
@@ -202,6 +208,69 @@ class ClassReport extends Model
         $strugglingExtra = $studentsCount - ($struggling + $excellence + $average);
 
         return ['studentsCount' => (int)$studentsCount, 'excellence' => $excellence, 'average' => $average, 'struggling' => $struggling + $strugglingExtra];
+    }
+
+    /**
+     * This is for student mastery in class or single topic
+     * @return array
+     */
+    public function getStudent()
+    {
+        $class = Yii::$app->request->get('class_id');
+        if (isset($this->currentSubject->id)) {
+            $subject_id = $this->currentSubject->id;
+        } else {
+            $subject_id = null;
+        }
+        $term = $this->currentTerm;
+
+        $students = User::find()
+            ->select([
+                'user.id',
+                new Expression("CONCAT(user.firstname,' ',user.lastname) as fullname"),
+                'user.code',
+                'user.image',
+                Utility::ImageQuery('user', 'users'),
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as average_score'),
+                //new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as average_score'),
+            ])
+            ->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1 AND sc.is_active_class = 1 AND sc.current_class = 1")
+            ->leftJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'");
+        if ($topicID = Yii::$app->request->get('topic_id')) {
+            $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id AND qsd.topic_id = $topicID");
+        }else{
+            $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id");
+        }
+        $students = $students->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
+            ->groupBy('user.id')
+            ->orderBy('average_score DESC')
+            ->asArray()
+            ->all();
+
+        $studentFinal = [];
+        foreach ($students as $student) {
+
+            $masteryModel = new StudentMastery();
+//            $improvementValues = $masteryModel->getImprovementEntry($improvement);
+
+            // shuffle($directions);
+            $studentFinal[] = array_merge($student, ['mastery' => array_merge($this->getMastery($student['id']), ['improvement' => 3, 'direction' => 'up'])]);
+        }
+        return $studentFinal;
+    }
+
+    public function getMastery($studentID = null)
+    {
+        $model = new StudentMastery();
+        $model->student_id = !empty($studentID) ? $studentID : $this->id;
+        $model->term = Yii::$app->request->get('term');
+        $model->subject = isset($this->currentSubject['id']) ? $this->currentSubject['id'] : null;
+        $model->class = Classes::findOne(['id' => Yii::$app->request->get('class_id')])->global_class_id;
+
+        if (!$model->validate()) {
+            return ['total' => 0, 'score' => 0, 'percentage' => 0];
+        }
+        return $model->getPerformanceSummary();
     }
 
     public function getTopicClassPerformance()

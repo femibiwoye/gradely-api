@@ -91,72 +91,51 @@ class ReportController extends ActiveController
             $temp = QuizSummary::find()
                 ->alias('qs')
                 ->select([
-                    'qs.class_id',
+                    //'qs.class_id',
                     'qs.subject_id',
                     'qs.id',
                     'qs.homework_id',
                     'qs.student_id',
-                    'qs.correct',
+                    'qs.type',
+                    'qs.term',
+                    'subjects.name',
                     'qs.total_questions',
+                    'qs.teacher_id',
+                    new Expression("CONCAT(user.firstname,' ',user.lastname) as teacher_name"),
                     new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as score'),
+                    'qs.created_at',
 
                 ])
                 ->leftJoin('homeworks h', "qs.homework_id = h.id")
-                ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term,'h.tag'=>'homework'])
+                ->leftJoin('user', "user.id = h.teacher_id")
+                ->leftJoin('subjects', "subjects.id = qs.subject_id")
+                ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term])
                 ->asArray()
                 ->groupBy('qs.id')
                 ->limit(6)
                 ->all();
             foreach ($temp as $index=> $item) {
 
-                $models[] = ['index' => $index+1, 'data' => $item];
+                    $models[] = ['index' => $index+1, 'data' => $item];
             }
 
-        $tempExam = QuizSummary::find()
-            ->alias('qs')
-            ->select([
-                'qs.class_id',
-                'qs.subject_id',
-                'qs.id',
-                'qs.homework_id',
-                'qs.student_id',
-                'qs.correct',
-                'qs.total_questions',
-                new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as score'),
 
-            ])
-            ->leftJoin('homeworks h', "qs.homework_id = h.id")
-            ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term,'h.tag'=>'exam'])
-            ->asArray()
-            ->groupBy('qs.id')
-            ->limit(1)
-            ->all();
-        foreach ($tempExam as $index=> $item) {
-
-            $examModel[] = ['index' => $index+1, 'data' => $item];
-        }
 
 
         foreach ($students as $key => $student) {
             $canew = [];
             foreach ($models as $kkkey=>$each) {
                     if ($each['data']['student_id'] == $student['student_id']) {
-                        $canew[] = ["index"=>$each['index'],"score"=>(int)$each['data']['score']];
+                        //$canew[] = ["report_index"=>$each['index'],"report_score"=>(int)$each['data']['average_score'],'type'=>'ca'];
                 }
             }
-            $examNew = [];
-            foreach ($examModel as $kkkey=>$each) {
-                if ($each['data']['student_id'] == $student['student_id']) {
-                    $examNew[] = ["index"=>$each['index'],"score"=>(int)$each['data']['score']];
-                }
-            }
-            $students[$key] = array_merge($student, [
-                'ca' => $canew,
-                'exam'=>$examNew
-            ]);
+
+            $students[$key] = array_merge($student,$item
+               // , ['scores' => $canew,]
+            );
 
         }
-        return $students;
+        return (new ApiResponse)->success($students, ApiResponse::SUCCESSFUL);
 
     }
 

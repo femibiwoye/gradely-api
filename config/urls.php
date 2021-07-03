@@ -66,6 +66,7 @@ return [
     'POST v2/report/remark/<type:[a-z]+>/<id:\d+>' => 'v2/report/create-remarks',
 
     'GET v2/report/class-performance' => 'v2/library/class-performance-report', //
+    'GET v2/report/class-student-performance' => 'v2/library/class-student-performance-report', //
     'POST v2/report/get-class-report' => 'v2/report/get-class-report', //
 
     //Payment
