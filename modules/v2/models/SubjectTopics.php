@@ -110,7 +110,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
 
     public function getLearningArea()
     {
-        return $this->hasMany(LearningArea::className(), ['topic_id' => 'id'])->andWhere(['is_school'=>0]);
+        return $this->hasMany(LearningArea::className(), ['topic_id' => 'id'])->andWhere(['is_school' => 0]);
     }
 
     public function getAdditiionalTopic()
@@ -204,7 +204,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
     {
         $query = QuizSummaryDetails::find()
             ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
-           // ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+            // ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
             ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id]);
 
         if (!$query->all()) {
@@ -215,6 +215,33 @@ class SubjectTopics extends \yii\db\ActiveRecord
         $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count();
 
         return ($total_correct / $total_attempts) * 100;
+
+    }
+
+    public function getResultClass($student_id, $topic_id = null,$mode=null)
+    {
+        $query = QuizSummaryDetails::find()
+            ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
+            // ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
+            ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id,'quiz_summary.mode' => $mode]);
+
+        if (in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
+            if (isset($_GET['term'])) {
+                $term = $_GET['term'];
+                $query = $query->andWhere(['quiz_summary.term' => $term]);
+            }
+        }
+        print_r($query->all());
+        die;
+        if (!$query->all()) {
+            return SharedConstant::VALUE_ZERO;
+        }
+
+        $total_attempts = $query->count();
+        $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count();
+
+        echo ($total_correct / $total_attempts) * 100;
+        die;
 
     }
 

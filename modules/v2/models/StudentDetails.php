@@ -29,23 +29,23 @@ class StudentDetails extends User
     public function fields()
     {
         return [
-            'id',
-            'firstname',
-            'lastname',
-            'code',
-            'image' => 'imageUrl',
-            'email',
-            'phone',
-            'type',
-            'class_name' => 'className',
-            'profile' => 'userProfile',
-            'parents' => 'studentParents',
-            'remarks' => 'remarks',
+//            'id',
+//            'firstname',
+//            'lastname',
+//            'code',
+//            'image' => 'imageUrl',
+//            'email',
+//            'phone',
+//            'type',
+//            'class_name' => 'className',
+//            'profile' => 'userProfile',
+//            'parents' => 'studentParents',
+//            'remarks' => 'remarks',
             'topics' => 'topicBreakdown',
-            'homework',
-            'subjects' => 'classSubjects',
-            'selectedSubject' => 'selectedSubject',
-            'completion_rate' => 'totalHomeworks',
+//            'homework',
+//            'subjects' => 'classSubjects',
+//            'selectedSubject' => 'selectedSubject',
+//            'completion_rate' => 'totalHomeworks',
             'positions' => 'statistics',
             'performance' => 'performance',
             'feeds' => 'feeds',
@@ -490,6 +490,7 @@ class StudentDetails extends User
         $excellence = [];
         $averages = [];
         $struggling = [];
+        $mode = Utility::getChildMode($studentID);
 
         $activeTopics = QuizSummaryDetails::find()->select(['qsd.topic_id'])
             ->alias('qsd')
@@ -498,7 +499,7 @@ class StudentDetails extends User
         if (in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
             $activeTopics = $activeTopics
                 ->leftJoin('quiz_summary qz', 'qz.id = qsd.quiz_id')
-                ->andWhere(['qz.mode' => Utility::getChildMode($studentID)]);
+                ->andWhere(['qz.mode' => $mode]);
         }
 
         if (isset($_GET['term'])) {
@@ -528,11 +529,11 @@ class StudentDetails extends User
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
-                    if ($data->getResult($studentID, $data->id) >= 75) {
+                    if ($data->getResultClass($studentID, $data->id,$mode) >= 75) {
                         $excellence[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($studentID, $data->id) >= 50 && $data->getResult($studentID, $data->id) < 75) {
+                    } elseif ($data->getResultClass($studentID, $data->id,$mode) >= 50 && $data->getResult($studentID, $data->id) < 75) {
                         $averages[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResult($studentID, $data->id) < 50) {
+                    } elseif ($data->getResultClass($studentID, $data->id,$mode) < 50) {
                         $struggling[] = $this->topicPerformanceMini($data);
                     }
                 }

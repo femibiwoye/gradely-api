@@ -220,7 +220,7 @@ class GeneralController extends Controller
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
     }
 
-    public function actionSubject($description = null)
+    public function actionSubject($description = null, $summer=null)
     {
 
         $select = [
@@ -234,6 +234,10 @@ class GeneralController extends Controller
                 $description != 1 ? $select : array_merge($select, ['description'])
             )
             ->where(['school_id' => null]);
+
+        if($summer == 1){
+            $examType = $examType->andWhere(['summer_school'=>$summer]);
+        }
 
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
 
