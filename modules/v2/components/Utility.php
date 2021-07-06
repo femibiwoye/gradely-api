@@ -10,6 +10,7 @@ use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\{TeacherClass,
     Classes,
@@ -424,16 +425,47 @@ class Utility extends ActiveRecord
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid');
 
         }
+
+        $summerSchool = StudentSummerSchool::find()
+            ->alias('sss')
+            ->select([
+                'sss.id as summer_id',
+                'classes.class_name',
+                'schools.name',
+            ])
+            ->innerJoin('classes','classes.id = sss.class_id')
+            ->innerJoin('schools','schools.id = classes.school_id')
+            ->where(['student_id'=>$user->id])->asArray()->one();
+        if($summerSchool){
+
+        }
+
         if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1, 'is_active_class' => 1])) {
-            $classId = $classes->class_id;
-            $className = $classes->class->class_name;
-            $schoolName = $classes->school->name;
-            $hasSchool = true;
+
+            if (empty($classes->class)) {
+                $classId = null;
+                $className = null;
+                $schoolName = null;
+                $hasSchool = false;
+                $in_summer_school = null;
+                $alternative_school = $summerSchool;
+            } else {
+
+                $classId = $classes->class_id;
+                $className = $classes->class->class_name;
+                $schoolName = $classes->school->name;
+                $hasSchool = true;
+                $in_summer_school = $classes->in_summer_school;
+                $alternative_school =  $summerSchool;
+
+            }
         } else {
             $classId = null;
             $className = null;
             $schoolName = null;
             $hasSchool = false;
+            $in_summer_school = null;
+            $alternative_school = $summerSchool;
         }
 
         return $return = [
@@ -441,7 +473,9 @@ class Utility extends ActiveRecord
             'class_id' => $classId,
             'class_name' => $className,
             'school_name' => $schoolName,
-            'has_school' => $hasSchool
+            'has_school' => $hasSchool,
+            'in_summer_school' => $in_summer_school,
+            'alternative_school' => $alternative_school
         ];
     }
 

@@ -9,6 +9,7 @@ use app\modules\v2\models\Classes;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\SignupForm;
+use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\User;
@@ -242,10 +243,74 @@ class SummerSchoolController extends ActiveController
             }
             $dbtransaction->commit();
             return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, $saveCount . ' record added');
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $dbtransaction->rollBack();
-            return (new ApiResponse)->success(false, ApiResponse::SUCCESSFUL, 'Not saved');
+            return (new ApiResponse)->success(false, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
         }
+    }
+
+    public function actionSwitchSummerSchool()
+    {
+        $user = Yii::$app->user->identity;
+
+        if ($user->type != 'parent') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user request');
+        }
+
+        $school_id = Yii::$app->params['summerSchoolID'];
+        $summer_school = Yii::$app->request->post('summer_school');
+        $student_id = Yii::$app->request->post('student_id');
+        $parent_id = $user->id;
+        $form = new \yii\base\DynamicModel(compact('summer_school', 'student_id', 'parent_id'));
+        $form->addRule(['summer_school', 'student_id', 'parent_id'], 'required');
+        $form->addRule(['parent_id', 'student_id'], 'exist', ['targetClass' => Parents::className(), 'targetAttribute' => ['parent_id', 'student_id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+        }
+
+        if (!$summerSchool = StudentSummerSchool::findOne(['student_id' => $student_id])) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You need to configure summer school');
+        }
+
+        if(!$studentSchool = StudentSchool::findOne(['student_id' => $student_id, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])){
+            $studentSchool = new StudentSchool();
+            $studentSchool->student_id = $student_id;
+            $studentSchool->status = 1;
+        }
+        $dbtransaction = Yii::$app->db->beginTransaction();
+       // try {
+            //$summerReplicate = $summerSchool;
+            $studentSchoolReplicate = clone $studentSchool;
+
+            if (isset($studentSchool->in_summer_school) && $summer_school == $studentSchool->in_summer_school) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Your summer school is already ' . $summer_school);
+            }
+
+            //if ($summer_school) {
+                $studentSchool->in_summer_school = $summer_school;
+                $studentSchool->school_id = $summerSchool->school_id;
+                $studentSchool->class_id = $summerSchool->class_id;
+
+                $summerSchool->school_id = $studentSchoolReplicate->school_id;
+                $summerSchool->class_id = $studentSchoolReplicate->class_id;
+                if (!$studentSchool->save()) {
+                    return $studentSchool->errors;
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
+                }
+
+                if (!$summerSchool->save()) {
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
+                }
+                $dbtransaction->commit();
+                return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Updated');
+            //}
+
+            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'No changes made');
+//        } catch (\Exception $e) {
+//            $dbtransaction->rollBack();
+//            return (new ApiResponse)->success(false, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
+//        }
     }
 
 }
