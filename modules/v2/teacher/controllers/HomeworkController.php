@@ -145,17 +145,23 @@ class HomeworkController extends ActiveController
 //        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 //    }
 
-    public function actionClassHomeworks($class_id = null)
+    public function actionClassHomeworks($class_id = null, $term = null, $subject_id=null, $session=null)
     {
+        $model = $this->modelClass::find()->andWhere([
+            'teacher_id' => Yii::$app->user->id,
+            'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
         if ($class_id) {
-            $model = $this->modelClass::find()->andWhere([
-                'teacher_id' => Yii::$app->user->id,
-                'class_id' => $class_id,
-                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
-        } else
-            $model = $this->modelClass::find()->andWhere([
-                'teacher_id' => Yii::$app->user->id,
-                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+            $model = $model->andWhere(['class_id' => $class_id]);
+        }
+
+        if ($subject_id) {
+            $model = $model->andWhere(['subject_id' => $subject_id]);
+        }
+
+//        if(!empty($term) && in_array($term,SharedConstant::TERMS)){
+//            $model = $model->andWhere(['term'=>$term]);
+//        }
+
 
         if (!$model->count() > 0) {
             return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');

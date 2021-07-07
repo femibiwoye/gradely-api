@@ -15,7 +15,7 @@ use app\modules\v2\models\Subjects;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use Yii;
-use app\modules\v2\models\{ApiResponse};
+use app\modules\v2\models\ApiResponse;
 use app\modules\v2\components\SharedConstant;
 use yii\base\DynamicModel;
 use yii\helpers\ArrayHelper;
@@ -295,7 +295,6 @@ class SummerSchoolController extends ActiveController
                 $summerSchool->school_id = $studentSchoolReplicate->school_id;
                 $summerSchool->class_id = $studentSchoolReplicate->class_id;
                 if (!$studentSchool->save()) {
-                    return $studentSchool->errors;
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
                 }
 
