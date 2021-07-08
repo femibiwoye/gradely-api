@@ -432,6 +432,7 @@ class Utility extends ActiveRecord
                 'sss.id as summer_id',
                 'classes.class_name',
                 'schools.name',
+                'sss.subjects as subjects',
             ])
             ->innerJoin('classes','classes.id = sss.class_id')
             ->innerJoin('schools','schools.id = classes.school_id')
