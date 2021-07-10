@@ -52,9 +52,7 @@ class Utility extends ActiveRecord
             ->all();
 
         $schoolAdmin = SchoolAdmin::findAll(['user_id' => $userID, 'status' => 1]);
-
         $schools = ArrayHelper::merge(ArrayHelper::getColumn($schools, 'id'), ArrayHelper::getColumn($schoolAdmin, 'school_id'));
-
         return array_unique($schools);
     }
 

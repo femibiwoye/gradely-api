@@ -174,7 +174,7 @@ class AuthController extends Controller
                 } elseif ($user->type == 'student') {
                     $extraModel = $school->where(['id' => Utility::StudentSchoolId($user->id)]);
                 } else {
-                    $extraModel = $school->where(['id' => Utility::getSchoolAccess()]);
+                    $extraModel = $school->where(['id' => Utility::getSchoolAccess($user->id)]);
                 }
                 return [
                     'status' => empty($user) ? false : true,
