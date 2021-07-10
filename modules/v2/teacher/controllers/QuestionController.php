@@ -229,6 +229,10 @@ class QuestionController extends ActiveController
                 } else {
                     $model->addRule(['topic_id'], 'exist', ['targetClass' => SchoolTopic::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
                 }
+                if ($question['type'] == 'multiple')
+                    $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
+                elseif ($question['type'] == 'bool')
+                    $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
                 }

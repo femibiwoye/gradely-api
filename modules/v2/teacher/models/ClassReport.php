@@ -357,7 +357,7 @@ class ClassReport extends Model
             ->all();
 
         $excellence = [];
-        //$average = [];
+        $average = [];
         $struggling = [];
 
         foreach ($students as $student) {
