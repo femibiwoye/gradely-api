@@ -66,7 +66,7 @@ class ServicesController extends Controller
             "enableAccessibility" => true,
             "saveMode" => "xml",
             "saveHandTraces" => false,
-            "editorUrl" => "http://www.wiris.net/demo/editor/editor",
+            "editorUrl" => "https://gradly.s3.eu-west-2.amazonaws.com/assets/ckeditor/ckeditor.js",
             "editorEnabled" => true,
             "chemEnabled" => true,
             "CASMathmlAttribute" => "alt",
