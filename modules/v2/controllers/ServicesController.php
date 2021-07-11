@@ -26,6 +26,7 @@ class ServicesController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
+            'except' => ['ckeditor']
         ];
 
         return $behaviors;
@@ -39,12 +40,42 @@ class ServicesController extends Controller
     {
         $response = [
             'cloud_name' => 'gradely',
-            'preset'=>'gradely',
+            'preset' => 'gradely',
             'cloudinary_base_delivery' => 'http://res.cloudinary.com/gradely',
             'cloudinary_base_api' => 'https://api.cloudinary.com/v1_1/gradely'
         ];
 
         return (new ApiResponse)->success($response);
+    }
+
+    public function actionCkeditor()
+    {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+       return  ["versionPlatform" => "unknown",
+            "editorParameters" => [],
+            "imageFormat" => "svg",
+            "CASEnabled" => false,
+            "parseModes" => [
+                "latex"
+            ],
+            "editorToolbar" => "",
+            "editorAttributes" => "width=570, height=450, scroll=no, resizable=yes",
+            "base64savemode" => "default",
+            "modalWindow" => true,
+            "version" => "7.26.0.1439",
+            "enableAccessibility" => true,
+            "saveMode" => "xml",
+            "saveHandTraces" => false,
+            "editorUrl" => "http://www.wiris.net/demo/editor/editor",
+            "editorEnabled" => true,
+            "chemEnabled" => true,
+            "CASMathmlAttribute" => "alt",
+            "CASAttributes" => "width=640, height=480, scroll=no, resizable=yes",
+            "modalWindowFullScreen" => false,
+            "imageMathmlAttribute" => "data-mathml",
+            "hostPlatform" => "unknown",
+            "wirisPluginPerformance" => true
+        ];
     }
 }
 
