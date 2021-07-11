@@ -13,7 +13,7 @@ return [
         'POST back-upload/<folder:[a-z0-9/-]+>' => 'back-upload', //
 
     ]],
-    'GET demo/plugins/app/configurationjs'=>'v2/services/ckeditor'
+    'POST demo/plugins/app/configurationjs'=>'v2/services/ckeditor'
     //'GET v2/amazon/lists' => 'v2/amazon/list-bucket',//
 
 ];
