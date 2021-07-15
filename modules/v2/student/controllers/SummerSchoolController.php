@@ -260,10 +260,10 @@ class SummerSchoolController extends ActiveController
 
         $school_id = Yii::$app->params['summerSchoolID'];
         $summer_school = Yii::$app->request->post('summer_school');
-        if($user->type == 'student'){
+        if ($user->type == 'student') {
             $student_id = $user->id;
             $parent_id = null;
-        }else{
+        } else {
             $student_id = Yii::$app->request->post('student_id');
             $parent_id = $user->id;
         }
@@ -272,7 +272,7 @@ class SummerSchoolController extends ActiveController
 
         $form = new \yii\base\DynamicModel(compact('summer_school', 'student_id', 'parent_id'));
         $form->addRule(['summer_school', 'student_id'], 'required');
-        if($user->type == 'parent') {
+        if ($user->type == 'parent') {
             $form->addRule(['parent_id', 'student_id'], 'exist', ['targetClass' => Parents::className(), 'targetAttribute' => ['parent_id', 'student_id']]);
         }
         if (!$form->validate()) {
@@ -302,7 +302,7 @@ class SummerSchoolController extends ActiveController
         $studentSchool->school_id = $summerSchool->school_id;
         $studentSchool->class_id = $summerSchool->class_id;
 
-        $summerSchool->school_id = $studentSchoolReplicate->school_id;
+        $summerSchool->school_id = empty($studentSchoolReplicate->school_id) ? $school_id : $studentSchoolReplicate->school_id;
         $summerSchool->class_id = $studentSchoolReplicate->class_id;
         if (!$studentSchool->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
@@ -332,7 +332,7 @@ class SummerSchoolController extends ActiveController
 
         $courses = Subjects::find()
             ->select(['subjects.id', 'name', 'description', Yii::$app->params['subjectImage'],
-                  new Expression("$studentID as student_id"),
+                new Expression("$studentID as student_id"),
                 new Expression("JSON_CONTAINS(sss.subjects, '4', '$') as is_enrolled") //Convert to int or bool
             ])
             ->leftJoin('student_summer_school sss', "sss.student_id =$studentID")
