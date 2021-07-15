@@ -260,12 +260,21 @@ class SummerSchoolController extends ActiveController
 
         $school_id = Yii::$app->params['summerSchoolID'];
         $summer_school = Yii::$app->request->post('summer_school');
-        $student_id = Yii::$app->request->post('student_id');
-        $parent_id = $user->id;
-        $form = new \yii\base\DynamicModel(compact('summer_school', 'student_id', 'parent_id'));
-        $form->addRule(['summer_school', 'student_id', 'parent_id'], 'required');
-        $form->addRule(['parent_id', 'student_id'], 'exist', ['targetClass' => Parents::className(), 'targetAttribute' => ['parent_id', 'student_id']]);
+        if($user->type == 'student'){
+            $student_id = $user->id;
+            $parent_id = null;
+        }else{
+            $student_id = Yii::$app->request->post('student_id');
+            $parent_id = $user->id;
+        }
+        //$studentID = Utility::getParentChildID();
 
+
+        $form = new \yii\base\DynamicModel(compact('summer_school', 'student_id', 'parent_id'));
+        $form->addRule(['summer_school', 'student_id'], 'required');
+        if($user->type == 'parent') {
+            $form->addRule(['parent_id', 'student_id'], 'exist', ['targetClass' => Parents::className(), 'targetAttribute' => ['parent_id', 'student_id']]);
+        }
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
@@ -300,7 +309,7 @@ class SummerSchoolController extends ActiveController
         }
 
         if (!$summerSchool->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
+            return (new ApiResponse)->error($summerSchool->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
         }
         $dbtransaction->commit();
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Updated');
@@ -336,6 +345,49 @@ class SummerSchoolController extends ActiveController
 
         return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL);
 
+    }
+
+    public function actionChildEnrolling()
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type != 'student') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user request');
+        }
+
+        $school_id = Yii::$app->params['summerSchoolID'];
+        $student_id = $user->id;
+        $course_id = Yii::$app->request->post('course_id');
+
+        $form = new \yii\base\DynamicModel(compact('school_id', 'student_id', 'course_id'));
+        $form->addRule(['school_id', 'student_id', 'course_id'], 'required');
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+        }
+
+        if (!is_array($course_id)) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Course must be an array');
+        }
+
+        if (count($course_id) > Subjects::find()->where(['id' => $course_id])->count()) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'One or more course is invalid');
+        }
+
+        if (!$model = StudentSummerSchool::findOne(['student_id' => $student_id])) {
+            $model = new StudentSummerSchool();
+        }
+        $class = Utility::StudentChildClass($student_id, 1);
+        $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
+        $model->student_id = $student_id;
+        $model->school_id = $school_id;
+        $model->subjects = $course_id;
+        $model->global_class = $class;
+        $model->class_id = $classes->id;
+        $model->status = 1;
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
+        }
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 
 }
