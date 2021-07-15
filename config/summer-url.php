@@ -6,5 +6,5 @@ return [
     'POST v2/summer/connect-new-child' => 'v2/student/summer-school/connect-new-child', //
     'PUT v2/summer/switch-summer-school' => 'v2/student/summer-school/switch-summer-school', //
 
-
+    'GET v2/summer/get-summer-courses'=>'v2/student/summer-school/get-summer-courses'
 ];

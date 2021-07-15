@@ -231,8 +231,6 @@ class SubjectTopics extends \yii\db\ActiveRecord
                 $query = $query->andWhere(['quiz_summary.term' => $term]);
             }
         }
-        print_r($query->all());
-        die;
         if (!$query->all()) {
             return SharedConstant::VALUE_ZERO;
         }
@@ -240,8 +238,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
         $total_attempts = $query->count();
         $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count();
 
-        echo ($total_correct / $total_attempts) * 100;
-        die;
+        return ($total_correct / $total_attempts) * 100;
 
     }
 

@@ -18,6 +18,7 @@ use Yii;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\components\SharedConstant;
 use yii\base\DynamicModel;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -253,7 +254,7 @@ class SummerSchoolController extends ActiveController
     {
         $user = Yii::$app->user->identity;
 
-        if ($user->type != 'parent') {
+        if ($user->type != 'student' && $user->type != 'parent') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user request');
         }
 
@@ -273,43 +274,68 @@ class SummerSchoolController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You need to configure summer school');
         }
 
-        if(!$studentSchool = StudentSchool::findOne(['student_id' => $student_id, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])){
+        if (!$studentSchool = StudentSchool::findOne(['student_id' => $student_id, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])) {
             $studentSchool = new StudentSchool();
             $studentSchool->student_id = $student_id;
             $studentSchool->status = 1;
         }
         $dbtransaction = Yii::$app->db->beginTransaction();
-       // try {
-            //$summerReplicate = $summerSchool;
-            $studentSchoolReplicate = clone $studentSchool;
+        // try {
+        //$summerReplicate = $summerSchool;
+        $studentSchoolReplicate = clone $studentSchool;
 
-            if (isset($studentSchool->in_summer_school) && $summer_school == $studentSchool->in_summer_school) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Your summer school is already ' . $summer_school);
-            }
+        if (isset($studentSchool->in_summer_school) && $summer_school == $studentSchool->in_summer_school) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Your summer school is already ' . $summer_school);
+        }
 
-            //if ($summer_school) {
-                $studentSchool->in_summer_school = $summer_school;
-                $studentSchool->school_id = $summerSchool->school_id;
-                $studentSchool->class_id = $summerSchool->class_id;
+        //if ($summer_school) {
+        $studentSchool->in_summer_school = $summer_school;
+        $studentSchool->school_id = $summerSchool->school_id;
+        $studentSchool->class_id = $summerSchool->class_id;
 
-                $summerSchool->school_id = $studentSchoolReplicate->school_id;
-                $summerSchool->class_id = $studentSchoolReplicate->class_id;
-                if (!$studentSchool->save()) {
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
-                }
+        $summerSchool->school_id = $studentSchoolReplicate->school_id;
+        $summerSchool->class_id = $studentSchoolReplicate->class_id;
+        if (!$studentSchool->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
+        }
 
-                if (!$summerSchool->save()) {
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
-                }
-                $dbtransaction->commit();
-                return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Updated');
-            //}
+        if (!$summerSchool->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
+        }
+        $dbtransaction->commit();
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Updated');
+        //}
 
-            return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'No changes made');
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'No changes made');
 //        } catch (\Exception $e) {
 //            $dbtransaction->rollBack();
 //            return (new ApiResponse)->success(false, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
 //        }
+    }
+
+    public function actionGetSummerCourses()
+    {
+        $user = Yii::$app->user->identity;
+        if ($user->type != 'student' && $user->type != 'parent') {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid user request');
+        }
+        $studentID = Utility::getParentChildID();
+
+        $courses = Subjects::find()
+            ->select(['subjects.id', 'name', 'description', Yii::$app->params['subjectImage'],
+                  new Expression("$studentID as student_id"),
+                new Expression("JSON_CONTAINS(sss.subjects, '4', '$') as is_enrolled") //Convert to int or bool
+            ])
+            ->leftJoin('student_summer_school sss', "sss.student_id =$studentID")
+            ->where(['summer_school' => 1])
+            ->asArray()
+            ->all();
+
+        $return = array_merge(['courses' => $courses],
+            ['is_summer_student' => StudentSummerSchool::find()->where(['student_id' => $studentID])->exists()]);
+
+        return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL);
+
     }
 
 }
