@@ -244,7 +244,7 @@ class Utility extends ActiveRecord
                 return Yii::$app->user->identity->class;
             return SharedConstant::VALUE_NULL;
         } elseif ($global_id == SharedConstant::VALUE_ONE) {
-            return $data->class->global_class_id;
+            return isset($data->class->global_class_id) ? $data->class->global_class_id : Yii::$app->user->identity->class;
         } else {
             return $data->class_id;
         }
@@ -432,10 +432,10 @@ class Utility extends ActiveRecord
                 'schools.name',
                 'sss.subjects as subjects',
             ])
-            ->innerJoin('classes','classes.id = sss.class_id')
-            ->innerJoin('schools','schools.id = classes.school_id')
-            ->where(['student_id'=>$user->id])->asArray()->one();
-        if($summerSchool){
+            ->innerJoin('classes', 'classes.id = sss.class_id')
+            ->innerJoin('schools', 'schools.id = classes.school_id')
+            ->where(['student_id' => $user->id])->asArray()->one();
+        if ($summerSchool) {
 
         }
 
@@ -455,7 +455,7 @@ class Utility extends ActiveRecord
                 $schoolName = $classes->school->name;
                 $hasSchool = true;
                 $in_summer_school = $classes->in_summer_school;
-                $alternative_school =  $summerSchool;
+                $alternative_school = $summerSchool;
 
             }
         } else {

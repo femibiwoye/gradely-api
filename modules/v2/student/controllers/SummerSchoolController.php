@@ -309,7 +309,7 @@ class SummerSchoolController extends ActiveController
         }
 
         if (!$summerSchool->save()) {
-            return (new ApiResponse)->error($summerSchool->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
         }
         $dbtransaction->commit();
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Updated');
@@ -331,14 +331,24 @@ class SummerSchoolController extends ActiveController
         $studentID = Utility::getParentChildID();
 
         $courses = Subjects::find()
-            ->select(['subjects.id', 'name', 'description', Yii::$app->params['subjectImage'],
-                new Expression("$studentID as student_id"),
-                new Expression("JSON_CONTAINS(sss.subjects, '4', '$') as is_enrolled") //Convert to int or bool
+            ->select([
+                'subjects.id', 'name', 'description', Yii::$app->params['subjectImage'],
+//                new Expression("$studentID as student_id"),
+                new Expression("JSON_CONTAINS(
+            `sss`.`subjects`,
+            CONCAT(`subjects`.`id`)
+        ) as is_enrolled")
             ])
             ->leftJoin('student_summer_school sss', "sss.student_id =$studentID")
             ->where(['summer_school' => 1])
             ->asArray()
             ->all();
+
+        foreach ($courses as $key=> $course){
+            $courses[$key]['is_enrolled'] =(int)$course['is_enrolled'];
+            $courses[$key]['id'] =(int)$course['id'];
+        }
+
 
         $return = array_merge(['courses' => $courses],
             ['is_summer_student' => StudentSummerSchool::find()->where(['student_id' => $studentID])->exists()]);
