@@ -59,6 +59,10 @@ class AuthController extends Controller
 
             if ($user->type == 'school')
                 $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+
+            if ($user->type == 'student')
+                $user = array_merge(ArrayHelper::toArray($user), ['summer_school'=>Utility::GetStudentSummerSchoolStatus($user->id)]);
+
             return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');

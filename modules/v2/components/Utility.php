@@ -478,6 +478,15 @@ class Utility extends ActiveRecord
         ];
     }
 
+    public static function GetStudentSummerSchoolStatus($studentID)
+    {
+       if($student = StudentSchool::findOne(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1,'current_class'=>1])){
+           return $student->in_summer_school;
+       }else{
+           return null;
+       }
+    }
+
     /**
      * THis return the id of the student school
      * @param null $child
