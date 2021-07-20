@@ -218,6 +218,11 @@ class QuestionController extends ActiveController
             if (!isset($question['duration'])) {
                 return $question;
             }
+
+            print_r($question);
+
+
+
             $type = $question['type'];
             $question = $question['question'];
                 $duration = $question['duration'];
