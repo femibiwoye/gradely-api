@@ -220,7 +220,8 @@ class QuestionController extends ActiveController
             }
 
             if (isset($question["duration"])) {
-                echo 'index is not negate'.$qIndex;
+                echo 'index is not negate'.$qIndex."<br>";
+                echo $question["duration"];
             }
             die;
 
