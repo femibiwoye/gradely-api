@@ -215,15 +215,15 @@ class QuestionController extends ActiveController
                 if (!isset($question['type']) || !in_array($question['type'], SharedConstant::QUESTION_FORMAT)) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Type is required or invalid');
                 }
-//                $type = $question['type'];
-//                $question = $question['question'];
-//                $duration = $question['duration'];
-//                $difficulty = $question['difficulty'];
-//                $answer = $question['answer'];
+                $type = $question['type'];
+                $question = $question['question'];
+                $duration = $question['duration'];
+                $difficulty = $question['difficulty'];
+                $answer = $question['answer'];
                 $model = new \yii\base\DynamicModel(compact('topic_id', 'subject_id'
-                //,'type','duration','question','difficulty','answer'
+                ,'type','duration','question','difficulty','answer'
                 ));
-                //$model->addRule(['topic_id', 'subject_id','type','duration','question','difficulty','answer'], 'required');
+                $model->addRule(['topic_id', 'subject_id','type','duration','question','difficulty','answer'], 'required');
                 if (!$curriculumStatus) {
                     $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
                 } else {
