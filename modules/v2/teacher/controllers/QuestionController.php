@@ -247,7 +247,7 @@ class QuestionController extends ActiveController
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
             }
 
-            $model->type = $question['type'];
+            $model->type = $eachQuestion['type'];
             $model->category = 'homework';
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
