@@ -216,12 +216,11 @@ class QuestionController extends ActiveController
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Type is required or invalid');
             }
             if (!isset($question["duration"])) {
-                echo 'index is '.$qIndex;
+                echo 'index is negate '.$qIndex;
             }
 
-
             if (isset($question["duration"])) {
-                echo 'index is '.$qIndex;
+                echo 'index is not negate'.$qIndex;
             }
             die;
 
