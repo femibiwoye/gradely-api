@@ -93,13 +93,15 @@ class SummerSchoolController extends ActiveController
 
         if (!$model = StudentSummerSchool::findOne(['student_id' => $student_id])) {
             $model = new StudentSummerSchool();
+            $model->subjects = $course_id;
+        }else{
+            $model->subjects = array_keys(array_flip(array_merge($model->subjects,$course_id)));
         }
         $class = Utility::StudentChildClass($student_id, 1);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
         $model->student_id = $student_id;
         $model->parent_id = $parent_id;
         $model->school_id = $school_id;
-        $model->subjects = $course_id;
         $model->global_class = $class;
         $model->class_id = $classes->id;
         $model->status = 1;
@@ -142,13 +144,16 @@ class SummerSchoolController extends ActiveController
         }
         if (!$model = StudentSummerSchool::findOne(['student_id' => $student['id']])) {
             $model = new StudentSummerSchool();
+            $model->subjects = $course_id;
+        }else{
+            $model->subjects = array_keys(array_flip(array_merge($model->subjects,$course_id)));
         }
         $class = Utility::getStudentClass(1, $student['id']);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
         $model->student_id = $student['id'];
         $model->parent_id = $parent_id;
         $model->school_id = $school_id;
-        $model->subjects = $course_id;
+//        $model->subjects = $course_id;
         $model->global_class = $class;
         $model->class_id = $classes->id;
         $model->status = 1;
@@ -385,12 +390,15 @@ class SummerSchoolController extends ActiveController
 
         if (!$model = StudentSummerSchool::findOne(['student_id' => $student_id])) {
             $model = new StudentSummerSchool();
+            $model->subjects = $course_id;
+        }else{
+            $model->subjects = array_keys(array_flip(array_merge($model->subjects,$course_id)));
         }
         $class = Utility::StudentChildClass($student_id, 1);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
         $model->student_id = $student_id;
         $model->school_id = $school_id;
-        $model->subjects = $course_id;
+        //$model->subjects = $course_id;
         $model->global_class = $class;
         $model->class_id = $classes->id;
         $model->status = 1;

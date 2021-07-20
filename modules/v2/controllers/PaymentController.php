@@ -242,7 +242,6 @@ class PaymentController extends ActiveController
         }
 
         return array_merge(['card' => $cardDetails], ['children' => $children]);
-
     }
 
     public function actionChildSubscription()

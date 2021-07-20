@@ -24,6 +24,7 @@ use yii\db\Expression;
  * @property string $created_at
  * @property int $in_summer_school
  * @property string|null $updated_at
+ * @property string $summer_payment_status
  *
  * @property User $student
  * @property Classes $class
@@ -44,7 +45,7 @@ class StudentSchool extends \yii\db\ActiveRecord
             [['student_id', 'school_id'], 'required'],
             [['student_id', 'school_id', 'class_id', 'status','promoted_by','promoted_from','is_active_class','in_summer_school'], 'integer'],
             [['created_at'], 'safe'],
-            [['subscription_status','promoted_at'], 'string'],
+            [['subscription_status','promoted_at','summer_payment_status'], 'string'],
             [['invite_code'], 'string', 'max' => 20],
             [['student_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id']],
             [['class_id'], 'exist', 'skipOnError' => true, 'targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id']],
