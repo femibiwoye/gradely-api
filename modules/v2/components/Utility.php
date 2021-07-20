@@ -428,8 +428,10 @@ class Utility extends ActiveRecord
             ->alias('sss')
             ->select([
                 'sss.id as summer_id',
+                'sss.school_id as school_id',
+                'sss.class_id as class_id',
                 'classes.class_name',
-                'schools.name',
+                'schools.name as school_name',
                 'sss.subjects as subjects',
             ])
             ->innerJoin('classes', 'classes.id = sss.class_id')
@@ -450,13 +452,21 @@ class Utility extends ActiveRecord
                 $alternative_school = $summerSchool;
             } else {
 
-                $classId = $classes->class_id;
-                $className = $classes->class->class_name;
-                $schoolName = $classes->school->name;
-                $hasSchool = true;
-                $in_summer_school = $classes->in_summer_school;
-                $alternative_school = $summerSchool;
-
+                if($classes->in_summer_school == 1){
+                    $classId = (int) $summerSchool['class_id'];
+                    $className = $summerSchool['class_name'];
+                    $schoolName = $summerSchool['school_name'];
+                    $hasSchool = true;
+                    $in_summer_school = $classes->in_summer_school;
+                    $alternative_school = array_merge($summerSchool,['class_name'=>$classes->class->class_name,'school_name'=>$classes->school->name,'class_id'=>$classes->class_id]);
+                }else {
+                    $classId = $classes->class_id;
+                    $className = $classes->class->class_name;
+                    $schoolName = $classes->school->name;
+                    $hasSchool = true;
+                    $in_summer_school = empty($summerSchool)?null: $classes->in_summer_school;
+                    $alternative_school = $summerSchool;
+                }
             }
         } else {
             $classId = null;
@@ -485,6 +495,12 @@ class Utility extends ActiveRecord
        }else{
            return null;
        }
+
+       /**
+        * null = Not in summer school and not in real school
+        * 0 = you are in real school, you've been in summer school before and not active
+        * 1 = you are in summer school
+        */
     }
 
     /**
