@@ -209,83 +209,85 @@ class QuestionController extends ActiveController
         }
 
         //try {
-            $dbtransaction = Yii::$app->db->beginTransaction();
-            foreach ($questions as $qIndex => $question) {
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        foreach ($questions as $qIndex => $question) {
 
-                if (!isset($question['type']) || !in_array($question['type'], SharedConstant::QUESTION_FORMAT)) {
-                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Type is required or invalid');
-                }
-                $type = $question['type'];
-                $question = $question['question'];
-                $duration = $question['duration'];
-                $difficulty = $question['difficulty'];
-                $answer = $question['answer'];
-                $model = new \yii\base\DynamicModel(compact('topic_id', 'subject_id'
-                ,'type','duration','question','difficulty','answer'
-                ));
-                $model->addRule(['topic_id', 'subject_id','type','duration','question','difficulty','answer'], 'required');
-                if (!$curriculumStatus) {
-                    $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
-                } else {
-                    $model->addRule(['topic_id'], 'exist', ['targetClass' => SchoolTopic::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
-                }
-                if ($question['type'] == 'multiple')
-                    $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
-                elseif ($question['type'] == 'bool')
-                    $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
-                if (!$model->validate()) {
-                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
-                }
-
-                $model = new Questions(['scenario' => 'create-' . $question['type']]);
-                $model->attributes = $question;
-                $model->teacher_id = $teacher_id;
-                $model->school_id = $schoolID;
-                $model->subject_id = $subject_id;
-                $model->topic_id = $topic_id;
-                $model->class_id = $homework->class_id;
-                if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $model->type, 'option_a' => $model->option_a])->exists()) {
-                    return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
-                }
-
-                $model->type = $question['type'];
-                $model->category = 'homework';
-                if (!$model->validate()) {
-                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
-                }
-
-                if ($curriculumStatus) {
-                    $model->is_custom_topic = 1;
-                    $topic = SchoolTopic::findOne(['id' => $topic_id]);
-                    $examID = $topic->curriculum_id;
-                } else {
-                    $topic = SubjectTopics::findOne(['id' => $topic_id]);
-                    $examID = $topic->exam_type_id;
-                }
-                $model->exam_type_id = $examID;
-                $model->homework_id = $homework_id;
-                $model->class_id = Classes::findOne(['id' => $homework->class_id])->global_class_id;
-
-                if (!$model->save()) {
-                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
-                }
-
-
-                if (!empty($homework_id)) {
-                    $assignQuestion = new HomeworkQuestions();
-                    $assignQuestion->teacher_id = $teacher_id;
-                    $assignQuestion->homework_id = $homework_id;
-                    $assignQuestion->question_id = $model->id;
-                    $assignQuestion->duration = $model->duration;
-                    $assignQuestion->difficulty = $model->difficulty;
-                    if (!$assignQuestion->save()) {
-                        return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
-                    }
-                }
-
+            if (!isset($question['type']) || !in_array($question['type'], SharedConstant::QUESTION_FORMAT)) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Type is required or invalid');
+            }
+            $type = $question['type'];
+            $question = $question['question'];
+//                $duration = $question['duration'];
+            $difficulty = $question['difficulty'];
+            $answer = $question['answer'];
+            $model = new \yii\base\DynamicModel(compact('topic_id', 'subject_id'
+                , 'type',
+//                    'duration',
+                'question', 'difficulty', 'answer'
+            ));
+            $model->addRule(['topic_id', 'subject_id', 'type', 'duration', 'question', 'difficulty', 'answer'], 'required');
+            if (!$curriculumStatus) {
+                $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
+            } else {
+                $model->addRule(['topic_id'], 'exist', ['targetClass' => SchoolTopic::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
+            }
+            if ($question['type'] == 'multiple')
+                $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
+            elseif ($question['type'] == 'bool')
+                $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
             }
 
-            $dbtransaction->commit();
+            $model = new Questions(['scenario' => 'create-' . $question['type']]);
+            $model->attributes = $question;
+            $model->teacher_id = $teacher_id;
+            $model->school_id = $schoolID;
+            $model->subject_id = $subject_id;
+            $model->topic_id = $topic_id;
+            $model->class_id = $homework->class_id;
+            if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $model->type, 'option_a' => $model->option_a])->exists()) {
+                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
+            }
+
+            $model->type = $question['type'];
+            $model->category = 'homework';
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
+            }
+
+            if ($curriculumStatus) {
+                $model->is_custom_topic = 1;
+                $topic = SchoolTopic::findOne(['id' => $topic_id]);
+                $examID = $topic->curriculum_id;
+            } else {
+                $topic = SubjectTopics::findOne(['id' => $topic_id]);
+                $examID = $topic->exam_type_id;
+            }
+            $model->exam_type_id = $examID;
+            $model->homework_id = $homework_id;
+            $model->class_id = Classes::findOne(['id' => $homework->class_id])->global_class_id;
+
+            if (!$model->save()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
+            }
+
+
+            if (!empty($homework_id)) {
+                $assignQuestion = new HomeworkQuestions();
+                $assignQuestion->teacher_id = $teacher_id;
+                $assignQuestion->homework_id = $homework_id;
+                $assignQuestion->question_id = $model->id;
+                $assignQuestion->duration = $model->duration;
+                $assignQuestion->difficulty = $model->difficulty;
+                if (!$assignQuestion->save()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
+                }
+            }
+
+        }
+
+        $dbtransaction->commit();
 //        } catch (\Exception $e) {
 //            $dbtransaction->rollBack();
 //            return false;
