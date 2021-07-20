@@ -220,12 +220,12 @@ class QuestionController extends ActiveController
             }
             $type = $question['type'];
             $question = $question['question'];
-//                $duration = $question['duration'];
+                $duration = $question['duration'];
             $difficulty = $question['difficulty'];
             $answer = $question['answer'];
             $model = new \yii\base\DynamicModel(compact('topic_id', 'subject_id'
                 , 'type',
-//                    'duration',
+                    'duration',
                 'question', 'difficulty', 'answer'
             ));
             $model->addRule(['topic_id', 'subject_id', 'type', 'duration', 'question', 'difficulty', 'answer'], 'required');
