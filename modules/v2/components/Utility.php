@@ -460,6 +460,8 @@ class Utility extends ActiveRecord
                         $className = null;
                         $schoolName = null;
                         $hasSchool = false;
+
+                        $summerSchool = ['class_id' => $classId, 'class_name' => $className, 'school_name' => $schoolName];
                     }
                     $in_summer_school = $classes->in_summer_school;
                     $alternative_school = array_merge($summerSchool, ['class_name' => $classes->class->class_name, 'school_name' => $classes->school->name, 'class_id' => $classes->class_id]);
