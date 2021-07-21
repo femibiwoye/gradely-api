@@ -434,12 +434,9 @@ class Utility extends ActiveRecord
                 'schools.name as school_name',
                 'sss.subjects as subjects',
             ])
-            ->innerJoin('classes', 'classes.id = sss.class_id')
+            ->leftJoin('classes', 'classes.id = sss.class_id')
             ->innerJoin('schools', 'schools.id = classes.school_id')
             ->where(['student_id' => $user->id])->asArray()->one();
-        if ($summerSchool) {
-
-        }
 
         if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1, 'is_active_class' => 1])) {
 
