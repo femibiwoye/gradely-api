@@ -434,7 +434,7 @@ class Utility extends ActiveRecord
                 'schools.name as school_name',
                 'sss.subjects as subjects',
             ])
-            ->leftJoin('classes', 'classes.id = sss.class_id')
+            ->innerJoin('classes', 'classes.id = sss.class_id')
             ->innerJoin('schools', 'schools.id = classes.school_id')
             ->where(['student_id' => $user->id])->asArray()->one();
 
@@ -449,19 +449,26 @@ class Utility extends ActiveRecord
                 $alternative_school = $summerSchool;
             } else {
 
-                if($classes->in_summer_school == 1 && !empty($summerSchool)){
-                    $classId = (int) $summerSchool['class_id'];
-                    $className = $summerSchool['class_name'];
-                    $schoolName = $summerSchool['school_name'];
-                    $hasSchool = true;
+                if ($classes->in_summer_school == 1) {
+                    if (!empty($summerSchool)) {
+                        $classId = (int)$summerSchool['class_id'];
+                        $className = $summerSchool['class_name'];
+                        $schoolName = $summerSchool['school_name'];
+                        $hasSchool = true;
+                    } else {
+                        $classId = null;
+                        $className = null;
+                        $schoolName = null;
+                        $hasSchool = false;
+                    }
                     $in_summer_school = $classes->in_summer_school;
-                    $alternative_school = array_merge($summerSchool,['class_name'=>$classes->class->class_name,'school_name'=>$classes->school->name,'class_id'=>$classes->class_id]);
-                }else {
+                    $alternative_school = array_merge($summerSchool, ['class_name' => $classes->class->class_name, 'school_name' => $classes->school->name, 'class_id' => $classes->class_id]);
+                } else {
                     $classId = $classes->class_id;
                     $className = $classes->class->class_name;
                     $schoolName = $classes->school->name;
                     $hasSchool = true;
-                    $in_summer_school = empty($summerSchool)?null: $classes->in_summer_school;
+                    $in_summer_school = empty($summerSchool) ? null : $classes->in_summer_school;
                     $alternative_school = $summerSchool;
                 }
             }
@@ -487,17 +494,17 @@ class Utility extends ActiveRecord
 
     public static function GetStudentSummerSchoolStatus($studentID)
     {
-       if($student = StudentSchool::findOne(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1,'current_class'=>1])){
-           return $student->in_summer_school;
-       }else{
-           return null;
-       }
+        if ($student = StudentSchool::findOne(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])) {
+            return $student->in_summer_school;
+        } else {
+            return null;
+        }
 
-       /**
-        * null = Not in summer school and not in real school
-        * 0 = you are in real school, you've been in summer school before and not active
-        * 1 = you are in summer school
-        */
+        /**
+         * null = Not in summer school and not in real school
+         * 0 = you are in real school, you've been in summer school before and not active
+         * 1 = you are in summer school
+         */
     }
 
     /**
