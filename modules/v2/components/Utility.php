@@ -452,7 +452,7 @@ class Utility extends ActiveRecord
                 $alternative_school = $summerSchool;
             } else {
 
-                if($classes->in_summer_school == 1){
+                if($classes->in_summer_school == 1 && !empty($summerSchool)){
                     $classId = (int) $summerSchool['class_id'];
                     $className = $summerSchool['class_name'];
                     $schoolName = $summerSchool['school_name'];
