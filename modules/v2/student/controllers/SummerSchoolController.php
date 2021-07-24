@@ -94,8 +94,8 @@ class SummerSchoolController extends ActiveController
         if (!$model = StudentSummerSchool::findOne(['student_id' => $student_id])) {
             $model = new StudentSummerSchool();
             $model->subjects = $course_id;
-        }else{
-            $model->subjects = array_keys(array_flip(array_merge($model->subjects,$course_id)));
+        } else {
+            $model->subjects = array_keys(array_flip(array_merge($model->subjects, $course_id)));
         }
         $class = Utility::StudentChildClass($student_id, 1);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
@@ -145,8 +145,8 @@ class SummerSchoolController extends ActiveController
         if (!$model = StudentSummerSchool::findOne(['student_id' => $student['id']])) {
             $model = new StudentSummerSchool();
             $model->subjects = $course_id;
-        }else{
-            $model->subjects = array_keys(array_flip(array_merge($model->subjects,$course_id)));
+        } else {
+            $model->subjects = array_keys(array_flip(array_merge($model->subjects, $course_id)));
         }
         $class = Utility::getStudentClass(1, $student['id']);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
@@ -285,7 +285,21 @@ class SummerSchoolController extends ActiveController
         }
 
         if (!$summerSchool = StudentSummerSchool::findOne(['student_id' => $student_id])) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You need to configure summer school');
+
+            $model = new StudentSummerSchool();
+            $model->subjects = [];
+
+            $class = Utility::StudentChildClass($student_id, 1);
+            $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
+            $model->student_id = $student_id;
+            $model->school_id = $school_id;
+            $model->global_class = $class;
+            $model->class_id = $classes->id;
+            $model->status = 1;
+            if (!$model->save()) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Enrolling and switching was not successful');
+            }
+            //return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You need to configure summer school');
         }
 
         if (!$studentSchool = StudentSchool::findOne(['student_id' => $student_id, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])) {
@@ -349,9 +363,9 @@ class SummerSchoolController extends ActiveController
             ->asArray()
             ->all();
 
-        foreach ($courses as $key=> $course){
-            $courses[$key]['is_enrolled'] =(int)$course['is_enrolled'];
-            $courses[$key]['id'] =(int)$course['id'];
+        foreach ($courses as $key => $course) {
+            $courses[$key]['is_enrolled'] = (int)$course['is_enrolled'];
+            $courses[$key]['id'] = (int)$course['id'];
         }
 
 
@@ -374,25 +388,27 @@ class SummerSchoolController extends ActiveController
         $course_id = Yii::$app->request->post('course_id');
 
         $form = new \yii\base\DynamicModel(compact('school_id', 'student_id', 'course_id'));
-        $form->addRule(['school_id', 'student_id', 'course_id'], 'required');
+        $form->addRule(['school_id', 'student_id'], 'required');
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
-        if (!is_array($course_id)) {
+        if (!empty($course_id) && !is_array($course_id)) {
             return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Course must be an array');
         }
 
-        if (count($course_id) > Subjects::find()->where(['id' => $course_id])->count()) {
-            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'One or more course is invalid');
+        if (!empty($course_id)) {
+            if (count($course_id) > Subjects::find()->where(['id' => $course_id])->count()) {
+                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'One or more course is invalid');
+            }
         }
 
         if (!$model = StudentSummerSchool::findOne(['student_id' => $student_id])) {
             $model = new StudentSummerSchool();
-            $model->subjects = $course_id;
-        }else{
-            $model->subjects = array_keys(array_flip(array_merge($model->subjects,$course_id)));
+            $model->subjects = !empty($course_id) ? $course_id : [];
+        } else {
+            $model->subjects = array_keys(array_flip(array_merge($model->subjects, $course_id)));
         }
         $class = Utility::StudentChildClass($student_id, 1);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
