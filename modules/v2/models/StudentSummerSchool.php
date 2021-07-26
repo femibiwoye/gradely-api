@@ -15,8 +15,11 @@ use Yii;
  * @property int $school_id
  * @property string $subjects This is the course they want to study
  * @property int|null $status
+ * @property int|null $payment_reference_id
+ * @property string $summer_payment_status
  * @property string|null $created_at
  * @property string|null $updated_at
+ * @property string|null $payment_date
  */
 class StudentSummerSchool extends \yii\db\ActiveRecord
 {
@@ -35,8 +38,9 @@ class StudentSummerSchool extends \yii\db\ActiveRecord
     {
         return [
             [['student_id', 'school_id', 'subjects'], 'required'],
-            [['student_id', 'parent_id', 'class_id', 'global_class', 'school_id', 'status'], 'integer'],
+            [['student_id', 'parent_id', 'class_id', 'global_class', 'school_id', 'status', 'payment_reference_id'], 'integer'],
             [['subjects', 'created_at', 'updated_at'], 'safe'],
+            [['summer_payment_status', 'payment_date'], 'string'],
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace app\modules\v2\components;
 
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use yii\base\Widget;
@@ -198,7 +199,7 @@ class Pricing extends Widget
         /// being in summer school and payment status is paid automatically subscribed catchup and lms.
         /// LMS in this case is the summer school feed content, assessments, etc
         if (!$catchup || !$lms) {
-            if (StudentSchool::find()->where(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1, 'in_summer_school' => 1, 'summer_payment_status' => 'paid'])->exists()) {
+            if (StudentSummerSchool::find()->where(['student_id' => $studentID, 'status' => 1, 'summer_payment_status' => 'paid'])->exists()) {
                 $catchup = true;
                 $lms = true;
             }

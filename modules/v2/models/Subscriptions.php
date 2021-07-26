@@ -184,7 +184,7 @@ class Subscriptions extends \yii\db\ActiveRecord
         }
 
         /******** Payment failed Notification start *********/
-        $userModel = UserModel::findOne(['id'=>$model->user_id]);
+        $userModel = UserModel::findOne(['id' => $model->user_id]);
         $notification = new InputNotification();
         $notification->NewNotification('parent_payment_declined', [
             ['parent_id', $model->user_id],
@@ -204,7 +204,7 @@ class Subscriptions extends \yii\db\ActiveRecord
 
     public function getPaymentPlan()
     {
-        return $this->hasOne(PaymentPlan::className(),['id'=>'payment_plan_id']);
+        return $this->hasOne(PaymentPlan::className(), ['id' => 'payment_plan_id']);
     }
 
 
@@ -218,6 +218,7 @@ class Subscriptions extends \yii\db\ActiveRecord
 
     public function activateChildSubscription($model)
     {
+
         $children = SubscriptionChildren::find()->where(['subscription_id' => $model->id, 'subscriber_id' => Yii::$app->user->id])->all();
         $expiry = date('Y-m-d H:i:s', strtotime("+{$model->duration_count} {$model->duration}"));
 
@@ -226,11 +227,19 @@ class Subscriptions extends \yii\db\ActiveRecord
             $item->expiry = $expiry;
             $item->save();
 
-            $child = UserModel::find()->where(['id' => $item->student_id, 'type' => 'student'])->one();
-            $model->scenario = 'update-subscription';
-            $child->subscription_expiry = $expiry;
-            $child->subscription_plan = $model->plan;
-            $child->save();
+            if (PaymentPlan::find()->where(['id' => $model->id, 'type' => 'summer'])->exists()) {
+                $summerSub = StudentSummerSchool::find()->where(['student_id' => $item->student_id, 'status' => 1])->one();
+                $summerSub->summer_payment_status = 'paid';
+                $summerSub->payment_reference_id = $model->id;
+                $summerSub->payment_date = date('Y-m-d h:i:s');
+                $summerSub->save();
+            } else {
+                $child = UserModel::find()->where(['id' => $item->student_id, 'type' => 'student'])->one();
+                $model->scenario = 'update-subscription';
+                $child->subscription_expiry = $expiry;
+                $child->subscription_plan = $model->plan;
+                $child->save();
+            }
         }
     }
 }
