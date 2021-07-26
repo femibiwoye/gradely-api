@@ -479,7 +479,7 @@ class Utility extends ActiveRecord
             $className = null;
             $schoolName = null;
             $hasSchool = false;
-            $in_summer_school = null;
+            $in_summer_school = !empty($summerSchool) ? 0 : null;
             $alternative_school = $summerSchool;
         }
 
