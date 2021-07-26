@@ -325,6 +325,10 @@ class SummerSchoolController extends ActiveController
         $summerSchool->class_id = $studentSchoolReplicate->class_id;
         if (!$studentSchool->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
+        } else {
+            if (empty($studentSchool->class_id) && $studentSchool->class_id = $summerSchool->class_id && $studentSchool->in_summer_school == 0) {
+                $studentSchool->delete();
+            }
         }
 
         if (!$summerSchool->save()) {
