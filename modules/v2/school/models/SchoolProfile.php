@@ -13,6 +13,7 @@ use Yii;
 class SchoolProfile extends Schools
 {
     const SCENERIO_EDIT_SCHOOL_PROFILE = 'edit_school_profile';
+    const SCENERIO_EDIT_SCHOOL_CONTACT = 'edit_school_contact';
 
     public function rules()
     {
@@ -25,6 +26,16 @@ class SchoolProfile extends Schools
             ],
             [['logo', 'about', 'banner', 'website', 'contact_image', 'postal_code', 'boarding_type'], 'safe',
                 'on' => self::SCENERIO_EDIT_SCHOOL_PROFILE
+            ],
+            [['website',
+                'contact_email',
+                'phone',
+                'address',
+                'city',
+                'state',
+                'country'
+                ], 'required',
+                'on' => self::SCENERIO_EDIT_SCHOOL_CONTACT
             ]
         ];
     }
@@ -54,6 +65,17 @@ class SchoolProfile extends Schools
         $this->scenario = self::SCENERIO_EDIT_SCHOOL_PROFILE;
         $sch = $this->attributes;
         unset($sch['id'], $sch['user_id'], $sch['slug'], $sch['naming_format'], $sch['school_type'], $sch['created_at'], $sch['subscription_plan'], $sch['subscription_expiry'], $sch['basic_subscription'], $sch['premium_subscription']);
+        $school->attributes = $sch;
+        if ($school->save())
+            return $school;
+        return false;
+    }
+
+    public function updateSchoolContact($school)
+    {
+        $this->scenario = self::SCENERIO_EDIT_SCHOOL_CONTACT;
+        $sch = $this->attributes;
+        unset($sch['id'], $sch['user_id'], $sch['slug'], $sch['name'], $sch['abbr'], $sch['logo'], $sch['banner'], $sch['tagline'], $sch['about'], $sch['naming_format'], $sch['school_type'], $sch['created_at'], $sch['subscription_plan'], $sch['subscription_expiry'], $sch['basic_subscription'], $sch['premium_subscription']);
         $school->attributes = $sch;
         if ($school->save())
             return $school;
