@@ -227,7 +227,7 @@ class Subscriptions extends \yii\db\ActiveRecord
             $item->expiry = $expiry;
             $item->save();
 
-            if (PaymentPlan::find()->where(['id' => $model->id, 'type' => 'summer'])->exists()) {
+            if (PaymentPlan::find()->where(['id' => $model->payment_plan_id, 'type' => 'summer'])->exists()) {
                 $summerSub = StudentSummerSchool::find()->where(['student_id' => $item->student_id, 'status' => 1])->one();
                 $summerSub->summer_payment_status = 'paid';
                 $summerSub->payment_reference_id = $model->id;
