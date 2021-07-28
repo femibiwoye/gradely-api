@@ -62,7 +62,6 @@ class AuthController extends Controller
             if ($user->type == 'student')
                 $tempUser = array_merge(ArrayHelper::toArray($user), ['summer_school'=>Utility::GetStudentSummerSchoolStatus($user->id)]);
 
-
             $user = $tempUser;
             return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
