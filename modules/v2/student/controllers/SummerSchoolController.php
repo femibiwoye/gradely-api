@@ -169,6 +169,9 @@ class SummerSchoolController extends ActiveController
             $newParent->save();
         }
 
+        //Enroll this child
+        $this->switchToSummerSchool($model->student_id, $school_id, $model);
+
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Record saved');
     }
 
@@ -245,6 +248,11 @@ class SummerSchoolController extends ActiveController
                 if (!$model->save()) {
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
                 }
+
+                //Enroll this child
+                $this->switchToSummerSchool($user->id, $school_id, $model);
+
+
                 $saveCount++;
             }
             $dbtransaction->commit();
@@ -285,7 +293,6 @@ class SummerSchoolController extends ActiveController
         }
 
         if (!$summerSchool = StudentSummerSchool::findOne(['student_id' => $student_id])) {
-
             $model = new StudentSummerSchool();
             $model->subjects = [];
 
@@ -307,6 +314,7 @@ class SummerSchoolController extends ActiveController
             $studentSchool->student_id = $student_id;
             $studentSchool->status = 1;
         }
+
         $dbtransaction = Yii::$app->db->beginTransaction();
         // try {
         //$summerReplicate = $summerSchool;
@@ -334,7 +342,9 @@ class SummerSchoolController extends ActiveController
         if (!$summerSchool->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
         }
+
         $dbtransaction->commit();
+
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Updated');
         //}
 
@@ -377,7 +387,6 @@ class SummerSchoolController extends ActiveController
             ['is_summer_student' => StudentSummerSchool::find()->where(['student_id' => $studentID])->exists()]);
 
         return (new ApiResponse)->success($return, ApiResponse::SUCCESSFUL);
-
     }
 
     public function actionChildEnrolling()
@@ -426,6 +435,52 @@ class SummerSchoolController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
         }
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Record saved');
+    }
+
+
+    private function switchToSummerSchool($student_id, $school_id, $summer_school)
+    {
+        if (!$summerSchool = StudentSummerSchool::findOne(['student_id' => $student_id])) {
+            $model = new StudentSummerSchool();
+            $model->subjects = [];
+
+            $class = Utility::StudentChildClass($student_id, 1);
+            $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
+            $model->student_id = $student_id;
+            $model->school_id = $school_id;
+            $model->global_class = $class;
+            $model->class_id = $classes->id;
+            $model->status = 1;
+            if (!$model->save()) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Enrolling and switching was not successful');
+            }
+        }
+
+        if (!$studentSchool = StudentSchool::findOne(['student_id' => $student_id, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])) {
+            $studentSchool = new StudentSchool();
+            $studentSchool->student_id = $student_id;
+            $studentSchool->status = 1;
+        }
+
+        $studentSchoolReplicate = clone $studentSchool;
+
+        $studentSchool->in_summer_school = $summer_school;
+        $studentSchool->school_id = $summerSchool->school_id;
+        $studentSchool->class_id = $summerSchool->class_id;
+
+        $summerSchool->school_id = empty($studentSchoolReplicate->school_id) ? $school_id : $studentSchoolReplicate->school_id;
+        $summerSchool->class_id = $studentSchoolReplicate->class_id;
+        if (!$studentSchool->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
+        } else {
+            if (empty($studentSchool->class_id) && $studentSchool->class_id = $summerSchool->class_id && $studentSchool->in_summer_school == 0) {
+                $studentSchool->delete();
+            }
+        }
+
+        if (!$summerSchool->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save summer record');
+        }
     }
 
 }
