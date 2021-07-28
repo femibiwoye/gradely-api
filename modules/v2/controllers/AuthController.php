@@ -59,6 +59,10 @@ class AuthController extends Controller
 
             if ($user->type == 'school')
                 $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+
+            if ($user->type == 'student')
+                $user = array_merge(ArrayHelper::toArray($user), ['summer_school'=>Utility::GetStudentSummerSchoolStatus($user->id)]);
+
             return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
@@ -164,24 +168,29 @@ class AuthController extends Controller
             return ['status' => empty($user) ? false : true, 'can_access' => UserTypeAppPermission::find()->where(['app_name' => Yii::$app->request->post('appname'), 'status' => 1, 'user_type' => $user->type])->exists() ? true : false];
         }
 
-        $school = Schools::find()->select(['id','name','slug','logo']);
         if (Yii::$app->request->post('isDetail')) {
-            $user = User::find()->where(['token' => $token])->one();
-            if ($user->type == 'parent') {
-                $extraModel = $school->where(['id' => Utility::StudentSchoolId(Utility::getChildParentIDs($_GET['child'], $user->id))]);
-            } elseif ($user->type == 'teacher') {
-                $extraModel = $school->where(['id' => Utility::getTeacherSchoolID($user->id)]);
-            } elseif ($user->type == 'student') {
-                $extraModel = $school->where(['id' => Utility::StudentSchoolId($user->id)]);
+            if ($user = User::find()->where(['token' => $token])->one()) {
+                $school = Schools::find()->select(['id', 'name', 'slug', 'logo']);
+                if ($user->type == 'parent') {
+                    $extraModel = $school->where(['id' => Utility::StudentSchoolId(Utility::getChildParentIDs($_GET['child'], $user->id))]);
+                } elseif ($user->type == 'teacher') {
+                    $extraModel = $school->where(['id' => Utility::getTeacherSchoolID($user->id,false, Yii::$app->request->post('class_id'))]);
+                } elseif ($user->type == 'student') {
+                    $extraModel = $school->where(['id' => Utility::StudentSchoolId($user->id)]);
+                } else {
+                    $extraModel = $school->where(['id' => Utility::getSchoolAccess($user->id)]);
+                }
+                return [
+                    'status' => empty($user) ? false : true,
+                    'user_id' => $user->id,
+                    'user_type' => $user->type,
+                    'school' => $extraModel->asArray()->one()
+                ];
             } else {
-                $extraModel = $school->where(['id' => Utility::getSchoolAccess()]);
+                return [
+                    'status' => false
+                ];
             }
-            return [
-                'status' => empty($user) ? false : true,
-                'user_id'=> $user->id,
-                'user_type' => $user->type,
-                'school' => $extraModel->asArray()->one()
-            ];
         }
 
 

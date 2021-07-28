@@ -36,6 +36,7 @@ class SharedConstant
     const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
     const SCHOOL_FORMAT = ['year', 'ss'];
     const SCHOOL_TYPE = ['all', 'primary', 'secondary'];
+    const TERMS = ['first', 'second', 'third'];
     const SCHOOL_OWNER_ROLE = 'owner';
     const PRACTICE_TYPES = ['feed', 'practice', 'homework'];
     const QUIZ_SUMMARY_TYPE = ['homework', 'diagnostic'];

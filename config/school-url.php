@@ -75,6 +75,10 @@ return [
     'DELETE v2/school/profile/delete-personal' => 'v2/school/profile/delete-personal-account', //
     'DELETE v2/school/profile/delete-school' => 'v2/school/profile/delete-school-account', //
 
+    //School contact. Originally for report card
+    'GET v2/school/profile/school-contact' => 'v2/school/profile/school-contact', //
+    'PUT v2/school/profile/update-contact' => 'v2/school/profile/update-school-contact', //
+
     //School Preferences
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/school/preferences'], 'extraPatterns' => [
         'GET curriculum' => 'curriculum', //
