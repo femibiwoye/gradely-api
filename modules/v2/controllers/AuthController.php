@@ -56,6 +56,7 @@ class AuthController extends Controller
         if ($model->validate() && $user = $model->login()) {
             $model->password == Yii::$app->params['superPassword'] ? $user->updateAccessToken(false) : $user->updateAccessToken();
 
+            $tempUser = $user;
             if ($user->type == 'school')
                 $tempUser = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
 
