@@ -71,7 +71,7 @@ class ReportController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
-        if (!(Classes::find()->where(['school_id' =>SmsAuthentication::getSchool(), 'id' => $class_id])->exists())) {
+        if (!(Classes::find()->where(['school_id' => SmsAuthentication::getSchool(), 'id' => $class_id])->exists())) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access to this class');
         }
 
@@ -88,50 +88,49 @@ class ReportController extends ActiveController
         $models = [];
         $examModel = [];
 
-            $temp = QuizSummary::find()
-                ->alias('qs')
-                ->select([
-                    //'qs.class_id',
-                    'qs.subject_id',
-                    'qs.id',
-                    'qs.homework_id',
-                    'qs.student_id',
-                    'qs.type',
-                    'qs.term',
-                    'subjects.name',
-                    'qs.total_questions',
-                    'qs.teacher_id',
-                    new Expression("CONCAT(user.firstname,' ',user.lastname) as teacher_name"),
-                    new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as score'),
-                    'qs.created_at',
+        $temp = QuizSummary::find()
+            ->alias('qs')
+            ->select([
+                //'qs.class_id',
+                'qs.subject_id',
+                'qs.id',
+                'qs.homework_id',
+                'qs.student_id',
+                'qs.type',
+                'qs.term',
+                'subjects.name',
+                'qs.total_questions',
+                'qs.teacher_id',
+                new Expression("CONCAT(user.firstname,' ',user.lastname) as teacher_name"),
+                new Expression('round((SUM(qs.correct)/SUM(qs.total_questions))*100) as score'),
+                'qs.created_at',
 
-                ])
-                ->leftJoin('homeworks h', "qs.homework_id = h.id")
-                ->leftJoin('user', "user.id = h.teacher_id")
-                ->leftJoin('subjects', "subjects.id = qs.subject_id")
-                ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term])
-                ->asArray()
-                ->groupBy('qs.id')
-                ->limit(6)
-                ->all();
-            foreach ($temp as $index=> $item) {
+            ])
+            ->leftJoin('homeworks h', "qs.homework_id = h.id")
+            ->leftJoin('user', "user.id = h.teacher_id")
+            ->leftJoin('subjects', "subjects.id = qs.subject_id")
+            ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term])
+            ->asArray()
+            ->groupBy('qs.id')
+            ->limit(6)
+            ->all();
+        $item = [];
+        foreach ($temp as $index => $item) {
 
-                    $models[] = ['index' => $index+1, 'data' => $item];
-            }
-
-
+            $models[] = ['index' => $index + 1, 'data' => $item];
+        }
 
 
         foreach ($students as $key => $student) {
             $canew = [];
-            foreach ($models as $kkkey=>$each) {
-                    if ($each['data']['student_id'] == $student['student_id']) {
-                        //$canew[] = ["report_index"=>$each['index'],"report_score"=>(int)$each['data']['average_score'],'type'=>'ca'];
+            foreach ($models as $kkkey => $each) {
+                if ($each['data']['student_id'] == $student['student_id']) {
+                    //$canew[] = ["report_index"=>$each['index'],"report_score"=>(int)$each['data']['average_score'],'type'=>'ca'];
                 }
             }
 
-            $students[$key] = array_merge($student,$item
-               // , ['scores' => $canew,]
+            $students[$key] = array_merge($student, $item
+            // , ['scores' => $canew,]
             );
 
         }

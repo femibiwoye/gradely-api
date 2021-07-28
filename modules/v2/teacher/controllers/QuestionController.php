@@ -210,31 +210,34 @@ class QuestionController extends ActiveController
 
         try {
             $dbtransaction = Yii::$app->db->beginTransaction();
-            foreach ($questions as $qIndex => $question) {
+            foreach ($questions as $qIndex => $eachQuestion) {
 
-                if (!isset($question['type']) || !in_array($question['type'], SharedConstant::QUESTION_FORMAT)) {
+                if (!isset($eachQuestion['type']) || !in_array($eachQuestion['type'], SharedConstant::QUESTION_FORMAT)) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Type is required or invalid');
                 }
-//                $type = $question['type'];
-//                $question = $question['question'];
-//                $duration = $question['duration'];
-//                $difficulty = $question['difficulty'];
-//                $answer = $question['answer'];
-                $model = new \yii\base\DynamicModel(compact('topic_id', 'subject_id'
-                //,'type','duration','question','difficulty','answer'
-                ));
-                //$model->addRule(['topic_id', 'subject_id','type','duration','question','difficulty','answer'], 'required');
+
+                $type = $eachQuestion['type'];
+                $question = $eachQuestion['question'];
+                $duration = $eachQuestion['duration'];
+                $difficulty = $eachQuestion['difficulty'];
+                $answer = $eachQuestion['answer'];
+                $model = new \yii\base\DynamicModel(compact('topic_id', 'subject_id', 'type', 'duration', 'question', 'difficulty', 'answer'));
+                $model->addRule(['topic_id', 'subject_id', 'type', 'duration', 'question', 'difficulty', 'answer'], 'required');
                 if (!$curriculumStatus) {
                     $model->addRule(['topic_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
                 } else {
                     $model->addRule(['topic_id'], 'exist', ['targetClass' => SchoolTopic::className(), 'targetAttribute' => ['topic_id' => 'id', 'subject_id' => 'subject_id']]);
                 }
+                if ($eachQuestion['type'] == 'multiple')
+                    $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
+                elseif ($eachQuestion['type'] == 'bool')
+                    $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
                 }
 
-                $model = new Questions(['scenario' => 'create-' . $question['type']]);
-                $model->attributes = $question;
+                $model = new Questions(['scenario' => 'create-' . $eachQuestion['type']]);
+                $model->attributes = $eachQuestion;
                 $model->teacher_id = $teacher_id;
                 $model->school_id = $schoolID;
                 $model->subject_id = $subject_id;
@@ -244,7 +247,7 @@ class QuestionController extends ActiveController
                     return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
                 }
 
-                $model->type = $question['type'];
+                $model->type = $eachQuestion['type'];
                 $model->category = 'homework';
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');

@@ -60,5 +60,7 @@ return [
     'appBase' => APP_BASE_URL,
 
     'practiceQuestionCount' => ['single' => 5, 'mix' => 3],
-    'examQuestionCount' => ['single' => 8, 'mix' => 5]
+    'examQuestionCount' => ['single' => 8, 'mix' => 5],
+
+    'summerSchoolID'=>SUMMER_SCHOOL_ID
 ];

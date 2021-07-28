@@ -10,6 +10,7 @@ use app\modules\v2\models\Parents;
 use app\modules\v2\models\SchoolAdmin;
 use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\{TeacherClass,
     Classes,
@@ -51,9 +52,7 @@ class Utility extends ActiveRecord
             ->all();
 
         $schoolAdmin = SchoolAdmin::findAll(['user_id' => $userID, 'status' => 1]);
-
         $schools = ArrayHelper::merge(ArrayHelper::getColumn($schools, 'id'), ArrayHelper::getColumn($schoolAdmin, 'school_id'));
-
         return array_unique($schools);
     }
 
@@ -245,7 +244,7 @@ class Utility extends ActiveRecord
                 return Yii::$app->user->identity->class;
             return SharedConstant::VALUE_NULL;
         } elseif ($global_id == SharedConstant::VALUE_ONE) {
-            return $data->class->global_class_id;
+            return isset($data->class->global_class_id) ? $data->class->global_class_id : Yii::$app->user->identity->class;
         } else {
             return $data->class_id;
         }
@@ -363,9 +362,13 @@ class Utility extends ActiveRecord
         return $image;
     }
 
-    public static function getTeacherSchoolID($teacher_id, $failReturn = false)
+    public static function getTeacherSchoolID($teacher_id, $failReturn = false, $class_id = null)
     {
-        $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);
+        if (!empty($class_id)) {
+            $model = TeacherClass::findOne(['teacher_id' => $teacher_id, 'status' => 1, 'class_id' => $class_id]);
+        } else {
+            $model = SchoolTeachers::findOne(['teacher_id' => $teacher_id, 'status' => 1]);
+        }
         if (!$model) {
             return $failReturn;
         }
@@ -420,16 +423,64 @@ class Utility extends ActiveRecord
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid');
 
         }
+
+        $summerSchool = StudentSummerSchool::find()
+            ->alias('sss')
+            ->select([
+                'sss.id as summer_id',
+                'sss.school_id as school_id',
+                'sss.class_id as class_id',
+                'classes.class_name',
+                'schools.name as school_name',
+                'sss.subjects as subjects',
+            ])
+            ->innerJoin('classes', 'classes.id = sss.class_id')
+            ->innerJoin('schools', 'schools.id = classes.school_id')
+            ->where(['student_id' => $user->id])->asArray()->one();
+
         if ($classes = StudentSchool::findOne(['student_id' => $user->id, 'status' => 1, 'is_active_class' => 1])) {
-            $classId = $classes->class_id;
-            $className = $classes->class->class_name;
-            $schoolName = $classes->school->name;
-            $hasSchool = true;
+
+            if (empty($classes->class)) {
+                $classId = null;
+                $className = null;
+                $schoolName = null;
+                $hasSchool = false;
+                $in_summer_school = null;
+                $alternative_school = $summerSchool;
+            } else {
+
+                if ($classes->in_summer_school == 1) {
+                    if (!empty($summerSchool)) {
+                        $classId = (int)$summerSchool['class_id'];
+                        $className = $summerSchool['class_name'];
+                        $schoolName = $summerSchool['school_name'];
+                        $hasSchool = true;
+                    } else {
+                        $classId = null;
+                        $className = null;
+                        $schoolName = null;
+                        $hasSchool = false;
+
+                        $summerSchool = ['class_id' => $classId, 'class_name' => $className, 'school_name' => $schoolName];
+                    }
+                    $in_summer_school = $classes->in_summer_school;
+                    $alternative_school = array_merge($summerSchool, ['class_name' => $classes->class->class_name, 'school_name' => $classes->school->name, 'class_id' => $classes->class_id]);
+                } else {
+                    $classId = $classes->class_id;
+                    $className = $classes->class->class_name;
+                    $schoolName = $classes->school->name;
+                    $hasSchool = true;
+                    $in_summer_school = empty($summerSchool) ? null : $classes->in_summer_school;
+                    $alternative_school = $summerSchool;
+                }
+            }
         } else {
             $classId = null;
             $className = null;
             $schoolName = null;
             $hasSchool = false;
+            $in_summer_school = !empty($summerSchool) ? 0 : null;
+            $alternative_school = $summerSchool;
         }
 
         return $return = [
@@ -437,8 +488,25 @@ class Utility extends ActiveRecord
             'class_id' => $classId,
             'class_name' => $className,
             'school_name' => $schoolName,
-            'has_school' => $hasSchool
+            'has_school' => $hasSchool,
+            'in_summer_school' => $in_summer_school,
+            'alternative_school' => $alternative_school
         ];
+    }
+
+    public static function GetStudentSummerSchoolStatus($studentID)
+    {
+        if ($student = StudentSchool::findOne(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])) {
+            return $student->in_summer_school;
+        } else {
+            return null;
+        }
+
+        /**
+         * null = Not in summer school and not in real school
+         * 0 = you are in real school, you've been in summer school before and not active
+         * 1 = you are in summer school
+         */
     }
 
     /**

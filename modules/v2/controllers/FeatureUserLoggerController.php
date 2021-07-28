@@ -36,11 +36,21 @@ class FeatureUserLoggerController extends Controller
      * Returns cloudinary
      * @return ApiResponse
      */
-    public function actionIndex()
+    public function actionIndex($name=null)
     {
        /// $model = ['name'=>'welcome_school','type'=>'school']; //Temporary solution
 
-        $model = FeatureUserLogger::find()->where(['user_id' => Yii::$app->user->id])->select(['name', 'type'])->all();
+        $model = FeatureUserLogger::find()
+            ->select(['name', 'type'])
+            ->where(['user_id' => Yii::$app->user->id]);
+
+        if(!empty($name)){
+            $model = $model->andWhere(['name'=>$name])->exists();
+        }else{
+            $model = $model->all();
+        }
+
+
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
 

@@ -12,6 +12,7 @@ use Yii;
 use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions, Feed};
 use app\modules\v2\components\SharedConstant;
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use yii\filters\AccessControl;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
@@ -145,17 +146,23 @@ class HomeworkController extends ActiveController
 //        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 //    }
 
-    public function actionClassHomeworks($class_id = null)
+    public function actionClassHomeworks($class_id = null, $subject_id=null)
     {
+        $model = $this->modelClass::find()->andWhere([
+            'teacher_id' => Yii::$app->user->id,
+            'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
         if ($class_id) {
-            $model = $this->modelClass::find()->andWhere([
-                'teacher_id' => Yii::$app->user->id,
-                'class_id' => $class_id,
-                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
-        } else
-            $model = $this->modelClass::find()->andWhere([
-                'teacher_id' => Yii::$app->user->id,
-                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+            $model = $model->andWhere(['class_id' => $class_id]);
+        }
+
+        if ($subject_id) {
+            $model = $model->andWhere(['subject_id' => $subject_id]);
+        }
+
+//        if(!empty($term) && in_array($term,SharedConstant::TERMS)){
+//            $model = $model->andWhere(['term'=>$term]);
+//        }
+
 
         if (!$model->count() > 0) {
             return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
@@ -163,6 +170,48 @@ class HomeworkController extends ActiveController
 
         $provider = new ActiveDataProvider([
             'query' => $model->orderBy('id DESC'),
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
+
+    }
+
+    public function actionClassFilteredAssessment($class_id = null, $term = null, $subject_id=null, $session=null)
+    {
+        $model = Homeworks::find()
+            ->select([
+                'homeworks.created_at',
+                'title',
+                'tag',
+                'homeworks.id',
+                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as average_score'),
+            ])
+            ->leftJoin('quiz_summary_details qsd','qsd.homework_id = homeworks.id')
+            ->andWhere([
+                'teacher_id' => Yii::$app->user->id,
+                'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+        if ($class_id) {
+            $model = $model->andWhere(['class_id' => $class_id]);
+        }
+
+        if ($subject_id) {
+            $model = $model->andWhere(['subject_id' => $subject_id]);
+        }
+
+
+        if (!$model->count() > 0) {
+            return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $model->asArray()->groupBy('homeworks.id')->orderBy('homeworks.id DESC'),
             'pagination' => [
                 'pageSize' => 30,
                 'validatePage' => false,

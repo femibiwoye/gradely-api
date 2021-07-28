@@ -3,6 +3,7 @@
 namespace app\modules\v2\components;
 
 use app\modules\v2\models\ApiResponse;
+use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use yii\base\Widget;
@@ -20,9 +21,9 @@ class Pricing extends Widget
             $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));
         } else if ($type == 'student') {
             //This is for student trial
-/*            $model = UserModel::findOne(['id' => $id]);
-            $model->subscription_plan = 'trial';
-            $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));*/
+            /*            $model = UserModel::findOne(['id' => $id]);
+                        $model->subscription_plan = 'trial';
+                        $model->subscription_expiry = date("Y-m-d H:i:s", strtotime("+" . self::SubscriptionTrialValue($type)->value . " days"));*/
         }
 
         if (isset($model) && $model->save()) {
@@ -100,7 +101,7 @@ class Pricing extends Widget
                         'expiry' => $user->subscription_expiry,
                         'plan' => $plan,
                         'is_school_sub' => $is_school,
-                        'school_active'=>$schoolActive,
+                        'school_active' => $schoolActive,
                         'days_left' => self::subscriptionDaysLeft(isset($model->subscription_expiry) && strtotime($model->subscription_expiry) > strtotime($user->subscription_expiry) ? $model->subscription_expiry : $user->subscription_expiry)
                     ], $lmsCatchupStatus);
                     return $statusOnly ? $status : $return;
@@ -193,6 +194,17 @@ class Pricing extends Widget
                 $catchup = true;
             }
         }
+
+        /// if lms or catchup does not have subscription, check if student is in summer school
+        /// being in summer school and payment status is paid automatically subscribed catchup and lms.
+        /// LMS in this case is the summer school feed content, assessments, etc
+        if (!$catchup || !$lms) {
+            if (StudentSummerSchool::find()->where(['student_id' => $studentID, 'status' => 1, 'summer_payment_status' => 'paid'])->exists()) {
+                $catchup = true;
+                $lms = true;
+            }
+        }
+
 
 //        return ['lms' => $lms, 'catchup' => $catchup, 'subStatus' => $subStatus, 'isSchool' => $isSchool, 'schoolSubStatus' => $schoolSubStatus];
         return ['lms' => $lms, 'status' => $catchup];
