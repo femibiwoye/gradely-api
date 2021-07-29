@@ -338,7 +338,7 @@ class FeedController extends ActiveController
 
 
         $dbtransaction = Yii::$app->db->beginTransaction();
-        try {
+        //try {
             foreach ($classIDs as $classID) {
                 $model = new PostForm(['scenario' => $scenario]);
                 if (Yii::$app->request->post('type'))
@@ -359,10 +359,10 @@ class FeedController extends ActiveController
                 }
             }
             $dbtransaction->commit();
-        } catch (\Exception $e) {
-            $dbtransaction->rollBack();
-            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
-        }
+//        } catch (\Exception $e) {
+//            $dbtransaction->rollBack();
+//            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//        }
 
 
         return (new ApiResponse)->success(ArrayHelper::toArray($response), ApiResponse::SUCCESSFUL, $header . ' made successfully');
