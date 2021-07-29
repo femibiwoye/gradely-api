@@ -338,16 +338,16 @@ class FeedController extends ActiveController
 
 
         $dbtransaction = Yii::$app->db->beginTransaction();
-        //try {
+        try {
             foreach ($classIDs as $classID) {
                 $model = new PostForm(['scenario' => $scenario]);
+                $model->attributes = Yii::$app->request->post();
                 if (Yii::$app->request->post('type'))
                     $model->type = Yii::$app->request->post('type');
                 if ($classID)
                     $model->class_id = $classID;
                 if (Yii::$app->request->post('view_by'))
                     $model->view_by = Yii::$app->request->post('view_by');
-                $model->attributes = Yii::$app->request->post();
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
                 }
@@ -359,10 +359,10 @@ class FeedController extends ActiveController
                 }
             }
             $dbtransaction->commit();
-//        } catch (\Exception $e) {
-//            $dbtransaction->rollBack();
-//            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
-//        }
+        } catch (\Exception $e) {
+            $dbtransaction->rollBack();
+            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+        }
 
 
         return (new ApiResponse)->success(ArrayHelper::toArray($response), ApiResponse::SUCCESSFUL, $header . ' made successfully');
