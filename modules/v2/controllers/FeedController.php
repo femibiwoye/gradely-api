@@ -406,7 +406,7 @@ class FeedController extends ActiveController
                 $model->requester_id = Yii::$app->user->id;
                 $model->category = 'class';
                 $model->is_school = 1;
-                $model->class = $classID;
+                $model->class_id = $classID;
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
                 }
