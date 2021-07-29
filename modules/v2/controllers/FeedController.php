@@ -330,7 +330,7 @@ class FeedController extends ActiveController
         elseif ($userType == 'teacher') {
             $scenario = 'teacher';
             if (TeacherClass::find()->where(['class_id' => $classIDs, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->count() < count($classIDs)) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'You do not have access to one or more class');
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access to one or more class');
             }
 
         } else
@@ -390,18 +390,35 @@ class FeedController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "You've had the maximum eligible live class limit");
         }
 
-        $model = new TutorSession(['scenario' => 'new-class']);
-        $model->attributes = Yii::$app->request->post();
-        $model->requester_id = Yii::$app->user->id;
-        $model->category = 'class';
-        $model->is_school = 1;
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+        $classIDs = Yii::$app->request->post('class_id');
+        if (!is_array($classIDs)) {
+            $classIDs = [$classIDs];
         }
-        $model->class = $model->class_id;
 
-        if (!$model->scheduleClass($model)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not created!');
+        if (TeacherClass::find()->where(['class_id' => $classIDs, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->count() < count($classIDs)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You do not have access to one or more class');
+        }
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            foreach ($classIDs as $classID) {
+                $model = new TutorSession(['scenario' => 'new-class']);
+                $model->attributes = Yii::$app->request->post();
+                $model->requester_id = Yii::$app->user->id;
+                $model->category = 'class';
+                $model->is_school = 1;
+                $model->class = $classID;
+                if (!$model->validate()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+                }
+                $model->class = $model->class_id;
+                if (!$model->scheduleClass($model)) {
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class not created!');
+                }
+            }
+            $dbtransaction->commit();
+        } catch (\Exception $e) {
+            $dbtransaction->rollBack();
+            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL);
     }
