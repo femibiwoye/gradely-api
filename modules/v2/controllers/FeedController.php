@@ -329,7 +329,7 @@ class FeedController extends ActiveController
             $scenario = 'student-parent';
         elseif ($userType == 'teacher') {
             $scenario = 'teacher';
-            if (TeacherClass::find()->where(['class_id' => $classIDs, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->count() < $classIDs) {
+            if (TeacherClass::find()->where(['class_id' => $classIDs, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->count() < count($classIDs)) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION,'You do not have access to one or more class');
             }
 
