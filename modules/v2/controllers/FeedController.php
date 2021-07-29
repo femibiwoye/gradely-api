@@ -343,7 +343,7 @@ class FeedController extends ActiveController
                 $model = new PostForm(['scenario' => $scenario]);
                 if (Yii::$app->request->post('type'))
                     $model->type = Yii::$app->request->post('type');
-                if (Yii::$app->request->post('class_id'))
+                if ($classID)
                     $model->class_id = $classID;
                 if (Yii::$app->request->post('view_by'))
                     $model->view_by = Yii::$app->request->post('view_by');
