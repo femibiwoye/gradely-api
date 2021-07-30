@@ -7,6 +7,7 @@ use app\modules\v2\components\{Utility, Pricing};
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
+use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\UserModel;
 use app\modules\v2\teacher\models\PostForm;
@@ -64,7 +65,8 @@ class FeedController extends ActiveController
         $teacher = Yii::$app->request->get('teacher');
         $student = Yii::$app->request->get('student');
         $type = Yii::$app->request->get('type');
-        if (Yii::$app->user->identity->type == 'teacher') {
+        $userType = Yii::$app->user->identity->type;
+        if ($userType == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $status = 1;
             if (empty($class_id))
@@ -80,7 +82,7 @@ class FeedController extends ActiveController
             $models = $this->modelClass::find()
                 ->where(['class_id' => $class_id, 'view_by' => ['all', 'class', 'teacher']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
 
-        } else if (Yii::$app->user->identity->type == 'school') {
+        } else if ($userType == 'school') {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
             $school_id = $school->id;
             $validate = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
@@ -127,7 +129,7 @@ class FeedController extends ActiveController
                     ->orWhere(['AND', ['user_id' => Utility::allSchoolUserID(Utility::getSchoolAccess())], ['is', 'class_id', new \yii\db\Expression('null')]]);
             }
 
-        } elseif (Yii::$app->user->identity->type == 'student') {
+        } elseif ($userType == 'student') {
             $user_id = Yii::$app->user->id;
             $class = StudentSchool::findOne(['student_id' => $user_id, 'status' => 1, 'is_active_class' => 1]);
             if ($class) {
@@ -136,7 +138,7 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->where(['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']]);
-        } elseif (Yii::$app->user->identity->type == 'parent') {
+        } elseif ($userType == 'parent') {
             //The class_id is used as student_id
             $user_id = Yii::$app->user->id;
             $parents = ArrayHelper::getColumn(Parents::find()->where(['student_id' => $class_id, 'parent_id' => $user_id])->all(), 'student_id');
@@ -151,7 +153,7 @@ class FeedController extends ActiveController
                 ->where(['feed.class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
         }
 
-        if (Yii::$app->user->identity->type == 'parent' || Yii::$app->user->identity->type == 'student') {
+        if ($userType == 'parent' || $userType == 'student') {
             $models = $models
                 ->leftjoin('homeworks', "homeworks.id = feed.reference_id")
                 ->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
@@ -162,6 +164,12 @@ class FeedController extends ActiveController
                     ['homeworks.reference_id' => null], // I added this when student are not seeing teacher lesson notes
 
                 ]);
+
+            $innerClassID = $userType == 'parent' ? $classes : $class_id;
+            $studentID = $userType == 'parent' ? $parents : $user_id;
+            if (Classes::find()->where(['id' => $innerClassID, 'school_id' => Yii::$app->params['summerSchoolID']])->exists() && $summerObject = StudentSummerSchool::findOne(['student_id'=>$studentID])) {
+                $models = $models->andWhere(['feed.subject_id' =>$summerObject->subjects]);
+            }
         }
 
         //To filter by student id
