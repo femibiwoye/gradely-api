@@ -22,6 +22,7 @@ class PostForm extends Model
     public $class_id;
     public $description;
     public $view_by;
+    public $subject_id;
     public $attachments;
 
     public function rules()

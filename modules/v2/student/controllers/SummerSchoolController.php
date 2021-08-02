@@ -97,6 +97,11 @@ class SummerSchoolController extends ActiveController
         } else {
             $model->subjects = array_keys(array_flip(array_merge($model->subjects, $course_id)));
         }
+
+        if (is_array($model->subjects) && count($model->subjects) > 3) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'You can only be enrolled into 3 courses at most');
+        }
+
         $class = Utility::StudentChildClass($student_id, 1);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
         $model->student_id = $student_id;
@@ -147,6 +152,9 @@ class SummerSchoolController extends ActiveController
             $model->subjects = $course_id;
         } else {
             $model->subjects = array_keys(array_flip(array_merge($model->subjects, $course_id)));
+        }
+        if (is_array($model->subjects) && count($model->subjects) > 3) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'You can only be enrolled into 3 courses at most');
         }
         $class = Utility::getStudentClass(1, $student['id']);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
@@ -229,7 +237,7 @@ class SummerSchoolController extends ActiveController
                 }
 
                 if (count($student['course_id']) > Subjects::find()->where(['id' => $student['course_id']])->count()) {
-                    return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'One or more course is invalid');
+                    return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'One or more course(s) is invalid');
                 }
 
                 if (!$model = StudentSummerSchool::findOne(['student_id' => $user->id])) {
@@ -242,6 +250,9 @@ class SummerSchoolController extends ActiveController
                 $model->parent_id = $parentUser->id;
                 $model->school_id = $school_id;
                 $model->subjects = $student['course_id'];
+                if (is_array($model->subjects) && count($model->subjects) > 3) {
+                    return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'You can only be enrolled into 3 courses at most');
+                }
                 $model->global_class = $class;
                 $model->class_id = $classes->id;
                 $model->status = 1;
@@ -423,6 +434,9 @@ class SummerSchoolController extends ActiveController
         } else {
             $model->subjects = array_keys(array_flip(array_merge($model->subjects, $course_id)));
         }
+        if (is_array($model->subjects) && count($model->subjects) > 3) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'You can only be enrolled into 3 courses at most');
+        }
         $class = Utility::StudentChildClass($student_id, 1);
         $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
         $model->student_id = $student_id;
@@ -454,6 +468,7 @@ class SummerSchoolController extends ActiveController
             if (!$model->save()) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Enrolling and switching was not successful');
             }
+            $summerSchool = $model;
         }
 
         if (!$studentSchool = StudentSchool::findOne(['student_id' => $student_id, 'status' => 1, 'is_active_class' => 1, 'current_class' => 1])) {
@@ -464,7 +479,7 @@ class SummerSchoolController extends ActiveController
 
         $studentSchoolReplicate = clone $studentSchool;
 
-        $studentSchool->in_summer_school = $summer_school;
+        $studentSchool->in_summer_school = 1; //$summer_school;
         $studentSchool->school_id = $summerSchool->school_id;
         $studentSchool->class_id = $summerSchool->class_id;
 
