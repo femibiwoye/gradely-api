@@ -167,8 +167,8 @@ class FeedController extends ActiveController
 
             $innerClassID = $userType == 'parent' ? $classes : $class_id;
             $studentID = $userType == 'parent' ? $parents : $user_id;
-            if (Classes::find()->where(['id' => $innerClassID, 'school_id' => Yii::$app->params['summerSchoolID']])->exists() && $summerObject = StudentSummerSchool::findOne(['student_id'=>$studentID])) {
-                $models = $models->andWhere(['feed.subject_id' =>$summerObject->subjects]);
+            if (Classes::find()->where(['id' => $innerClassID, 'school_id' => Yii::$app->params['summerSchoolID']])->exists() && $summerObject = StudentSummerSchool::findOne(['student_id' => $studentID])) {
+                $models = $models->andWhere(['feed.subject_id' => $summerObject->subjects]);
             }
         }
 
@@ -241,6 +241,8 @@ class FeedController extends ActiveController
         $model->user_id = Yii::$app->user->id;
         $model->comment = Yii::$app->request->post('comment');
         $model->feed_id = $post_id;
+        if (!empty(Yii::$app->request->post('attachment')))
+            $model->attachment = Yii::$app->request->post('attachment');
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
@@ -356,6 +358,8 @@ class FeedController extends ActiveController
                     $model->class_id = $classID;
                 if (Yii::$app->request->post('view_by'))
                     $model->view_by = Yii::$app->request->post('view_by');
+                if (Yii::$app->request->post('subject_id'))
+                    $model->subject_id = Yii::$app->request->post('subject_id');
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
                 }

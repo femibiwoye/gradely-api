@@ -82,8 +82,8 @@ class Pricing extends Widget
                     $is_school = 0;
                     $schoolActive = 0;
                     $plan = $user->subscription_plan;
-                    if ($model = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID, 'is_active_class' => 1])->one()) {
-                        $model = Schools::findOne(['id' => $model->school_id]);
+                    if ($studentModel = StudentSchool::find()->where(['status' => 1, 'student_id' => $studentID, 'is_active_class' => 1])->one()) {
+                        $model = Schools::findOne(['id' => $studentModel->school_id]);
                         $schoolSubStatus = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
                         $is_school = $schoolSubStatus ? 1 : 0;
                         $plan = $model->subscription_plan;
@@ -93,8 +93,16 @@ class Pricing extends Widget
                         $status = true;
                     }
 
-                    $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus, $is_school, $plan);
 
+                    if (isset($studentModel) && $studentModel->in_summer_school == 1) {
+                        if (StudentSummerSchool::find()->where(['student_id' => $studentID, 'status' => 1, 'summer_payment_status' => 'paid'])->exists()) {
+                            $lmsCatchupStatus = ['lms' => true, 'status' => true];
+                        } else {
+                            $lmsCatchupStatus = ['lms' => false, 'status' => false];
+                        }
+                    } else {
+                        $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus, $is_school, $plan);
+                    }
                     //I have only merged catchup and lms status to full return.
                     $return = array_merge([
                         'status' => $status,
