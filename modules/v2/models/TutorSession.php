@@ -252,7 +252,7 @@ class TutorSession extends \yii\db\ActiveRecord
             $model->description = $this->description;
         $model->user_id = Yii::$app->user->id;
         $model->reference_id = $homework_id;
-        if (empty($subject_id)) {
+        if (!empty($subject_id)) {
             $model->subject_id = $subject_id;
         }
         if (!$model->save(false)) {
