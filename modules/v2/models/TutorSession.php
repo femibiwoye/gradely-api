@@ -136,7 +136,7 @@ class TutorSession extends \yii\db\ActiveRecord
                 return false;
             }
 
-            if (!$feed = $this->addFeed($model->id)) {
+            if (!$feed = $this->addFeed($model->id, $model->subject_id)) {
                 return false;
             }
 
@@ -242,7 +242,7 @@ class TutorSession extends \yii\db\ActiveRecord
         return $this->new_sessions;
     }
 
-    public function addFeed($homework_id)
+    public function addFeed($homework_id, $subject_id = null)
     {
         $model = new Feed;
         $model->type = 'live_class';
@@ -252,6 +252,9 @@ class TutorSession extends \yii\db\ActiveRecord
             $model->description = $this->description;
         $model->user_id = Yii::$app->user->id;
         $model->reference_id = $homework_id;
+        if (empty($subject_id)) {
+            $model->subject_id = $subject_id;
+        }
         if (!$model->save(false)) {
             return false;
         }
