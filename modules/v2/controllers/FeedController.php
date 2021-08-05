@@ -4,6 +4,7 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\InputNotification;
 use app\modules\v2\components\{Utility, Pricing};
+use app\modules\v2\models\GenerateString;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSchool;
@@ -412,12 +413,14 @@ class FeedController extends ActiveController
         }
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
+            $meetingID = GenerateString::widget();
             foreach ($classIDs as $classID) {
                 $model = new TutorSession(['scenario' => 'new-class']);
                 $model->attributes = Yii::$app->request->post();
                 $model->requester_id = Yii::$app->user->id;
                 $model->category = 'class';
                 $model->is_school = 1;
+                $model->meeting_room = $meetingID;
                 $model->class_id = $classID;
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
