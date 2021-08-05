@@ -121,13 +121,19 @@ class LiveClassController extends Controller
         $tutor_session = TutorSession::findOne(['id' => $session_id, 'requester_id' => $requester_id]);
         if (empty($tutor_session->meeting_room)) {
             $tutor_session->meeting_room = GenerateString::widget();
+            $tutor_session->save();
         }
-        $tutor_session->status = 'ongoing';
         $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
         $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
         $this->classAttendance($session_id, $requester_id, SharedConstant::LIVE_CLASS_USER_TYPE[0], $token);
-        $tutor_session->meeting_token = $token;
-        if (!$tutor_session->save())
+
+        if ($saveStatus = TutorSession::updateAll(['status' => 'ongoing', 'meeting_token' => $token], ['meeting_room' => $tutor_session->meeting_room])) {
+            $tutor_session->status = 'ongoing';
+            $tutor_session->meeting_token = $token;
+            $saveStatus = $tutor_session->save();
+        }
+
+        if (!$saveStatus)
             return (new ApiResponse)->error($tutor_session->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your session');
         return (new ApiResponse)->success($this->classUrl($tutor_session, $token), ApiResponse::SUCCESSFUL);
     }
@@ -213,8 +219,10 @@ class LiveClassController extends Controller
 
 
             if ($tutor_session->requester_id == $user_id) {
-                $tutor_session->status = 'completed';
-                $tutor_session->save();
+                if(!TutorSession::updateAll(['status'=>'completed'],['meeting_room'=>$tutor_session->meeting_room])) {
+                    $tutor_session->status = 'completed';
+                    $tutor_session->save();
+                }
                 $is_owner = true;
             }
 

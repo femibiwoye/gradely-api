@@ -90,7 +90,7 @@ class ChildrenController extends ActiveController
                 ->where(['id' => $student->student_id])
                 ->one();
 
-            $students[$k] = array_merge(ArrayHelper::toArray($students[$k]), ['user_class' => $student->studentClass,'child_class_details'=>Utility::StudentClassDetails($student->student_id)]);
+            $students[$k] = array_merge(ArrayHelper::toArray($students[$k]), ['user_class' => $student->studentClass, 'child_class_details' => Utility::StudentClassDetails($student->student_id)]);
         }
 
         if (!$students) {
@@ -267,7 +267,6 @@ class ChildrenController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student Code not found');
 
 
-
         $parent = new Parents();
         $parent->parent_id = Yii::$app->user->id;
         $parent->code = $code;
@@ -340,7 +339,7 @@ class ChildrenController extends ActiveController
 
             //Notification that parent add child
             $notification = new InputNotification();
-            $notification->NewNotification('parent_adds_student', [['student_id', $user->id], ['parent_id' , Yii::$app->user->id], ['password', $model->password]]);
+            $notification->NewNotification('parent_adds_student', [['student_id', $user->id], ['parent_id', Yii::$app->user->id], ['password', $model->password]]);
         }
         // Pricing::ActivateStudentTrial($user->id); //Trial for students added by student
         return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['password' => $model->password]), ApiResponse::SUCCESSFUL, 'Child successfully added');
@@ -353,7 +352,8 @@ class ChildrenController extends ActiveController
             $user = User::findOne(['id' => $child_id, 'type' => 'student']);
             if (empty($user->token))
                 $user->updateAccessToken();
-            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['token' => $user->token]));
+
+            return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($user), ['token' => $user->token], ['summer_school' => Utility::GetStudentSummerSchoolStatus($user->id)]));
         }
 
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);
