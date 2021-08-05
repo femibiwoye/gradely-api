@@ -29,7 +29,7 @@ class ReportError extends \yii\db\ActiveRecord
     {
         return [
             [['user_id'], 'required'],
-            [['reference_id', 'title', 'description'], 'required', 'on' => 'question-report'],
+            [['reference_id', 'title'], 'required', 'on' => 'question-report'],
             [['user_id', 'reference_id', 'status'], 'integer'],
             [['description', 'type'], 'string'],
             ['type', 'default', 'value' => 'question'],
