@@ -444,7 +444,7 @@ class CatchupController extends ActiveController
      * @param $video_token
      * @return ApiResponse
      */
-    public function actionUpdateVideoLength($video_token)
+    public function actionUpdateVideoLength($video_token, $source = 'catchup')
     {
         $video = VideoContent::findOne(['token' => $video_token]);
         if (!$video)
@@ -490,6 +490,7 @@ class CatchupController extends ActiveController
             $model->type = SharedConstant::TYPE_VIDEO;
             $model->subject_id = $video->topic->subject_id;
             $model->topic_id = $video->topic_id;
+            $model->source = $source;
             $model->class_id = Utility::getStudentClass();
             $model->total_duration = $video->content->content_length;
             if (!$model->validate()) {
@@ -549,7 +550,7 @@ class CatchupController extends ActiveController
                 foreach ($model as $index => $item) {
                     $examModel = ExamType::find()->select(['id exam_id', 'name exam_name'])->where(['id' => $exam])->asArray()->one();
                     $examImg = SubjectImage::findOne(['subject_id' => $item->id, 'exam_id' => $exam]);
-                    $item->image = Utility::AbsoluteImage(isset($examImg->image)?$examImg->image:null, 'subject');
+                    $item->image = Utility::AbsoluteImage(isset($examImg->image) ? $examImg->image : null, 'subject');
                     $model[$index] = array_merge(ArrayHelper::toArray($item), $examModel);
                 }
                 $subjects = array_merge($subjects, $model);

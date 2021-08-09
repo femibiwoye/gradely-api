@@ -19,6 +19,7 @@ use app\modules\v2\components\SharedConstant;
  * @property string|null $total_duration
  * @property string|null $current_duration
  * @property int|null $is_completed
+ * @property string|null $source
  * @property string|null $created_at
  * @property string|null $updated_at
  */
@@ -40,7 +41,7 @@ class FileLog extends \yii\db\ActiveRecord
         return [
             [['user_id'], 'required'],
             [['user_id', 'file_id', 'subject_id', 'topic_id', 'class_id', 'is_completed', 'current_duration'], 'integer'],
-            [['file_url', 'type'], 'string'],
+            [['file_url', 'type','source'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['total_duration'], 'integer'],
         ];
@@ -83,6 +84,7 @@ class FileLog extends \yii\db\ActiveRecord
             'total_duration',
             'current_duration',
             'is_completed',
+            'source',
             'created_at',
             'updated_at',
         ];

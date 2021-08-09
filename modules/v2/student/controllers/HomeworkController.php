@@ -62,15 +62,19 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCompletedHomework()
+    public function actionCompletedHomework($subject_id = null)
     {
         $student_id = Utility::getParentChildID();
         $models = StudentHomeworkReport::find()
             ->innerJoin('quiz_summary', 'quiz_summary.homework_id = homeworks.id')
             ->where(['quiz_summary.student_id' => $student_id, 'homeworks.type' => 'homework', 'quiz_summary.submit' => SharedConstant::VALUE_ONE])
             ->orderBy('quiz_summary.submit_at DESC')
-            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
-            ->all();
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
+
+        if ($subject_id)
+            $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+
+        $models = $models->all();
 
         $missedModels = StudentHomeworkReport::find()
             ->innerJoin('student_school', "student_school.class_id = homeworks.class_id AND student_school.student_id=$student_id")
@@ -80,8 +84,12 @@ class HomeworkController extends ActiveController
             ->andWhere(['<', 'UNIX_TIMESTAMP(close_date)', time()])
             ->andWhere(['IS', 'qs.homework_id', null])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
-            ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]])
-            ->all();
+            ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]]);
+
+            if ($subject_id)
+                $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+
+        $missedModels = $missedModels->all();
 
 //return $models;
 
@@ -108,7 +116,7 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found', $provider);
     }
 
-    public function actionNewHomework()
+    public function actionNewHomework($subject_id = null)
     {
         $student_id = Utility::getParentChildID();
         $models = $this->modelClass::find()
@@ -121,6 +129,10 @@ class HomeworkController extends ActiveController
             ->andWhere(['IS', 'qs.homework_id', null])
             ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]])
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
+
+        if ($subject_id)
+            $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
@@ -162,11 +174,11 @@ class HomeworkController extends ActiveController
         $student_id = Utility::getParentChildID();
 
         $mode = Utility::getChildMode($student_id);
-        if($mode == 'exam') {
+        if ($mode == 'exam') {
             $model = ExamReport::findOne([
                 'student_id' => $student_id,
                 'homework_id' => $id, 'submit' => 1]);
-        }else{
+        } else {
 
             $model = HomeworkReport::findOne([
                 'student_id' => $student_id,
@@ -256,7 +268,7 @@ class HomeworkController extends ActiveController
 
     public function actionNotes($child_id = null, $class_id = null, $term = null, $search = null)
     {
-        if(!empty($class_id) && empty($child_id)){
+        if (!empty($class_id) && empty($child_id)) {
             $child_id = $class_id;
         }
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
