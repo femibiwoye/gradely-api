@@ -2,8 +2,8 @@
 
 Yii::setAlias('@webfolder', realpath(dirname(__FILE__) . '/../web'));
 //$year = date('Y');
-$year = "2021";
-$ftBegin = "2020-08-09";
+$year = "2022";
+$ftBegin = "2021-08-09";
 
 return [
     'first_term_start' => $ftBegin,
@@ -39,7 +39,7 @@ return [
     'AwsS3Secret' => AWS_S3_SECRET,
     'AwsS3BucketName' => 'gradly',
 
-    'live_class_limit' => 20,
+    'live_class_limit' => 100,
     'live_class_url' => LIVE_CLASS_URL,
     'live_class_recorded_url' => LIVE_CLASS_RECORDED_URL,
 
