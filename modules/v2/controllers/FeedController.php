@@ -203,9 +203,10 @@ class FeedController extends ActiveController
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }
 
-        $models = $models
-            ->andWhere(['between', 'feed.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
-            ->andWhere(['feed.status' => 1]);
+        /// This is temporarily removed due to summer school that needed to see other class content
+//        $models = $models
+//            ->andWhere(['between', 'feed.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+//            ->andWhere(['feed.status' => 1]);
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }
