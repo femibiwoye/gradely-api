@@ -446,6 +446,66 @@ class CatchupController extends ActiveController
      */
     public function actionUpdateVideoLength($video_token, $source = 'catchup')
     {
+
+        if($source == 'feed'){
+            $video = PracticeMaterial::findOne(['token' => $video_token]);
+
+            if (!$video)
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
+
+            $video_id = $video->id;
+            $duration = Yii::$app->request->post('duration');
+            $form = new \yii\base\DynamicModel(compact('duration', 'video_id'));
+            $form->addRule(['duration'], 'required');
+            $form->addRule(['duration'], 'integer');
+
+            if (!$form->validate())
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+
+            $model = FileLog::find()
+                ->andWhere([
+                    'is_completed' => SharedConstant::VALUE_ZERO,
+                    'file_id' => $video_id,
+                    'type' => SharedConstant::TYPE_VIDEO,
+                    'user_id' => Yii::$app->user->id
+                ])
+                ->one();
+
+            if (!$model) {
+                $model = new FileLog;
+                $model->user_id = Yii::$app->user->id;
+                $model->file_id = $video_id;
+                $model->type = SharedConstant::TYPE_VIDEO;
+                //$model->subject_id = $video->topic->subject_id;
+                $model->class_id = Utility::getStudentClass();
+
+//                if($video->feed){
+//                    $model->subject_id = $video->feed->subject_id;
+//                }
+                //$model->topic_id = $video->topic_id;
+                $model->source = $source;
+                //$model->class_id = Utility::getStudentClass();
+                //$model->total_duration = $video->content->content_length;
+                if (!$model->validate()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+                }
+                $model->current_duration = $duration;
+                if (!$model->save()) {
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video record not saved!');
+                }
+
+                return (new ApiResponse)->success(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video record saved!');
+            }
+
+            $model->current_duration = $duration;
+            if (!$model->save()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video duration not updated');
+            }
+
+
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video duration updated');
+        }
+
         $video = VideoContent::findOne(['token' => $video_token]);
         if (!$video)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Video not found');
