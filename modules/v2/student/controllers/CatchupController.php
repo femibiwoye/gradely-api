@@ -397,7 +397,7 @@ class CatchupController extends ActiveController
      * @param $video_token
      * @return ApiResponse
      */
-    public function actionUpdateVideoCompleted($video_token)
+    public function actionUpdateVideoCompleted($video_token, $source = 'catchup')
     {
         $class_id = Utility::getStudentClass();;
 
@@ -405,14 +405,20 @@ class CatchupController extends ActiveController
 
         $form = new \yii\base\DynamicModel(compact('video_token', 'class_id', 'duration'));
         $form->addRule(['video_token', 'duration'], 'required');
-        $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
-
+        if ($source == 'feed') {
+            $form->addRule(['video_token'], 'exist', ['targetClass' => PracticeMaterial::className(), 'targetAttribute' => ['video_token' => 'token']]);
+        } else {
+            $form->addRule(['video_token'], 'exist', ['targetClass' => VideoContent::className(), 'targetAttribute' => ['video_token' => 'token']]);
+        }
         if (!$form->validate())
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
 
 
-        $video = VideoContent::findOne(['token' => $video_token]);
-
+        if ($source == 'feed') {
+            $video = PracticeMaterial::findOne(['token' => $video_token]);
+        } else {
+            $video = VideoContent::findOne(['token' => $video_token]);
+        }
         $file_log = FileLog::findOne([
             'is_completed' => SharedConstant::VALUE_ZERO,
             'user_id' => Yii::$app->user->id,
@@ -447,7 +453,7 @@ class CatchupController extends ActiveController
     public function actionUpdateVideoLength($video_token, $source = 'catchup')
     {
 
-        if($source == 'feed'){
+        if ($source == 'feed') {
             $video = PracticeMaterial::findOne(['token' => $video_token]);
 
             if (!$video)

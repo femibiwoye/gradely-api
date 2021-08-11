@@ -5,16 +5,19 @@ namespace app\modules\v2\student\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 
 use app\modules\v2\components\Utility;
+use app\modules\v2\models\Classes;
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Remarks;
+use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\{Homeworks, ApiResponse};
 
 use app\modules\v2\student\models\ExamReport;
 use app\modules\v2\student\models\HomeworkReport;
 use app\modules\v2\student\models\StudentHomeworkReport;
+use function PHPSTORM_META\type;
 use Yii;
 use yii\data\ArrayDataProvider;
 use yii\helpers\ArrayHelper;
@@ -86,8 +89,8 @@ class HomeworkController extends ActiveController
             ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
             ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]]);
 
-            if ($subject_id)
-                $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+        if ($subject_id)
+            $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
 
         $missedModels = $missedModels->all();
 
@@ -233,6 +236,11 @@ class HomeworkController extends ActiveController
 
     public function actionVideos($child_id = null, $search = null)
     {
+        $user = Yii::$app->user->identity;
+        if ($user->type == 'student') {
+            $child_id = $user->id;
+        }
+
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
 
         $model = PracticeMaterial::find()
@@ -241,6 +249,10 @@ class HomeworkController extends ActiveController
             ->leftJoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
             ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]]);
+
+        if (Classes::find()->where(['id' => $studentClassID, 'school_id' => Yii::$app->params['summerSchoolID']])->exists() && $summerObject = StudentSummerSchool::findOne(['student_id' => $child_id])) {
+            $model = $model->andWhere(['feed.subject_id' => $summerObject->subjects]);
+        }
 
         if (!empty($search)) {
             $model = $model->
