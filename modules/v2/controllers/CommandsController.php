@@ -9,6 +9,7 @@ use app\modules\v2\components\SharedConstant;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
+use app\modules\v2\models\FileLog;
 use app\modules\v2\models\games\Games;
 use app\modules\v2\models\games\Group;
 use app\modules\v2\models\games\Level;
@@ -26,6 +27,7 @@ use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
 use FFMpeg\Media\Video;
 use Yii;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use yii\rest\Controller;
@@ -276,5 +278,56 @@ class CommandsController extends Controller
     }
 
 
+    public function actionWizitupContent($month = null, $year = null, $type = 'file')
+    {
+
+        if (empty($month) || empty($year)) {
+            $month = date('m');
+            $year = date('Y');
+        }
+
+        if ($type == 'user') {
+            $model = FileLog::find()
+                ->select([
+                    new Expression('count(*) as videos_count'),
+                    //'file_id',
+                    //'file_log.class_id',
+                    'user_id',
+                    'vc.content_id',
+                    'user.subscription_plan',
+                    'user.subscription_expiry'
+                ])
+                ->leftJoin('video_content vc', 'vc.id = file_log.file_id')
+                ->leftJoin('user', 'user.id = file_log.user_id')
+                ->groupBy(['user_id'])
+                ->where(['source' => 'catchup', 'user.type' => 'student'])
+                ->andWhere("YEAR(date(file_log.created_at)) = $year AND MONTH(date(file_log.created_at)) = $month");
+//                if($sub){
+//                    $model = $model->andWhere("user.subscription_plan = 'basic' AND user.subscription_expiry > NOW()");
+//                }
+            $model = $model->createCommand()
+                ->queryAll();
+            //->one();
+
+        } else {
+            $model = FileLog::find()
+                ->select([
+                    new Expression('count(*) as user_count'),
+                    'file_id',
+                    'file_log.class_id',
+                    'user_id',
+                    'vc.content_id'
+                ])
+                ->leftJoin('video_content vc', 'vc.id = file_log.file_id')
+                ->leftJoin('user', 'user.id = file_log.user_id')
+                ->groupBy(['file_id'])
+                ->where(['source' => 'catchup'])
+                ->andWhere("YEAR(date(file_log.created_at)) = $year AND MONTH(date(file_log.created_at)) = $month")
+                ->createCommand()
+                ->queryAll();
+
+        }
+        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
+    }
 }
 
