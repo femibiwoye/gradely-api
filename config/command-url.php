@@ -8,4 +8,7 @@ return [
 	'GET v2/commands/school-subscribe-students' => 'v2/commands/school-subscribe-students',
 	//'GET v2/commands/test-subscription' => 'v2/commands/test-subscription',
 
+
+    'GET v2/content/wizitup/video'=>'v2/commands/wizitup-content'
+
 ];

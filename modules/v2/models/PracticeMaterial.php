@@ -194,6 +194,11 @@ class PracticeMaterial extends \yii\db\ActiveRecord
         return $this->hasMany(FeedLike::className(), ['parent_id' => 'id']);
     }
 
+    public function getFeed()
+    {
+        return $this->hasOne(Feed::className(), ['reference_id' => 'id']);
+    }
+
     public function getIsOwner()
     {
         if ($this->user_id == Yii::$app->user->id)
