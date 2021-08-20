@@ -19,7 +19,7 @@ class ExamUtility extends ActiveRecord
         if ($class_id >= 7 && $class_id <= 9)
             $category = 'junior';
         elseif ($class_id >= 10 && $class_id <= 12)
-            $category = 'secondary';
+            $category = 'senior';
         elseif ($class_id >= 1 && $class_id <= 6 || $class_id > 12)
             $category = 'primary';
         else
