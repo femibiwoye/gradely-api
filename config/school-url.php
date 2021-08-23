@@ -47,7 +47,8 @@ return [
         'GET students/<class_id:\d+>' => 'student-in-class', //
         'DELETE <class_id:\d+>' => 'delete', //
         'GET class-subjects' => 'class-subjects',
-        'PUT move-student-class' => 'move-student-class'
+        'PUT move-student-class' => 'move-student-class',
+        'GET single-class-subjects/<class_id:\d+>' => 'single-class-subjects',
     ]],
 
 
