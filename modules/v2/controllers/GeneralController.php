@@ -258,6 +258,19 @@ class GeneralController extends Controller
      */
     public function actionGradelyUsersStatistics()
     {
+
+
+        $start = 5001;
+        $end = 6000;
+//return User::find()->where(['type'=>'student'])->andWhere("class >= 1 and class < 12 and id >= $start and id <= $end and created_at < 1627819879")->count();
+foreach(User::find()->where(['type'=>'student'])->andWhere("class >= 1 and class < 12 and id >= $start and id <= $end and created_at < 1627819879")->all() as $key=> $usr){
+    //return $usr;
+    //if($usr->class)
+    $usr->class = $usr->class + 1;
+    $usr->save();
+}
+return $key;
+
         $studentCount = User::find()->where(['type' => 'student'])->count();
         $teacherCount = User::find()->where(['type' => 'teacher'])->count();
 

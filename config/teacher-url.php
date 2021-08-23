@@ -64,6 +64,7 @@ return [
     'POST v2/teacher/upload-questions' => 'v2/teacher/question/upload-questions', //
     'DELETE v2/teacher/question' => 'v2/teacher/question/delete', //
     'PUT v2/teacher/question/<id:\d+>' => 'v2/teacher/question/update', //
+    'DELETE v2/teacher/delete-question' => 'v2/teacher/question/delete-question', //
 
     //Report error
     'POST v2/report/error-report/<type:\w+>' => 'v2/report/report-error', //

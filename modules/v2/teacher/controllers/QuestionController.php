@@ -397,6 +397,32 @@ class QuestionController extends ActiveController
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Question deleted');
     }
 
+    public function actionDeleteQuestion()
+    {
+        $question_id = Yii::$app->request->get('question_id');
+        $teacher = Yii::$app->user->id;
+        $form = new \yii\base\DynamicModel(compact('question_id', 'teacher'));
+        $form->addRule(['question_id'], 'required');
+        $form->addRule(['question_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['teacher' => 'teacher_id',
+            'question_id' => 'id']]);
+
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+        }
+
+        if (HomeworkQuestions::find()->where(['question_id' => $question_id])->exists()) {
+            $form->addError('question_id', 'Remove question from all connected records before removing');
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+        }
+
+        $model = Questions::findOne(['teacher_id' => $teacher, 'id' => $question_id]);
+        if (!$model->delete()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not deleted');
+        }
+
+        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Question deleted');
+    }
+
     public function actionUpdate($id)
     {
         $difficulty = Yii::$app->request->post('difficulty');
@@ -415,6 +441,10 @@ class QuestionController extends ActiveController
         }
 
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
+        if (in_array($model->type, ['multiple', 'bool']) && !in_array($model->answer, ['A', 'B', 'C', 'D', '0', '1'])) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid answer provided');
+        }
+
         $model->scenario = 'update-' . $model->type;
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not found or you have no edit privilege to this question');
