@@ -3,6 +3,7 @@
 namespace app\modules\v2\sms\controllers;
 
 use app\modules\v2\components\SmsAuthentication;
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\ClassSubjects;
@@ -13,6 +14,8 @@ use app\modules\v2\models\TeacherClassSubjects;
 use app\modules\v2\models\User;
 use app\modules\v2\school\models\ClassForm;
 use Yii;
+use yii\db\Exception;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 
 
@@ -275,6 +278,69 @@ class ClassController extends ActiveController
         }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL);
 
+    }
+
+
+    /**
+     * Promote student
+     * @return ApiResponse|false
+     * @throws \yii\base\InvalidArgumentException
+     */
+    public function actionStudentPromotion()
+    {
+
+        $student_id = Yii::$app->request->post('student_id');
+        $current_class = Yii::$app->request->post('current_class');
+        $new_class = Yii::$app->request->post('new_class');
+        $finalYear = Yii::$app->request->post('final_year');
+
+
+        $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
+        $school_id = $school->id;
+        $model = new \yii\base\DynamicModel(compact('new_class', 'current_class', 'school_id','student_id'));
+        $model->addRule(['new_class', 'current_class','student_id'], 'required');
+        $model->addRule(['new_class'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'new_class' => 'id']]);
+        $model->addRule(['current_class'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'current_class' => 'id']]);
+
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1,'is_active_class'=>1,'student_id'=>$student_id])->one();
+        if(empty($currentStudents) && StudentSchool::find()->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 0,'is_active_class'=>0,'student_id'=>$student_id])->exists()){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This child is already promoted from this class');
+        }
+
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!StudentSchool::updateAll(['status' => 0, 'is_active_class' => 0], ['student_id' => $currentStudents->student_id, 'status' => 1, 'school_id' => $school_id,'id'=>$currentStudents->id]))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Previous class was not updated');
+
+            if ($finalYear != 1 and $new_class != $current_class) {
+//                foreach ($currentStudents as $student) {
+                    $newClass = new StudentSchool();
+                    $newClass->student_id = $currentStudents->student_id;
+                    $newClass->status = 1;
+                    $newClass->school_id = $school_id;
+                    $newClass->class_id = $new_class;
+                    $newClass->promoted_by = Yii::$app->user->id;
+                    $newClass->promoted_from = $current_class;
+                    $newClass->promoted_at = date('Y-m-d H:i:s');
+                    if (!$newClass->save()) {
+                        return (new ApiResponse)->error($newClass->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                    }
+//                }
+            }
+
+
+            $dbtransaction->commit();
+        } catch (Exception $e) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+        $student = $currentStudents->student;
+
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, $student->firstname.' '.$student->lastname.' class updated');
     }
 
 }
