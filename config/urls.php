@@ -117,5 +117,6 @@ return [
 
 
     'GET v2/feature-user-logger' => 'v2/feature-user-logger', //
-    'PUT v2/feature-user-logger' => 'v2/feature-user-logger/update' //
+    'PUT v2/feature-user-logger' => 'v2/feature-user-logger/update', //
+    'POST v2/user-action-logger' => 'v2/handler/user-action-logger' //
 ];
