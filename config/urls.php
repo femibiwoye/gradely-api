@@ -108,15 +108,14 @@ return [
         'GET generate-daily-recommendation' => 'generate-daily-recommendations', // Generate daily recommendation
     ]],
 
-    'GET v2/notification/test' => 'v2/notification/test',
-
     'GET v2/report/student-mastery' => 'v2/report/mastery-report',
     'GET v2/report/mastery-report' => 'v2/report/topic-performance',
 
     'GET v2/mastery/topics' => 'v2/mastery/topics', //
 
-
     'GET v2/feature-user-logger' => 'v2/feature-user-logger', //
     'PUT v2/feature-user-logger' => 'v2/feature-user-logger/update', //
-    'POST v2/user-action-logger' => 'v2/handler/user-action-logger' //
+    'POST v2/user-action-logger' => 'v2/handler/user-action-logger', //
+
+    'GET v2/test' => 'v2/test/promote-student',
 ];
