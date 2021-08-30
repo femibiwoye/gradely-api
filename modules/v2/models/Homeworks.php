@@ -80,7 +80,7 @@ class Homeworks extends \yii\db\ActiveRecord
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id', 'selected_student', 'is_custom_topic', 'is_proctor'], 'integer'],
-            [['description', 'access_status', 'type', 'tag', 'mode','session'], 'string'],
+            [['description', 'access_status', 'type', 'tag', 'mode', 'session'], 'string'],
             [['open_date', 'close_date', 'created_at', 'publish_at', 'is_custom_topic'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
             [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],
@@ -304,7 +304,7 @@ class Homeworks extends \yii\db\ActiveRecord
                 'correct_student' => $this->getCorrectStudents($homeworkQuestion->id),
             ];
         }
-        return [];
+        return ['question_object' => null, 'missed_student' => null, 'correct_student' => null];
     }
 
     //work on the key of the arrays (start from here)
