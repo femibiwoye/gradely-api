@@ -48,5 +48,7 @@ return [
     'POST v2/sms/school/map-orphan-teacher' => 'v2/sms/auth/connect-new-teacher', //
 
     //Report
-    'GET v2/sms/report/get-class-report' => 'v2/sms/report/get-class-report' //
+    'GET v2/sms/report/get-class-report' => 'v2/sms/report/get-class-report', //
+
+    'PUT v2/sms/class/student-promotion' => 'v2/sms/class/student-promotion', //
 ];

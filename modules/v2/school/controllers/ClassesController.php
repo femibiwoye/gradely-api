@@ -5,7 +5,7 @@ namespace app\modules\v2\school\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\{Utility, SharedConstant};
 use app\modules\v2\models\GlobalClass;
-use app\modules\v2\models\{Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User, Homeworks};
+use app\modules\v2\models\{ClassSubjects, Schools, StudentSchool, Classes, ApiResponse, TeacherClass, User, Homeworks};
 use app\modules\v2\models\SchoolSubject;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\school\models\ClassForm;
@@ -328,6 +328,25 @@ class ClassesController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, count($currentStudents) . ' students moved');
+    }
+
+    /**
+     * Fetch subjects taken in a specific class
+     * @param $class_id
+     * @return ApiResponse
+     */
+    public function actionSingleClassSubjects($class_id)
+    {
+        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+        $classSubjectID = ArrayHelper::getColumn(ClassSubjects::find()
+            ->where(['school_id' => $school->id, 'class_id' => $class_id])
+            ->all(), 'subject_id');
+
+        $subjects = Subjects::find()->where(['id' => $classSubjectID])
+            ->select(['id','slug','name','description','category'])
+            ->asArray()
+            ->all();
+        return (new ApiResponse)->success($subjects, ApiResponse::SUCCESSFUL, count($subjects) . ' found');
     }
 
 }
