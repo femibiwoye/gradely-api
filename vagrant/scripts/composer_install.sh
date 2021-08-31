@@ -1,6 +1,8 @@
 #!/bin/bash
 
 cd /var/www/php/test/tapi
+rm -rf vendor/
+rm composer.lock
 composer update
 
 
