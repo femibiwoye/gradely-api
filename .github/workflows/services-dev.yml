@@ -3,10 +3,7 @@ name: Services
 on:
   push:
     branches:
-      - dev
-  # pull_request:
-  #   branches:
-  #     - test
+      - test
 
 jobs:
   buildAndTest:
@@ -39,7 +36,7 @@ jobs:
         php-version: [7.4]
         appname: ['gradely-aws-codedeploy']
         application-deploy-name: ['GradelyReferralTest']
-        deploy-group: ['GradelyMainAPIDevBranch']
+        deploy-group: ['GradelyMainAPITestBranch']
         s3-bucket: ['gradely-aws-codedeploy']
         s3-filename: ['gradely-aws-codedeploy-${{ github.sha }}']
 
