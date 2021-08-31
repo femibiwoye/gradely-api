@@ -71,7 +71,7 @@ class HandlerController extends Controller
             $handlerDetail->user_id = $user_id;
         }
         if (!empty($url)) {
-            $handlerDetail->user_id = $user_id;
+            $handler->url = $url;
         }
         $handlerDetail->action_name = $action_name;
         $handlerDetail->page_name = $page_name;
