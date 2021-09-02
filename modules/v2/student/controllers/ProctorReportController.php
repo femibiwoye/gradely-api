@@ -3,6 +3,7 @@
 namespace app\modules\v2\student\controllers;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use app\modules\v2\models\{ApiResponse, ProctorReport, ProctorReportDetails, Homeworks, ProctorFeedback};
 use app\modules\v2\components\{SharedConstant, CustomHttpBearerAuth};
@@ -43,25 +44,54 @@ class ProctorReportController extends ActiveController
         return $actions;
     }
 
-    public function actionCreate()
+    public function actionCreate($bulk = 0)
     {
         if (Yii::$app->user->identity->type != SharedConstant::TYPE_STUDENT) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
-        //Validate
-        $model = new ProctorReportDetails;
-        $model->attributes = Yii::$app->request->post();
-        $model->user_id = Yii::$app->user->id;
-        if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
-        }
 
+        if ($bulk == 1) {
+            $post = Yii::$app->request->post();
+            $model = new ProctorReportDetails;
+            $model->attributes = $post[0];
+            $model->user_id = Yii::$app->user->id;
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            }
+            $data = $this->proctorReport($model->assessment_id, $model->integrity);
+            $inserted = 0;
+            if ($data) {
+                foreach ($post as $item) {
+                    $item = (object)$item;
+                    $data = $this->proctorReport($item->assessment_id, $item->integrity);
+                    if ($data) {
+                        if ($reps = $this->addProctorReportDetails($data, $item))
+                            $inserted++;
+                        else {
+                            return (new ApiResponse)->error($reps, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+                        }
+                    }
+                }
+            }
+            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, $inserted . ' proctor inserted!');
+        } else {
+            //Validate
+            $model = new ProctorReportDetails;
+            $model->attributes = Yii::$app->request->post();
+            $model->user_id = Yii::$app->user->id;
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            }
 
-        $data = $this->proctorReport();
-        if ($data) {
-            $this->addProctorReportDetails($data);
-            return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Proctor update inserted!');
+            $data = $this->proctorReport($model->assessment_id, $model->integrity);
+            if ($data) {
+                if ($reps = $this->addProctorReportDetails($data, Yii::$app->request->post()))
+                    return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Proctor update inserted!');
+                else {
+                    return (new ApiResponse)->error($reps, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+                }
+            }
         }
 
         return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Error processing');
@@ -73,39 +103,38 @@ class ProctorReportController extends ActiveController
         return $assessment->type;
     }
 
-    private function proctorReport()
+    private function proctorReport($assessment_id, $integrity)
     {
         $model = ProctorReport::findOne([
             'student_id' => Yii::$app->user->id,
-            'assessment_id' => Yii::$app->request->post('assessment_id')
+            'assessment_id' => $assessment_id
         ]);
         if (!$model) {
             $model = new ProctorReport();
             $model->student_id = Yii::$app->user->id;
-            $model->assessment_type = $this->getAssessmentType(Yii::$app->request->post('assessment_id'));
-            $model->assessment_id = Yii::$app->request->post('assessment_id');
-            $model->integrity = Yii::$app->request->post('integrity');
+            $model->assessment_type = $this->getAssessmentType($assessment_id);
+            $model->assessment_id = $assessment_id;
+            $model->integrity = $integrity;
             $model->save();
         }
         return $model;
     }
 
-    private function addProctorReportDetails($data)
+    private function addProctorReportDetails($data, $detailModel)
     {
         $model = new ProctorReportDetails;
-        $model->attributes = Yii::$app->request->post();
+        $model->attributes = (array)$detailModel;
         $model->report_id = $data->id;
         $model->user_id = $data->student_id;
         $model->assessment_id = $data->assessment_id;
         if (!$model->validate()) {
-            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Validation failed');
+            return false;
         }
 
         if (!$model->save()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Proctor Report Detail insertion failed');
+            return false;
         }
-
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Added');
+        return $model;
     }
 
     public function actionProctorFeedback()

@@ -295,7 +295,10 @@ class CommandsController extends Controller
                     'user_id',
                     'vc.content_id',
                     'user.subscription_plan',
-                    'user.subscription_expiry'
+                    'user.subscription_expiry',
+                    'user.firstname',
+                    'user.lastname',
+                    'user.code'
                 ])
                 ->leftJoin('video_content vc', 'vc.id = file_log.file_id')
                 ->leftJoin('user', 'user.id = file_log.user_id')
@@ -307,6 +310,7 @@ class CommandsController extends Controller
 //                }
             $model = $model->createCommand()
                 ->queryAll();
+
             //->one();
 
         } else {
@@ -327,7 +331,9 @@ class CommandsController extends Controller
                 ->queryAll();
 
         }
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
+        return $this->render('@app/views/site/wizitup-stat', ['data' => $model,'type'=>$type]);
+        //return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
     }
 }
 
