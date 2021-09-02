@@ -54,6 +54,8 @@ class SignupForm extends Model
             [['class'], 'required', 'on' => 'parent-student-signup'],
             [['email', 'phone', 'token'], 'required', 'on' => 'invite-signup'],
             //[['email', 'country'], 'safe', 'on' => 'parent-student-signup'],
+
+            ['school_name', 'unique', 'targetClass' => 'app\modules\v2\models\Schools', 'targetAttribute' => 'name', 'message' => 'School name already exist'],
         ];
     }
 
