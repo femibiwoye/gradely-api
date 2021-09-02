@@ -6,11 +6,13 @@ use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\handler\ClickActionLogger;
 use app\modules\v2\models\handler\ClickActionLoggerDetails;
+use app\modules\v2\models\Questions;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\TeacherClass;
 use Yii;
 use yii\db\Exception;
+use yii\db\Expression;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -36,12 +38,26 @@ class TestController extends Controller
     }
 
 
+    public function actionJson()
+    {
+        return Questions::find()
+            ->select([
+                new Expression("JSON_CONTAINS(
+           LOWER(`answer`),
+            '\"one\"'
+        ) as is_enrolled")
+            ])
+        ->where(['id' => 14933])
+            ->asArray()
+            ->one();
+    }
+
     public function actionPromoteStudent()
     {
-
+        die;
         $schoolID = 188;
         $promoterID = 4897;
-        $students = StudentSchool::find()->where(['school_id' => $schoolID,'session'=>'2020-2021','status'=>1])->all();
+        $students = StudentSchool::find()->where(['school_id' => $schoolID, 'session' => '2020-2021', 'status' => 1])->all();
         foreach ($students as $student) {
             $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $student->class_id, 'school_id' => $student->school_id, 'status' => 1, 'is_active_class' => 1, 'student_id' => $student->student_id])->one();
             if (empty($currentStudents) && StudentSchool::find()->where(['class_id' => $student->class_id, 'school_id' => $student->school_id, 'status' => 0, 'is_active_class' => 0, 'student_id' => $student->student_id])->exists()) {
@@ -61,7 +77,7 @@ class TestController extends Controller
                     } else {
                         $newClassGlobal = $globalClassID + 1;
                     }
-                     $newClassObject = Classes::findOne(['global_class_id' => $newClassGlobal, 'school_id' => $schoolID]);
+                    $newClassObject = Classes::findOne(['global_class_id' => $newClassGlobal, 'school_id' => $schoolID]);
 //                foreach ($currentStudents as $student) {
                     $newClass = new StudentSchool();
                     $newClass->student_id = $currentStudents->student_id;

@@ -331,21 +331,30 @@ class ClassesController extends ActiveController
     }
 
     /**
-     * Fetch subjects taken in a specific class
+     * Fetch subjects taken in a specific class. adding ?teacher=1 will add teacher details
      * @param $class_id
      * @return ApiResponse
      */
-    public function actionSingleClassSubjects($class_id)
+    public function actionSingleClassSubjects($class_id, $teacher=0)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $classSubjectID = ArrayHelper::getColumn(ClassSubjects::find()
             ->where(['school_id' => $school->id, 'class_id' => $class_id])
             ->all(), 'subject_id');
 
-        $subjects = Subjects::find()->where(['id' => $classSubjectID])
-            ->select(['id','slug','name','description','category'])
-            ->asArray()
-            ->all();
+        if($teacher == 0) {
+            $subjects = Subjects::find()->where(['id' => $classSubjectID])
+                ->select(['id', 'slug', 'name', 'description', 'category'])
+                ->asArray()
+                ->all();
+        }else{
+            $subjects = Subjects::find()->where(['subjects.id' => $classSubjectID])
+                ->leftJoin('teacher_class_subjects tcs','tcs.subject_id = subjects.id AND tcs.status = 1')
+                ->leftJoin('user','user.id = tcs.teacher_id')
+                ->select(['subjects.id', 'subjects.slug', 'subjects.name', 'subjects.description', 'subjects.category','tcs.teacher_id','user.firstname','user.lastname'])
+                ->asArray()
+                ->all();
+        }
         return (new ApiResponse)->success($subjects, ApiResponse::SUCCESSFUL, count($subjects) . ' found');
     }
 

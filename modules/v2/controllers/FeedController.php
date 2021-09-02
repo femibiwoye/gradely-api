@@ -67,9 +67,11 @@ class FeedController extends ActiveController
         $student = Yii::$app->request->get('student');
         $type = Yii::$app->request->get('type');
         $userType = Yii::$app->user->identity->type;
+        $schoolIDs = [];
         if ($userType == 'teacher') {
             $teacher_id = Yii::$app->user->id;
             $status = 1;
+            $schoolIDs = ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => 1])->all(), 'school_id');
             if (empty($class_id))
                 $class_id = isset(Utility::getTeacherClassesID(Yii::$app->user->id)[0]) ? Utility::getTeacherClassesID(Yii::$app->user->id)[0] : [];
 
@@ -84,8 +86,10 @@ class FeedController extends ActiveController
                 ->where(['class_id' => $class_id, 'view_by' => ['all', 'class', 'teacher']])->orWhere(['AND', ['user_id' => Yii::$app->user->id], ['is', 'class_id', new \yii\db\Expression('null')]]);
 
         } else if ($userType == 'school') {
-            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
+            $schoolIDs = Utility::getSchoolAccess();
+            $school = Schools::findOne(['id' => $schoolIDs]);
             $school_id = $school->id;
+
             $validate = new \yii\base\DynamicModel(compact('class_id', 'school_id'));
             $validate
                 ->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['class_id' => 'id', 'school_id']]);
@@ -135,6 +139,7 @@ class FeedController extends ActiveController
             $class = StudentSchool::findOne(['student_id' => $user_id, 'status' => 1, 'is_active_class' => 1]);
             if ($class) {
                 $class_id = $class->class_id;
+                $schoolIDs = [$class->school_id];
             }
 
             $models = $this->modelClass::find()
@@ -147,7 +152,9 @@ class FeedController extends ActiveController
             if (!in_array($class_id, $parents)) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Child does not exist');
             }
-            $classes = ArrayHelper::getColumn(StudentSchool::find()->where(['student_id' => $parents, 'status' => 1, 'is_active_class' => 1])->all(), 'class_id');
+            $studentSchools = StudentSchool::find()->where(['student_id' => $parents, 'status' => 1, 'is_active_class' => 1])->all();
+            $classes = ArrayHelper::getColumn($studentSchools, 'class_id');
+            $schoolIDs = ArrayHelper::getColumn($studentSchools, 'school_id');
 
 
             $models = $this->modelClass::find()
@@ -163,7 +170,6 @@ class FeedController extends ActiveController
                     ['homeworks.selected_student' => 0], //if the assessment is not dependent of selected students
 //                    ['feed.reference_id' => null], // I commented this when student are not seeing teacher lesson notes
                     ['homeworks.reference_id' => null], // I added this when student are not seeing teacher lesson notes
-
                 ]);
 
             $innerClassID = $userType == 'parent' ? $classes : $class_id;
@@ -204,9 +210,11 @@ class FeedController extends ActiveController
         }
 
         /// This is temporarily removed due to summer school that needed to see other class content
-//        $models = $models
-//            ->andWhere(['between', 'feed.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
-//            ->andWhere(['feed.status' => 1]);
+        if (!in_array(Yii::$app->params['summerSchoolID'], $schoolIDs)) {
+            $models = $models
+                ->andWhere(['between', 'feed.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+                ->andWhere(['feed.status' => 1]);
+        }
         if (!$models->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Feeds not found');
         }

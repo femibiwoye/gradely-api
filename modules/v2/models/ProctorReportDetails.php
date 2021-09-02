@@ -41,7 +41,7 @@ class ProctorReportDetails extends \yii\db\ActiveRecord
         return [
             [['report_id', 'user_id', 'assessment_id', 'integrity'], 'integer'],
             [['user_id', 'assessment_id', 'file_type', 'name', 'extension', 'url', 'integrity','size'], 'required'],
-            [['file_type', 'name', 'url', 'raw'], 'string'],
+            [['file_type', 'name', 'url'], 'string'],
             [['file_type'], 'in', 'range' => SharedConstant::PROCTOR_FILE_TYPE],
             [['created_at'], 'safe'],
             [['extension','size'], 'string', 'max' => 50],
