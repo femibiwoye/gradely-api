@@ -7,26 +7,27 @@ $this->title = 'WizItUp stats';
     <thead>
     <tr>
         <th>S/N (<?=count($data)?>)</th>
-        <th>User ID</th>
-        <th>Content ID</th>
-        <th>Subscription Plan</th>
-        <th>Subscription Expiry</th>
-        <th>Firstname</th>
-        <th>Lastname</th>
-        <th>Video count</th>
+        <th>Name</th>
+        <th>Student Code</th>
+        <th>Video Count</th>
+        <th>Parent Email</th>
+        <th>School Name</th>
+        <th>Student Subscription</th>
+        <th>School Subscription</th>
+
     </tr>
     </thead>
     <tbody>
     <?php foreach ($data as $key=>$item) { ?>
         <tr>
             <td><?=$key+1?></td>
-            <td><?=$item['user_id']?></td>
-            <td><?=$item['content_id']?></td>
-            <td><?=$item['subscription_plan']?></td>
-            <td><?=$item['subscription_expiry']?></td>
-            <td><?=$item['firstname']?></td>
-            <td><?=$item['lastname']?></td>
+            <td><?=$item['firstname'].' '.$item['lastname']?></td>
             <td><?=$item['code']?></td>
+            <td><?=$item['videos_count']?></td>
+            <td><?=$item['email']?></td>
+            <td><?=$item['name']?></td>
+            <td><?=$item['subscription_plan'].' ('.$item['subscription_expiry'].')'?></td>
+            <td><?=$item['subscription_status'].' ('.$item['school_sub_expiry'].')'?></td>
         </tr>
     <?php } ?>
     </tbody>

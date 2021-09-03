@@ -292,17 +292,25 @@ class CommandsController extends Controller
                     new Expression('count(*) as videos_count'),
                     //'file_id',
                     //'file_log.class_id',
-                    'user_id',
+                    'file_log.user_id',
                     'vc.content_id',
                     'user.subscription_plan',
                     'user.subscription_expiry',
                     'user.firstname',
                     'user.lastname',
-                    'user.code'
+                    'user.code',
+                    'parent.email',
+                    'schools.name',
+                    'schools.subscription_expiry school_sub_expiry',
+                    'sc.subscription_status',
                 ])
                 ->leftJoin('video_content vc', 'vc.id = file_log.file_id')
                 ->leftJoin('user', 'user.id = file_log.user_id')
-                ->groupBy(['user_id'])
+                ->leftJoin('student_school sc','sc.student_id = user.id AND sc.status = 1 AND sc.current_class = 1 AND sc.current_class = 1')
+                ->leftJoin('schools','schools.id = sc.school_id')
+                ->leftJoin('parents', 'parents.student_id = user.id')
+                ->leftJoin('user parent','parent.id = parents.parent_id')
+                ->groupBy(['file_log.user_id'])
                 ->where(['source' => 'catchup', 'user.type' => 'student'])
                 ->andWhere("YEAR(date(file_log.created_at)) = $year AND MONTH(date(file_log.created_at)) = $month");
 //                if($sub){
@@ -332,8 +340,8 @@ class CommandsController extends Controller
 
         }
         \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
-        return $this->render('@app/views/site/wizitup-stat', ['data' => $model,'type'=>$type]);
-        //return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
+        return $this->render('wizitup-stat', ['data' => $model,'type'=>$type]);
+ //       return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
     }
 }
 
