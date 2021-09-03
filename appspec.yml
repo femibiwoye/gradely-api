@@ -2,13 +2,13 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /var/www/test/tapi.gradely.ng
+    destination: /var/www/php/test/tapi
     retain: true
 hooks:
-  BeforeInstall:
-    - location: vagrant/scripts/install_dependencies.sh
-      timeout: 300
-      runas: root
+#  BeforeInstall:
+#    - location: vagrant/scripts/install_dependencies.sh
+#      timeout: 300
+#      runas: root
   AfterInstall:
     - location: vagrant/scripts/composer_install.sh
       timeout: 300

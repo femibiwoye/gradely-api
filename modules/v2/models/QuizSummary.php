@@ -144,4 +144,12 @@ class QuizSummary extends \yii\db\ActiveRecord
         return $this->hasMany(QuizSummaryDetails::className(), ['quiz_id' => 'id']);
     }
 
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord) {
+            $this->session = Yii::$app->params['activeSession'];
+        }
+        return parent::beforeSave($insert);
+    }
+
 }

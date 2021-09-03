@@ -97,6 +97,8 @@ class QuestionController extends ActiveController
 
     public function actionCreate($type)
     {
+//        return Questions::findOne(['id'=>58689]);
+//        die;
         $homework_id = Yii::$app->request->post('homework_id');
         $class_id = Yii::$app->request->post('class_id');
         $difficulty = Yii::$app->request->post('difficulty');
@@ -121,61 +123,73 @@ class QuestionController extends ActiveController
             $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
         elseif ($type == 'bool')
             $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
+        elseif ($type == 'short') {
+            $model->addRule('answer', function ($attribute, $params) use ($model) {
+                if (!is_array($model->answer)) {
+                    $model->addError($attribute, 'Answer is invalid');
+                }
+            });
+
+        }
+
         $model->addRule(['duration', 'class_id'], 'integer');
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }
         $dbtransaction = Yii::$app->db->beginTransaction();
-        try {
-            $model = new Questions(['scenario' => 'create-' . $type]);
-            $model->attributes = Yii::$app->request->post();
-            $model->teacher_id = $teacher_id;
-            // i added this later, meaning lots of questions had been created by teacher without adding school_id
-            $model->school_id = $schoolID;
-
-            if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a])->exists()) {
-                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
-            }
-
-            $model->type = $type;
-            $model->category = 'homework';
-            if (!$model->validate()) {
-                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
-            }
-
-            if ($curriculumStatus) {
-                $model->is_custom_topic = 1;
-                $topic = SchoolTopic::findOne(['id' => $topic_id]);
-                $examID = $topic->curriculum_id;
-            } else {
-                $topic = SubjectTopics::findOne(['id' => $topic_id]);
-                $examID = $topic->exam_type_id;
-            }
-            $model->exam_type_id = $examID;
-            $model->homework_id = $homework_id;
-            $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
-
-            if (!$model->save()) {
-                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
-            }
-
-
-            if (!empty($homework_id)) {
-                $assignQuestion = new HomeworkQuestions();
-                $assignQuestion->teacher_id = $teacher_id;
-                $assignQuestion->homework_id = $homework_id;
-                $assignQuestion->question_id = $model->id;
-                $assignQuestion->duration = $model->duration;
-                $assignQuestion->difficulty = $model->difficulty;
-                if (!$assignQuestion->save()) {
-                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
-                }
-            }
-            $dbtransaction->commit();
-        } catch (\Exception $e) {
-            $dbtransaction->rollBack();
-            return false;
+        //try {
+        $model = new Questions(['scenario' => 'create-' . $type]);
+        $model->attributes = Yii::$app->request->post();
+        if ($type == 'short') {
+            $model->answer = json_encode($model->answer);
         }
+        $model->teacher_id = $teacher_id;
+        // i added this later, meaning lots of questions had been created by teacher without adding school_id
+        $model->school_id = $schoolID;
+
+        if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
+        }
+
+        $model->type = $type;
+        $model->category = 'homework';
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
+        }
+
+        if ($curriculumStatus) {
+            $model->is_custom_topic = 1;
+            $topic = SchoolTopic::findOne(['id' => $topic_id]);
+            $examID = $topic->curriculum_id;
+        } else {
+            $topic = SubjectTopics::findOne(['id' => $topic_id]);
+            $examID = $topic->exam_type_id;
+        }
+        $model->exam_type_id = $examID;
+        $model->homework_id = $homework_id;
+        $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
+
+        if (!$model->save()) {
+            return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
+        }
+
+
+        if (!empty($homework_id)) {
+            $assignQuestion = new HomeworkQuestions();
+            $assignQuestion->teacher_id = $teacher_id;
+            $assignQuestion->homework_id = $homework_id;
+            $assignQuestion->question_id = $model->id;
+            $assignQuestion->duration = $model->duration;
+            $assignQuestion->difficulty = $model->difficulty;
+            if (!$assignQuestion->save()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
+            }
+        }
+        $dbtransaction->commit();
+//        } catch (\Exception $e) {
+//            $dbtransaction->rollBack();
+//            return false;
+//        }
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question saved');
     }
 
@@ -442,7 +456,7 @@ class QuestionController extends ActiveController
 
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
         if (in_array($model->type, ['multiple', 'bool']) && !in_array($model->answer, ['A', 'B', 'C', 'D', '0', '1'])) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid answer provided');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid answer provided');
         }
 
         $model->scenario = 'update-' . $model->type;
