@@ -302,7 +302,8 @@ class CommandsController extends Controller
                     'parent.email',
                     'schools.name',
                     'schools.subscription_expiry school_sub_expiry',
-                    'sc.subscription_status',
+                    'schools.subscription_plan school_sub_plan',
+                    'sc.subscription_status'
                 ])
                 ->leftJoin('video_content vc', 'vc.id = file_log.file_id')
                 ->leftJoin('user', 'user.id = file_log.user_id')

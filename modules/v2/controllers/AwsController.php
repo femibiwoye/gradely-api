@@ -115,7 +115,7 @@ class AwsController extends Controller
 
         $bucket = $this->bucketName;
 
-        $key = $folder . '/' . $generatedFileName . '.' . $fileExtension;
+        $key = Yii::$app->params['appFolderLevel'] . $folder . '/' . $generatedFileName . '.' . $fileExtension;
 
         try {
             //Create a S3Client

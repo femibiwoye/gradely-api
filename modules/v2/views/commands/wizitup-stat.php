@@ -12,7 +12,8 @@ $this->title = 'WizItUp stats';
         <th>Video Count</th>
         <th>Parent Email</th>
         <th>School Name</th>
-        <th>Student Subscription</th>
+        <th>Student Sub.</th>
+        <th>Student Sch. Sub.</th>
         <th>School Subscription</th>
 
     </tr>
@@ -27,7 +28,8 @@ $this->title = 'WizItUp stats';
             <td><?=$item['email']?></td>
             <td><?=$item['name']?></td>
             <td><?=$item['subscription_plan'].' ('.$item['subscription_expiry'].')'?></td>
-            <td><?=$item['subscription_status'].' ('.$item['school_sub_expiry'].')'?></td>
+            <td><?=$item['subscription_status']?></td>
+            <td><?=$item['school_sub_plan'].' ('.$item['school_sub_expiry'].')'?></td>
         </tr>
     <?php } ?>
     </tbody>
