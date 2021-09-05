@@ -352,6 +352,7 @@ class ClassesController extends ActiveController
                 ->leftJoin('teacher_class_subjects tcs','tcs.subject_id = subjects.id AND tcs.status = 1')
                 ->leftJoin('user','user.id = tcs.teacher_id')
                 ->select(['subjects.id', 'subjects.slug', 'subjects.name', 'subjects.description', 'subjects.category','tcs.teacher_id','user.firstname','user.lastname'])
+                ->andWhere(['tcs.school_id'=>$school->id])
                 ->asArray()
                 ->all();
         }
