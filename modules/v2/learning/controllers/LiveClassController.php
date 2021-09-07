@@ -402,4 +402,7 @@ class LiveClassController extends Controller
         $response = array_merge(ArrayHelper::toArray($result), ['fileSize' => $fileSize]);
         return $response;
     }
+
+
+
 }

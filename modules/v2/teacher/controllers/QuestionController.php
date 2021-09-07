@@ -351,7 +351,7 @@ class QuestionController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 
-    public function actionView()
+    public function actionView(): ApiResponse
     {
         $question_id = Yii::$app->request->get('question_id');
         $teacher = Yii::$app->user->id;
@@ -368,6 +368,7 @@ class QuestionController extends ActiveController
         $model = Questions::find()
             ->select([
                 'questions.*',
+                //"JSON_EXTRACT(questions.answer,'$') ccc",
                 'st.topic',
                 "(case when questions.teacher_id = $teacher then 1 else 0 end) as owner"
             ])
@@ -385,7 +386,8 @@ class QuestionController extends ActiveController
         }
 
         $model = Utility::FilterQuestionReturns($model);
-
+        if ($model['type'] == 'short')
+            $model['answer'] = json_decode($model['answer']);
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question found');
     }
 
