@@ -36,9 +36,6 @@ $config = [
         ],
     ],
     'components' => [
-        'requestLogger' => [
-            'class' => 'app\components\RequestLogger',
-        ],
         'response' => [
             'format' => \yii\web\Response::FORMAT_JSON,
             'on beforeSend' => function ($event) {

@@ -225,21 +225,32 @@ class ClassController extends ActiveController
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
 
-
-        $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id'));
+        $type = 'student';
+        $model = new \yii\base\DynamicModel(compact('student_id', 'class_id', 'school_id', 'type'));
         $model->addRule(['student_id', 'class_id'], 'required');
-        $model->addRule(['student_id'], 'exist', ['targetClass' => StudentSchool::className(), 'targetAttribute' => ['student_id', 'school_id']]);
+        $model->addRule(['student_id'], 'exist', ['targetClass' => User::className(), 'targetAttribute' => ['student_id' => 'id', 'type']]);
         $model->addRule(['class_id'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'class_id' => 'id']]);
 
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'is_active_class' => 1, 'status' => 1]);
-        $model->class_id = $class_id;
+        if ($model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'is_active_class' => 1, 'status' => 1])) {
+            $model->class_id = $class_id;
+        } elseif ($model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'class_id' => $class_id, 'status' => 0])) {
+            $model->status = 1;
+        } elseif (!StudentSchool::find()->where(['student_id' => $student_id])->exists()) {
+            $model = new StudentSchool();
+            $model->class_id = $class_id;
+            $model->student_id = $student_id;
+            $model->school_id = $school_id;
+            $model->is_active_class = 1;
+            $model->status = 1;
+            $model->current_class = 1;
+        }
         if ($model->save())
             return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Student class updated');
-        return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
+        return (new ApiResponse)->error($model->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save');
     }
 
     public function actionJoinClass()
@@ -297,8 +308,8 @@ class ClassController extends ActiveController
 
         $school = Schools::findOne(['id' => SmsAuthentication::getSchool()]);
         $school_id = $school->id;
-        $model = new \yii\base\DynamicModel(compact('new_class', 'current_class', 'school_id','student_id'));
-        $model->addRule(['new_class', 'current_class','student_id'], 'required');
+        $model = new \yii\base\DynamicModel(compact('new_class', 'current_class', 'school_id', 'student_id'));
+        $model->addRule(['new_class', 'current_class', 'student_id'], 'required');
         $model->addRule(['new_class'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'new_class' => 'id']]);
         $model->addRule(['current_class'], 'exist', ['targetClass' => Classes::className(), 'targetAttribute' => ['school_id', 'current_class' => 'id']]);
 
@@ -306,29 +317,29 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1,'is_active_class'=>1,'student_id'=>$student_id])->one();
-        if(empty($currentStudents) && StudentSchool::find()->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 0,'is_active_class'=>0,'student_id'=>$student_id])->exists()){
+        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1, 'is_active_class' => 1, 'student_id' => $student_id])->one();
+        if (empty($currentStudents) && StudentSchool::find()->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 0, 'is_active_class' => 0, 'student_id' => $student_id])->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'This child is already promoted from this class');
         }
 
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-            if (!StudentSchool::updateAll(['status' => 0, 'is_active_class' => 0], ['student_id' => $currentStudents->student_id, 'status' => 1, 'school_id' => $school_id,'id'=>$currentStudents->id]))
+            if (!StudentSchool::updateAll(['status' => 0, 'is_active_class' => 0], ['student_id' => $currentStudents->student_id, 'status' => 1, 'school_id' => $school_id, 'id' => $currentStudents->id]))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Previous class was not updated');
 
             if ($finalYear != 1 and $new_class != $current_class) {
 //                foreach ($currentStudents as $student) {
-                    $newClass = new StudentSchool();
-                    $newClass->student_id = $currentStudents->student_id;
-                    $newClass->status = 1;
-                    $newClass->school_id = $school_id;
-                    $newClass->class_id = $new_class;
-                    $newClass->promoted_by = Yii::$app->user->id;
-                    $newClass->promoted_from = $current_class;
-                    $newClass->promoted_at = date('Y-m-d H:i:s');
-                    if (!$newClass->save()) {
-                        return (new ApiResponse)->error($newClass->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-                    }
+                $newClass = new StudentSchool();
+                $newClass->student_id = $currentStudents->student_id;
+                $newClass->status = 1;
+                $newClass->school_id = $school_id;
+                $newClass->class_id = $new_class;
+                $newClass->promoted_by = Yii::$app->user->id;
+                $newClass->promoted_from = $current_class;
+                $newClass->promoted_at = date('Y-m-d H:i:s');
+                if (!$newClass->save()) {
+                    return (new ApiResponse)->error($newClass->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                }
 //                }
             }
 
@@ -340,7 +351,7 @@ class ClassController extends ActiveController
         }
         $student = $currentStudents->student;
 
-        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, $student->firstname.' '.$student->lastname.' class updated');
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, $student->firstname . ' ' . $student->lastname . ' class updated');
     }
 
 }

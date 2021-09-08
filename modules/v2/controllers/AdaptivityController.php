@@ -136,7 +136,7 @@ class AdaptivityController extends ActiveController
                     ->where(['homework_questions.difficulty' => $currentDifficultyLevel])
                     ->where(['homeworks.type' => 1])
 //                    ->andWhere(['!=', 'quiz_summary_details.selected', 'quiz_summary_details.answer']) //To be removed eventually
-                    ->andWhere(['quiz_summary_details.is_correct' => 1])
+                    ->andWhere(['quiz_summary_details.is_correct' => 0])
                     ->limit(Yii::$app->GradelyComponent->numberQuestionsPerTime)
                     ->all());
 

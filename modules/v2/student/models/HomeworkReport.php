@@ -88,7 +88,7 @@ class HomeworkReport extends QuizSummary
                 'q.difficulty',
                 'q.duration',
                 'q.explanation',
-                '(case when qsd.selected = q.answer then 1 else 0 end) as correctStatus', //To be removed eventually
+                '(case when qsd.selected = q.answer then 1 else 0 end) as correctStatus',
                 'qsd.is_correct',
                 'qsd.selected'
             ])

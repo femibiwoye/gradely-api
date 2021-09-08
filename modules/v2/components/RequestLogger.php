@@ -29,10 +29,6 @@ class RequestLogger extends Widget
         $err->url = $currentUrl;
         $err->code = (string) $this->code;
         $err->user_id = $user;
-        if(!$err->save()){
-            print_r($err->errors);
-            die;
-        }
-
+        $err->save();
     }
 }
