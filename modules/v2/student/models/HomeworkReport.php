@@ -88,9 +88,9 @@ class HomeworkReport extends QuizSummary
                 'q.difficulty',
                 'q.duration',
                 'q.explanation',
-                '(case when qsd.selected = q.answer then 1 else 0 end) as correctStatus',
-                'qsd.selected',
-                'qsd.selected',
+                '(case when qsd.selected = q.answer then 1 else 0 end) as correctStatus', //To be removed eventually
+                'qsd.is_correct',
+                'qsd.selected'
             ])
             ->innerJoin('questions q', 'q.id = hq.question_id')
             ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id AND qsd.homework_id = ' . $this->homework_id. ' AND qsd.student_id = ' . $this->student_id)

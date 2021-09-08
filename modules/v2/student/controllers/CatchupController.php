@@ -1342,11 +1342,35 @@ class CatchupController extends ActiveController
                 $qsd->homework_id = $quizSummary->homework_id;
                 $qsd->time_spent = $question['time_spent'];
 
-                if ($question['selected'] != $questionModel->answer)
-                    $failedCount = $failedCount + 1;
+//                if ($question['selected'] != $questionModel->answer)
+//                    $failedCount = $failedCount + 1;
+//
+//                if ($question['selected'] == $questionModel->answer)
+//                    $correctCount = $correctCount + 1;
 
-                if ($question['selected'] == $questionModel->answer)
-                    $correctCount = $correctCount + 1;
+                if (in_array($questionModel->type, ['short', 'essay'])) {
+                    if ($questionModel->type == 'short') {
+                        $answers = json_decode($questionModel->answer);
+                        foreach ($answers as $item) {
+                            if (strtolower($item) == strtolower($question['selected'])) {
+                                $correctCount = $correctCount + 1;
+                                $qsd->is_correct = 1;
+                                break;
+                            } else {
+                                $failedCount = $failedCount + 1;
+                                $qsd->is_correct = 0;
+                            }
+                        }
+                    }
+                } else {
+                    if ($question['selected'] == $questionModel->answer) {
+                        $correctCount = $correctCount + 1;
+                        $qsd->is_correct = 1;
+                    } else {
+                        $failedCount = $failedCount + 1;
+                        $qsd->is_correct = 0;
+                    }
+                }
 
                 if (!$qsd->save() || !$this->saveHomeworkQuestion($practice_id, $student_id, $questionModel))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more attempt not saved');

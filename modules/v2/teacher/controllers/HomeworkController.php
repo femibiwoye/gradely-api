@@ -191,7 +191,8 @@ class HomeworkController extends ActiveController
                 'title',
                 'tag',
                 'homeworks.id',
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as average_score'),
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as average_score'), //To be removed eventually
+                new Expression('round((SUM(qsd.is_correct)/COUNT(qsd.id))*100) as average_score'),
             ])
             ->leftJoin('quiz_summary_details qsd','qsd.homework_id = homeworks.id')
             ->andWhere([

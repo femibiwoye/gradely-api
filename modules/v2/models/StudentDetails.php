@@ -336,7 +336,8 @@ class StudentDetails extends User
     {
         $summaryClone = clone $summary;
         $improvement = $this->getImprovementRate($summaryClone, $topic, $studentID);
-        $correctAttempts = $summary->andWhere(['=', 'selected', new Expression('`qsd`.`answer`')])->asArray()->all();
+//        $correctAttempts = $summary->andWhere(['=', 'selected', new Expression('`qsd`.`answer`')])->asArray()->all(); //To be removed
+        $correctAttempts = $summary->andWhere(['is_correct' => 1])->asArray()->all();
         if (count($correctAttempts) < 1) {
             return ['hard' => 0, 'medium' => 0, 'easy' => 0, 'score' => 0, 'direction' => null, 'improvement' => null];
         }
@@ -529,11 +530,11 @@ class StudentDetails extends User
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
-                    if ($data->getResultClass($studentID, $data->id,$mode) >= 75) {
+                    if ($data->getResultClass($studentID, $data->id, $mode) >= 75) {
                         $excellence[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResultClass($studentID, $data->id,$mode) >= 50 && $data->getResult($studentID, $data->id) < 75) {
+                    } elseif ($data->getResultClass($studentID, $data->id, $mode) >= 50 && $data->getResult($studentID, $data->id) < 75) {
                         $averages[] = $this->topicPerformanceMini($data);
-                    } elseif ($data->getResultClass($studentID, $data->id,$mode) < 50) {
+                    } elseif ($data->getResultClass($studentID, $data->id, $mode) < 50) {
                         $struggling[] = $this->topicPerformanceMini($data);
                     }
                 }
