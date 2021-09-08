@@ -149,6 +149,7 @@ class Questions extends \yii\db\ActiveRecord
             unset($question[array_search('option_e', $question)]);
             unset($question[array_search('file_upload', $question)]);
             unset($question[array_search('word_limit', $question)]);
+            $this->answer = json_decode($this->answer);
         } elseif ($this->type == 'bool') {
             $this->option_a = '1';
             $this->option_b = '0';

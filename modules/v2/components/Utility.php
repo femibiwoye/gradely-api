@@ -21,7 +21,8 @@ use app\modules\v2\models\{TeacherClass,
     SubjectTopics,
     VideoContent,
     Recommendations,
-    RecommendationTopics};
+    RecommendationTopics
+};
 
 use app\modules\v2\models\User;
 use Aws\Credentials\Credentials;
@@ -799,8 +800,8 @@ class Utility extends ActiveRecord
             unset($model['file_upload']);
             unset($model['word_limit']);
             unset($model['score']);
+            $model['answer'] = json_decode($model['answer']);
         }
-
         return $model;
     }
 

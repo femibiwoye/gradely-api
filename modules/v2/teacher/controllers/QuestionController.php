@@ -368,7 +368,6 @@ class QuestionController extends ActiveController
         $model = Questions::find()
             ->select([
                 'questions.*',
-                //"JSON_EXTRACT(questions.answer,'$') ccc",
                 'st.topic',
                 "(case when questions.teacher_id = $teacher then 1 else 0 end) as owner"
             ])
@@ -386,8 +385,6 @@ class QuestionController extends ActiveController
         }
 
         $model = Utility::FilterQuestionReturns($model);
-        if ($model['type'] == 'short')
-            $model['answer'] = json_decode($model['answer']);
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question found');
     }
 
@@ -450,7 +447,7 @@ class QuestionController extends ActiveController
         $model = new \yii\base\DynamicModel(compact('difficulty', 'topic_id', 'answer', 'duration', 'teacher_id', 'question_id'));
         $model->addRule(['question_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['id' => 'question_id', 'teacher_id' => 'teacher_id']]);
         $model->addRule(['difficulty'], 'in', ['range' => ['easy', 'medium', 'hard']]);
-        $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
+        //$model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
         $model->addRule(['duration'], 'integer');
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
@@ -459,6 +456,8 @@ class QuestionController extends ActiveController
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
         if (in_array($model->type, ['multiple', 'bool']) && !in_array($model->answer, ['A', 'B', 'C', 'D', '0', '1'])) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid answer provided');
+        } elseif ($model->type == 'short' && !is_array($answer)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Short answer must be an array');
         }
 
         $model->scenario = 'update-' . $model->type;
@@ -467,6 +466,7 @@ class QuestionController extends ActiveController
         }
 
         $model->attributes = Yii::$app->request->post();
+        $model->answer = json_encode($answer);
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }
