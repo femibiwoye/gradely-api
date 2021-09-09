@@ -237,8 +237,10 @@ class ClassController extends ActiveController
 
         if ($model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'is_active_class' => 1, 'status' => 1])) {
             $model->class_id = $class_id;
-        } elseif ($model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id, 'class_id' => $class_id, 'status' => 0])) {
+        } elseif ($model = StudentSchool::findOne(['student_id' => $student_id, 'school_id' => $school_id])) {
             $model->status = 1;
+            $model->is_active_class = 1;
+            $model->class_id = $class_id;
         } elseif (!StudentSchool::find()->where(['student_id' => $student_id])->exists()) {
             $model = new StudentSchool();
             $model->class_id = $class_id;
