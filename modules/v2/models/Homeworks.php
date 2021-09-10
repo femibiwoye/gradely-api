@@ -513,7 +513,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getClass()
     {
-        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->select(['id', 'class_name']);
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->select(['id', 'class_name', 'global_class_id']);
     }
 
     public function beforeSave($insert)
