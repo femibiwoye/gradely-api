@@ -316,7 +316,7 @@ class QuestionController extends ActiveController
         $topic_id = Yii::$app->request->get('topic_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'topic_id'));
         $form->addRule(['class_id', 'subject_id', 'topic_id'], 'required');
-        $form->addRule(['class_id', 'subject_id', 'topic_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
+       // $form->addRule(['class_id', 'subject_id', 'topic_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
