@@ -332,7 +332,7 @@ class ClassController extends ActiveController
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id'));
         $form->addRule(['class_id', 'subject_id'], 'required');
         if (!$curriculumStatus) {
-            $form->addRule(['class_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
+            $form->addRule(['class_id'], 'exist', ['targetClass' => SubjectTopics::className(), 'targetAttribute' => ['class_id' => 'class_id']]);
         }
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
