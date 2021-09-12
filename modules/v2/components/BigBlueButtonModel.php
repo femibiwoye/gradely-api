@@ -83,13 +83,13 @@ class BigBlueButtonModel extends Model
         $appName = 'create';
        $queryBuild = http_build_query([
             'logo' => $this->logo,
-            'allowStartStopRecording' => $this->allowStartStopRecording,
+//            'allowStartStopRecording' => $this->allowStartStopRecording,
             'attendeePW' => $this->attendeePW,
-            'autoStartRecording' => $this->autoStartRecording,
+//            'autoStartRecording' => $this->autoStartRecording,
             'meetingID' => $this->meetingID,
             'moderatorPW' => $this->moderatorPW,
             'name' => $this->name,
-            'record' => $this->record,
+//            'record' => $this->record,
             'welcome' => $this->welcome . ' - ' . $this->name,
             'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID,
             'copyright' => $this->copyright,
