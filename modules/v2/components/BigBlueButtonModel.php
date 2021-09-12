@@ -10,13 +10,13 @@ class BigBlueButtonModel extends Model
 {
     public $liveClassBaseUrl;
     public $bbbPath;
-    public $allowStartStopRecording = true;
-    public $autoStartRecording = false;
+    public $allowStartStopRecording = 'true';
+    public $autoStartRecording = 'false';
     public $attendeePW;
     public $meetingID;
     public $moderatorPW;
     public $name;
-    public $record;
+    public $record = 'true';
     public $voiceBridge = 74079;
     public $welcome = 'Welcome to gradely live class';
     public $logoutURL;
@@ -38,16 +38,10 @@ class BigBlueButtonModel extends Model
     public $bannerText = 'Gradely live class for learning';
     public $bannerColor = '#11BDCF';
     public $defaultWelcomeMessageFooter = 'Gradely live class for educational purposed';
-    //public $userdataBbb_custom_style = ':root{--loader-bg:red;}.navbar--Z2lHYbG{background-color:pink!important;}';
     public $userdataBbb_custom_style = ':root{--loader-bg: #113255;}.overlay--1aTlbi{background-color: #113255 !important;}body{background-color: #113255 !important;}';
     public $userdataBbb_custom_style_url = 'https://gradly.s3.eu-west-2.amazonaws.com/assets/css/class-style.css';
-//https://class.gradely.co/bigbluebutton/api/create?allowStartStopRecording=true
-//&attendeePW=ap&autoStartRecording=false&duration=10&maxParticipants=2&meetingID=random-7870068&moderatorPW=mp
-//&name=random-7870068&record=false&voiceBridge=79586&welcome=%3Cbr%3EWelcome+to+%3Cb%3E%25%25CONFNAME%25%25%3C%2Fb%3E%21&checksum=0af4cdda729008d795a98b5ca3261ba413f85b44
     private $checksum;
 
-//https://class.gradely.co/bigbluebutton/api/join?avatarURL=https%3A%2F%2Fsummer.gradely.ng%2Fimg%2FfacilitatorOne.9f0182c7.png&fullName=User+1265046
-//&meetingID=random-7870068&password=mp&redirect=true&userID=12345&checksum=f25bbb34f33cb632cfa0272f6d4382a38d7a1495
     //Join
     public $fullName = 'User';
     public $redirect = true;
@@ -78,18 +72,17 @@ class BigBlueButtonModel extends Model
 //            '&record=' . $this->record . '&voiceBridge=' . $this->voiceBridge .
 //            '&welcome=' . $this->welcome .
 //            '&checksum=' . $this->checksum;
-
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'create';
        $queryBuild = http_build_query([
             'logo' => $this->logo,
-//            'allowStartStopRecording' => $this->allowStartStopRecording,
+            'allowStartStopRecording' => $this->allowStartStopRecording,
             'attendeePW' => $this->attendeePW,
-//            'autoStartRecording' => $this->autoStartRecording,
+            'autoStartRecording' => $this->autoStartRecording,
             'meetingID' => $this->meetingID,
             'moderatorPW' => $this->moderatorPW,
             'name' => $this->name,
-//            'record' => $this->record,
+            'record' => $this->record,
             'welcome' => $this->welcome . ' - ' . $this->name,
             'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID,
             'copyright' => $this->copyright,
