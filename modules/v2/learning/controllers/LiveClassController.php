@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\learning\controllers;
 
+use app\modules\v2\components\BigBlueButtonModel;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use app\modules\v2\components\LogError;
 use app\modules\v2\components\SharedConstant;
@@ -21,6 +22,7 @@ use Aws\S3\S3Client;
 use SebastianBergmann\CodeCoverage\Util;
 use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
 use yii\rest\Controller;
 use app\modules\v2\models\TutorSessionParticipant;
 
@@ -123,19 +125,54 @@ class LiveClassController extends Controller
             $tutor_session->meeting_room = GenerateString::widget();
             $tutor_session->save();
         }
-        $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
-        $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
+
+
+        if (Yii::$app->params['liveClassClient'] == 'bbb') {
+            $moderatorPW = GenerateString::widget(['length' => 20]);
+            $attendeePW = GenerateString::widget(['length' => 20]);
+
+            $tutor_session->extra_meta = ['moderatorPW' => $moderatorPW, 'attendeePW' => $attendeePW];
+
+
+            $user = Yii::$app->user->identity;
+            $bbbModel = new BigBlueButtonModel();
+            $bbbModel->meetingID = $tutor_session->meeting_room;
+            $bbbModel->moderatorPW = $moderatorPW;
+            $bbbModel->attendeePW = $attendeePW;
+
+
+            $bbbModel->name = $tutor_session->title;
+            $create = $bbbModel->CreateMeeting();
+            if ($create) {
+                $bbbModel->fullName = $user->firstname . ' ' . $user->lastname;
+                $bbbModel->avatarURL = $user->image;
+                $bbbModel->userID = $user->email;
+                $bbbModel->moderatorPW = $moderatorPW;
+                $destinationLink = $bbbModel->JoinMeeting(true);
+                $token = $tutor_session->meeting_token ?? $create['internalMeetingID'] ?? $tutor_session->meeting_token = $bbbModel->MeetingInfo()['internalMeetingID'];
+            } else {
+                $destinationLink = null;
+            }
+
+
+            //$destinationLink = $this->classUrl($tutor_session, $token);
+        } else {
+            $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
+            $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
+            $destinationLink = $this->classUrl($tutor_session, $token);
+        }
         $this->classAttendance($session_id, $requester_id, SharedConstant::LIVE_CLASS_USER_TYPE[0], $token);
 
         if ($saveStatus = TutorSession::updateAll(['status' => 'ongoing', 'meeting_token' => $token], ['meeting_room' => $tutor_session->meeting_room])) {
             $tutor_session->status = 'ongoing';
             $tutor_session->meeting_token = $token;
             $saveStatus = $tutor_session->save();
+            if (!$saveStatus)
+                return (new ApiResponse)->error($tutor_session->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your session');
         }
 
-        if (!$saveStatus)
-            return (new ApiResponse)->error($tutor_session->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your session');
-        return (new ApiResponse)->success($this->classUrl($tutor_session, $token), ApiResponse::SUCCESSFUL);
+
+        return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL);
     }
 
     private function classUrl(TutorSession $session, $token)
@@ -177,15 +214,33 @@ class LiveClassController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You are either not in class or not a participant');
 
 
+        $bbbModel = new BigBlueButtonModel();
+        $bbbModel->meetingID = $tutor_session->meeting_room;
         if ($tutor_session->status == 'pending') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher has not started the class');
-        } elseif ($tutor_session->status == 'completed') {
+        } elseif ($tutor_session->status == 'completed' || $bbbModel->MeetingStatus()['running'] == 'false') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class has ended!');
-        } elseif ($tutor_session->status == 'ongoing') {
-            $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
-            $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
+        } elseif ($tutor_session->status == 'ongoing' && $bbbModel->MeetingStatus()['running'] == 'true') {
+            if (Yii::$app->params['liveClassClient'] == 'bbb') {
+                $user = Yii::$app->user->identity;
+                $bbbModel->fullName = $user->firstname . ' ' . $user->lastname;
+                $bbbModel->avatarURL = $user->image;
+                $bbbModel->userID = $user->email;
+                if ($user->type == 'teacher' || $user->type == 'school') {
+                    $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
+                    $destinationLink = $bbbModel->JoinMeeting(true);
+                } else {
+                    $bbbModel->attendeePW = $tutor_session->extra_meta['attendeePW'];
+                    $destinationLink = $bbbModel->JoinMeeting();
+                }
+                $token = $tutor_session->meeting_token;
+            } else {
+                $payload = $this->getPayload(Yii::$app->user->identity, $tutor_session->meeting_room);
+                $token = UserJwt::encode($payload, Yii::$app->params['live_class_secret_token']);
+                $destinationLink = $this->classUrl($tutor_session, $token);
+            }
             $this->classAttendance($session_id, $user_id, SharedConstant::LIVE_CLASS_USER_TYPE[1], $token);
-            return (new ApiResponse)->success($this->classUrl($tutor_session, $token), ApiResponse::SUCCESSFUL);
+            return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL);
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid class status');
         }
@@ -219,9 +274,14 @@ class LiveClassController extends Controller
 
 
             if ($tutor_session->requester_id == $user_id) {
-                if(!TutorSession::updateAll(['status'=>'completed'],['meeting_room'=>$tutor_session->meeting_room])) {
+                if (!TutorSession::updateAll(['status' => 'completed'], ['meeting_room' => $tutor_session->meeting_room])) {
                     $tutor_session->status = 'completed';
-                    $tutor_session->save();
+                    if ($tutor_session->save()) {
+                        $bbbModel = new BigBlueButtonModel();
+                        $bbbModel->meetingID = $tutor_session->meeting_room;
+                        $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
+                        $bbbModel->EndMeeting();
+                    }
                 }
                 $is_owner = true;
             }
@@ -402,7 +462,6 @@ class LiveClassController extends Controller
         $response = array_merge(ArrayHelper::toArray($result), ['fileSize' => $fileSize]);
         return $response;
     }
-
 
 
 }
