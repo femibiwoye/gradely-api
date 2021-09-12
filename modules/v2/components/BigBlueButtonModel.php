@@ -48,7 +48,7 @@ class BigBlueButtonModel extends Model
 
     //Recording
     public $recordID;
-    public $publish;
+    public $publish = 'true';
 
     public function init()
     {
@@ -74,7 +74,7 @@ class BigBlueButtonModel extends Model
 //            '&checksum=' . $this->checksum;
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'create';
-       $queryBuild = http_build_query([
+        $queryBuild = http_build_query([
             'logo' => $this->logo,
             'allowStartStopRecording' => $this->allowStartStopRecording,
             'attendeePW' => $this->attendeePW,
@@ -88,11 +88,12 @@ class BigBlueButtonModel extends Model
             'copyright' => $this->copyright,
 //            'bannerText' => $this->bannerText,
 //            'bannerColor' => $this->bannerColor,
+//            'showPresentWindow' => 'false',
             'defaultWelcomeMessageFooter' => $this->defaultWelcomeMessageFooter,
             'allowModsToUnmuteUsers' => $this->allowModsToUnmuteUsers,
             //'userdata-bbb_custom_style' => $this->userdataBbb_custom_style,
-            'userdata-bbb_custom_style_url'=>$this->userdataBbb_custom_style_url,
-            'meta_endCallbackUrl' => Url::to(['/v2/learning/live-class/end-class-only','meetingID'=>$this->meetingID], true),
+            'userdata-bbb_custom_style_url' => $this->userdataBbb_custom_style_url,
+            'meta_endCallbackUrl' => Url::to(['/v2/learning/live-class/end-class-only', 'meetingID' => $this->meetingID], true),
         ]);
         //$queryBuild = $queryBuild.'&userdata-bbb_custom_style=:root{--loader-bg:red;}.navbar--Z2lHYbG{background-color:pink!important;}';
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
@@ -124,6 +125,16 @@ class BigBlueButtonModel extends Model
             'userID' => $this->userID,
             //'userdata-bbb_custom_style_url'=>$this->userdataBbb_custom_style_url,
             'userdata-bbb_custom_style' => $this->userdataBbb_custom_style,
+            'userdata-bbb_auto_join_audio'=>'true',
+            'userdata-bbb_skip_check_audio'=>'true',
+            'userdata-bbb_auto_share_webcam'=>'true',
+//            'userdata-bbb_hide_presentation'=>'true',
+            'userdata-bbb_auto_swap_layout'=>'true',
+            'userdata-bbb_show_public_chat_on_login'=>'false',
+            'userdata-bbb_show_participants_on_login'=>'false',
+            'userdata-bbb_skip_check_audio_on_first_join'=>'true',
+            'userdata-bbb_skip_video_preview'=>'true',
+
         ]);
 
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
@@ -175,7 +186,6 @@ class BigBlueButtonModel extends Model
 
     public function MeetingList()
     {
-
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'getMeetings';
         $queryBuild = http_build_query([]);
@@ -187,7 +197,6 @@ class BigBlueButtonModel extends Model
 
     public function GetMeetingConfig()
     {
-
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'getDefaultConfigXML';
         $queryBuild = http_build_query([]);
@@ -197,12 +206,11 @@ class BigBlueButtonModel extends Model
         return $this->ConvertXml($fullUrl);
     }
 
-    public function GetPublishRecording()
+    public function PublishRecording()
     {
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'publishRecordings';
         $queryBuild = http_build_query([
-            'meetingID' => $this->meetingID,
             'recordID' => $this->recordID,
             'publish' => $this->publish
         ]);
@@ -212,13 +220,26 @@ class BigBlueButtonModel extends Model
         return $this->ConvertXml($fullUrl);
     }
 
-    public function GetRecordings()
+    public function DeleteRecordings()
     {
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'deleteRecordings';
         $queryBuild = http_build_query([
             'recordID' => $this->recordID,
         ]);
+        $checkSum = sha1($appName . $queryBuild . $this->checksum);
+        $fullUrl = $body . $appName . "?" . $queryBuild . "&checksum=" . $checkSum;
+
+        return $this->ConvertXml($fullUrl);
+    }
+
+    public function GetRecordings($meetingID = null)
+    {
+        $body = $this->liveClassBaseUrl . $this->bbbPath;
+        $appName = 'getRecordings';
+        $queryBuild = http_build_query(!empty($meetingID) ? [
+            'meetingID' => $this->meetingID,
+        ] : []);
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
         $fullUrl = $body . $appName . "?" . $queryBuild . "&checksum=" . $checkSum;
 
