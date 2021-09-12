@@ -92,7 +92,7 @@ class BigBlueButtonModel extends Model
             'allowModsToUnmuteUsers' => $this->allowModsToUnmuteUsers,
             //'userdata-bbb_custom_style' => $this->userdataBbb_custom_style,
             'userdata-bbb_custom_style_url'=>$this->userdataBbb_custom_style_url,
-            //'meta_endCallbackUrl' => Url::to(['/v2/learning/live-class/end-class-only','meetingID'=>$this->meetingID], true),
+            'meta_endCallbackUrl' => Url::to(['/v2/learning/live-class/end-class-only','meetingID'=>$this->meetingID], true),
         ]);
         //$queryBuild = $queryBuild.'&userdata-bbb_custom_style=:root{--loader-bg:red;}.navbar--Z2lHYbG{background-color:pink!important;}';
         $checkSum = sha1($appName . $queryBuild . $this->checksum);

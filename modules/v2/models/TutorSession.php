@@ -31,6 +31,7 @@ use yii\helpers\ArrayHelper;
  * @property string|null $extra_meta Any additional data
  * @property string $status
  * @property string $created_at
+ * @property string|null $session_ended
  *
  * @property ClassAttendance[] $classAttendances
  * @property TutorSessionTiming[] $tutorSessionTimings
@@ -58,8 +59,8 @@ class TutorSession extends \yii\db\ActiveRecord
         return [
             [['requester_id', 'category'], 'required'],
             [['requester_id', 'student_id', 'class', 'subject_id', 'session_count', 'curriculum_id', 'is_school'], 'integer'],
-            [['repetition', 'preferred_client', 'meeting_token', 'meta', 'status', 'participant_type'], 'string'],
-            [['availability', 'created_at','extra_meta'], 'safe'],
+            [['repetition', 'preferred_client', 'meeting_token', 'meta', 'status', 'participant_type', 'session_ended'], 'string'],
+            [['availability', 'created_at', 'extra_meta'], 'safe'],
             [['title'], 'string', 'max' => 200],
             [['category'], 'string', 'max' => 50],
             [['meeting_room'], 'string', 'max' => 255],

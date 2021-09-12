@@ -50,7 +50,7 @@ class LiveClassController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CustomHttpBearerAuth::className(),
-            'except' => ['update-live-class-video'],
+            'except' => ['update-live-class-video','end-class-only'],
         ];
 
         return $behaviors;
@@ -308,6 +308,32 @@ class LiveClassController extends Controller
 
 
         return (new ApiResponse)->success(['status' => $is_completed, 'is_owner' => $is_owner], ApiResponse::SUCCESSFUL, 'Class ended');
+    }
+
+
+    /**
+     * @param $meetingID
+     * @return ApiResponse|bool
+     */
+    public function actionEndClassOnly($meetingID)
+    {
+
+        if (!empty($meetingID)) {
+            $form = new \yii\base\DynamicModel(compact('meetingID'));
+            $form->addRule(['meetingID'], 'required')
+                ->addRule(['meetingID'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['meetingID' => 'meeting_room']]);
+            if (!$form->validate()) {
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+            }
+            if($tutor_session = TutorSession::findOne(['meeting_room' => $meetingID, 'status' => 'ongoing'])) {
+                $tutor_session->status = 'completed';
+                $tutor_session->session_ended = date('Y-m-d H:i:s');
+                if ($tutor_session->save()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 
