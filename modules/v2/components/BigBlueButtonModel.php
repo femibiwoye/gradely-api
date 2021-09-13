@@ -38,7 +38,7 @@ class BigBlueButtonModel extends Model
     public $bannerText = 'Gradely live class for learning';
     public $bannerColor = '#11BDCF';
     public $defaultWelcomeMessageFooter = 'Gradely live class for educational purposed';
-    public $userdataBbb_custom_style = ':root{--loader-bg: #113255;}.overlay--1aTlbi{background-color: #113255 !important;}body{background-color: #113255 !important;}';
+    public $userdataBbb_custom_style = ':root{--loader-bg: #113255;}.overlay--1aTlbi{background-color: #113255 !important;}body{background-color: #000 !important;}.primary--1IbqAO{ background-color:#00c0d2 !important; color: #000 !important;}';
     public $userdataBbb_custom_style_url = 'https://gradly.s3.eu-west-2.amazonaws.com/assets/css/class-style.css';
     private $checksum;
 
@@ -131,9 +131,11 @@ class BigBlueButtonModel extends Model
 //            'userdata-bbb_hide_presentation'=>'true',
             'userdata-bbb_auto_swap_layout'=>'true',
             'userdata-bbb_show_public_chat_on_login'=>'false',
-            'userdata-bbb_show_participants_on_login'=>'false',
+            'userdata-bbb_show_participants_on_login'=>'true',
             'userdata-bbb_skip_check_audio_on_first_join'=>'true',
             'userdata-bbb_skip_video_preview'=>'true',
+
+            'userdata-bbb_listen_only_mode'=>'false',
 
         ]);
 
