@@ -187,8 +187,10 @@ class StudentTopicPerformance extends Model
     {
         return QuizSummaryDetails::find()
             ->select([
-                new Expression('round((SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id))*100) as score'),
-                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as total_questions')
+                //new Expression('round((SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id))*100) as score'), //To be removed eventually
+                new Expression('round((SUM(quiz_summary_details.is_correct)/COUNT(quiz_summary_details.id))*100) as score'),
+//                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as total_questions') //To be removed eventually
+                new Expression('SUM(quiz_summary_details.is_correct) as total_questions')
             ])
             ->innerJoin('questions', 'quiz_summary_details.question_id = questions.id')
             ->where([

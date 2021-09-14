@@ -212,18 +212,19 @@ class SubjectTopics extends \yii\db\ActiveRecord
         }
 
         $total_attempts = $query->count();
-        $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count();
+//        $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count(); // To be removed eventually
+        $total_correct = $query->andWhere(['quiz_summary_details.is_correct' => 1])->count();
 
         return ($total_correct / $total_attempts) * 100;
 
     }
 
-    public function getResultClass($student_id, $topic_id = null,$mode=null)
+    public function getResultClass($student_id, $topic_id = null, $mode = null)
     {
         $query = QuizSummaryDetails::find()
             ->innerJoin('quiz_summary', 'quiz_summary.id = quiz_summary_details.quiz_id')
             // ->where(['quiz_summary.type' => SharedConstant::QUIZ_SUMMARY_TYPE[0]])
-            ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id,'quiz_summary.mode' => $mode]);
+            ->andWhere(['quiz_summary_details.student_id' => $student_id, 'quiz_summary_details.topic_id' => $topic_id, 'quiz_summary.mode' => $mode]);
 
         if (in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
             if (isset($_GET['term'])) {
@@ -236,7 +237,8 @@ class SubjectTopics extends \yii\db\ActiveRecord
         }
 
         $total_attempts = $query->count();
-        $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count();
+//        $total_correct = $query->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')->count(); //To be removed eventually
+        $total_correct = $query->andWhere(['quiz_summary_details.is_correct' => 1])->count();
 
         return ($total_correct / $total_attempts) * 100;
 

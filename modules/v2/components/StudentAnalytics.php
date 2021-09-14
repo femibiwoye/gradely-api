@@ -107,10 +107,12 @@ class StudentAnalytics extends Model
 
         $finalHomework = $homeworkModel
             ->select([
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(homework_questions.id))*100) as correctPercentage'),
+                //new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(homework_questions.id))*100) as correctPercentage'), //To be removed eventually
+                new Expression('round((SUM(is_correct)/COUNT(homework_questions.id))*100) as correctPercentage'),
                 new Expression('COUNT(qsd.id) as attempt'),
                 'COUNT(homework_questions.id) as questionCount',
-                new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'),
+                //new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'), //To be removed eventually
+                new Expression('SUM(is_correct) as correct'), //To be removed eventually
                 'quiz_summary.student_id'
             ])
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = quiz_summary.student_id")

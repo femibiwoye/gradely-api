@@ -69,12 +69,14 @@ class StudentHomeworkReport extends Homeworks
 
     public function getCorrectQuestions()
     {
-        return $this->getQuizSummaryDetails()->where(['=', 'selected', new Expression('`answer`')])->count();
+//        return $this->getQuizSummaryDetails()->where(['=', 'selected', new Expression('`answer`')])->count(); //To be removed eventually
+        return $this->getQuizSummaryDetails()->where(['is_correct' => 1])->count();
     }
 
     public function getFailedQuestions()
     {
-        return $this->getQuizSummaryDetails()->where(['<>', 'selected', new Expression('`answer`')])->count();
+//        return $this->getQuizSummaryDetails()->where(['<>', 'selected', new Expression('`answer`')])->count(); To be removed eventually
+        return $this->getQuizSummaryDetails()->where(['is_correct' => 0])->count();
     }
 
     public function getCountAttemptedQuestions()
@@ -212,7 +214,8 @@ class StudentHomeworkReport extends Homeworks
         return User::find()
             ->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
             ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
-            ->andWhere('quiz_summary_details.selected <> quiz_summary_details.answer')
+//            ->andWhere('quiz_summary_details.selected <> quiz_summary_details.answer') //To be removed eventually
+            ->andWhere(['quiz_summary_details.is_correct' => 0])
             ->all();
     }
 
@@ -221,7 +224,8 @@ class StudentHomeworkReport extends Homeworks
         return User::find()
             ->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
             ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
-            ->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')
+//            ->andWhere('quiz_summary_details.selected = quiz_summary_details.answer') //To be removed eventually
+            ->andWhere(['quiz_summary_details.is_correct' => 1])
             ->all();
     }
 

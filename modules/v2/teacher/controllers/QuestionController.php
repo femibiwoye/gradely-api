@@ -316,7 +316,7 @@ class QuestionController extends ActiveController
         $topic_id = Yii::$app->request->get('topic_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'topic_id'));
         $form->addRule(['class_id', 'subject_id', 'topic_id'], 'required');
-        $form->addRule(['class_id', 'subject_id', 'topic_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
+       // $form->addRule(['class_id', 'subject_id', 'topic_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
@@ -351,7 +351,7 @@ class QuestionController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 
-    public function actionView()
+    public function actionView(): ApiResponse
     {
         $question_id = Yii::$app->request->get('question_id');
         $teacher = Yii::$app->user->id;
@@ -385,7 +385,6 @@ class QuestionController extends ActiveController
         }
 
         $model = Utility::FilterQuestionReturns($model);
-
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Question found');
     }
 
@@ -448,7 +447,7 @@ class QuestionController extends ActiveController
         $model = new \yii\base\DynamicModel(compact('difficulty', 'topic_id', 'answer', 'duration', 'teacher_id', 'question_id'));
         $model->addRule(['question_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['id' => 'question_id', 'teacher_id' => 'teacher_id']]);
         $model->addRule(['difficulty'], 'in', ['range' => ['easy', 'medium', 'hard']]);
-        $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
+        //$model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D', '0', '1']]);
         $model->addRule(['duration'], 'integer');
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
@@ -457,6 +456,8 @@ class QuestionController extends ActiveController
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
         if (in_array($model->type, ['multiple', 'bool']) && !in_array($model->answer, ['A', 'B', 'C', 'D', '0', '1'])) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid answer provided');
+        } elseif ($model->type == 'short' && !is_array($answer)) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Short answer must be an array');
         }
 
         $model->scenario = 'update-' . $model->type;
@@ -465,6 +466,7 @@ class QuestionController extends ActiveController
         }
 
         $model->attributes = Yii::$app->request->post();
+        $model->answer = json_encode($answer);
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }

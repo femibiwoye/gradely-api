@@ -64,5 +64,9 @@ return [
 
     'summerSchoolID' => SUMMER_SCHOOL_ID,
     'activeSession' => ACTIVE_SESSION,
-    'appFolderLevel' =>APP_FOLDER_LEVEL
+    'appFolderLevel' =>APP_FOLDER_LEVEL,
+
+    'bbbSecret'=>BBB_SECRET,
+    'bbbServerBaseUrl'=>BBB_SERVER_BASE_URL,
+    'liveClassClient'=>LIVE_CLASS_CLIENT
 ];

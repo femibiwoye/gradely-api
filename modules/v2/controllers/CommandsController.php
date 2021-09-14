@@ -16,6 +16,7 @@ use app\modules\v2\models\games\Level;
 use app\modules\v2\models\games\Subject;
 use app\modules\v2\models\GenerateString;
 use app\modules\v2\models\PracticeMaterial;
+use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Recommendations;
 use app\modules\v2\models\SchoolCalendar;
 use app\modules\v2\models\Schools;
@@ -307,10 +308,10 @@ class CommandsController extends Controller
                 ])
                 ->leftJoin('video_content vc', 'vc.id = file_log.file_id')
                 ->leftJoin('user', 'user.id = file_log.user_id')
-                ->leftJoin('student_school sc','sc.student_id = user.id AND sc.status = 1 AND sc.current_class = 1 AND sc.current_class = 1')
-                ->leftJoin('schools','schools.id = sc.school_id')
+                ->leftJoin('student_school sc', 'sc.student_id = user.id AND sc.status = 1 AND sc.current_class = 1 AND sc.current_class = 1')
+                ->leftJoin('schools', 'schools.id = sc.school_id')
                 ->leftJoin('parents', 'parents.student_id = user.id')
-                ->leftJoin('user parent','parent.id = parents.parent_id')
+                ->leftJoin('user parent', 'parent.id = parents.parent_id')
                 ->groupBy(['file_log.user_id'])
                 ->where(['source' => 'catchup', 'user.type' => 'student'])
                 ->andWhere("YEAR(date(file_log.created_at)) = $year AND MONTH(date(file_log.created_at)) = $month");
@@ -341,8 +342,17 @@ class CommandsController extends Controller
 
         }
         \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
-        return $this->render('wizitup-stat', ['data' => $model,'type'=>$type]);
- //       return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
+        return $this->render('wizitup-stat', ['data' => $model, 'type' => $type]);
+        //       return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
     }
+
+    public function actionScoreQuiz()
+    {
+        //return QuizSummaryDetails::find()->where(['=', 'selected', new Expression('`answer`')])->count();
+        QuizSummaryDetails::updateAll(['is_correct' => 0, 'score' => 1], ['!=', 'selected', new Expression('`answer`')]);
+        QuizSummaryDetails::updateAll(['is_correct' => 1, 'score' => 1], ['=', 'selected', new Expression('`answer`')]);
+    }
+
+
 }
 

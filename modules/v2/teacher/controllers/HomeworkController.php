@@ -9,7 +9,7 @@ use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\Subjects;
 use app\modules\v2\models\TeacherClassSubjects;
 use Yii;
-use app\modules\v2\models\{Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions, Feed};
+use app\modules\v2\models\{GlobalClass, Homeworks, Classes, ApiResponse, HomeworkQuestions, Questions, Feed};
 use app\modules\v2\components\SharedConstant;
 use yii\data\ActiveDataProvider;
 use yii\db\Expression;
@@ -146,7 +146,7 @@ class HomeworkController extends ActiveController
 //        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 //    }
 
-    public function actionClassHomeworks($class_id = null, $subject_id=null)
+    public function actionClassHomeworks($class_id = null, $subject_id = null)
     {
         $model = $this->modelClass::find()->andWhere([
             'teacher_id' => Yii::$app->user->id,
@@ -183,7 +183,7 @@ class HomeworkController extends ActiveController
 
     }
 
-    public function actionClassFilteredAssessment($class_id = null, $term = null, $subject_id=null, $session=null)
+    public function actionClassFilteredAssessment($class_id = null, $term = null, $subject_id = null, $session = null)
     {
         $model = Homeworks::find()
             ->select([
@@ -191,9 +191,10 @@ class HomeworkController extends ActiveController
                 'title',
                 'tag',
                 'homeworks.id',
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as average_score'),
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as average_score'), //To be removed eventually
+                new Expression('round((SUM(qsd.is_correct)/COUNT(qsd.id))*100) as average_score'),
             ])
-            ->leftJoin('quiz_summary_details qsd','qsd.homework_id = homeworks.id')
+            ->leftJoin('quiz_summary_details qsd', 'qsd.homework_id = homeworks.id')
             ->andWhere([
                 'teacher_id' => Yii::$app->user->id,
                 'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
@@ -473,6 +474,36 @@ class HomeworkController extends ActiveController
         }
 
         return (new ApiResponse)->success($form->HomeworkQuestionModels, ApiResponse::SUCCESSFUL, 'Record inserted');
+    }
+
+    /**
+     * For classes a teacher should be able to select from
+     * @param $class_id
+     * @return ApiResponse
+     */
+    public function actionGetRelatedClasses($global_class)
+    {
+        $end = $global_class + 2;
+        $start = $global_class - 2;
+        if ($global_class >= 11) {
+            $end = 12;
+        }
+        if ($global_class < 2 || $global_class > 12) {
+            $start = 13;
+            $end = 15;
+        }
+
+        $numbers = [];
+
+        foreach (range($start, $end) as $number) {
+            $numbers[] = $number;
+        }
+        if ($global_class < 2) {
+            $numbers = array_merge($numbers, [1, 2]);
+        } elseif ($global_class == 2) {
+            $numbers = [15, 1, 2, 3, 4];
+        }
+        return (new ApiResponse)->success(GlobalClass::findAll(['id' => $numbers]), ApiResponse::SUCCESSFUL, 'Possible topics to be seen');
     }
 
     /**

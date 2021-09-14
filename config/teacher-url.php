@@ -82,4 +82,7 @@ return [
     'POST v2/teacher/catchup/practice' => 'v2/teacher/catchup/create-practice', //
     'POST v2/teacher/catchup/video-recommendation' => 'v2/teacher/catchup/video-recommendation', //
     'GET v2/teacher/catchup/homework-summary-proctor/<student_id:\d+>/<assessment_id:\d+>' => 'v2/teacher/catchup/homework-summary-proctor', //
+
+
+    'GET v2/teacher/lms/related-classes'=>'v2/teacher/homework/get-related-classes'
 ];

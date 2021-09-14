@@ -160,9 +160,7 @@ class PracticeController extends Controller
         //use transaction before saving;
         $dbtransaction = \Yii::$app->db->beginTransaction();
         try {
-
             $quizSummary = QuizSummary::findOne(['id' => $quiz_id, 'student_id' => \Yii::$app->user->id]);
-
             foreach ($attempts as $question) {
                 if (!isset($question['selected']) || !isset($question['question']))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt data is not valid');
@@ -178,20 +176,41 @@ class PracticeController extends Controller
                 $qsd->quiz_id = $quizSummary->id;
                 $qsd->question_id = $question['question'];
                 $qsd->selected = $question['selected'];
-                $questionModel = Questions::findOne(['id' => $question['question']]);
+                if (!$questionModel = Questions::findOne(['id' => $question['question']]))
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not valid');
                 $qsd->answer = $questionModel->answer;
                 $qsd->topic_id = $questionModel->topic_id;
                 $qsd->student_id = \Yii::$app->user->id;
                 $qsd->homework_id = $quizSummary->homework_id;
+                $qsd->score = $questionModel->score;
 
-                if ($question['selected'] != $questionModel->answer)
-                    $failedCount = $failedCount + 1;
-
-                if ($question['selected'] == $questionModel->answer)
-                    $correctCount = $correctCount + 1;
+                if (in_array($questionModel->type, ['short', 'essay'])) {
+                    if ($questionModel->type == 'short') {
+                        $answers = json_decode($questionModel->answer);
+                        foreach ($answers as $item) {
+                            if (strtolower($item) == strtolower($question['selected'])) {
+                                $correctCount = $correctCount + 1;
+                                $qsd->is_correct = 1;
+                                break;
+                            } else {
+                                $failedCount = $failedCount + 1;
+                                $qsd->is_correct = 0;
+                            }
+                        }
+                    }
+                } else {
+                    if ($question['selected'] == $questionModel->answer) {
+                        $correctCount = $correctCount + 1;
+                        $qsd->is_correct = 1;
+                    } else {
+                        $failedCount = $failedCount + 1;
+                        $qsd->is_correct = 0;
+                    }
+                }
 
                 if (!$qsd->save())
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more attempt not saved');
+
 
             }
 

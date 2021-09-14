@@ -87,7 +87,8 @@ class RecommendationController extends ActiveController
         $topics = QuizSummaryDetails::find()
             ->alias('qsd')
             ->select([
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'), //To be removed eventually
+                new Expression('round((SUM(qsd.is_correct)/COUNT(qsd.id))*100) as score'),
                 'qsd.topic_id',
             ])
             ->where([
