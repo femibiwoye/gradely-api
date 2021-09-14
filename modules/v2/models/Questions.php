@@ -149,6 +149,7 @@ class Questions extends \yii\db\ActiveRecord
             unset($question[array_search('option_e', $question)]);
             unset($question[array_search('file_upload', $question)]);
             unset($question[array_search('word_limit', $question)]);
+            $this->answer = json_decode($this->answer);
         } elseif ($this->type == 'bool') {
             $this->option_a = '1';
             $this->option_b = '0';
@@ -210,7 +211,11 @@ class Questions extends \yii\db\ActiveRecord
         return User::find()
             ->innerJoin('quiz_summary qs', 'qs.student_id = user.id')
             ->leftJoin('quiz_summary_details qsd', 'qsd.student_id = user.id AND qsd.question_id = ' . $this->id)
-            ->where(['OR', ['!=', 'qsd.selected', 'qsd.answer'], ['qsd.selected' => null]])
+            ->where(['OR',
+//                ['!=', 'qsd.selected', 'qsd.answer'], //To be removed eventually
+                ['qsd.is_correct' => 0],
+                ['qsd.selected' => null]
+            ])
             ->andWhere(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'qsd.homework_id' => Yii::$app->request->get('id'), 'qs.homework_id' => Yii::$app->request->get('id')])
             ->all();
     }

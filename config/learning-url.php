@@ -11,10 +11,13 @@ return [
     'PUT v2/learning/live-class/start-class' => 'v2/learning/live-class/start-class', //
     'PUT v2/learning/live-class/join-class' => 'v2/learning/live-class/join-class', //
     'PUT v2/learning/live-class/end-class' => 'v2/learning/live-class/end-class', //
+    'GET v2/learning/live-class/end-class-only' => 'v2/learning/live-class/end-class-only', //
 //
 //    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/learning/live-class'], 'extraPatterns' => [
 //        'PUT start-class' => 'start-class',
 //    ]],
 
+//For Big Blue Button
+    'GET v2/learning/bbb' => 'v2/learning/big-blue-button/start'
 
 ];

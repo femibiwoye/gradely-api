@@ -314,7 +314,8 @@ class Homeworks extends \yii\db\ActiveRecord
         return User::find()
             ->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
             ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
-            ->andWhere('quiz_summary_details.selected <> quiz_summary_details.answer')
+//            ->andWhere('quiz_summary_details.selected <> quiz_summary_details.answer') //TO be removed eventually
+            ->andWhere(['quiz_summary_details.selected' => 0])
             ->all();
     }
 
@@ -323,7 +324,8 @@ class Homeworks extends \yii\db\ActiveRecord
         return User::find()
             ->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
             ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
-            ->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')
+//            ->andWhere('quiz_summary_details.selected = quiz_summary_details.answer') //To be removed eventually
+            ->andWhere(['quiz_summary_details.selected' => 1])
             ->all();
     }
 
@@ -511,7 +513,7 @@ class Homeworks extends \yii\db\ActiveRecord
 
     public function getClass()
     {
-        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->select(['id', 'class_name']);
+        return $this->hasOne(Classes::className(), ['id' => 'class_id'])->select(['id', 'class_name', 'global_class_id']);
     }
 
     public function beforeSave($insert)

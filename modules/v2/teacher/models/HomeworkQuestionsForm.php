@@ -44,7 +44,7 @@ class HomeworkQuestionsForm extends Model
         }
 
 
-        $question_records = (int) Questions::find()->where(['id' => $this->questions, 'class_id' => $this->class_id, 'subject_id' => $this->subject_id])->count();
+        $question_records = (int) Questions::find()->where(['id' => $this->questions, 'subject_id' => $this->subject_id])->count();
         if (count($this->questions) > $question_records) {
             $this->addError('questions', 'One or more questions is invalid');
             return false;

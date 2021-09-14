@@ -173,7 +173,8 @@ class ClassReport extends Model
 //                'user.email',
 //                Utility::ImageQuery('user', 'users'),
 //                'user.type',
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'), //To be removed eventually
+                new Expression('round((SUM(qsd.is_correct)/COUNT(qsd.id))*100) as score'),
                 // new Expression('COUNT(qsd.id) as attempt'),
                 //new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'),
             ])
@@ -291,7 +292,8 @@ class ClassReport extends Model
             ->select([
                 'qsd.topic_id',
                 'st.topic',
-                new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'),
+//                new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct'), //To be removed eventually
+                new Expression('SUM(qsd.is_correct) as correct'),
                 new Expression("'excellence' as level"),
 
             ])
@@ -343,9 +345,11 @@ class ClassReport extends Model
                 'user.email',
                 Utility::ImageQuery('user', 'users'),
                 'user.type',
-                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+//                new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'), //To be removed eventually
+                new Expression('round((SUM(qsd.is_correct)/COUNT(qsd.id))*100) as score'),
                 new Expression('COUNT(qsd.id) as attempt'),
-                new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct')
+//                new Expression('SUM(case when qsd.selected = qsd.answer then 1 else 0 end) as correct') // To be removed eventually
+                new Expression('SUM(qsd.is_correct) as correct')
             ])
             ->innerJoin('student_school sc', "sc.student_id = user.id AND sc.class_id = '$class' AND sc.status=1")
             ->innerJoin('quiz_summary_details qsd', "qsd.student_id = user.id AND qsd.topic_id = '$topic_id'")
@@ -424,7 +428,8 @@ class ClassReport extends Model
                 ->alias('qsd')
                 ->leftJoin('subject_topics st', 'st.id = qsd.topic_id')
                 ->select([
-                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'),
+//                    new Expression('round((SUM(case when qsd.selected = qsd.answer then 1 else 0 end)/COUNT(qsd.id))*100) as score'), //To be removed eventually
+                    new Expression('round((SUM(qsd.is_correct)/COUNT(qsd.id))*100) as score'),
                     //new Expression('(case when (select requester_id from tutor_session where student_id = qsd.student_id AND meta = "recommendation" AND requester_id = '.Yii::$app->user->id.') then 1 else 0 end) as is_recommended'),
                     'qsd.topic_id',
                     'st.topic',

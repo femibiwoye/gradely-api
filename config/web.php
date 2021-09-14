@@ -44,6 +44,8 @@ $config = [
                     //Save the error to db so that it will be logged
 
                     \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => $response->data['name'], 'raw' => json_encode($response->data)]);
+                }else{
+                    \app\modules\v2\components\RequestLogger::widget(['method' => Yii::$app->request->method, 'code'=>$response->statusCode, 'request' => Yii::$app->request->bodyParams, 'response' => json_encode($response->data)]);
                 }
             },
         ],
@@ -97,7 +99,7 @@ $config = [
             'enablePrettyUrl' => true,
             'enableStrictParsing' => true,
             'showScriptName' => false,
-            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl, $commandUrl, $testUrl,$smsUrl,$examUrl,$gameUrl, $summerUrl),
+            'rules' => array_merge($mainUrl, $schoolUrl, $teacherUrl, $studentUrl, $parentUrl, $learningUrl, $tutorUrl, $awsUrl, $commandUrl, $testUrl, $smsUrl, $examUrl, $gameUrl, $summerUrl),
         ],
 
     ],

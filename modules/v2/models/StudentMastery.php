@@ -152,9 +152,11 @@ class StudentMastery extends Model
     {
         $last_attempts = QuizSummaryDetails::find()
             ->select([
-                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as correct'),
+//                new Expression('SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end) as correct'), //To be removed eventually
+                new Expression('SUM(quiz_summary_details.is_correct) as correct'),
                 new Expression('COUNT(quiz_summary_details.id) as attempt'),
-                new Expression("SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id)*100 as score"),
+//                new Expression("SUM(case when quiz_summary_details.selected = quiz_summary_details.answer then 1 else 0 end)/COUNT(quiz_summary_details.id)*100 as score"), //To be removed eventually
+                new Expression("SUM(quiz_summary_details.is_correct)/COUNT(quiz_summary_details.id)*100 as score"),
             ])
             ->leftJoin('quiz_summary', 'quiz_summary_details.quiz_id = quiz_summary.id')
             ->where([

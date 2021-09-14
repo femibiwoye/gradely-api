@@ -187,7 +187,8 @@ class HomeworkReport extends Homeworks
         return User::find()
             ->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
             ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
-            ->andWhere('quiz_summary_details.selected <> quiz_summary_details.answer')
+            //->andWhere('quiz_summary_details.selected <> quiz_summary_details.answer') //to be removed eventually
+            ->andWhere(['quiz_summary_details.selected' => 0])
             ->all();
     }
 
@@ -196,7 +197,8 @@ class HomeworkReport extends Homeworks
         return User::find()
             ->innerJoin('quiz_summary_details', 'user.id = quiz_summary_details.student_id')
             ->where(['user.type' => SharedConstant::ACCOUNT_TYPE[3], 'quiz_summary_details.question_id' => $question_id])
-            ->andWhere('quiz_summary_details.selected = quiz_summary_details.answer')
+            //->andWhere('quiz_summary_details.selected = quiz_summary_details.answer') //To be removed eventually
+            ->andWhere(['quiz_summary_details.selected' => 1])
             ->all();
     }
 
