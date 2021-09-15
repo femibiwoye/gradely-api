@@ -372,7 +372,7 @@ class LiveClassController extends Controller
                 $model->tag = 'live_class';
                 $model->filetype = SharedConstant::TYPE_VIDEO;
                 $model->title = $tutorSession->title;
-                $model->filename = $meetingID;
+                $model->filename = $playback['url'];
                 $model->extension = 'mp4';
                 $model->filesize = Utility::FormatBytesSize($playback['size']);
                 $model->thumbnail = $playback['preview']['images']['image'][0];
