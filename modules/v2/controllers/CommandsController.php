@@ -3,6 +3,7 @@
 namespace app\modules\v2\controllers;
 
 
+use app\modules\v2\components\BigBlueButtonModel;
 use app\modules\v2\components\Pricing;
 use app\modules\v2\components\Recommendation;
 use app\modules\v2\components\SharedConstant;
@@ -344,6 +345,12 @@ class CommandsController extends Controller
         \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
         return $this->render('wizitup-stat', ['data' => $model, 'type' => $type]);
         //       return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, count($model) . ' records found');
+    }
+
+    public function actionBbb()
+    {
+        $model = new BigBlueButtonModel();
+        return $model->GetRecordings();
     }
 
     public function actionScoreQuiz()

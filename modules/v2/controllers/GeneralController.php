@@ -317,7 +317,7 @@ class GeneralController extends Controller
 
     public function actionSchoolAuth($sch)
     {
-        if (!$school = Schools::find()->select(['id', 'name', 'slug', 'logo', 'banner', 'tagline'])->where(['slug' => $sch])->asArray()->one()) {
+        if (!$school = Schools::find()->select(['id', 'name', 'slug', 'logo', 'banner', 'tagline','wallpaper'])->where(['slug' => $sch])->asArray()->one()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid school');
         }
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL);
