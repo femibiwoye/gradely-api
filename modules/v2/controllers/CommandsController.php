@@ -350,6 +350,7 @@ class CommandsController extends Controller
     public function actionBbb()
     {
         $model = new BigBlueButtonModel();
+        $model->meetingID = 'b3eth0egvzm4mtleg0m41u6bwx67kh';
         return $model->GetRecordings();
     }
 

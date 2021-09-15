@@ -95,7 +95,8 @@ class BigBlueButtonModel extends Model
             'userdata-bbb_custom_style_url' => $this->userdataBbb_custom_style_url,
             'meta_endCallbackUrl' => Url::to(['/v2/learning/live-class/end-class-only', 'meetingID' => $this->meetingID], true),
             'meta_applicationStage' => Yii::$app->params['applicationStage'],
-            'endWhenNoModeratorDelayInMinutes'=>$this->endWhenNoModeratorDelayInMinutes
+            'endWhenNoModeratorDelayInMinutes'=>$this->endWhenNoModeratorDelayInMinutes,
+            'meta_bbb-recording-ready-url'=>Url::to(['/v2/learning/live-class/log-recording', 'meetingID' => $this->meetingID], true),
         ]);
         //$queryBuild = $queryBuild.'&userdata-bbb_custom_style=:root{--loader-bg:red;}.navbar--Z2lHYbG{background-color:pink!important;}';
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
@@ -237,12 +238,13 @@ class BigBlueButtonModel extends Model
         return $this->ConvertXml($fullUrl);
     }
 
-    public function GetRecordings($meetingID = null)
+    public function GetRecordings($fetchOne = false)
     {
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'getRecordings';
-        $queryBuild = http_build_query(!empty($meetingID) ? [
+        $queryBuild = http_build_query($fetchOne ? [
             'meetingID' => $this->meetingID,
+            'recordID' => $this->recordID,
         ] : []);
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
         $fullUrl = $body . $appName . "?" . $queryBuild . "&checksum=" . $checkSum;

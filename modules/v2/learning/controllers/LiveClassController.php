@@ -50,7 +50,7 @@ class LiveClassController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CustomHttpBearerAuth::className(),
-            'except' => ['update-live-class-video','end-class-only'],
+            'except' => ['update-live-class-video', 'end-class-only', 'log-recording'],
         ];
 
         return $behaviors;
@@ -325,7 +325,7 @@ class LiveClassController extends Controller
             if (!$form->validate()) {
                 return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
             }
-            if($tutor_session = TutorSession::findOne(['meeting_room' => $meetingID, 'status' => 'ongoing'])) {
+            if ($tutor_session = TutorSession::findOne(['meeting_room' => $meetingID, 'status' => 'ongoing'])) {
                 $tutor_session->status = 'completed';
                 $tutor_session->session_ended = date('Y-m-d H:i:s');
                 if ($tutor_session->save()) {
@@ -334,6 +334,31 @@ class LiveClassController extends Controller
             }
         }
         return false;
+    }
+
+    public function actionLogRecording()
+    {
+        $post = Yii::$app->request->post('signed_parameters');
+        try {
+            $model = UserJwt::decode($post, Yii::$app->params['bbbSecret'], ['HS256']);
+
+            $meetingID = $model->meeting_id;
+            $recordID = $model->meeting_id;
+
+            $model = new BigBlueButtonModel();
+            $model->meetingID = $meetingID;
+            $model->recordID = $recordID;
+            $data = $model->GetRecordings(true);
+
+            $tutorSession = TutorSession::findOne(['meeting_room' => $meetingID]);
+            $tutorSession->recording = $data;
+            $tutorSession->save();
+
+            return $model;
+        } catch (\Exception $e) {
+            return $e;
+        }
+
     }
 
 
