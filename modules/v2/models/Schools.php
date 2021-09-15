@@ -16,6 +16,7 @@ use yii\behaviors\SluggableBehavior;
  * @property string $abbr
  * @property string|null $logo
  * @property string|null $banner
+ * @property string|null $wallpaper
  * @property string|null $tagline
  * @property string|null $about
  * @property string|null $address
@@ -147,6 +148,7 @@ class Schools extends \yii\db\ActiveRecord
             'banner' => function () {
                 return Utility::getGeneralImage($this->banner, 'schools');
             },
+            'wallpaper',
             'tagline',
             'about',
             'address',

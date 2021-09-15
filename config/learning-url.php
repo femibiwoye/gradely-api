@@ -12,6 +12,7 @@ return [
     'PUT v2/learning/live-class/join-class' => 'v2/learning/live-class/join-class', //
     'PUT v2/learning/live-class/end-class' => 'v2/learning/live-class/end-class', //
     'GET v2/learning/live-class/end-class-only' => 'v2/learning/live-class/end-class-only', //
+    'POST v2/learning/live-class/log-recording' => 'v2/learning/live-class/log-recording', //
 //
 //    ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/learning/live-class'], 'extraPatterns' => [
 //        'PUT start-class' => 'start-class',
