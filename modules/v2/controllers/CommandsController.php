@@ -398,10 +398,11 @@ class CommandsController extends Controller
                     $model->thumbnail = $playback['preview']['images']['image'][0];
 
                     if (!$model->save()) {
-                        return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
+                        continue;
+                       // return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
                     }
                     $model->saveFileFeed($tutorSession->class);
-                    return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
+//                    return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
                 }
 
             }
