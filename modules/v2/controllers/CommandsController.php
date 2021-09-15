@@ -21,6 +21,7 @@ use app\modules\v2\models\QuizSummaryDetails;
 use app\modules\v2\models\Recommendations;
 use app\modules\v2\models\SchoolCalendar;
 use app\modules\v2\models\Schools;
+use app\modules\v2\models\TutorSession;
 use app\modules\v2\models\User;
 use app\modules\v2\models\VideoContent;
 use app\modules\v2\school\models\ClassForm;
@@ -350,7 +351,7 @@ class CommandsController extends Controller
     public function actionBbb()
     {
         $model = new BigBlueButtonModel();
-        $model->meetingID = 'b3eth0egvzm4mtleg0m41u6bwx67kh';
+        $model->meetingID = '34juet71iypqtqhswj4qhjayjkfm59';
         return $model->GetRecordings();
     }
 
@@ -359,6 +360,52 @@ class CommandsController extends Controller
         //return QuizSummaryDetails::find()->where(['=', 'selected', new Expression('`answer`')])->count();
         QuizSummaryDetails::updateAll(['is_correct' => 0, 'score' => 1], ['!=', 'selected', new Expression('`answer`')]);
         QuizSummaryDetails::updateAll(['is_correct' => 1, 'score' => 1], ['=', 'selected', new Expression('`answer`')]);
+    }
+
+    public function actionOlderLiveClass()
+    {
+
+        $model = new BigBlueButtonModel();
+        $data = $model->GetRecordings();
+
+        if (!isset($data['recordings'])) {
+            return null;
+        }
+        foreach ($data['recordings']['recording'] as $meeting) {
+
+            if (!$tutorSession = TutorSession::find()->where(['meeting_room' => $meeting['meetingID'], 'status' => 'completed'])->one()) {
+                continue;
+            }
+
+            if (!empty($tutorSession->recording)) {
+                continue;
+            }
+            //$tutorSession = TutorSession::findOne(['meeting_room' => $meetingID]);
+            $tutorSession->recording = $meeting ?? null;
+            if ($tutorSession->save() && !empty($tutorSession->recording)) {
+                $playback = $meeting['playback']['format'];
+                if (!PracticeMaterial::find()->where(['filename' => $playback['url']])->exists()) {
+                    $tutorSession = TutorSession::find()->where(['meeting_room' => $meeting['meetingID']])->one();
+                    $model = new PracticeMaterial(['scenario' => 'live-class-material']);
+                    $model->user_id = $tutorSession->requester_id;
+                    $model->type = SharedConstant::FEED_TYPE;
+                    $model->tag = 'live_class';
+                    $model->filetype = SharedConstant::TYPE_VIDEO;
+                    $model->title = $tutorSession->title;
+                    $model->filename = $meeting['meetingID'];
+                    $model->extension = 'mp4';
+                    $model->filesize = Utility::FormatBytesSize($playback['size']);
+                    $model->thumbnail = $playback['preview']['images']['image'][0];
+
+                    if (!$model->save()) {
+                        return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
+                    }
+                    $model->saveFileFeed($tutorSession->class);
+                    return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
+                }
+
+            }
+        }
     }
 
 

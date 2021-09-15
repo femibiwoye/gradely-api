@@ -340,21 +340,50 @@ class LiveClassController extends Controller
     {
         $post = Yii::$app->request->post('signed_parameters');
         try {
-            $model = UserJwt::decode($post, Yii::$app->params['bbbSecret'], ['HS256']);
+        if (!$modelJWT = UserJwt::decode($post, Yii::$app->params['bbbSecret'], ['HS256'])) {
+            return null;
+        }
+        $meetingID = $modelJWT->meeting_id;
+        $recordID = $modelJWT->record_id;
+        $model = new BigBlueButtonModel();
+        $model->meetingID = $meetingID;
+        $model->recordID = $recordID;
+        $data = $model->GetRecordings(true);
+        if (!isset($data['recordings'])) {
+            return null;
+        }
 
-            $meetingID = $model->meeting_id;
-            $recordID = $model->meeting_id;
+        if(!$tutorSession = TutorSession::find()->where(['meeting_room' => $meetingID,'status'=>'completed'])->one()){
+            return null;
+        }
 
-            $model = new BigBlueButtonModel();
-            $model->meetingID = $meetingID;
-            $model->recordID = $recordID;
-            $data = $model->GetRecordings(true);
+        if(!empty($tutorSession->recording)){
+            return 'recorded';
+        }
+        //$tutorSession = TutorSession::findOne(['meeting_room' => $meetingID]);
+        $tutorSession->recording = $data['recordings'] ?? null;
+        if ($tutorSession->save() && !empty($tutorSession->recording)) {
+            $playback = $data['recordings']['recording']['playback']['format'];
+            if (!PracticeMaterial::find()->where(['filename' => $playback['url']])->exists()) {
+                $tutorSession = TutorSession::find()->where(['meeting_room' => $meetingID])->one();
+                $model = new PracticeMaterial(['scenario' => 'live-class-material']);
+                $model->user_id = $tutorSession->requester_id;
+                $model->type = SharedConstant::FEED_TYPE;
+                $model->tag = 'live_class';
+                $model->filetype = SharedConstant::TYPE_VIDEO;
+                $model->title = $tutorSession->title;
+                $model->filename = $meetingID;
+                $model->extension = 'mp4';
+                $model->filesize = Utility::FormatBytesSize($playback['size']);
+                $model->thumbnail = $playback['preview']['images']['image'][0];
+                if (!$model->save()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
+                }
+                $model->saveFileFeed($tutorSession->class);
+                return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
+            }
+        }
 
-            $tutorSession = TutorSession::findOne(['meeting_room' => $meetingID]);
-            $tutorSession->recording = $data;
-            $tutorSession->save();
-
-            return $model;
         } catch (\Exception $e) {
             return $e;
         }

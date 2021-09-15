@@ -12,5 +12,6 @@ return [
     'GET v2/content/wizitup/video'=>'v2/commands/wizitup-content',
     'GET v2/commands/score-quiz'=>'v2/commands/score-quiz',
     'GET v2/commands/bbb'=>'v2/commands/bbb',
+    'GET v2/commands/older-live-class'=>'v2/commands/older-live-class',
 
 ];
