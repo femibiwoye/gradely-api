@@ -162,8 +162,15 @@ class PracticeController extends Controller
         try {
             $quizSummary = QuizSummary::findOne(['id' => $quiz_id, 'student_id' => \Yii::$app->user->id]);
             foreach ($attempts as $question) {
-                if (!isset($question['selected']) || !isset($question['question']))
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt data is not valid');
+
+                if (!isset($question['question']))
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt question data is not valid');
+
+                if (!$questionModel = Questions::findOne(['id' => $question['question']]))
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not valid');
+
+                if ($questionModel->type != 'essay' && !isset($question['selected']))
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt selected data is not valid');
 
                 if (!HomeworkQuestions::find()
                     ->where(['question_id' => $question['question'], 'homework_id' => $quizSummary->homework_id])->exists())
@@ -175,9 +182,8 @@ class PracticeController extends Controller
                 $qsd = new QuizSummaryDetails();
                 $qsd->quiz_id = $quizSummary->id;
                 $qsd->question_id = $question['question'];
-                $qsd->selected = $question['selected'];
-                if (!$questionModel = Questions::findOne(['id' => $question['question']]))
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not valid');
+
+
                 $qsd->answer = $questionModel->answer;
                 $qsd->topic_id = $questionModel->topic_id;
                 $qsd->student_id = \Yii::$app->user->id;
@@ -185,6 +191,7 @@ class PracticeController extends Controller
                 $qsd->score = $questionModel->score;
 
                 if (in_array($questionModel->type, ['short', 'essay'])) {
+                    $qsd->selected = $question['selected'];
                     if ($questionModel->type == 'short') {
                         $answers = json_decode($questionModel->answer);
                         foreach ($answers as $item) {
@@ -197,8 +204,11 @@ class PracticeController extends Controller
                                 $qsd->is_correct = 0;
                             }
                         }
+                    } elseif ($questionModel->type == 'essay') {
+                        $qsd->answer_attachment = $question['answer_attachment'];
                     }
                 } else {
+                    $qsd->selected = strtoupper($question['selected']);
                     if ($question['selected'] == $questionModel->answer) {
                         $correctCount = $correctCount + 1;
                         $qsd->is_correct = 1;
