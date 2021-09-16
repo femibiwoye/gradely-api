@@ -15,6 +15,7 @@ use Yii;
  * @property int $time_spent
  * @property string $selected
  * @property string|null $answer
+ * @property string|null $answer_attachment
  * @property int|null $topic_id
  * @property int|null $is_correct
  * @property int|null $score
@@ -39,9 +40,10 @@ class QuizSummaryDetails extends \yii\db\ActiveRecord
     {
         return [
             [['quiz_id', 'homework_id', 'student_id', 'question_id', 'selected'], 'required'],
-            [['quiz_id', 'homework_id', 'student_id', 'question_id', 'topic_id','time_spent','is_correct','score'], 'integer'],
-            [['created_at'], 'safe'],
+            [['quiz_id', 'homework_id', 'student_id', 'question_id', 'topic_id', 'time_spent', 'is_correct', 'score'], 'integer'],
+            [['created_at', 'answer_attachment'], 'safe'],
 //            [['selected', 'answer'], 'string', 'max' => 1],
+            ['answer_attachment', 'url', 'defaultScheme' => 'https'],
             [['quiz_id'], 'exist', 'skipOnError' => true, 'targetClass' => QuizSummary::className(), 'targetAttribute' => ['quiz_id' => 'id']],
         ];
     }
@@ -84,7 +86,8 @@ class QuizSummaryDetails extends \yii\db\ActiveRecord
         return $this->hasOne(Questions::className(), ['id' => 'question_id']);
     }
 
-    public function getSelectedAnswer(){
+    public function getSelectedAnswer()
+    {
 
         $selected_answer = 'option_' . strtolower($this->answer);
         $question = Questions::findOne($this->question_id);
@@ -92,7 +95,8 @@ class QuizSummaryDetails extends \yii\db\ActiveRecord
         return $question->$selected_answer;
     }
 
-    public function getCorrectAnswer(){
+    public function getCorrectAnswer()
+    {
 
         $correct_answer = 'option_' . strtolower($this->answer);
         $question = Questions::findOne($this->question_id);
