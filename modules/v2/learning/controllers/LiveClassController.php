@@ -11,6 +11,7 @@ use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\ClassAttendance;
 use app\modules\v2\models\Classes;
 use app\modules\v2\models\GenerateString;
+use app\modules\v2\models\handler\SessionLogger;
 use app\modules\v2\models\Parents;
 use app\modules\v2\models\PracticeMaterial;
 use app\modules\v2\models\Questions;
@@ -252,41 +253,41 @@ class LiveClassController extends Controller
      * @param $id
      * @return ApiResponse
      */
-    public function actionEndClass()
+    public function actionEndClass($token = null)
     {
         $user_id = Yii::$app->user->id;
         $is_owner = false;
         $is_completed = false;
-        if (!empty($session_id)) {
-            $form = new \yii\base\DynamicModel(compact('session_id', 'user_id'));
-            $form->addRule(['session_id'], 'required')
-                ->addRule(['session_id'], 'exist', ['targetClass' => ClassAttendance::className(), 'targetAttribute' => ['session_id', 'user_id']]);
-            if (!$form->validate()) {
-                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
-            }
-            $tutor_session = TutorSession::findOne(['id' => $session_id]);
+
+        if (!empty($token)) {
+//            $form = new \yii\base\DynamicModel(compact('session_id', 'user_id'));
+//            $form->addRule(['session_id'], 'required')
+//                ->addRule(['session_id'], 'exist', ['targetClass' => ClassAttendance::className(), 'targetAttribute' => ['session_id', 'user_id']]);
+//            if (!$form->validate()) {
+//                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+//            }
+            $tutor_session = TutorSession::findOne(['meeting_room' => $token]);
 
             if (!$tutor_session)
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid session');
-            $attendance = ClassAttendance::find()->where(['user_id' => $user_id, 'session_id' => $session_id])->one();
+            $attendance = ClassAttendance::find()->where(['user_id' => $user_id, 'session_id' => $tutor_session->id])->one();
             if (!empty($attendance->ended_at))
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Meeting already ended');
 
 
-            if ($tutor_session->requester_id == $user_id) {
+            $bbbModel = new BigBlueButtonModel();
+            $bbbModel->meetingID = $tutor_session->meeting_room;
+
+            if ($tutor_session->requester_id == $user_id && $bbbModel->MeetingStatus()['running'] == 'false') {
                 if (!TutorSession::updateAll(['status' => 'completed'], ['meeting_room' => $tutor_session->meeting_room])) {
                     $tutor_session->status = 'completed';
                     if ($tutor_session->save()) {
-                        $bbbModel = new BigBlueButtonModel();
-                        $bbbModel->meetingID = $tutor_session->meeting_room;
                         $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
                         $bbbModel->EndMeeting();
                     }
                 }
                 $is_owner = true;
             }
-
-
             if ($attendance) {
                 $attendance->ended_at = date('Y-m-d H:i:s');
                 $attendance->save();
@@ -340,49 +341,49 @@ class LiveClassController extends Controller
     {
         $post = Yii::$app->request->post('signed_parameters');
         try {
-        if (!$modelJWT = UserJwt::decode($post, Yii::$app->params['bbbSecret'], ['HS256'])) {
-            return null;
-        }
-        $meetingID = $modelJWT->meeting_id;
-        $recordID = $modelJWT->record_id;
-        $model = new BigBlueButtonModel();
-        $model->meetingID = $meetingID;
-        $model->recordID = $recordID;
-        $data = $model->GetRecordings(true);
-        if (!isset($data['recordings'])) {
-            return null;
-        }
-
-        if(!$tutorSession = TutorSession::find()->where(['meeting_room' => $meetingID,'status'=>'completed'])->one()){
-            return null;
-        }
-
-        if(!empty($tutorSession->recording)){
-            return 'recorded';
-        }
-        //$tutorSession = TutorSession::findOne(['meeting_room' => $meetingID]);
-        $tutorSession->recording = $data['recordings'] ?? null;
-        if ($tutorSession->save() && !empty($tutorSession->recording)) {
-            $playback = $data['recordings']['recording']['playback']['format'];
-            if (!PracticeMaterial::find()->where(['filename' => $playback['url']])->exists()) {
-                $tutorSession = TutorSession::find()->where(['meeting_room' => $meetingID])->one();
-                $model = new PracticeMaterial(['scenario' => 'live-class-material']);
-                $model->user_id = $tutorSession->requester_id;
-                $model->type = SharedConstant::FEED_TYPE;
-                $model->tag = 'live_class';
-                $model->filetype = SharedConstant::TYPE_VIDEO;
-                $model->title = $tutorSession->title;
-                $model->filename = $playback['url'];
-                $model->extension = 'mp4';
-                $model->filesize = Utility::FormatBytesSize($playback['size']);
-                $model->thumbnail = $playback['preview']['images']['image'][0];
-                if (!$model->save()) {
-                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
-                }
-                $model->saveFileFeed($tutorSession->class);
-                return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
+            if (!$modelJWT = UserJwt::decode($post, Yii::$app->params['bbbSecret'], ['HS256'])) {
+                return null;
             }
-        }
+            $meetingID = $modelJWT->meeting_id;
+            $recordID = $modelJWT->record_id;
+            $model = new BigBlueButtonModel();
+            $model->meetingID = $meetingID;
+            $model->recordID = $recordID;
+            $data = $model->GetRecordings(true);
+            if (!isset($data['recordings'])) {
+                return null;
+            }
+
+            if (!$tutorSession = TutorSession::find()->where(['meeting_room' => $meetingID, 'status' => 'completed'])->one()) {
+                return null;
+            }
+
+            if (!empty($tutorSession->recording)) {
+                return 'recorded';
+            }
+            //$tutorSession = TutorSession::findOne(['meeting_room' => $meetingID]);
+            $tutorSession->recording = $data['recordings'] ?? null;
+            if ($tutorSession->save() && !empty($tutorSession->recording)) {
+                $playback = $data['recordings']['recording']['playback']['format'];
+                if (!PracticeMaterial::find()->where(['filename' => $playback['url']])->exists()) {
+                    $tutorSession = TutorSession::find()->where(['meeting_room' => $meetingID])->one();
+                    $model = new PracticeMaterial(['scenario' => 'live-class-material']);
+                    $model->user_id = $tutorSession->requester_id;
+                    $model->type = SharedConstant::FEED_TYPE;
+                    $model->tag = 'live_class';
+                    $model->filetype = SharedConstant::TYPE_VIDEO;
+                    $model->title = $tutorSession->title;
+                    $model->filename = $playback['url'];
+                    $model->extension = 'mp4';
+                    $model->filesize = Utility::FormatBytesSize($playback['size']);
+                    $model->thumbnail = $playback['preview']['images']['image'][0];
+                    if (!$model->save()) {
+                        return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
+                    }
+                    $model->saveFileFeed($tutorSession->class);
+                    return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
+                }
+            }
 
         } catch (\Exception $e) {
             return $e;

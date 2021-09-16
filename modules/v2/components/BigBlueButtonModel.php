@@ -61,17 +61,6 @@ class BigBlueButtonModel extends Model
     public function CreateMeeting()
     {
 
-//        $fullUrl = $this->liveClassBaseUrl . $this->bbbPath .
-//            'create?' .
-//            'allowStartStopRecording=' . $this->allowStartStopRecording .
-//            '&attendeePW=' . $this->attendeePW .
-//            '&autoStartRecording=' . $this->autoStartRecording .
-//            '&meetingID=' . $this->meetingID .
-//            '&moderatorPW=' . $this->moderatorPW .
-//            '&name=' . $this->name .
-//            '&record=' . $this->record . '&voiceBridge=' . $this->voiceBridge .
-//            '&welcome=' . $this->welcome .
-//            '&checksum=' . $this->checksum;
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'create';
         $queryBuild = http_build_query([
@@ -109,13 +98,7 @@ class BigBlueButtonModel extends Model
 
     public function JoinMeeting($moderator = false)
     {
-//        $fullUrl = $this->liveClassBaseUrl . $this->bbbPath .
-//            'join?fullName=' . $this->fullName .
-//            '&meetingID=' . $this->meetingID .
-//            '&password=' . $this->moderatorPW .
-//            '&redirect=' . $this->redirect .
-//            '&checksum=' . $this->checksum;
-//
+
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'join';
 
