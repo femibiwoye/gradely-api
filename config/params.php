@@ -64,9 +64,10 @@ return [
 
     'summerSchoolID' => SUMMER_SCHOOL_ID,
     'activeSession' => ACTIVE_SESSION,
-    'appFolderLevel' =>APP_FOLDER_LEVEL,
+    'appFolderLevel' => APP_FOLDER_LEVEL, // For S3 bucket. It enable separation of files created from local, appdev, tapp, and app application
+    'applicationStage'=>APPLICATION_STAGE,
 
-    'bbbSecret'=>BBB_SECRET,
-    'bbbServerBaseUrl'=>BBB_SERVER_BASE_URL,
-    'liveClassClient'=>LIVE_CLASS_CLIENT
+    'bbbSecret' => BBB_SECRET,
+    'bbbServerBaseUrl' => BBB_SERVER_BASE_URL,
+    'liveClassClient' => LIVE_CLASS_CLIENT
 ];

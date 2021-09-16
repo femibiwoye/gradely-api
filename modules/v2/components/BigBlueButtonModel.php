@@ -32,7 +32,7 @@ class BigBlueButtonModel extends Model
     public $breakoutRoomsPrivateChatEnabled = 'true'; //If set to false, the private chat will be disabled in breakout rooms.
     public $breakoutRoomsRecord = 'true'; //If set to false, breakout rooms will not be recorded.
     public $logo = 'https://gradely.ng/wp-content/themes/gradely/img/logo.svg';
-    public $endWhenNoModeratorDelayInMinutes = 10;
+    public $endWhenNoModeratorDelayInMinutes = 30;
     public $allowModsToUnmuteUsers = 'true';
     public $copyright = 'Gradely Inc.';
     public $bannerText = 'Gradely live class for learning';
@@ -94,6 +94,9 @@ class BigBlueButtonModel extends Model
             //'userdata-bbb_custom_style' => $this->userdataBbb_custom_style,
             'userdata-bbb_custom_style_url' => $this->userdataBbb_custom_style_url,
             'meta_endCallbackUrl' => Url::to(['/v2/learning/live-class/end-class-only', 'meetingID' => $this->meetingID], true),
+            'meta_applicationStage' => Yii::$app->params['applicationStage'],
+            'endWhenNoModeratorDelayInMinutes'=>$this->endWhenNoModeratorDelayInMinutes,
+            'meta_bbb-recording-ready-url'=>Url::to(['/v2/learning/live-class/log-recording', 'meetingID' => $this->meetingID], true),
         ]);
         //$queryBuild = $queryBuild.'&userdata-bbb_custom_style=:root{--loader-bg:red;}.navbar--Z2lHYbG{background-color:pink!important;}';
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
@@ -125,17 +128,17 @@ class BigBlueButtonModel extends Model
             'userID' => $this->userID,
             //'userdata-bbb_custom_style_url'=>$this->userdataBbb_custom_style_url,
             'userdata-bbb_custom_style' => $this->userdataBbb_custom_style,
-            'userdata-bbb_auto_join_audio'=>'true',
-            'userdata-bbb_skip_check_audio'=>'true',
-            'userdata-bbb_auto_share_webcam'=>'true',
+            'userdata-bbb_auto_join_audio' => 'true',
+            'userdata-bbb_skip_check_audio' => 'true',
+            'userdata-bbb_auto_share_webcam' => 'true',
 //            'userdata-bbb_hide_presentation'=>'true',
-            'userdata-bbb_auto_swap_layout'=>'true',
-            'userdata-bbb_show_public_chat_on_login'=>'false',
-            'userdata-bbb_show_participants_on_login'=>'true',
-            'userdata-bbb_skip_check_audio_on_first_join'=>'true',
-            'userdata-bbb_skip_video_preview'=>'true',
+            'userdata-bbb_auto_swap_layout' => 'true',
+            'userdata-bbb_show_public_chat_on_login' => 'false',
+            'userdata-bbb_show_participants_on_login' => 'true',
+            'userdata-bbb_skip_check_audio_on_first_join' => 'true',
+            'userdata-bbb_skip_video_preview' => 'true',
 
-            'userdata-bbb_listen_only_mode'=>'false',
+            'userdata-bbb_listen_only_mode' => 'false',
 
         ]);
 
@@ -235,12 +238,13 @@ class BigBlueButtonModel extends Model
         return $this->ConvertXml($fullUrl);
     }
 
-    public function GetRecordings($meetingID = null)
+    public function GetRecordings($fetchOne = false)
     {
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'getRecordings';
-        $queryBuild = http_build_query(!empty($meetingID) ? [
+        $queryBuild = http_build_query($fetchOne ? [
             'meetingID' => $this->meetingID,
+            'recordID' => $this->recordID,
         ] : []);
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
         $fullUrl = $body . $appName . "?" . $queryBuild . "&checksum=" . $checkSum;
