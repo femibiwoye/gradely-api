@@ -5,6 +5,7 @@ namespace app\modules\v2\controllers;
 use app\modules\v2\components\Utility;
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\GenerateString;
+use app\modules\v2\models\User;
 use Aws\Credentials\Credentials;
 use Aws\Exception\AwsException;
 use Aws\S3\Exception\S3Exception;
@@ -36,7 +37,7 @@ class AwsController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['back-upload']
+            'except' => ['back-upload', 'upload-file-with-token']
         ];
 
         return $behaviors;
@@ -79,6 +80,34 @@ class AwsController extends Controller
     public function actionUploadFile($folder, $base64 = 0, $newname = null)
     {
 
+
+        try {
+            //Create a S3Client
+            $result = $this->uploadShared($base64, $folder, $newname);
+            return $result;
+        } catch (S3Exception $e) {
+            return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+        }
+    }
+
+    public function actionUploadFileWithToken($folder, $base64 = 0, $newname = null, $token)
+    {
+        if (!User::findIdentityByAccessToken($token)) {
+            return Yii::$app->params['customError401'];
+        }
+        try {
+            //Create a S3Client
+            $result = $this->uploadShared($base64, $folder, $newname);
+            return $result;
+        } catch (S3Exception $e) {
+            return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
+
+        }
+    }
+
+    private function uploadShared($base64, $folder, $newname)
+    {
         $generatedFileName = !empty($newname) ? $newname : GenerateString::widget(['length' => 50]);
         if ($base64 == 1) {
 
@@ -117,22 +146,16 @@ class AwsController extends Controller
         $bucket = $this->bucketName;
 
         $key = Yii::$app->params['appFolderLevel'] . $folder . '/' . $generatedFileName . '.' . $fileExtension;
+        $s3Client = new S3Client($this->config);
 
-        try {
-            //Create a S3Client
-            $s3Client = new S3Client($this->config);
-            $result = $s3Client->putObject([
-                'Bucket' => $bucket,
-                'Key' => $key,
-                'SourceFile' => $file_Path,
-            ]);
-
-            return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
-        } catch (S3Exception $e) {
-            return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
-
-        }
+        $result = $s3Client->putObject([
+            'Bucket' => $bucket,
+            'Key' => $key,
+            'SourceFile' => $file_Path,
+        ]);
+        return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
     }
+
 
     public
     function actionVerifyFile($url)
