@@ -6,6 +6,7 @@ return [
         'GET lists' => 'list-bucket', //
         'POST add-bucket/<name:[a-z]+>' => 'create-bucket', //
         'POST upload-file/<folder:[a-z/-]+>' => 'upload-file', //
+        'POST upload-file-with-token/<folder:[a-z/-]+>' => 'upload-file-with-token', //
         'GET verify-file' => 'verify-file', //
         'DELETE delete-file' => 'delete-file', //
         'GET file-detail' => 'file-detail', //
