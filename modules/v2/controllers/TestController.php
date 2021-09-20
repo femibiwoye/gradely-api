@@ -47,14 +47,13 @@ class TestController extends Controller
             '\"one\"'
         ) as is_enrolled")
             ])
-        ->where(['id' => 14933])
+            ->where(['id' => 14933])
             ->asArray()
             ->one();
     }
 
     public function actionPromoteStudent()
     {
-        die;
         $schoolID = 188;
         $promoterID = 4897;
         $students = StudentSchool::find()->where(['school_id' => $schoolID, 'session' => '2020-2021', 'status' => 1])->all();
@@ -66,6 +65,9 @@ class TestController extends Controller
 
             $dbtransaction = Yii::$app->db->beginTransaction();
             try {
+                if (!isset($currentStudents->student_id)) {
+                    continue;
+                }
                 if (!StudentSchool::updateAll(['status' => 0, 'is_active_class' => 0], ['student_id' => $currentStudents->student_id, 'status' => 1, 'school_id' => $student->school_id, 'id' => $currentStudents->id]))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Previous class was not updated');
 
