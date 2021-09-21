@@ -1327,7 +1327,7 @@ class CatchupController extends ActiveController
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt data is not valid');
 
 
-                if (!in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
+                if (in_array($quizSummary->type, ['multiple', 'bool']) && !in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Invalid option '{$question['selected']}' provided");
 
                 $qsd = new QuizSummaryDetails();
