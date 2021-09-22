@@ -626,7 +626,7 @@ class CatchupController extends ActiveController
             $model = Subjects::find()
                 //->select(['subjects.*', new Expression('"practice" AS mode')])
                 ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'practice' AND qs.submit = 1 AND student_id = $studentID")
-                ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
+                ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => array_merge(['all'], Utility::getStudentClassCategory($class_id))])
                 ->andWhere(['is', 'qs.subject_id', null])
                 ->groupBy('id')
                 //->asArray()
@@ -1327,7 +1327,7 @@ class CatchupController extends ActiveController
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt data is not valid');
 
 
-                if (!in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
+                if (in_array($quizSummary->type, ['multiple', 'bool']) && !in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Invalid option '{$question['selected']}' provided");
 
                 $qsd = new QuizSummaryDetails();

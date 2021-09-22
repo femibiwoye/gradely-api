@@ -18,6 +18,7 @@ use app\modules\v2\models\Subjects;
 use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\Timezone;
 use app\modules\v2\school\models\PreferencesForm;
+use SebastianBergmann\CodeCoverage\Util;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
 use app\modules\v2\components\{SharedConstant};
@@ -323,7 +324,7 @@ class PreferencesController extends ActiveController
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
 
-        $types = $school->school_type == 'all' ? ['all', 'primary', 'secondary'] : [$school->school_type, 'all'];
+        $types = $school->school_type == 'all' ? ['all', 'primary', 'junior', 'senior', 'primary-junior', 'secondary'] : array_merge(Utility::getCategoryChildren($school->school_type), [$school->school_type, 'all']);
         $subjects = Subjects::find()->where(['status' => 1, 'category' => $types])
             ->andWhere(['OR', ['school_id' => null], ['approved' => 1]])
             ->all();
