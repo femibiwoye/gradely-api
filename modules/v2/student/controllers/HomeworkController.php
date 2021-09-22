@@ -284,21 +284,19 @@ class HomeworkController extends ActiveController
             $child_id = $class_id;
         }
         $studentClassID = Utility::ParentStudentChildClass($child_id, 0);
-
         $model = PracticeMaterial::find()
-            ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed', 'practice'], 'feed.status' => 1, 'view_by' => ['all', 'class']])
-            ->groupBy('practice_material.id');
-        $model = $model
-            ->leftJoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
+            ->leftJoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed" AND feed.status = 1 AND (feed.view_by = "all" OR feed.view_by = "class")')
             ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
+            ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed', 'practice']])
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]])
-            ->andWhere(['between', 'practice_material.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
+            ->andWhere(['between', 'practice_material.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+            ->groupBy('practice_material.id');
 
         if ($search) {
             $model = $model->
             andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
-        $model = $model->orderBy(['created_at' => SORT_DESC])->all();
+        return $model = $model->orderBy(['created_at' => SORT_DESC])->all();
 
         $uniqueData = ArrayHelper::getColumn($model, 'uploadTermWeek');
         $dates = array_unique($uniqueData);

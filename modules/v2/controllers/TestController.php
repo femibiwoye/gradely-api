@@ -47,14 +47,13 @@ class TestController extends Controller
             '\"one\"'
         ) as is_enrolled")
             ])
-        ->where(['id' => 14933])
+            ->where(['id' => 14933])
             ->asArray()
             ->one();
     }
 
     public function actionPromoteStudent()
     {
-        die;
         $schoolID = 188;
         $promoterID = 4897;
         $students = StudentSchool::find()->where(['school_id' => $schoolID, 'session' => '2020-2021', 'status' => 1])->all();
@@ -66,6 +65,9 @@ class TestController extends Controller
 
             $dbtransaction = Yii::$app->db->beginTransaction();
             try {
+                if (!isset($currentStudents->student_id)) {
+                    continue;
+                }
                 if (!StudentSchool::updateAll(['status' => 0, 'is_active_class' => 0], ['student_id' => $currentStudents->student_id, 'status' => 1, 'school_id' => $student->school_id, 'id' => $currentStudents->id]))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Previous class was not updated');
 
@@ -118,10 +120,9 @@ class TestController extends Controller
 
         $schoolID = null;
         $dbtransaction = Yii::$app->db->beginTransaction();
-        foreach (StudentSchool::find()->where(['in_summer_school' => 1, 'school_id' => $schoolID])->all() as $key => $studentSchool) {
+        foreach (StudentSchool::find()->where(['school_id' => $schoolID])->all() as $key => $studentSchool) {
             $studentSchoolReplicate = clone $studentSchool;
             if ($summerSchool = StudentSummerSchool::find()->where(['<>', 'school_id', $schoolID])->andWhere(['student_id' => $studentSchool->student_id])->one()) {
-
                 $studentSchool->in_summer_school = 0;
                 $studentSchool->school_id = $summerSchool->school_id;
                 $studentSchool->class_id = $summerSchool->class_id;
@@ -131,7 +132,7 @@ class TestController extends Controller
                 if (!$studentSchool->save()) {
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
                 } else {
-                    if (empty($studentSchool->class_id) && $studentSchool->class_id = $summerSchool->class_id && $studentSchool->in_summer_school == 0) {
+                    if (!empty($studentSchool->class_id) && $studentSchool->class_id = $summerSchool->class_id && $studentSchool->in_summer_school == 0) {
                         $studentSchool->delete();
                     }
                 }

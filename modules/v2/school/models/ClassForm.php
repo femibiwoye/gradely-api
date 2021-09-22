@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\school\models;
 
+use app\modules\v2\components\Utility;
 use app\modules\v2\models\GlobalClass;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SchoolSubject;
@@ -100,7 +101,7 @@ class ClassForm extends Classes
 
     public function populateSubjects(Schools $school)
     {
-        $types = $school->school_type == 'all' ? ['all', 'primary', 'secondary'] : [$school->school_type, 'all'];
+        $types = $school->school_type == 'all' ? ['all', 'primary', 'secondary'] : array_merge(Utility::getCategoryChildren($school->school_type), [$school->school_type, 'all']);
         $subjects = Subjects::find()->where(['status' => 1, 'category' => $types])
             ->andWhere(['OR',['school_id'=>null],['approved'=>1]])
             ->all();

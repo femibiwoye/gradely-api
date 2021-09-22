@@ -255,18 +255,36 @@ class Utility extends ActiveRecord
      * If student class category.
      * Student could either be in primary or secondary
      * @param $class_id
-     * @return string|null
+     * @return string[]|null
      */
     public static function getStudentClassCategory($class_id)
     {
-        if ($class_id >= 7 && $class_id <= 12)
-            $category = 'secondary';
+        if ($class_id >= 7 && $class_id <= 9)
+            $category = ['secondary', 'junior', 'primary-junior'];
+        elseif ($class_id >= 10 && $class_id <= 12)
+            $category = ['senior', 'secondary'];
         elseif ($class_id >= 1 && $class_id <= 6 || $class_id > 12)
-            $category = 'primary';
+            $category = ['primary', 'primary-junior'];
         else
             $category = null;
         return $category;
     }
+
+    /**
+     * @param $category
+     * @return string[]|null
+     */
+    public static function getCategoryChildren($category)
+    {
+        if ($category == 'primary')
+            $category = ['primary', 'primary-junior'];
+        elseif ($category == 'secondary')
+            $category = ['primary-junior', 'junior', 'senior', 'secondary'];
+        else
+            $category = null;
+        return $category;
+    }
+
 
     /**
      * Child subscription status

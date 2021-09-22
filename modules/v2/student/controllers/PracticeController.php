@@ -176,7 +176,7 @@ class PracticeController extends Controller
                     ->where(['question_id' => $question['question'], 'homework_id' => $quizSummary->homework_id])->exists())
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Question '{$question['question']}' is invalid");
 
-                if (!in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
+                if (in_array($quizSummary->type, ['multiple', 'bool']) && !in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Invalid option '{$question['selected']}' provided");
 
                 $qsd = new QuizSummaryDetails();
