@@ -120,10 +120,9 @@ class TestController extends Controller
 
         $schoolID = null;
         $dbtransaction = Yii::$app->db->beginTransaction();
-        foreach (StudentSchool::find()->where(['in_summer_school' => 1, 'school_id' => $schoolID])->all() as $key => $studentSchool) {
+        foreach (StudentSchool::find()->where(['school_id' => $schoolID])->all() as $key => $studentSchool) {
             $studentSchoolReplicate = clone $studentSchool;
             if ($summerSchool = StudentSummerSchool::find()->where(['<>', 'school_id', $schoolID])->andWhere(['student_id' => $studentSchool->student_id])->one()) {
-
                 $studentSchool->in_summer_school = 0;
                 $studentSchool->school_id = $summerSchool->school_id;
                 $studentSchool->class_id = $summerSchool->class_id;
@@ -133,7 +132,7 @@ class TestController extends Controller
                 if (!$studentSchool->save()) {
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save school record');
                 } else {
-                    if (empty($studentSchool->class_id) && $studentSchool->class_id = $summerSchool->class_id && $studentSchool->in_summer_school == 0) {
+                    if (!empty($studentSchool->class_id) && $studentSchool->class_id = $summerSchool->class_id && $studentSchool->in_summer_school == 0) {
                         $studentSchool->delete();
                     }
                 }

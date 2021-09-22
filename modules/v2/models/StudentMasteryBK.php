@@ -67,8 +67,8 @@ class StudentMasteryBK extends Model
 
     private function getClassSubjects()
     {
-        $subjects = Subjects::findAll(['category' => [Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id), 'all']]);
-        return  $subjects ? $subjects : null;
+        $subjects = Subjects::findAll(['category' => array_merge(['all'], Utility::getStudentClassCategory($this->class_id ? $this->getCurrentClass()->global_class_id : $this->getCurrentClass()->id))]);
+        return $subjects ? $subjects : null;
     }
 
     private function getCurrentClassSubject()
@@ -91,10 +91,10 @@ class StudentMasteryBK extends Model
         }
 
         if (!$class_id) {
-            $class_id =  User::find()
-                        ->select(['class'])
-                        ->where(['id' => $this->student_id ? $this->student_id : Yii::$app->user->id])
-                        ->one();
+            $class_id = User::find()
+                ->select(['class'])
+                ->where(['id' => $this->student_id ? $this->student_id : Yii::$app->user->id])
+                ->one();
         }
 
         return $this->getClass($class_id);
@@ -108,9 +108,9 @@ class StudentMasteryBK extends Model
     private function getSchoolStudentClass($student_id)
     {
         return StudentSchool::find()
-                    ->select(['class_id'])
-                    ->where(['student_id' => $student_id,'status'=>1])
-                    ->one();
+            ->select(['class_id'])
+            ->where(['student_id' => $student_id, 'status' => 1])
+            ->one();
     }
 
     private function getSubjects()
@@ -143,7 +143,7 @@ class StudentMasteryBK extends Model
     private function getClasses()
     {
         $student_classes = ArrayHelper::getColumn(
-            StudentSchool::findAll(['student_id' => $this->student_id,'is_active_class'=>1,'status'=>1]),
+            StudentSchool::findAll(['student_id' => $this->student_id, 'is_active_class' => 1, 'status' => 1]),
             'class_id'
         );
 

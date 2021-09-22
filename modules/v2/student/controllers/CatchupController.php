@@ -626,7 +626,7 @@ class CatchupController extends ActiveController
             $model = Subjects::find()
                 //->select(['subjects.*', new Expression('"practice" AS mode')])
                 ->leftJoin('quiz_summary qs', "qs.subject_id = subjects.id AND qs.type = 'diagnostic' AND qs.mode = 'practice' AND qs.submit = 1 AND student_id = $studentID")
-                ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => ['all', Utility::getStudentClassCategory($class_id)]])
+                ->where(['status' => 1, 'diagnostic' => 1, 'school_id' => null, 'category' => array_merge(['all'], Utility::getStudentClassCategory($class_id))])
                 ->andWhere(['is', 'qs.subject_id', null])
                 ->groupBy('id')
                 //->asArray()
