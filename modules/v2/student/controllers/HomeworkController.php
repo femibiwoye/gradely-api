@@ -296,7 +296,7 @@ class HomeworkController extends ActiveController
             $model = $model->
             andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
         }
-        return $model = $model->orderBy(['created_at' => SORT_DESC])->all();
+        $model = $model->orderBy(['created_at' => SORT_DESC])->all();
 
         $uniqueData = ArrayHelper::getColumn($model, 'uploadTermWeek');
         $dates = array_unique($uniqueData);
