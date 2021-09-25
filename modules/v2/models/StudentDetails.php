@@ -199,7 +199,7 @@ class StudentDetails extends User
 
         $studentCount = QuizSummary::find()
             ->alias('q')
-            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1,'session'=>Yii::$app->params['activeSession']])
+            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1,'q.session'=>Yii::$app->params['activeSession']])
             ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.type = 'homework'" . $condition2);
 
         if (Yii::$app->request->get('subject'))
