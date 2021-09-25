@@ -1351,15 +1351,18 @@ class CatchupController extends ActiveController
                 if (in_array($questionModel->type, ['short', 'essay'])) {
                     if ($questionModel->type == 'short') {
                         $answers = json_decode($questionModel->answer);
+                        $isScore = false;
                         foreach ($answers as $item) {
                             if (strtolower($item) == strtolower($question['selected'])) {
                                 $correctCount = $correctCount + 1;
                                 $qsd->is_correct = 1;
+                                $isScore = true;
                                 break;
-                            } else {
-                                $failedCount = $failedCount + 1;
-                                $qsd->is_correct = 0;
                             }
+                        }
+                        if (!$isScore) {
+                            $failedCount = $failedCount + 1;
+                            $qsd->is_correct = 0;
                         }
                     }
                 } else {
