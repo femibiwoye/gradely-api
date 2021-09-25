@@ -35,21 +35,21 @@ class StudentDetails extends User
             'code',
             'image' => 'imageUrl',
             'email',
-            'phone',
-            'type',
-            'class_name' => 'className',
-            'profile' => 'userProfile',
-            'parents' => 'studentParents',
-            'remarks' => 'remarks',
+//            'phone',
+//            'type',
+//            'class_name' => 'className',
+//            'profile' => 'userProfile',
+//            'parents' => 'studentParents',
+//            'remarks' => 'remarks',
             'topics' => 'topicBreakdown',
-            'homework',
-            'subjects' => 'classSubjects',
-            'selectedSubject' => 'selectedSubject',
-            'completion_rate' => 'totalHomeworks',
-            'positions' => 'statistics',
+//            'homework',
+//            'subjects' => 'classSubjects',
+//            'selectedSubject' => 'selectedSubject',
+//            'completion_rate' => 'totalHomeworks',
+//            'positions' => 'statistics',
             'performance' => 'performance',
-            'feeds' => 'feeds',
-            'mastery'
+//            'feeds' => 'feeds',
+//            'mastery'
         ];
     }
 
@@ -90,7 +90,7 @@ class StudentDetails extends User
         $model = QuizSummary::find()
             ->alias('q')
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
-            ->where(['q.student_id' => $this->id])
+            ->where(['q.student_id' => $this->id, 'q.session' => Yii::$app->params['activeSession']])
             ->joinWith(['childHomework', 'subject']);
 
         if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
@@ -199,7 +199,7 @@ class StudentDetails extends User
 
         $studentCount = QuizSummary::find()
             ->alias('q')
-            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1])
+            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1,'session'=>Yii::$app->params['activeSession']])
             ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.type = 'homework'" . $condition2);
 
         if (Yii::$app->request->get('subject'))
@@ -492,7 +492,7 @@ class StudentDetails extends User
         $averages = [];
         $struggling = [];
         $mode = Utility::getChildMode($studentID);
-
+        $session = Yii::$app->params['activeSession'];
         $activeTopics = QuizSummaryDetails::find()->select(['qsd.topic_id'])
             ->alias('qsd')
             ->where(['qsd.student_id' => $studentID]);
@@ -500,12 +500,12 @@ class StudentDetails extends User
         if (in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
             $activeTopics = $activeTopics
                 ->leftJoin('quiz_summary qz', 'qz.id = qsd.quiz_id')
-                ->andWhere(['qz.mode' => $mode]);
+                ->andWhere(['qz.mode' => $mode, 'qz.session' => Yii::$app->params['activeSession']]);
         }
 
         if (isset($_GET['term'])) {
             $term = $_GET['term'];
-            $activeTopics = $activeTopics->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.term ='$term'");
+            $activeTopics = $activeTopics->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.term ='$term' AND qs.session = '$session'");
         }
 
         $activeTopics = ArrayHelper::getColumn($activeTopics->groupBy('qsd.topic_id')->all(), 'topic_id');
@@ -557,7 +557,7 @@ class StudentDetails extends User
     {
         $studentID = Utility::getParentChildID();
 
-        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1])->groupBy('subject_id')->all(), 'subject_id');
+        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])->groupBy('subject_id')->all(), 'subject_id');
         $subjects = Subjects::find()
             ->alias('s')
             ->select([
