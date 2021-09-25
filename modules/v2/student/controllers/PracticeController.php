@@ -194,20 +194,23 @@ class PracticeController extends Controller
                     $qsd->selected = $question['selected'];
                     if ($questionModel->type == 'short') {
                         $answers = json_decode($questionModel->answer);
+                        $isScore = false;
                         foreach ($answers as $item) {
                             if (strtolower($item) == strtolower($question['selected'])) {
                                 $correctCount = $correctCount + 1;
                                 $qsd->is_correct = 1;
+                                $isScore = true;
                                 break;
-                            } else {
-                                $failedCount = $failedCount + 1;
-                                $qsd->is_correct = 0;
                             }
+                        }
+                        if (!$isScore) {
+                            $failedCount = $failedCount + 1;
+                            $qsd->is_correct = 0;
                         }
                     } elseif ($questionModel->type == 'essay') {
                         $qsd->answer_attachment = $question['answer_attachment'];
                     }
-                } else {
+                } elseif (in_array($questionModel->type, ['multiple', 'bool'])) {
                     $qsd->selected = strtoupper($question['selected']);
                     if ($question['selected'] == $questionModel->answer) {
                         $correctCount = $correctCount + 1;

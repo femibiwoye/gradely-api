@@ -495,12 +495,12 @@ class StudentDetails extends User
         $session = Yii::$app->params['activeSession'];
         $activeTopics = QuizSummaryDetails::find()->select(['qsd.topic_id'])
             ->alias('qsd')
-            ->where(['qsd.student_id' => $studentID]);
+            ->leftJoin('quiz_summary qz', 'qz.id = qsd.quiz_id')
+            ->where(['qsd.student_id' => $studentID, 'qz.session' => $session]);
 
         if (in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
             $activeTopics = $activeTopics
-                ->leftJoin('quiz_summary qz', 'qz.id = qsd.quiz_id')
-                ->andWhere(['qz.mode' => $mode, 'qz.session' => Yii::$app->params['activeSession']]);
+                ->andWhere(['qz.mode' => $mode]);
         }
 
         if (isset($_GET['term'])) {
