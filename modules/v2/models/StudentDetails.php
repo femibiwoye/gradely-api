@@ -525,8 +525,12 @@ class StudentDetails extends User
                 ->where([
                     'subject_id' => $selectedSubject,
                     'id' => $activeTopics
-                ])
-                ->all();
+                ]);
+
+            if (isset($_GET['term'])) {
+                $topics = $topics->andWhere(['term'=>$_GET['term']]);
+            }
+            $topics = $topics->all();
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
