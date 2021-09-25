@@ -162,6 +162,7 @@ class StudentMastery extends Model
             ->where([
                 'quiz_summary_details.topic_id' => $topic,
                 'quiz_summary.submit' => 1,
+                'quiz_summary.session' => Yii::$app->params['activeSession'],
                 'quiz_summary_details.student_id' => $this->student_id,
                 'quiz_summary.student_id' => $this->student_id
             ])
@@ -219,7 +220,7 @@ class StudentMastery extends Model
      */
     private function getAttemptedQuestions($topic_id, $difficulty)
     {
-
+$session = Yii::$app->params['activeSession'];
         $masteryPerTopicPerformance = $this->getSinglePercentageValue();
 
         $model = QuizSummaryDetails::find()
@@ -236,7 +237,7 @@ class StudentMastery extends Model
 
         } else {
             $model = $model
-                ->innerJoin('quiz_summary qs', "qs.id = quiz_summary_details.quiz_id AND qs.mode != 'exam'")
+                ->innerJoin('quiz_summary qs', "qs.id = quiz_summary_details.quiz_id AND qs.mode != 'exam' AND qs.session = '$session'")
                 ->innerJoin('questions', "questions.id = quiz_summary_details.question_id AND questions.category != 'exam'");
         }
         $model = $model->where([
