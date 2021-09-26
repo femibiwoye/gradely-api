@@ -90,7 +90,7 @@ class StudentDetails extends User
         $model = QuizSummary::find()
             ->alias('q')
             ->select(['q.*', '(q.correct/q.total_questions)*100 score'])
-            ->where(['q.student_id' => $this->id])
+            ->where(['q.student_id' => $this->id, 'q.session' => Yii::$app->params['activeSession']])
             ->joinWith(['childHomework', 'subject']);
 
         if (Yii::$app->user->identity->type == 'school' || Yii::$app->user->identity->type == 'teacher') {
@@ -199,7 +199,7 @@ class StudentDetails extends User
 
         $studentCount = QuizSummary::find()
             ->alias('q')
-            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1])
+            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1,'q.session'=>Yii::$app->params['activeSession']])
             ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.type = 'homework'" . $condition2);
 
         if (Yii::$app->request->get('subject'))
@@ -492,20 +492,20 @@ class StudentDetails extends User
         $averages = [];
         $struggling = [];
         $mode = Utility::getChildMode($studentID);
-
+        $session = Yii::$app->params['activeSession'];
         $activeTopics = QuizSummaryDetails::find()->select(['qsd.topic_id'])
             ->alias('qsd')
-            ->where(['qsd.student_id' => $studentID]);
+            ->leftJoin('quiz_summary qz', 'qz.id = qsd.quiz_id')
+            ->where(['qsd.student_id' => $studentID, 'qz.session' => $session]);
 
         if (in_array(Yii::$app->user->identity->type, SharedConstant::EXAM_MODE_USER_TYPE)) {
             $activeTopics = $activeTopics
-                ->leftJoin('quiz_summary qz', 'qz.id = qsd.quiz_id')
                 ->andWhere(['qz.mode' => $mode]);
         }
 
         if (isset($_GET['term'])) {
             $term = $_GET['term'];
-            $activeTopics = $activeTopics->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.term ='$term'");
+            $activeTopics = $activeTopics->innerJoin('quiz_summary qs', "qs.id = qsd.quiz_id AND qs.term ='$term' AND qs.session = '$session'");
         }
 
         $activeTopics = ArrayHelper::getColumn($activeTopics->groupBy('qsd.topic_id')->all(), 'topic_id');
@@ -525,8 +525,12 @@ class StudentDetails extends User
                 ->where([
                     'subject_id' => $selectedSubject,
                     'id' => $activeTopics
-                ])
-                ->all();
+                ]);
+
+            if (isset($_GET['term'])) {
+                $topics = $topics->andWhere(['term'=>$_GET['term']]);
+            }
+            $topics = $topics->all();
 
             if (!empty($topics)) {
                 foreach ($topics as $data) {
@@ -557,7 +561,7 @@ class StudentDetails extends User
     {
         $studentID = Utility::getParentChildID();
 
-        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1])->groupBy('subject_id')->all(), 'subject_id');
+        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])->groupBy('subject_id')->all(), 'subject_id');
         $subjects = Subjects::find()
             ->alias('s')
             ->select([
