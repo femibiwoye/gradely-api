@@ -22,6 +22,7 @@ use Yii;
  * @property string $mode
  * @property string $created_at
  * @property string|null $submit_at
+ * @property string $session
  * @property int $submit
  * @property int $topic_id
  *
@@ -45,7 +46,7 @@ class QuizSummary extends \yii\db\ActiveRecord
         return [
             [['homework_id', 'subject_id', 'student_id', 'class_id', 'total_questions', 'term'], 'required'],
             [['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'correct', 'failed', 'skipped', 'submit', 'topic_id'], 'integer'],
-            [['type', 'term', 'mode'], 'string'],
+            [['type', 'term', 'mode', 'session'], 'string'],
             [['created_at', 'teacher_id'], 'safe'],
             [['submit_at'], 'string', 'max' => 50],
         ];
