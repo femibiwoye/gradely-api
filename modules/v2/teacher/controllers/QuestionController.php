@@ -303,7 +303,7 @@ class QuestionController extends ActiveController
             $dbtransaction->commit();
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
-            return false;
+            return $e;
         }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, ($qIndex + 1) . ' question(s) updated');
 
