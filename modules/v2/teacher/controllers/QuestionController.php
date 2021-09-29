@@ -254,6 +254,7 @@ class QuestionController extends ActiveController
 
                 $model = new Questions(['scenario' => 'create-' . $eachQuestion['type']]);
                 $model->attributes = $eachQuestion;
+                $model->answer = json_encode($eachQuestion['answer']);
                 $model->teacher_id = $teacher_id;
                 $model->school_id = $schoolID;
                 $model->subject_id = $subject_id;
