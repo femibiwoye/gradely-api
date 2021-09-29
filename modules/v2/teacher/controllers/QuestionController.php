@@ -222,7 +222,7 @@ class QuestionController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }
 
-        try {
+//        try {
             $dbtransaction = Yii::$app->db->beginTransaction();
             foreach ($questions as $qIndex => $eachQuestion) {
 
@@ -301,10 +301,10 @@ class QuestionController extends ActiveController
             }
 
             $dbtransaction->commit();
-        } catch (\Exception $e) {
-            $dbtransaction->rollBack();
-            return $e;
-        }
+//        } catch (\Exception $e) {
+//            $dbtransaction->rollBack();
+//            return false;
+//        }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, ($qIndex + 1) . ' question(s) updated');
 
     }
