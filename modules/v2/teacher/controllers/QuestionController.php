@@ -246,8 +246,8 @@ class QuestionController extends ActiveController
                     $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
                 elseif ($eachQuestion['type'] == 'bool')
                     $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
-                elseif ($eachQuestion['type'] == 'short')
-                    $model->addRule(['answer'], 'string');
+//                elseif ($eachQuestion['type'] == 'short')
+//                    $model->addRule(['answer'], 'string');
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
                 }
