@@ -105,6 +105,10 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School not found!');
         }
 
+        if($class->school->teacher_auto_join_class == 0){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Contact school admin to join');
+        }
+
 
         if (TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'school_id' => $class->school->id, 'class_id' => $class->id, 'status' => 1])->exists())
             return (new ApiResponse)->success(null, ApiResponse::ALREADY_TAKEN, 'Teacher already added to class!');

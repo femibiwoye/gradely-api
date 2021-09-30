@@ -16,6 +16,7 @@ use app\modules\v2\models\Parents;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\States;
 use app\modules\v2\models\Subjects;
+use app\modules\v2\models\TeacherAcademyForm;
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\Timezone;
 use app\modules\v2\models\User;
@@ -46,7 +47,10 @@ class GeneralController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'except' => ['country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject', 'gradely-users-statistics', 'school-auth']
+            'except' => [
+                'country', 'state', 'timezone', 'global-classes', 'curriculum', 'subject', 'gradely-users-statistics', 'school-auth',
+                'register-teacher-academy'
+            ]
         ];
 
         return $behaviors;
@@ -220,7 +224,7 @@ class GeneralController extends Controller
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
     }
 
-    public function actionSubject($description = null, $summer=null)
+    public function actionSubject($description = null, $summer = null)
     {
 
         $select = [
@@ -235,8 +239,8 @@ class GeneralController extends Controller
             )
             ->where(['school_id' => null]);
 
-        if($summer == 1){
-            $examType = $examType->andWhere(['summer_school'=>$summer]);
+        if ($summer == 1) {
+            $examType = $examType->andWhere(['summer_school' => $summer]);
         }
 
         return (new ApiResponse)->success($examType->asArray()->all(), ApiResponse::SUCCESSFUL);
@@ -303,7 +307,7 @@ class GeneralController extends Controller
             ->asArray()->one();
 
         $result = [
-            'learningMinutes' => 500000+ floor((int)$studentTeacherLearning['difference']/60), //(int)$sessions['difference'] + 507022, //$learningMinutes,
+            'learningMinutes' => 500000 + floor((int)$studentTeacherLearning['difference'] / 60), //(int)$sessions['difference'] + 507022, //$learningMinutes,
             'teacherCount' => (int)$teacherCount,
             'studentCount' => (int)$studentCount,
 
@@ -317,10 +321,39 @@ class GeneralController extends Controller
 
     public function actionSchoolAuth($sch)
     {
-        if (!$school = Schools::find()->select(['id', 'name', 'slug', 'logo', 'banner', 'tagline','wallpaper'])->where(['slug' => $sch])->asArray()->one()) {
+        if (!$school = Schools::find()->select(['id', 'name', 'slug', 'logo', 'banner', 'tagline', 'wallpaper'])->where(['slug' => $sch])->asArray()->one()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid school');
         }
         return (new ApiResponse)->success($school, ApiResponse::SUCCESSFUL);
+    }
+
+    public function actionRegisterTeacherAcademy($type)
+    {
+        if (!in_array($type, ['teacher', 'school'])) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid selection');
+        }
+        $post = Yii::$app->request->post();
+        $model = new TeacherAcademyForm();
+        $model->attributes = $post;
+        $model->type = $type;
+        if (!$model->validate()) {
+            return (new ApiResponse)->error($model->errors, ApiResponse::VALIDATION_ERROR, 'Validation error');
+        }
+//        $model->name = $post['name'];
+//        $model->email = $post['email'];
+//        $model->phone = $post['phone'];
+//        $model->school_name = $post['school_name'];
+//        if ($type == 'school') {
+//            $model->role = $post['role'];
+//            $model->teacher_count = $post['teacher_count'];
+//        }
+        if(TeacherAcademyForm::find()->where(['email'=>$post['email']])->exists()){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Already registered');
+        }
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Request not successful');
+        }
+        return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
 }
 

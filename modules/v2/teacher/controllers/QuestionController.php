@@ -55,7 +55,6 @@ class QuestionController extends ActiveController
 
     public function actionQuestions()
     {
-
         $homework_id = Yii::$app->request->get('homework_id');
         $teacher_id = Yii::$app->user->id;
         $form = new \yii\base\DynamicModel(compact('homework_id', 'teacher_id'));
@@ -246,14 +245,16 @@ class QuestionController extends ActiveController
                     $model->addRule(['answer'], 'in', ['range' => ['A', 'B', 'C', 'D']]);
                 elseif ($eachQuestion['type'] == 'bool')
                     $model->addRule(['answer'], 'in', ['range' => ['0', '1']]);
-                elseif ($eachQuestion['type'] == 'short')
-                    $model->addRule(['answer'], 'string');
+//                elseif ($eachQuestion['type'] == 'short')
+//                    $model->addRule(['answer'], 'string');
                 if (!$model->validate()) {
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
                 }
 
                 $model = new Questions(['scenario' => 'create-' . $eachQuestion['type']]);
                 $model->attributes = $eachQuestion;
+                if ($eachQuestion['type'] == 'short')
+                    $model->answer = json_encode($eachQuestion['answer']);
                 $model->teacher_id = $teacher_id;
                 $model->school_id = $schoolID;
                 $model->subject_id = $subject_id;
@@ -297,7 +298,6 @@ class QuestionController extends ActiveController
                         return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
                     }
                 }
-
             }
 
             $dbtransaction->commit();
@@ -316,7 +316,7 @@ class QuestionController extends ActiveController
         $topic_id = Yii::$app->request->get('topic_id');
         $form = new \yii\base\DynamicModel(compact('class_id', 'subject_id', 'topic_id'));
         $form->addRule(['class_id', 'subject_id', 'topic_id'], 'required');
-       // $form->addRule(['class_id', 'subject_id', 'topic_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
+        // $form->addRule(['class_id', 'subject_id', 'topic_id'], 'exist', ['targetClass' => Questions::className(), 'targetAttribute' => ['class_id' => 'class_id', 'subject_id' => 'subject_id']]);
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
