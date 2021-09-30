@@ -55,7 +55,6 @@ class QuestionController extends ActiveController
 
     public function actionQuestions()
     {
-
         $homework_id = Yii::$app->request->get('homework_id');
         $teacher_id = Yii::$app->user->id;
         $form = new \yii\base\DynamicModel(compact('homework_id', 'teacher_id'));
@@ -299,7 +298,6 @@ class QuestionController extends ActiveController
                         return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
                     }
                 }
-
             }
 
             $dbtransaction->commit();
