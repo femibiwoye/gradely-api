@@ -118,4 +118,6 @@ return [
     'POST v2/user-action-logger' => 'v2/handler/user-action-logger', //
 
     'GET v2/test' => 'v2/test/summer',
+
+    'POST v2/teacher-academy-form/<type:\w+>' => 'v2/general/register-teacher-academy'
 ];
