@@ -38,7 +38,8 @@ class SignupForm extends Model
             ['phone', 'trim'],
             ['phone', 'unique', 'targetClass' => 'app\modules\v2\models\User', 'message' => 'This phone number has already been taken.'],
             ['phone', 'string', 'min' => 11, 'max' => 14],
-            ['phone', 'match', 'pattern' => '/(^[0]\d{10}$)|(^[\+]?[234]\d{12}$)/'],
+//            ['phone', 'match', 'pattern' => '/(^[0]\d{10}$)|(^[\+]?[234]\d{12}$)/'],
+            ['phone', 'match', 'pattern' => '/(\d{10}$)|(^[\+]?[234]\d{12}$)/'],
 
             ['password', 'string', 'min' => 4],
 
