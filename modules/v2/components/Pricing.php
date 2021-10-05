@@ -8,7 +8,7 @@ use app\modules\v2\models\User;
 use app\modules\v2\models\UserModel;
 use yii\base\Widget;
 use Yii;
-use app\modules\v2\models\{Schools, Options, SchoolTeachers, StudentSchool, Parents};
+use app\modules\v2\models\{Schools, Options, SchoolTeachers, StudentSchool, Parents, TeacherClass};
 use yii\helpers\ArrayHelper;
 
 class Pricing extends Widget
@@ -42,9 +42,11 @@ class Pricing extends Widget
         try {
             $type = Yii::$app->user->identity->type;
             if ($type == 'school' || $type == 'teacher') {
-                if ($type == 'teacher')
-                    $schoolID = SchoolTeachers::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1])->school_id;
-                elseif ($type == 'school')
+                if ($type == 'teacher') {
+                    $classes = Yii::$app->request->get('class_id');
+                    $classid = is_array($classes) && isset($classes[0]) ? $classes[0] : $classes;
+                    $schoolID = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1, 'class_id' => $classid])->school_id;
+                } elseif ($type == 'school')
                     $schoolID = Utility::getSchoolAccess();
                 $model = Schools::findOne(['id' => $schoolID]);
                 $status = !empty($model->subscription_expiry) && strtotime($model->subscription_expiry) > time() ? true : false;
