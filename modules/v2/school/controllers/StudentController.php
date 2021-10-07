@@ -191,6 +191,7 @@ class StudentController extends ActiveController
                 'u.id',
                 'u.firstname student_firstname',
                 'u.lastname student_lastname',
+                'u.code student_code',
                 'u.image student_image',
                 'u.lastname student_lastname',
                 'pu.id parent_id',
