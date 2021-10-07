@@ -118,7 +118,7 @@ class TestController extends Controller
     public function actionSummer()
     {
 
-        $schoolID = null;
+        $schoolID = null; // 847;
         $dbtransaction = Yii::$app->db->beginTransaction();
         foreach (StudentSchool::find()->where(['school_id' => $schoolID])->all() as $key => $studentSchool) {
             $studentSchoolReplicate = clone $studentSchool;
