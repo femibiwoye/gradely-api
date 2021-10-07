@@ -200,17 +200,21 @@ class CurriculumController extends ActiveController
             if (!isset($topics[$term]))
                 continue;
             foreach ($topics[$term] as $order => $topic) {
-                if (isset($topic['is_new']) && $topic['is_new'] == 1 && $gradelyTopic = SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->one() && !SchoolTopic::find()->where(['topic_id' => $topic['id'],'class_id'=>Yii::$app->request->get('class_id'),'school_id'=>$school->id])->exists()) {
+                if (isset($topic['is_new']) && $topic['is_new'] == 1 && SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->exists() && !SchoolTopic::find()->where(['topic_id' => $topic['id'],'class_id'=>$school_class,'school_id'=>$school->id])->exists()) {
+                    $gradelyTopic = SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->one();
                     $newTopic = new SchoolTopic();
                     $newTopic->topic = $gradelyTopic->topic;
                     $newTopic->topic_id = $gradelyTopic->id;
                     $newTopic->school_id = $school->id;
                     $newTopic->class_id = $school_class;
+                    $newTopic->subject_id = $gradelyTopic->subject_id;
                     $newTopic->curriculum_id = $schoolCurriculum;
                     $newTopic->position = $order + 1;
                     $newTopic->term = $term;
                     $newTopic->week = $gradelyTopic->week_number;
-                    $newTopic->save();
+                    if(!$newTopic->save()){
+                        return (new ApiResponse)->error($newTopic->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                    }
                 } else {
                     $model = SchoolTopic::findOne([$field => $topic['id'], 'class_id' => $school_class, 'subject_id' => $subject]);
                     if($model) {
