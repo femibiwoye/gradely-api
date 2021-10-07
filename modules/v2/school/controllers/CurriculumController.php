@@ -200,7 +200,7 @@ class CurriculumController extends ActiveController
             if (!isset($topics[$term]))
                 continue;
             foreach ($topics[$term] as $order => $topic) {
-                if (isset($topic['is_new']) && $topic['is_new'] == 1 && $gradelyTopic = SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->one() && !SchoolTopic::find()->where(['topic_id' => $topic['id']])->exists()) {
+                if (isset($topic['is_new']) && $topic['is_new'] == 1 && $gradelyTopic = SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->one() && !SchoolTopic::find()->where(['topic_id' => $topic['id'],'class_id'=>Yii::$app->request->get('class_id'),'school_id'=>$school->id])->exists()) {
                     $newTopic = new SchoolTopic();
                     $newTopic->topic = $gradelyTopic->topic;
                     $newTopic->topic_id = $gradelyTopic->id;
