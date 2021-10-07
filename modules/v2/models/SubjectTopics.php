@@ -286,7 +286,7 @@ class SubjectTopics extends \yii\db\ActiveRecord
 
     public function getIsReferenced()
     {
-        return $this->hasOne(SchoolTopic::className(), ['topic_id' => 'id'])->andWhere(['school_id' => Utility::getSchoolAccess()]);
+        return $this->hasOne(SchoolTopic::className(), ['topic_id' => 'id'])->andWhere(['school_id' => Utility::getSchoolAccess(),'class_id'=>Yii::$app->request->get('class_id')]);
     }
 
 //    public static function getDb()
