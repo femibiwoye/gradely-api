@@ -116,8 +116,8 @@ class Questions extends \yii\db\ActiveRecord
             'option_e',
             'answer',
             'image' => 'questionImageUrl',
-            //'duration', //Had to add custom duration
-            'duration' => 'customDuration',
+            'duration',
+            //'duration' => 'customDuration',//Had to add custom duration
             'difficulty',
             'type',
             'topic_id',
