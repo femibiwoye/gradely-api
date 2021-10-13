@@ -139,7 +139,7 @@ class AwsController extends Controller
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file');
             }
 
-            $allowedfileExtensions = ['jpg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'];
+            $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'];
             if (in_array($fileExtension, $allowedfileExtensions) === false) {
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file extension');
             }

@@ -602,7 +602,7 @@ class StudentDetails extends User
     {
         $model = new StudentMastery();
         $model->student_id = $this->id;
-        $model->term = Yii::$app->request->get('term');
+        $model->term = strtolower(Yii::$app->request->get('term'));
         $model->subject = isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null;
         $model->mode = Utility::getChildMode($this->id);;
         if (!$model->validate()) {
