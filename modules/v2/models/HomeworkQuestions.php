@@ -13,6 +13,7 @@ use Yii;
  * @property int $question_id
  * @property string $difficulty
  * @property int $duration
+ * @property int $max_score
  * @property string $created_at
  *
  * @property Homeworks $homework
@@ -34,7 +35,7 @@ class HomeworkQuestions extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['teacher_id', 'homework_id', 'question_id', 'duration'], 'integer'],
+            [['teacher_id', 'homework_id', 'question_id', 'duration', 'max_score'], 'integer'],
             [['homework_id', 'question_id', 'difficulty', 'duration'], 'required'],
             [['difficulty'], 'string'],
             [['created_at'], 'safe'],
@@ -91,6 +92,6 @@ class HomeworkQuestions extends \yii\db\ActiveRecord
      */
     public function getQuestions()
     {
-        return $this->hasMany(Questions::className(), ['id'=>'question_id']);
+        return $this->hasMany(Questions::className(), ['id' => 'question_id']);
     }
 }
