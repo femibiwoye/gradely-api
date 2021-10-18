@@ -101,6 +101,9 @@ class StudentDetails extends User
 
         if (Yii::$app->request->get('subject'))
             $model = $model->andWhere(['q.subject_id' => Yii::$app->request->get('subject')]);
+        else
+            $model = $model->andWhere(['q.subject_id' => isset($this->getSelectedSubject()['id']) ? $this->getSelectedSubject()['id'] : null]);
+
         if (Yii::$app->request->get('term'))
             $model = $model->andWhere(['q.term' => Yii::$app->request->get('term')]);
 
