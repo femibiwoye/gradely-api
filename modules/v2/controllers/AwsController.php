@@ -55,6 +55,7 @@ class AwsController extends Controller
         $s3Client = new S3Client($this->config);
         $buckets = $s3Client->listBuckets();
         return (new ApiResponse)->success($buckets['Buckets'], ApiResponse::SUCCESSFUL);
+
     }
 
     public function createBucket($s3Client, $bucketName)
@@ -275,6 +276,14 @@ class AwsController extends Controller
             return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
         }
+    }
+
+    public function actionListFolderList()
+    {
+        $s3Client = new S3Client($this->config);
+        $buckets = $s3Client->listObjects(['Bucket'=>'gradely-videos','Delimiter'=>'/']);
+        return (new ApiResponse)->success($buckets, ApiResponse::SUCCESSFUL);
+
     }
 }
 
