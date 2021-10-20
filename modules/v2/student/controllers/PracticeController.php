@@ -230,7 +230,7 @@ class PracticeController extends Controller
             }
 
             $total_question = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->count();
-            $maximumScore = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->sum('score');
+            $maximumScore = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->sum('max_score');
 
             if (!$total_question)
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No question!');
