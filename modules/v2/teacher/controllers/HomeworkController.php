@@ -382,6 +382,17 @@ class HomeworkController extends ActiveController
         }
 
         $createStatus = false;
+        if ($model->publish_status == 0) {
+            $model->publish_status = 1;
+            $model->publish_at = date('Y-m-d H:i:s');
+            if ($model->save() && $this->publishHomeworkFeed($model->id)) {
+                $this->HomeworkNotification($model);
+            }else{
+                $createStatus = true;
+            }
+        }
+
+
         foreach (Homeworks::find()->where(['bulk_creation_reference' => $model->bulk_creation_reference])->andWhere(['!=', 'id', $model->id])->all() as $eachHomework) {
 
             $homeworkQuestions = HomeworkQuestions::find()->where(['homework_id' => $model->id])->all();
