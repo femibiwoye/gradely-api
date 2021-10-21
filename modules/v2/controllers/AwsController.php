@@ -278,10 +278,11 @@ class AwsController extends Controller
         }
     }
 
-    public function actionListFolderList()
+    public function actionListFiles()
     {
         $s3Client = new S3Client($this->config);
-        $buckets = $s3Client->listObjects(['Bucket'=>'gradely-videos','Delimiter'=>'/']);
+        //$buckets = $s3Client->listObjects(['Bucket'=>'gradely-videos','Delimiter'=>'/']);
+        $buckets = $s3Client->ListObjectsV2(['Bucket'=>'gradely-videos','Prefix'=>'JSS1_English_Language']);
         return (new ApiResponse)->success($buckets, ApiResponse::SUCCESSFUL);
 
     }

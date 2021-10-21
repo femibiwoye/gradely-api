@@ -159,7 +159,7 @@ class PracticeController extends Controller
 
         //use transaction before saving;
         $dbtransaction = \Yii::$app->db->beginTransaction();
-//        try {
+        try {
             $quizSummary = QuizSummary::findOne(['id' => $quiz_id, 'student_id' => \Yii::$app->user->id]);
             foreach ($attempts as $question) {
 
@@ -250,10 +250,10 @@ class PracticeController extends Controller
 
             $dbtransaction->commit();
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Homework processing completed');
-//        } catch (\Exception $ex) {
-//            $dbtransaction->rollBack();
-//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
-//        }
+        } catch (\Exception $ex) {
+            $dbtransaction->rollBack();
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
+        }
 
     }
 
