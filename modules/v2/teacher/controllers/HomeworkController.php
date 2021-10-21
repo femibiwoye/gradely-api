@@ -87,20 +87,36 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Provide class ID');
         }
 
-        $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
-
-        $form->school_id = $schoolID;
-        $form->teacher_id = Yii::$app->user->id;
-
-        if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+        if (!is_array($form->class_id)) {
+            $classIDs = [$form->class_id];
         }
 
-        $typeName = ucfirst($type);
 
-        if (!$model = $form->createHomework($type)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $typeName . ' record not inserted!');
+        $classesID = $form->class_id;
+        foreach ($classesID as $classID) {
+
+            $form->class_id = $classID;
+            $schoolID = Classes::findOne(['id' => $classID])->school_id;
+
+            $form->school_id = $schoolID;
+            $form->teacher_id = Yii::$app->user->id;
+
+            if (!$form->validate()) {
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+            }
+
+            $typeName = ucfirst($type);
+
+            if (!$model = $form->createHomework($type)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $typeName . ' record not inserted!');
+            }
         }
+
+//        } catch (\Exception $e) {
+//            $dbtransaction->rollBack();
+//            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//        }
+
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, $typeName . ' record inserted successfully');
     }
