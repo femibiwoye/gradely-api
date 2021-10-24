@@ -39,6 +39,7 @@ class HomeworkForm extends Model
     public $lesson_description;
     public $selected_student; //If certain students are selected for the assessment
     public $selected_student_id; //ID of the selected students if the id above are valid
+    public $bulk_creation_reference;
 
     public function rules()
     {
@@ -60,7 +61,7 @@ class HomeworkForm extends Model
             //['topics_id', 'validateTopicCurriculum'],
             ['view_by', 'in', 'range' => SharedConstant::TEACHER_VIEW_BY],
             ['selected_student', 'in', 'range' => [1, 0]],
-            [['description', 'lesson_description'], 'string']
+            [['description', 'lesson_description','bulk_creation_reference'], 'string']
         ];
     }
 

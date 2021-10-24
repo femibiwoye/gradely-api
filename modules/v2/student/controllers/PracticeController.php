@@ -188,7 +188,7 @@ class PracticeController extends Controller
                 $qsd->topic_id = $questionModel->topic_id;
                 $qsd->student_id = \Yii::$app->user->id;
                 $qsd->homework_id = $quizSummary->homework_id;
-                $qsd->score = $questionModel->score;
+                $qsd->max_score = $questionModel->score;
 
                 if (in_array($questionModel->type, ['short', 'essay'])) {
                     $qsd->selected = $question['selected'];
@@ -207,10 +207,12 @@ class PracticeController extends Controller
                             $failedCount = $failedCount + 1;
                             $qsd->is_correct = 0;
                         }
+                        $qsd->score = $questionModel->score;
                     } elseif ($questionModel->type == 'essay') {
                         $qsd->answer_attachment = $question['answer_attachment'];
                     }
                 } elseif (in_array($questionModel->type, ['multiple', 'bool'])) {
+                    $qsd->score = $questionModel->score;
                     $qsd->selected = strtoupper($question['selected']);
                     if ($question['selected'] == $questionModel->answer) {
                         $correctCount = $correctCount + 1;
@@ -228,12 +230,14 @@ class PracticeController extends Controller
             }
 
             $total_question = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->count();
+            $maximumScore = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->sum('max_score');
 
             if (!$total_question)
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No question!');
 
             $quizSummary->failed = $failedCount;
             $quizSummary->correct = $correctCount;
+            $quizSummary->total_questions = $total_question;
             $quizSummary->total_questions = $total_question;
             $quizSummary->skipped = $total_question - ($correctCount + $failedCount);
             $quizSummary->submit = SharedConstant::VALUE_ONE;

@@ -112,7 +112,10 @@ class CurriculumController extends ActiveController
                 ->with(['learningArea'])
                 ->where(['status' => 1, 'class_id' => $global_class, 'subject_id' => $subject])->asArray();
             if (!empty($term)) {
-                $models = $models->with(['isReferenced'])->andWhere(['AND', ['term' => $term], ['like', 'topic', '%' . $search . '%', false]])->all();
+                $models = $models->with(['isReferenced'])->andWhere(['AND',
+                    //['term' => $term],
+                    ['like', 'topic', '%' . $search . '%', false]
+                ])->all();
                 return (new ApiResponse)->success($models);
             }
         }
