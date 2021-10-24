@@ -87,20 +87,38 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Provide class ID');
         }
 
-        $schoolID = Classes::findOne(['id' => $form->class_id])->school_id;
-
-        $form->school_id = $schoolID;
-        $form->teacher_id = Yii::$app->user->id;
-
-        if (!$form->validate()) {
-            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+        if (!is_array($form->class_id)) {
+            $classIDs = [$form->class_id];
         }
 
-        $typeName = ucfirst($type);
 
-        if (!$model = $form->createHomework($type)) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $typeName . ' record not inserted!');
+        $classesID = $form->class_id;
+        $uniqueIdentifier = time() . mt_rand(1000, 9999);
+        foreach ($classesID as $classID) {
+
+            $form->class_id = $classID;
+            $form->bulk_creation_reference = $uniqueIdentifier;
+            $schoolID = Classes::findOne(['id' => $classID])->school_id;
+
+            $form->school_id = $schoolID;
+            $form->teacher_id = Yii::$app->user->id;
+
+            if (!$form->validate()) {
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+            }
+
+            $typeName = ucfirst($type);
+
+            if (!$model = $form->createHomework($type)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $typeName . ' record not inserted!');
+            }
         }
+
+//        } catch (\Exception $e) {
+//            $dbtransaction->rollBack();
+//            return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+//        }
+
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, $typeName . ' record inserted successfully');
     }
@@ -363,17 +381,43 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework already published');
         }
 
+        $createStatus = false;
         if ($model->publish_status == 0) {
             $model->publish_status = 1;
             $model->publish_at = date('Y-m-d H:i:s');
             if ($model->save() && $this->publishHomeworkFeed($model->id)) {
                 $this->HomeworkNotification($model);
-                //Call success notification
-                return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Homework successfully published');
+            }else{
+                $createStatus = true;
             }
         }
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Something went wrong.');
+
+        foreach (Homeworks::find()->where(['bulk_creation_reference' => $model->bulk_creation_reference])->andWhere(['!=', 'id', $model->id])->all() as $eachHomework) {
+
+            $homeworkQuestions = HomeworkQuestions::find()->where(['homework_id' => $model->id])->all();
+            foreach ($homeworkQuestions as $eachQuestion) {
+                $hqModel = new HomeworkQuestions();
+                $hqModel->attributes = $eachQuestion->attributes;
+                $hqModel->homework_id = $eachHomework->id;
+                $hqModel->save();
+            }
+
+            if ($eachHomework->publish_status == 0) {
+                $eachHomework->publish_status = 1;
+                $eachHomework->publish_at = date('Y-m-d H:i:s');
+                if ($eachHomework->save() && $this->publishHomeworkFeed($eachHomework->id)) {
+                    $this->HomeworkNotification($eachHomework);
+                    //Call success notification
+                } else {
+                    $createStatus = true;
+                }
+            }
+        }
+        if ($createStatus) {
+            return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Something went wrong.');
+        }
+        return (new ApiResponse)->success($eachHomework, ApiResponse::SUCCESSFUL, 'Homework successfully published');
     }
 
     private function publishHomeworkFeed($homework_id)

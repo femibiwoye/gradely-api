@@ -4,6 +4,7 @@ return [
 
     ['class' => 'yii\rest\UrlRule', 'controller' => ['v2/aws'], 'extraPatterns' => [
         'GET lists' => 'list-bucket', //
+        'GET list-files' => 'list-files', //
         'POST add-bucket/<name:[a-z]+>' => 'create-bucket', //
         'POST upload-file/<folder:[a-z/-]+>' => 'upload-file', //
         'POST upload-file-with-token/<folder:[a-z/-]+>' => 'upload-file-with-token', //

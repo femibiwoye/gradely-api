@@ -94,6 +94,7 @@ class HomeworkQuestionsForm extends Model
         $model->question_id = $question->id;
         $model->difficulty = $question->difficulty;
         $model->duration = $question->duration;
+        $model->max_score = $question->score;
         if (!$model->save()) {
             return false;
         }

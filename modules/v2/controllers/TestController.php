@@ -4,11 +4,13 @@ namespace app\modules\v2\controllers;
 
 use app\modules\v2\models\ApiResponse;
 use app\modules\v2\models\Classes;
+use app\modules\v2\models\games\Subject;
 use app\modules\v2\models\handler\ClickActionLogger;
 use app\modules\v2\models\handler\ClickActionLoggerDetails;
 use app\modules\v2\models\Questions;
 use app\modules\v2\models\StudentSchool;
 use app\modules\v2\models\StudentSummerSchool;
+use app\modules\v2\models\SubjectTopics;
 use app\modules\v2\models\TeacherClass;
 use Yii;
 use yii\db\Exception;
@@ -147,6 +149,32 @@ class TestController extends Controller
         //return StudentSummerSchool::find()->where(['summer_payment_status'=>'paid'])->count();
 
 
+    }
+
+
+    public function actionCopyContent()
+    {
+        $oldtopics = SubjectTopics::find()->where(['subject_id' => 18, 'class_id' => 10])->all();
+        foreach ($oldtopics as $oldtopic) {
+            $newtopics = SubjectTopics::find()->where(['subject_id' => 153, 'class_id' => 10, 'slug' => $oldtopic->slug])->one();
+            $models = Questions::find()->where(['subject_id' => $oldtopic->subject_id, 'class_id' => $oldtopic->class_id, 'teacher_id' => null, 'topic_id' => $oldtopic->id])->all();
+            foreach ($models as $model) {
+                if (Questions::find()->where(['subject_id' => $newtopics->subject_id, 'class_id' => $newtopics->class_id, 'topic_id' => $newtopics->id, 'question' => $model->question, 'option_a' => $model->option_a, 'option_b' => $model->option_b, 'answer' => $model->answer])->exists()) {
+                    continue;
+                }
+                $new = new Questions();
+                $new->attributes = $model->attributes;
+                $new->id = null;
+                $new->topic_id = $newtopics->id;
+                $new->subject_id = $newtopics->subject_id;
+                $new->class_id = $newtopics->class_id;
+                $new->answer = $model->answer;
+                $new->save();
+
+
+            }
+
+        }
     }
 }
 

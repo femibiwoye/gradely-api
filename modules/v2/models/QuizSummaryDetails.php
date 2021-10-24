@@ -19,6 +19,8 @@ use Yii;
  * @property int|null $topic_id
  * @property int|null $is_correct
  * @property int|null $score
+ * @property int|null $max_score
+ * @property int|null $is_graded
  * @property string $created_at
  *
  * @property QuizSummary $quiz
@@ -40,7 +42,7 @@ class QuizSummaryDetails extends \yii\db\ActiveRecord
     {
         return [
             [['quiz_id', 'homework_id', 'student_id', 'question_id', 'selected'], 'required'],
-            [['quiz_id', 'homework_id', 'student_id', 'question_id', 'topic_id', 'time_spent', 'is_correct', 'score'], 'integer'],
+            [['quiz_id', 'homework_id', 'student_id', 'question_id', 'topic_id', 'time_spent', 'is_correct', 'score','max_score','is_graded'], 'integer'],
             [['created_at', 'answer_attachment'], 'safe'],
 //            [['selected', 'answer'], 'string', 'max' => 1],
             ['answer_attachment', 'url', 'defaultScheme' => 'https'],

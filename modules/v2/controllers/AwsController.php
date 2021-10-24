@@ -55,6 +55,7 @@ class AwsController extends Controller
         $s3Client = new S3Client($this->config);
         $buckets = $s3Client->listBuckets();
         return (new ApiResponse)->success($buckets['Buckets'], ApiResponse::SUCCESSFUL);
+
     }
 
     public function createBucket($s3Client, $bucketName)
@@ -139,7 +140,7 @@ class AwsController extends Controller
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file');
             }
 
-            $allowedfileExtensions = ['jpg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'];
+            $allowedfileExtensions = ['jpg', 'jpeg', 'png', 'mp4', 'pdf', 'xls', 'doc', 'docx', 'xlsx', 'ppt', 'pptx'];
             if (in_array($fileExtension, $allowedfileExtensions) === false) {
                 return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Invalid file extension');
             }
@@ -275,6 +276,15 @@ class AwsController extends Controller
             return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
         }
+    }
+
+    public function actionListFiles()
+    {
+        $s3Client = new S3Client($this->config);
+        //$buckets = $s3Client->listObjects(['Bucket'=>'gradely-videos','Delimiter'=>'/']);
+        $buckets = $s3Client->ListObjectsV2(['Bucket'=>'gradely-videos','Prefix'=>'JSS1_English_Language']);
+        return (new ApiResponse)->success($buckets, ApiResponse::SUCCESSFUL);
+
     }
 }
 
