@@ -12,7 +12,8 @@ use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\Subjects;
-use app\modules\v2\models\{TeacherClass,
+use app\modules\v2\models\{SchoolTopic,
+    TeacherClass,
     Classes,
     StudentSchool,
     SchoolTeachers,
@@ -902,5 +903,27 @@ class Utility extends ActiveRecord
 
         return $grad;
 
+    }
+
+    public static function AutoDuplicateTopics($schoolID, $newClassID, $globalClassID, $subjectID)
+    {
+        if (!SchoolTopic::find()->where(['class_id' => $newClassID, 'school_id' => $schoolID, 'subject_id' => $subjectID])->exists()) {
+//            $classObject = Classes::findOne(['id' => $newClassID, 'school_id' => $schoolID]);
+            foreach (Classes::find()->where(['global_class_id' => $globalClassID])->all() as $class) {
+                if (SchoolTopic::find()->where(['school_id' => $schoolID, 'class_id' => $class->id, 'subject_id' => $subjectID])->exists()) {
+                    $topics = SchoolTopic::find()->where(['class_id' => $class->id, 'school_id' => $schoolID, 'subject_id' => $subjectID])->all();
+                    foreach ($topics as $topic) {
+                        if (SchoolTopic::find()->where(['class_id' => $newClassID, 'school_id' => $schoolID, 'topic_id' => $topic->topic_id, 'subject_id' => $subjectID])->exists()) {
+                            continue;
+                        }
+                        $model = new SchoolTopic();
+                        $model->attributes = $topic->attributes;
+                        $model->class_id = $newClassID;
+                        $model->save();
+                    }
+                    break;
+                }
+            }
+        }
     }
 }
