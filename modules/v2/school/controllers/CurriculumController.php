@@ -95,7 +95,9 @@ class CurriculumController extends ActiveController
                     'position'
                 ])
                 //->with('learningArea')
-                ->where(['school_id' => $school->id, 'class_id' => $school_class, 'subject_id' => $subject])->orderBy([new \yii\db\Expression('position IS NULL ASC, position ASC, week ASC')])->asArray();
+                ->where(['school_id' => $school->id, 'class_id' => $school_class, 'subject_id' => $subject])->orderBy([new \yii\db\Expression('position IS NULL ASC, position ASC, week ASC')])
+                ->asArray();
+            Utility::AutoDuplicateTopics($school->id,$school_class,$global_class,$subject);
         } else {
             $models = SubjectTopics::find()
                 ->select([
