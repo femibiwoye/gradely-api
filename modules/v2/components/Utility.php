@@ -918,6 +918,7 @@ class Utility extends ActiveRecord
                         }
                         $model = new SchoolTopic();
                         $model->attributes = $topic->attributes;
+                        $model->id = null;
                         $model->class_id = $newClassID;
                         $model->save();
                     }
