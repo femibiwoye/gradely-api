@@ -240,7 +240,6 @@ class Utility extends ActiveRecord
         }
 
         $data = StudentSchool::findOne(['student_id' => Yii::$app->user->id, 'is_active_class' => 1, 'status' => 1]);
-
         if (empty($data)) {
             if (!empty(Yii::$app->user->identity->class))
                 return Yii::$app->user->identity->class;
@@ -248,7 +247,7 @@ class Utility extends ActiveRecord
         } elseif ($global_id == SharedConstant::VALUE_ONE) {
             return isset($data->class->global_class_id) ? $data->class->global_class_id : Yii::$app->user->identity->class;
         } else {
-            return $data->class_id;
+            return !empty($data->class_id) ? $data->class_id : Yii::$app->user->identity->class;
         }
     }
 
