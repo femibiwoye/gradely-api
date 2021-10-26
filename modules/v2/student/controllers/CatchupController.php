@@ -356,10 +356,12 @@ class CatchupController extends ActiveController
         $video = VideoContent::find()->where(['token' => $video_token])
             //->with(['views'])
             ->one();
-
-        $videoObject = Utility::GetVideo($video->content_id);
-
-        $videoUrl = isset($videoObject->data->content_link) ? $videoObject->data->content_link : null;
+        if($video->owner == 'wizitup') {
+            $videoObject = Utility::GetVideo($video->content_id);
+            $videoUrl = isset($videoObject->data->content_link) ? $videoObject->data->content_link : null;
+        }else{
+            $videoUrl = $video->path;
+        }
 
         if ($file_log = FileLog::findOne([
             'is_completed' => SharedConstant::VALUE_ZERO,
@@ -1456,7 +1458,7 @@ class CatchupController extends ActiveController
                 new Expression("0 as downloadable"),
                 new Expression('vc.image COLLATE utf8mb4_unicode_ci as thumbnail'),
                 new Expression('vc.token COLLATE utf8mb4_unicode_ci'),
-                new Expression("'WizItUp' AS creator_name"),
+                new Expression("UCASE(owner) AS creator_name"),
                 new Expression("null as creator_image"),
                 new Expression("null as creator_id"),
                 "vc.created_at"

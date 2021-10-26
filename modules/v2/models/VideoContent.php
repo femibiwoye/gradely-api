@@ -22,6 +22,8 @@ use Yii;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property string $created_at
+ * @property string|null $owner
+ * @property string|null $path
  * @property string|null $updated_at
  *
  * @property VideoAssign[] $videoAssigns
@@ -44,7 +46,7 @@ class VideoContent extends \yii\db\ActiveRecord
         return [
             [['category', 'subject_id', 'topic_id', 'title', 'new_title', 'slug','token'], 'required'],
             [['subject_id', 'topic_id', 'content_id', 'content_length', 'created_by', 'updated_by'], 'integer'],
-            [['image'], 'string'],
+            [['image', 'owner','path'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['category','token'], 'string', 'max' => 100],
             [['title', 'slug'], 'string', 'max' => 255],
