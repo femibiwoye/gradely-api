@@ -89,12 +89,12 @@ class HomeworkController extends ActiveController
 
         if (!is_array($form->class_id)) {
             $classIDs = [$form->class_id];
+        } else {
+            $classIDs = $form->class_id;
         }
-
-
-        $classesID = $form->class_id;
+        
         $uniqueIdentifier = time() . mt_rand(1000, 9999);
-        foreach ($classesID as $classID) {
+        foreach ($classIDs as $classID) {
 
             $form->class_id = $classID;
             $form->bulk_creation_reference = $uniqueIdentifier;
@@ -387,7 +387,7 @@ class HomeworkController extends ActiveController
             $model->publish_at = date('Y-m-d H:i:s');
             if ($model->save() && $this->publishHomeworkFeed($model->id)) {
                 $this->HomeworkNotification($model);
-            }else{
+            } else {
                 $createStatus = true;
             }
         }
