@@ -913,11 +913,12 @@ class Utility extends ActiveRecord
                 if (SchoolTopic::find()->where(['school_id' => $schoolID, 'class_id' => $class->id, 'subject_id' => $subjectID])->exists()) {
                     $topics = SchoolTopic::find()->where(['class_id' => $class->id, 'school_id' => $schoolID, 'subject_id' => $subjectID])->all();
                     foreach ($topics as $topic) {
-                        if (SchoolTopic::find()->where(['class_id' => $newClassID, 'school_id' => $schoolID, 'topic_id' => $topic->topic_id, 'subject_id' => $subjectID])->exists()) {
-                            continue;
-                        }
+//                        if (SchoolTopic::find()->where(['class_id' => $newClassID, 'school_id' => $schoolID, 'topic_id' => $topic->topic_id, 'subject_id' => $subjectID])->exists()) {
+//                            continue;
+//                        }
                         $model = new SchoolTopic();
                         $model->attributes = $topic->attributes;
+                        $model->id = null;
                         $model->class_id = $newClassID;
                         $model->save();
                     }
