@@ -16,12 +16,23 @@ class ExamUtility extends ActiveRecord
      */
     public static function StudentClassCategory($class_id)
     {
+//        if ($class_id >= 7 && $class_id <= 9)
+//            $category = 'junior';
+//        elseif ($class_id >= 10 && $class_id <= 12)
+//            $category = 'senior';
+//        elseif ($class_id >= 1 && $class_id <= 6 || $class_id > 12)
+//            $category = 'primary';
+//        else
+//            $category = null;
+//        return $category;
+//
+
         if ($class_id >= 7 && $class_id <= 9)
-            $category = 'junior';
+            $category = ['secondary', 'junior', 'primary-junior'];
         elseif ($class_id >= 10 && $class_id <= 12)
-            $category = 'senior';
+            $category = ['senior', 'secondary'];
         elseif ($class_id >= 1 && $class_id <= 6 || $class_id > 12)
-            $category = 'primary';
+            $category = ['primary', 'primary-junior'];
         else
             $category = null;
         return $category;
