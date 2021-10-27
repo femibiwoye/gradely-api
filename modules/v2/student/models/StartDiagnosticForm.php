@@ -68,7 +68,8 @@ class StartDiagnosticForm extends Model
                 $topics = SubjectTopics::find()
                     ->alias('s')
                     ->innerJoin('questions', 'questions.topic_id = s.id AND questions.category = "exam"')
-                    ->where(['s.subject_id' => $this->subject_id, 'questions.teacher_id' => null, 'questions.exam_type_id' => Yii::$app->request->post('exam_id')])
+                    ->leftJoin('exam_type', 'exam_type.id = s.exam_type_id')
+                    ->where(['s.subject_id' => $this->subject_id, 'questions.teacher_id' => null, 'questions.exam_type_id' => Yii::$app->request->post('exam_id'), 'exam_type.is_catchup' => 1])
                     ->having('count(questions.id) >= ' . Yii::$app->params['topicQuestionsMin'])
                     ->asArray()
                     ->groupBy('s.id')
@@ -131,12 +132,12 @@ class StartDiagnosticForm extends Model
             $topic = SubjectTopics::find()
                 ->alias('s')
                 ->innerJoin('questions', 'questions.topic_id = s.id AND questions.category != "exam"')
-                ->where(['s.term' => $term, 's.class_id' => $globalClass, 's.subject_id' => $subject, 'questions.teacher_id' => null])
+                ->leftJoin('exam_type', 'exam_type.id = s.exam_type_id')
+                ->where(['s.term' => $term, 's.class_id' => $globalClass, 's.subject_id' => $subject, 'questions.teacher_id' => null, 'exam_type.is_catchup' => 1])
                 ->having('count(questions.id) >= ' . Yii::$app->params['topicQuestionsMin'])
                 ->asArray()
                 ->orderBy(['s.week_number' => SORT_DESC])
                 ->groupBy('s.week_number');
-
             if ($key > 0) {
                 $globalClass--;
             } else {
