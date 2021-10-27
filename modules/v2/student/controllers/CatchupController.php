@@ -855,11 +855,14 @@ class CatchupController extends ActiveController
                     Utility::ImageQuery('st'),
                 ])
                 ->innerJoin('subject_topics st', "st.id = qsd.topic_id AND st.subject_id = {$model['subject_id']} AND st.class_id = $class_id")
+                ->innerJoin('exam_type', "exam_type.id = st.exam_type_id AND exam_type.is_catchup = 1")
                 ->innerJoin('questions q', 'q.topic_id = qsd.topic_id')
                 ->innerJoin('quiz_summary', "quiz_summary.id = qsd.quiz_id AND quiz_summary.mode = '$mode'")
-                ->where(['qsd.topic_id' => $practicedTopicIds,
+                ->where([
+                    'qsd.topic_id' => $practicedTopicIds,
                     'qsd.student_id' => $student_id,
-                    'st.subject_id' => $model['subject_id']])
+                    'st.subject_id' => $model['subject_id']
+                ])
                 ->orderBy('score')
                 ->asArray()
                 ->groupBy('qsd.topic_id')
@@ -879,6 +882,7 @@ class CatchupController extends ActiveController
                 ->where(['subject_topics.class_id' => $class_id, 'subject_topics.subject_id' => $model['subject_id']])
                 ->andWhere(['NOT IN', 'subject_topics.id', $practicedTopicIds])
                 ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
+                ->innerJoin('exam_type e', 'e.id = subject_topics.exam_type_id AND e.is_catchup = 1')
                 ->having('count(q.id) >= ' . Yii::$app->params['topicQuestionsMin'])
                 ->asArray()->one()) {
 
