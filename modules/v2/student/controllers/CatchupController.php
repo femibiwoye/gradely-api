@@ -356,10 +356,10 @@ class CatchupController extends ActiveController
         $video = VideoContent::find()->where(['token' => $video_token])
             //->with(['views'])
             ->one();
-        if($video->owner == 'wizitup') {
+        if ($video->owner == 'wizitup') {
             $videoObject = Utility::GetVideo($video->content_id);
             $videoUrl = isset($videoObject->data->content_link) ? $videoObject->data->content_link : null;
-        }else{
+        } else {
             $videoUrl = $video->path;
         }
 
@@ -373,6 +373,9 @@ class CatchupController extends ActiveController
         } else {
             $currentDuration = 0;
         }
+
+        if (!empty($video->new_title))
+            $video->title = $video->new_title;
 
         $video = array_merge(
             ArrayHelper::toArray($video),
