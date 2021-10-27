@@ -51,7 +51,7 @@ return [
 
     //student catchup
     'GET v2/student/catchup/recent-practice' => 'v2/student/catchup/recent-practice', //
-    'GET v2/student/catchup/video-comments/<video_token:[a-zA-Z0-9/]+>' => 'v2/student/catchup/video-comments', //
+    'GET v2/student/catchup/video-comments/<video_token:[a-zA-Z0-9-"/]+>' => 'v2/student/catchup/video-comments', //
     'POST v2/student/catchup/video-comment' => 'v2/student/catchup/comment-video', //
     'GET v2/student/catchup/video/<id:\d+>' => 'v2/student/catchup/video', //
     'GET v2/student/catchup/class-resources/<class_id:\d+>' => 'v2/student/catchup/class-resources', //
