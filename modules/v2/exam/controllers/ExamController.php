@@ -74,7 +74,7 @@ class ExamController extends ActiveController
     {
         $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
         $model = ExamType::find()
-            ->where(['is_exam' => 1, 'class' => $category, 'slug' => ['bece', 'common-entrance','senior-waec']])
+            ->where(['is_exam' => 1, 'class' => $category, 'slug' => ['bece', 'common-entrance', 'senior-waec']])
             ->select(['id', 'name', 'slug', 'title', 'description'])->all();
         return (new ApiResponse)->success($model);
     }
@@ -83,10 +83,10 @@ class ExamController extends ActiveController
     {
         $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
         $model = Subjects::find()
-            ->select(['subjects.id', 'subjects.name', 'subjects.slug','et.id as exam_id'])
-            ->innerJoin('exam_subjects es','es.subject_id = subjects.id')
-            ->innerJoin('exam_type et','et.id = es.exam_id')
-            ->where(['subjects.school_id' => null, 'subjects.category' => ['all', $category]])
+            ->select(['subjects.id', 'subjects.name', 'subjects.slug', 'et.id as exam_id'])
+            ->innerJoin('exam_subjects es', 'es.subject_id = subjects.id')
+            ->innerJoin('exam_type et', 'et.id = es.exam_id')
+            ->where(['subjects.school_id' => null, 'subjects.category' => array_merge(['all'], $category)])
             ->andWhere(['et.is_exam' => 1, 'et.class' => $category, 'et.slug' => ['bece', 'common-entrance', 'senior-waec']])
             ->all();
         return (new ApiResponse)->success($model);
