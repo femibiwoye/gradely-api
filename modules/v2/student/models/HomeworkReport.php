@@ -36,6 +36,7 @@ class HomeworkReport extends QuizSummary
             'homework_title' => 'homeworkTitle',
             'topics',
             'questions',
+            'submit_at',
             'recommendations'
         ];
     }
