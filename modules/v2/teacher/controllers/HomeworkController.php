@@ -42,17 +42,17 @@ class HomeworkController extends ActiveController
         ];
 
         //Control user type that can access this
-        $behaviors['access'] = [
-            'class' => AccessControl::className(),
-            'rules' => [
-                [
-                    'allow' => true,
-                    'matchCallback' => function () {
-                        return Yii::$app->user->identity->type == SharedConstant::TYPE_TEACHER;
-                    },
-                ],
-            ],
-        ];
+//        $behaviors['access'] = [
+//            'class' => AccessControl::className(),
+//            'rules' => [
+//                [
+//                    'allow' => true,
+//                    'matchCallback' => function () {
+//                        return Yii::$app->user->identity->type == SharedConstant::TYPE_TEACHER;
+//                    },
+//                ],
+//            ],
+//        ];
 
 
         return $behaviors;
