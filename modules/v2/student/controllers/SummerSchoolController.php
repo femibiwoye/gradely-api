@@ -457,7 +457,6 @@ class SummerSchoolController extends ActiveController
         if (!$summerSchool = StudentSummerSchool::findOne(['student_id' => $student_id])) {
             $model = new StudentSummerSchool();
             $model->subjects = [];
-
             $class = Utility::StudentChildClass($student_id, 1);
             $classes = Classes::findOne(['school_id' => $school_id, 'global_class_id' => $class]);
             $model->student_id = $student_id;
