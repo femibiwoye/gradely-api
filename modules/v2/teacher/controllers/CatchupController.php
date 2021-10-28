@@ -308,7 +308,7 @@ class CatchupController extends ActiveController
         $homeworkQuestions = ArrayHelper::getColumn(HomeworkQuestions::find()->where(['homework_id' => $assessment_id])->all(), 'question_id');
 
         $questions = Questions::find()
-            ->select(['id', 'question', 'answer', 'image', 'type'])
+            ->select(['id', 'question', 'answer', 'image', 'type','option_a','option_b','option_c','option_d'])
             ->where(['id' => $homeworkQuestions])->asArray()->all();
         $allQuestions = [];
         foreach ($questions as $question) {
@@ -333,6 +333,7 @@ class CatchupController extends ActiveController
             'incorrect' => $model->failed,
             'skipped' => $model->skipped,
             'datetime' => $model->submit_at,
+            'term' => $model->term,
             'homework' => $homework,
             'subject' => Subjects::findOne(['id' => $model->subject_id]),
             'assessment_type' => $model->type,
