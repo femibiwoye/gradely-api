@@ -225,7 +225,7 @@ class Utility extends ActiveRecord
                     return $classFullname ? GlobalClass::findOne(['id' => $user->class]) : $user->class;
                 }
                 return SharedConstant::VALUE_NULL;
-            } elseif ($global_id == SharedConstant::VALUE_ONE) {
+            } elseif ($global_id == SharedConstant::VALUE_ONE && isset($data->class->global_class_id)) {
                 return $data->class->global_class_id;
             } elseif ($classFullname) {
                 return Classes::findOne(['id' => $data->class_id]);
