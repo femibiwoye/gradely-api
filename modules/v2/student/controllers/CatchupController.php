@@ -1106,10 +1106,14 @@ class CatchupController extends ActiveController
 
         $mode = Utility::getChildMode(Yii::$app->user->id);
         if ($mode == 'exam') {
-            if (!Yii::$app->request->get('exam_id')) {
+            if(!Yii::$app->request->post('exam_id') && !Yii::$app->request->get('exam_id')){
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
             }
-            $model->exam_id = Yii::$app->request->post('exam_id');
+            if (!Yii::$app->request->get('exam_id')) {
+                $model->exam_id = Yii::$app->request->get('exam_id');
+            }else {
+                $model->exam_id = Yii::$app->request->post('exam_id');
+            }
         }
 
         if (!$homework_model = $model->initializePractice()) {

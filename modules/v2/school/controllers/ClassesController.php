@@ -106,7 +106,10 @@ class ClassesController extends ActiveController
 
         foreach ($globalClasses as $class) {
             $globalTemp = Utility::getGlobalClasses($class->id, $school);
-            $classes[] = array_merge($globalTemp, ['classes' => $class->getSchoolClasses($school->id)]);
+            $classesList = $class->getSchoolClasses($school->id);
+            if ($classesList) {
+                $classes[] = array_merge($globalTemp, ['classes' => $classesList]);
+            }
         }
 
         return (new ApiResponse)->success($classes, ApiResponse::SUCCESSFUL);
@@ -240,7 +243,7 @@ class ClassesController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
-        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id, 'status' => 1,'is_active_class'=>1])->all(), 'student_id');
+        $student_ids = ArrayHelper::getColumn(StudentSchool::find()->where(['class_id' => $class_id, 'status' => 1, 'is_active_class' => 1])->all(), 'student_id');
 
         $students = User::find()->where(['id' => $student_ids])
             ->andWhere(['type' => SharedConstant::ACCOUNT_TYPE[3]])
@@ -297,7 +300,7 @@ class ClassesController extends ActiveController
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1,'is_active_class'=>1])->all();
+        $currentStudents = StudentSchool::find()->select(['id', 'student_id'])->where(['class_id' => $current_class, 'school_id' => $school_id, 'status' => 1, 'is_active_class' => 1])->all();
 
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
@@ -335,24 +338,24 @@ class ClassesController extends ActiveController
      * @param $class_id
      * @return ApiResponse
      */
-    public function actionSingleClassSubjects($class_id, $teacher=0)
+    public function actionSingleClassSubjects($class_id, $teacher = 0)
     {
         $school = Schools::findOne(['id' => Utility::getSchoolAccess()]);
         $classSubjectID = ArrayHelper::getColumn(ClassSubjects::find()
             ->where(['school_id' => $school->id, 'class_id' => $class_id])
             ->all(), 'subject_id');
 
-        if($teacher == 0) {
+        if ($teacher == 0) {
             $subjects = Subjects::find()->where(['id' => $classSubjectID])
                 ->select(['id', 'slug', 'name', 'description', 'category'])
                 ->asArray()
                 ->all();
-        }else{
+        } else {
             $subjects = Subjects::find()->where(['subjects.id' => $classSubjectID])
-                ->leftJoin('teacher_class_subjects tcs','tcs.subject_id = subjects.id AND tcs.status = 1')
-                ->leftJoin('user','user.id = tcs.teacher_id')
-                ->select(['subjects.id', 'subjects.slug', 'subjects.name', 'subjects.description', 'subjects.category','tcs.teacher_id','user.firstname','user.lastname'])
-                ->andWhere(['tcs.school_id'=>$school->id])
+                ->leftJoin('teacher_class_subjects tcs', 'tcs.subject_id = subjects.id AND tcs.status = 1')
+                ->leftJoin('user', 'user.id = tcs.teacher_id')
+                ->select(['subjects.id', 'subjects.slug', 'subjects.name', 'subjects.description', 'subjects.category', 'tcs.teacher_id', 'user.firstname', 'user.lastname'])
+                ->andWhere(['tcs.school_id' => $school->id])
                 ->asArray()
                 ->all();
         }
