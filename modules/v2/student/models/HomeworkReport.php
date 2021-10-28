@@ -8,6 +8,7 @@ use app\modules\v2\models\PracticeTopics;
 use app\modules\v2\models\QuizSummary;
 use app\modules\v2\components\SharedConstant;
 use app\modules\v2\models\SubjectTopics;
+use app\modules\v2\models\User;
 
 class HomeworkReport extends QuizSummary
 {
@@ -19,6 +20,7 @@ class HomeworkReport extends QuizSummary
             'homework_id',
             'subject_id',
             'student_id',
+            'student' => 'studentProfile',
             'teacher_id',
             'class_id',
             'total_questions',
@@ -28,16 +30,21 @@ class HomeworkReport extends QuizSummary
             'submit',
             'type',
             'topic_id',
-            'subject'=>'homeworkSubject',
+            'subject' => 'homeworkSubject',
             'actualAttemptCount' => 'countAttemptedQuestions',
             'actualScore' => 'homeworkScore',
             'homework_title' => 'homeworkTitle',
             'topics',
             'questions',
+            'submit_at',
             'recommendations'
         ];
     }
 
+    public function getStudentProfile()
+    {
+        return User::find()->select(['id','firstname','lastname','image'])->where(['id'=>$this->student_id])->asArray()->one();
+    }
 
     public function getCountAttemptedQuestions()
     {
@@ -93,7 +100,7 @@ class HomeworkReport extends QuizSummary
                 'qsd.selected'
             ])
             ->innerJoin('questions q', 'q.id = hq.question_id')
-            ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id AND qsd.homework_id = ' . $this->homework_id. ' AND qsd.student_id = ' . $this->student_id)
+            ->leftJoin('quiz_summary_details qsd', 'qsd.question_id = q.id AND qsd.homework_id = ' . $this->homework_id . ' AND qsd.student_id = ' . $this->student_id)
             ->where(['hq.homework_id' => $this->homework_id])
             ->groupBy('hq.question_id')
             ->asArray()
