@@ -65,7 +65,7 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCompletedHomework($subject_id = null, $type = null)
+    public function actionCompletedHomework($subject_id = null, $type = null, $search = null)
     {
         $student_id = Utility::getParentChildID();
         $models = StudentHomeworkReport::find()
@@ -78,6 +78,18 @@ class HomeworkController extends ActiveController
             $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
         if ($type)
             $models = $models->andWhere(['homeworks.tag' => $type]);
+
+        if ($search) {
+            $models = $models
+                ->leftjoin('subjects', 'subjects.id = homeworks.subject_id')
+                ->leftjoin('user', 'user.id = homeworks.teacher_id')
+                ->andWhere(['OR',
+                    ['like', 'homeworks.title', '%' . $search . '%', false],
+                    ['like', 'user.firstname', '%' . $search . '%', false],
+                    ['like', 'user.lastname', '%' . $search . '%', false],
+                    ['like', 'subjects.name', '%' . $search . '%', false],
+                ]);
+        }
 
         $models = $models->all();
 
@@ -96,6 +108,18 @@ class HomeworkController extends ActiveController
 
         if ($type)
             $missedModels = $missedModels->andWhere(['homeworks.tag' => $type]);
+
+        if ($search) {
+            $missedModels = $missedModels
+                ->leftjoin('subjects','subjects.id = homeworks.subject_id')
+                ->leftjoin('user','user.id = homeworks.teacher_id')
+                ->andWhere(['OR',
+                    ['like', 'homeworks.title', '%' . $search . '%', false],
+                    ['like', 'user.firstname', '%' . $search . '%', false],
+                    ['like', 'user.lastname', '%' . $search . '%', false],
+                    ['like', 'subjects.name', '%' . $search . '%', false],
+                ]);
+        }
 
         $missedModels = $missedModels->all();
 
@@ -124,7 +148,7 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found', $provider);
     }
 
-    public function actionNewHomework($subject_id = null, $type = null)
+    public function actionNewHomework($subject_id = null, $type = null, $search = null)
     {
         $student_id = Utility::getParentChildID();
         $models = $this->modelClass::find()
@@ -143,6 +167,18 @@ class HomeworkController extends ActiveController
 
         if ($type)
             $models = $models->andWhere(['homeworks.tag' => $type]);
+
+        if ($search) {
+            $models = $models
+                ->leftjoin('subjects', 'subjects.id = homeworks.subject_id')
+                ->leftjoin('user', 'user.id = homeworks.teacher_id')
+                ->andWhere(['OR',
+                    ['like', 'homeworks.title', '%' . $search . '%', false],
+                    ['like', 'user.firstname', '%' . $search . '%', false],
+                    ['like', 'user.lastname', '%' . $search . '%', false],
+                    ['like', 'subjects.name', '%' . $search . '%', false],
+                ]);
+        }
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
