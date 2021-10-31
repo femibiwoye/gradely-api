@@ -140,8 +140,9 @@ class HomeworkController extends ActiveController
 
         if ($subject_id)
             $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+
         if ($type)
-            $models = $models->andWhere(['homeworks.type' => $type]);
+            $models = $models->andWhere(['homeworks.tag' => $type]);
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -260,6 +261,7 @@ class HomeworkController extends ActiveController
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]]);
 
         if (Classes::find()->where(['id' => $studentClassID, 'school_id' => Yii::$app->params['summerSchoolID']])->exists() && $summerObject = StudentSummerSchool::findOne(['student_id' => $child_id])) {
+            die;
             $model = $model->andWhere(['feed.subject_id' => $summerObject->subjects]);
         }
 
