@@ -77,7 +77,7 @@ class HomeworkController extends ActiveController
         if ($subject_id)
             $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
         if ($type)
-            $models = $models->andWhere(['homeworks.type' => $type]);
+            $models = $models->andWhere(['homeworks.tag' => $type]);
 
         $models = $models->all();
 
@@ -95,7 +95,7 @@ class HomeworkController extends ActiveController
             $missedModels = $missedModels->andWhere(['homeworks.subject_id' => $subject_id]);
 
         if ($type)
-            $missedModels = $missedModels->andWhere(['homeworks.type' => $type]);
+            $missedModels = $missedModels->andWhere(['homeworks.tag' => $type]);
 
         $missedModels = $missedModels->all();
 
