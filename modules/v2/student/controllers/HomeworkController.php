@@ -65,7 +65,7 @@ class HomeworkController extends ActiveController
         return $actions;
     }
 
-    public function actionCompletedHomework($subject_id = null)
+    public function actionCompletedHomework($subject_id = null, $type = null, $search = null)
     {
         $student_id = Utility::getParentChildID();
         $models = StudentHomeworkReport::find()
@@ -76,6 +76,20 @@ class HomeworkController extends ActiveController
 
         if ($subject_id)
             $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+        if ($type)
+            $models = $models->andWhere(['homeworks.tag' => $type]);
+
+        if ($search) {
+            $models = $models
+                ->leftjoin('subjects', 'subjects.id = homeworks.subject_id')
+                ->leftjoin('user', 'user.id = homeworks.teacher_id')
+                ->andWhere(['OR',
+                    ['like', 'homeworks.title', '%' . $search . '%', false],
+                    ['like', 'user.firstname', '%' . $search . '%', false],
+                    ['like', 'user.lastname', '%' . $search . '%', false],
+                    ['like', 'subjects.name', '%' . $search . '%', false],
+                ]);
+        }
 
         $models = $models->all();
 
@@ -90,7 +104,22 @@ class HomeworkController extends ActiveController
             ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]]);
 
         if ($subject_id)
-            $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+            $missedModels = $missedModels->andWhere(['homeworks.subject_id' => $subject_id]);
+
+        if ($type)
+            $missedModels = $missedModels->andWhere(['homeworks.tag' => $type]);
+
+        if ($search) {
+            $missedModels = $missedModels
+                ->leftjoin('subjects','subjects.id = homeworks.subject_id')
+                ->leftjoin('user','user.id = homeworks.teacher_id')
+                ->andWhere(['OR',
+                    ['like', 'homeworks.title', '%' . $search . '%', false],
+                    ['like', 'user.firstname', '%' . $search . '%', false],
+                    ['like', 'user.lastname', '%' . $search . '%', false],
+                    ['like', 'subjects.name', '%' . $search . '%', false],
+                ]);
+        }
 
         $missedModels = $missedModels->all();
 
@@ -119,7 +148,7 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, 'Record found', $provider);
     }
 
-    public function actionNewHomework($subject_id = null)
+    public function actionNewHomework($subject_id = null, $type = null, $search = null)
     {
         $student_id = Utility::getParentChildID();
         $models = $this->modelClass::find()
@@ -135,6 +164,21 @@ class HomeworkController extends ActiveController
 
         if ($subject_id)
             $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
+
+        if ($type)
+            $models = $models->andWhere(['homeworks.tag' => $type]);
+
+        if ($search) {
+            $models = $models
+                ->leftjoin('subjects', 'subjects.id = homeworks.subject_id')
+                ->leftjoin('user', 'user.id = homeworks.teacher_id')
+                ->andWhere(['OR',
+                    ['like', 'homeworks.title', '%' . $search . '%', false],
+                    ['like', 'user.firstname', '%' . $search . '%', false],
+                    ['like', 'user.lastname', '%' . $search . '%', false],
+                    ['like', 'subjects.name', '%' . $search . '%', false],
+                ]);
+        }
 
         if (!$models) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
@@ -234,7 +278,7 @@ class HomeworkController extends ActiveController
     }
 
 
-    public function actionVideos($child_id = null, $search = null)
+    public function actionVideos($child_id = null, $search = null, $term = null, $subject_id = null, $creator_id = null)
     {
         $user = Yii::$app->user->identity;
         if ($user->type == 'student') {
@@ -248,10 +292,20 @@ class HomeworkController extends ActiveController
         $model = $model
             ->leftJoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed"')
             ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
+            ->leftJoin('user', 'user.id = practice_material.user_id AND user.type = "teacher"')
+            ->leftJoin('subjects', 'subjects.id = homeworks.subject_id')
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]]);
 
         if (Classes::find()->where(['id' => $studentClassID, 'school_id' => Yii::$app->params['summerSchoolID']])->exists() && $summerObject = StudentSummerSchool::findOne(['student_id' => $child_id])) {
+            die;
             $model = $model->andWhere(['feed.subject_id' => $summerObject->subjects]);
+        }
+
+        if ($creator_id) {
+            $model = $model->andWhere(['practice_material.user_id' => $creator_id]);
+        }
+        if ($subject_id) {
+            $model = $model->andWhere(['OR', ['feed.subject_id' => $subject_id], ['homeworks.subject_id' => $subject_id]]);
         }
 
         if (!empty($search)) {
@@ -259,7 +313,10 @@ class HomeworkController extends ActiveController
             andWhere(['OR',
                 ['like', 'practice_material.title', '%' . $search . '%', false],
                 ['like', 'filename', '%' . $search . '%', false],
-                ['like', 'raw', '%' . $search . '%', false]
+                ['like', 'raw', '%' . $search . '%', false],
+                ['like', 'user.firstname', '%' . $search . '%', false],
+                ['like', 'user.lastname', '%' . $search . '%', false],
+                ['like', 'subjects.name', '%' . $search . '%', false]
             ]);
         }
         $model = $model->orderBy(['created_at' => SORT_DESC])->groupBy('practice_material.id');
@@ -278,7 +335,7 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 
-    public function actionNotes($child_id = null, $class_id = null, $term = null, $search = null)
+    public function actionNotes($child_id = null, $class_id = null, $term = null, $search = null, $subject_id = null, $creator_id = null)
     {
         if (!empty($class_id) && empty($child_id)) {
             $child_id = $class_id;
@@ -287,14 +344,35 @@ class HomeworkController extends ActiveController
         $model = PracticeMaterial::find()
             ->leftJoin('feed', 'feed.id = practice_material.practice_id AND practice_material.type = "feed" AND feed.status = 1 AND (feed.view_by = "all" OR feed.view_by = "class")')
             ->leftJoin('homeworks', 'homeworks.id = practice_material.practice_id AND practice_material.type = "practice"')
+            ->leftJoin('user', 'user.id = practice_material.user_id AND user.type = "teacher"')
+            ->leftJoin('subjects', 'subjects.id = homeworks.subject_id')
             ->andWhere(['practice_material.filetype' => 'document', 'practice_material.type' => ['feed', 'practice']])
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]])
-            ->andWhere(['between', 'practice_material.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
-            ->groupBy('practice_material.id');
+            ->andWhere(['between', 'practice_material.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
+
+//        if ($term) {
+//            $model = $model->andWhere(['homeworks.term' => $term]);
+//        }
+        if ($creator_id) {
+            $model = $model->andWhere(['practice_material.user_id' => $creator_id]);
+        }
+        if ($subject_id) {
+            $model = $model->andWhere(['OR', ['feed.subject_id' => $subject_id], ['homeworks.subject_id' => $subject_id]]);
+        }
+
+
+        $model = $model->groupBy('practice_material.id');
 
         if ($search) {
             $model = $model->
-            andWhere(['OR', ['like', 'practice_material.title', '%' . $search . '%', false], ['like', 'filename', '%' . $search . '%', false], ['like', 'raw', '%' . $search . '%', false]]);
+            andWhere(['OR',
+                ['like', 'practice_material.title', '%' . $search . '%', false],
+                ['like', 'filename', '%' . $search . '%', false],
+                ['like', 'user.firstname', '%' . $search . '%', false],
+                ['like', 'user.lastname', '%' . $search . '%', false],
+                ['like', 'subjects.name', '%' . $search . '%', false],
+                ['like', 'raw', '%' . $search . '%', false]
+            ]);
         }
         $model = $model->orderBy(['created_at' => SORT_DESC])->all();
 

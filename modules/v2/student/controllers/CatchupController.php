@@ -1106,13 +1106,20 @@ class CatchupController extends ActiveController
 
         $mode = Utility::getChildMode(Yii::$app->user->id);
         if ($mode == 'exam') {
-            if(!Yii::$app->request->post('exam_id') && !Yii::$app->request->get('exam_id')){
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
-            }
-            if (!Yii::$app->request->get('exam_id')) {
-                $model->exam_id = Yii::$app->request->get('exam_id');
-            }else {
-                $model->exam_id = Yii::$app->request->post('exam_id');
+            if (!Yii::$app->request->post('exam_id') && !Yii::$app->request->get('exam_id')) {
+                if ($tempExam = SubjectTopics::find()->where(['subject_topics.id' => $model->topic_ids])
+                    //->innerJoin('exam_type', 'exam_type.id = subject_topics.exam_type_id AND exam_type.is_exam = 0')
+                    ->one()) {
+                    $model->exam_id = $tempExam->exam_type_id;
+                } else {
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Exam id is required');
+                }
+            } else {
+                if (!Yii::$app->request->get('exam_id')) {
+                    $model->exam_id = Yii::$app->request->get('exam_id');
+                } else {
+                    $model->exam_id = Yii::$app->request->post('exam_id');
+                }
             }
         }
 

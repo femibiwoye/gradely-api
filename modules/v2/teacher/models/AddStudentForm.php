@@ -114,6 +114,8 @@ class AddStudentForm extends Model
 
                 array_push($this->added_students, $student);
             }
+            $studentsID = ArrayHelper::getColumn($this->added_students, 'id');
+            Pricing::SchoolAddStudentSubscribe($studentsID);
 
             /********** Send notification start **********/
             $notification = new InputNotification();
@@ -125,8 +127,7 @@ class AddStudentForm extends Model
             ]);
             /********* Send notification end **********/
 
-            $studentsID = ArrayHelper::getColumn($this->added_students, 'id');
-            Pricing::SchoolAddStudentSubscribe($studentsID);
+
 
             $dbtransaction->commit();
         } catch (\Exception $e) {
