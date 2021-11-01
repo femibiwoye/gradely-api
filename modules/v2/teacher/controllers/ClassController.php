@@ -17,12 +17,14 @@ use app\modules\v2\models\UserModel;
 use Yii;
 use app\modules\v2\models\{Classes,
     ApiResponse,
+    Homeworks,
     TeacherClass,
     User,
     SearchSchool,
     StudentProfile,
     SubjectTopics,
-    Questions};
+    Questions
+};
 use yii\data\ActiveDataProvider;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
@@ -105,7 +107,7 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'School not found!');
         }
 
-        if($class->school->teacher_auto_join_class == 0){
+        if ($class->school->teacher_auto_join_class == 0) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Contact school admin to join');
         }
 
@@ -228,6 +230,14 @@ class ClassController extends ActiveController
 
     public function actionDeleteStudent($student_id, $class_id)
     {
+
+        $type = Yii::$app->user->identity->type;
+        $teacherStatus = $type == 'teacher' && TeacherClass::find()->where(['class_id' => $class_id, 'teacher_id' => Yii::$app->user->id, 'status' => 1])->exists();
+        $schoolStatus = $type == 'school' && StudentSchool::find()->where(['student_id' => $student_id, 'class_id' => $class_id, 'school_id' => Utility::getSchoolAccess()])->exists();
+        if ((!$teacherStatus || !$schoolStatus) && !in_array($type, ['teacher', 'school'])) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'You are making an invalid request');
+        }
+
         $form = new DeleteStudentForm;
         $form->teacher_id = Yii::$app->user->id;
         $form->student_id = $student_id;
@@ -241,6 +251,7 @@ class ClassController extends ActiveController
         }
 
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Record deleted');
+
     }
 
     private function SchoolID($teacher_id)
@@ -516,7 +527,7 @@ class ClassController extends ActiveController
                 'tc.class_id'
             ])
             ->innerJoin('classes c', 'c.id = tc.class_id')
-            ->where(['tc.teacher_id' => Yii::$app->user->id,'status'=>1])
+            ->where(['tc.teacher_id' => Yii::$app->user->id, 'status' => 1])
             ->groupBy('tc.class_id')
             ->asArray()
             ->all();
@@ -529,7 +540,7 @@ class ClassController extends ActiveController
                 'tcs.class_id'
             ])
             ->innerJoin('subjects s', 's.id = tcs.subject_id')
-            ->where(['tcs.teacher_id' => Yii::$app->user->id,'tcs.status'=>1])
+            ->where(['tcs.teacher_id' => Yii::$app->user->id, 'tcs.status' => 1])
             ->asArray()
             ->all();
 
@@ -538,9 +549,9 @@ class ClassController extends ActiveController
             foreach ($subjects as $subject) {
                 if ($class['class_id'] == $subject['class_id']) {
                     $subjectList[] = $subject;
-                    }
+                }
             }
-            $classesSubject[] = array_merge($class, ['subjects'=>$subjectList]);
+            $classesSubject[] = array_merge($class, ['subjects' => $subjectList]);
         }
 
         $response = ['classes' => $classesSubject, 'sessions' => $session];

@@ -702,8 +702,8 @@ class Utility extends ActiveRecord
         $type = Yii::$app->user->identity->type;
         if ($type == 'parent' && Parents::find()->where(['student_id' => $child_id, 'parent_id' => Yii::$app->user->id, 'status' => 1])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
-        } elseif ($type == 'teacher' && StudentSchool::find()->where(['student_id' => $child_id, 'school_id' => Utility::getTeacherSchoolID(Yii::$app->user->id)])->exists()) {
-            $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
+        } elseif ($type == 'teacher' && StudentSchool::find()->where(['student_id' => !empty($child_id) ? $child_id : Yii::$app->request->get('id'), 'school_id' => Utility::getTeacherSchoolID(Yii::$app->user->id)])->exists()) {
+            $class_id = Utility::getStudentClass($globalIDStatus, !empty($child_id) ? $child_id : Yii::$app->request->get('id'));
         } elseif ($type == 'school' && StudentSchool::find()->where(['student_id' => $child_id, 'school_id' => Utility::getSchoolAccess(Yii::$app->user->id)])->exists()) {
             $class_id = Utility::getStudentClass($globalIDStatus, $child_id);
         } else
