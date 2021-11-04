@@ -20,6 +20,7 @@ use yii\helpers\Inflector;
  * @property int|null $position
  * @property string $term
  * @property int|null $week
+ * @property int|null $creator_id
  * @property string $created_at
  * @property string|null $updated_at
  *
@@ -49,7 +50,7 @@ class SchoolTopic extends \yii\db\ActiveRecord
     {
         return [
             [['topic', 'school_id', 'subject_id', 'class_id', 'curriculum_id', 'term'], 'required'],
-            [['id', 'topic_id', 'school_id', 'subject_id', 'class_id', 'curriculum_id', 'position', 'week'], 'integer'],
+            [['id', 'topic_id', 'school_id', 'subject_id', 'class_id', 'curriculum_id', 'position', 'week','creator_id'], 'integer'],
             [['term'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['topic'], 'string', 'max' => 200],

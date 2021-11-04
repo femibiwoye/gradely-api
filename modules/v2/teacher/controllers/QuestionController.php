@@ -229,6 +229,9 @@ class QuestionController extends ActiveController
                     return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Type is required or invalid');
                 }
 
+                if (isset($eachQuestion['topic_id']) && !empty($eachQuestion['topic_id'])) {
+                    $topic_id = $eachQuestion['topic_id'];
+                }
                 $type = $eachQuestion['type'];
                 $question = $eachQuestion['question'];
                 $duration = $eachQuestion['duration'];
