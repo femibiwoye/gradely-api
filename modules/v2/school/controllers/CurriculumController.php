@@ -44,11 +44,13 @@ class CurriculumController extends ActiveController
         //Control user type that can access this
         $behaviors['access'] = [
             'class' => AccessControl::className(),
+//            'except' => 'create-topic',
             'rules' => [
                 [
                     'allow' => true,
+
                     'matchCallback' => function () {
-                        return Yii::$app->user->identity->type == 'school';
+                        return in_array(Yii::$app->user->identity->type, ['school','teacher']);
                     },
                 ],
             ],
@@ -144,7 +146,12 @@ class CurriculumController extends ActiveController
      */
     public function actionCreateTopic()
     {
-        $school = Schools::findOne(['id' => Utility::getSchoolAccess()]); //Get school details
+        if(Yii::$app->user->identity->type =='teacher'){
+            $school = Schools::findOne(['id' => ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id'=>Yii::$app->user->id,'status'=>1])->asArray()->all(),'school_id')]);
+        }else {
+            $school = Schools::findOne(['id' => Utility::getSchoolAccess()]); //Get school details
+        }
+
         $preferenceForm = new PreferencesForm();
         $preferenceForm->EnsureAndCreateCurriculum($school); // Check curriculum exist, else create curriculum
         $schoolCurriculum = Utility::SchoolActiveCurriculum($school->id); //Get school active curriculum
@@ -157,6 +164,7 @@ class CurriculumController extends ActiveController
             $model->attributes = Yii::$app->request->post();
             $model->school_id = $school->id;
             $model->curriculum_id = $schoolCurriculum;
+            $model->creator_id = Yii::$app->user->id;
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
             }
