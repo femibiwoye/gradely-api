@@ -50,7 +50,7 @@ class CurriculumController extends ActiveController
                     'allow' => true,
 
                     'matchCallback' => function () {
-                        return in_array(Yii::$app->user->identity->type, ['school','teacher']);
+                        return in_array(Yii::$app->user->identity->type, ['school', 'teacher']);
                     },
                 ],
             ],
@@ -99,7 +99,7 @@ class CurriculumController extends ActiveController
                 //->with('learningArea')
                 ->where(['school_id' => $school->id, 'class_id' => $school_class, 'subject_id' => $subject])->orderBy([new \yii\db\Expression('position IS NULL ASC, position ASC, week ASC')])
                 ->asArray();
-            Utility::AutoDuplicateTopics($school->id,$school_class,$global_class,$subject);
+//            Utility::AutoDuplicateTopics($school->id, $school_class, $global_class, $subject); // To duplicate topic
         } else {
             $models = SubjectTopics::find()
                 ->select([
@@ -146,9 +146,9 @@ class CurriculumController extends ActiveController
      */
     public function actionCreateTopic()
     {
-        if(Yii::$app->user->identity->type =='teacher'){
-            $school = Schools::findOne(['id' => ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id'=>Yii::$app->user->id,'status'=>1])->asArray()->all(),'school_id')]);
-        }else {
+        if (Yii::$app->user->identity->type == 'teacher') {
+            $school = Schools::findOne(['id' => ArrayHelper::getColumn(TeacherClass::find()->where(['teacher_id' => Yii::$app->user->id, 'status' => 1])->asArray()->all(), 'school_id')]);
+        } else {
             $school = Schools::findOne(['id' => Utility::getSchoolAccess()]); //Get school details
         }
 
@@ -167,6 +167,9 @@ class CurriculumController extends ActiveController
             $model->creator_id = Yii::$app->user->id;
             if (!$model->validate()) {
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
+            }
+            if (SchoolTopic::find()->where(['topic' => $model->topic, 'class_id' => $model->class_id, 'school_id' => $model->school_id, 'term' => $model->term])->exists()) {
+                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Topic already exist');
             }
             if (!$model->save())
                 return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
@@ -209,35 +212,35 @@ class CurriculumController extends ActiveController
         $terms = ['first', 'second', 'third'];
         $dbtransaction = Yii::$app->db->beginTransaction();
         try {
-        foreach ($terms as $term) {
-            if (!isset($topics[$term]))
-                continue;
-            foreach ($topics[$term] as $order => $topic) {
-                if (isset($topic['is_new']) && $topic['is_new'] == 1 && SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->exists() && !SchoolTopic::find()->where(['topic_id' => $topic['id'],'class_id'=>$school_class,'school_id'=>$school->id])->exists()) {
-                    $gradelyTopic = SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->one();
-                    $newTopic = new SchoolTopic();
-                    $newTopic->topic = $gradelyTopic->topic;
-                    $newTopic->topic_id = $gradelyTopic->id;
-                    $newTopic->school_id = $school->id;
-                    $newTopic->class_id = $school_class;
-                    $newTopic->subject_id = $gradelyTopic->subject_id;
-                    $newTopic->curriculum_id = $schoolCurriculum;
-                    $newTopic->position = $order + 1;
-                    $newTopic->term = $term;
-                    $newTopic->week = $gradelyTopic->week_number;
-                    if(!$newTopic->save()){
-                        return (new ApiResponse)->error($newTopic->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION);
-                    }
-                } else {
-                    $model = SchoolTopic::findOne([$field => $topic['id'], 'class_id' => $school_class, 'subject_id' => $subject]);
-                    if($model) {
-                        $model->term = $term;
-                        $model->position = $order + 1;
-                        $model->save();
+            foreach ($terms as $term) {
+                if (!isset($topics[$term]))
+                    continue;
+                foreach ($topics[$term] as $order => $topic) {
+                    if (isset($topic['is_new']) && $topic['is_new'] == 1 && SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->exists() && !SchoolTopic::find()->where(['topic_id' => $topic['id'], 'class_id' => $school_class, 'school_id' => $school->id])->exists()) {
+                        $gradelyTopic = SubjectTopics::find()->where(['id' => $topic['id'], 'subject_id' => $subject])->one();
+                        $newTopic = new SchoolTopic();
+                        $newTopic->topic = $gradelyTopic->topic;
+                        $newTopic->topic_id = $gradelyTopic->id;
+                        $newTopic->school_id = $school->id;
+                        $newTopic->class_id = $school_class;
+                        $newTopic->subject_id = $gradelyTopic->subject_id;
+                        $newTopic->curriculum_id = $schoolCurriculum;
+                        $newTopic->position = $order + 1;
+                        $newTopic->term = $term;
+                        $newTopic->week = $gradelyTopic->week_number;
+                        if (!$newTopic->save()) {
+                            return (new ApiResponse)->error($newTopic->errors, ApiResponse::UNABLE_TO_PERFORM_ACTION);
+                        }
+                    } else {
+                        $model = SchoolTopic::findOne([$field => $topic['id'], 'class_id' => $school_class, 'subject_id' => $subject]);
+                        if ($model) {
+                            $model->term = $term;
+                            $model->position = $order + 1;
+                            $model->save();
+                        }
                     }
                 }
             }
-        }
             $dbtransaction->commit();
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
