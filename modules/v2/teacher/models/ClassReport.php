@@ -142,14 +142,11 @@ class ClassReport extends Model
 //                    ->leftJoin('homeworks h', 'h.school_id = ' . $class->school_id)
 //                    ->leftJoin('quiz_summary qs', 'qs.homework_id = h.id')
                     ->where(['school_topic.term' => $term, 'school_topic.subject_id' => $subject->id, 'school_topic.class_id' => $classesID])
-                    ->groupBy('school_topic.id, school_topic.topic')
+//                    ->groupBy('school_topic.id')
+                    ->groupBy('school_topic.topic')
 //                    ->orderBy(['school_topic.week_number' => 'ASC'])
                     ->all();
             }
-
-
-
-
 
 
             return $record;
@@ -267,7 +264,7 @@ class ClassReport extends Model
             ->leftJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'");
         if ($topicID = Yii::$app->request->get('topic_id')) {
             $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id AND qsd.topic_id = $topicID");
-        }else{
+        } else {
             $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id");
         }
         $students = $students->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
