@@ -457,7 +457,7 @@ class QuestionController extends ActiveController
         }
 
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
-        if (in_array($model->type, ['multiple', 'bool']) && !in_array($model->answer, ['A', 'B', 'C', 'D', '0', '1'])) {
+        if (in_array($model->type, ['multiple', 'bool']) && !in_array($answer, ['A', 'B', 'C', 'D', '0', '1'])) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid answer provided');
         } elseif ($model->type == 'short' && !is_array($answer)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Short answer must be an array');
@@ -469,7 +469,8 @@ class QuestionController extends ActiveController
         }
 
         $model->attributes = Yii::$app->request->post();
-        $model->answer = json_encode($answer);
+
+        $model->answer = in_array($model->type, ['multiple', 'bool']) ? $answer : json_encode($answer);
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not validated');
         }

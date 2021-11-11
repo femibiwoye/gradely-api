@@ -844,10 +844,11 @@ class Utility extends ActiveRecord
     public static function SchoolAlternativeClass($id, $global = false, $schoolID = null)
     {
         if ($global) {
-            return GlobalClass::findOne(['id' => $id]);
+            return GlobalClass::findOne(['id' => $id])->id;
         }
-        return Classes::findOne(['global_class_id' => $id, 'school_id' => $schoolID]);
+        return ArrayHelper::getColumn(Classes::findAll(['global_class_id' => $id, 'school_id' => $schoolID]),'id');
     }
+
 
     public static function SchoolTopicColumns($curriculumID)
     {

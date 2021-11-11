@@ -365,8 +365,10 @@ class ClassController extends ActiveController
                 } else {
                     $class = Utility::SchoolAlternativeClass($class_id, false, $schoolID);
                     $topics = SchoolTopic::find()
-                        ->where(['subject_id' => $subject_id, 'class_id' => $class->id, 'term' => $term])
-                        ->orderBy(['position' => SORT_ASC])->all();
+                        ->where(['subject_id' => $subject_id, 'class_id' => $class, 'term' => $term])
+                        ->orderBy(['position' => SORT_ASC])
+                        ->groupBy('topic')
+                        ->all();
                 }
                 $model[] = ['term' => $term, 'topics' => $topics];
             }
@@ -379,8 +381,9 @@ class ClassController extends ActiveController
             } else {
                 $class = Utility::SchoolAlternativeClass($class_id, false, $schoolID);
                 $model = SchoolTopic::find()
-                    ->where(['subject_id' => $subject_id, 'class_id' => $class->id])
+                    ->where(['subject_id' => $subject_id, 'class_id' => $class])
                     ->orderBy(['term' => SORT_ASC, 'week' => SORT_ASC])
+                    ->groupBy('topic')
                     ->all();;
             }
 
@@ -415,8 +418,9 @@ class ClassController extends ActiveController
         } else {
             $class = Utility::SchoolAlternativeClass($class_id, false, $schoolID);
             $model = SchoolTopic::find()
-                ->where(['class_id' => $class->id, 'subject_id' => $subject_id])
+                ->where(['class_id' => $class, 'subject_id' => $subject_id])
                 ->andWhere(['like', 'topic', '%' . $topic . '%', false])
+                ->groupBy('topic')
                 ->limit(6)
                 ->all();
         }

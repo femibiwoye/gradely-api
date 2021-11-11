@@ -9,7 +9,7 @@ use app\modules\v2\models\Classes;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentMastery;
 use app\modules\v2\models\StudentSchool;
-use app\modules\v2\models\{Subjects, SubjectTopics, QuizSummaryDetails, VideoContent};
+use app\modules\v2\models\{SchoolTopic, Subjects, SubjectTopics, QuizSummaryDetails, VideoContent};
 use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
 use app\modules\v2\models\User;
@@ -109,20 +109,45 @@ class ClassReport extends Model
         try {
             $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
 
-            $record = SubjectTopics::find()
-                ->select([
-                    'subject_topics.id',
-                    'topic',
-                    'subject_topics.term',
-                    'subject_topics.image'
-                ])
-                ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
-                ->leftJoin('homeworks h', 'h.school_id = ' . $class->school_id)
-                ->leftJoin('quiz_summary qs', 'qs.homework_id = h.id')
-                ->where(['subject_topics.term' => $term, 'subject_topics.subject_id' => $subject->id, 'subject_topics.class_id' => $class->global_class_id])
-                ->groupBy('subject_topics.id')
-                ->orderBy(['qs.id' => 'ASC', 'subject_topics.week_number' => 'ASC'])
-                ->all();
+            $curriculumStatus = Utility::SchoolActiveCurriculum($class->school_id, true);
+            if (!$curriculumStatus) {
+                $record = SubjectTopics::find()
+                    ->select([
+                        'subject_topics.id',
+                        'topic',
+                        'subject_topics.term',
+                        'subject_topics.image'
+                    ])
+                    ->innerJoin('questions q', 'q.topic_id = subject_topics.id')
+                    ->leftJoin('homeworks h', 'h.school_id = ' . $class->school_id)
+                    ->leftJoin('quiz_summary qs', 'qs.homework_id = h.id')
+                    ->where(['subject_topics.term' => $term, 'subject_topics.subject_id' => $subject->id, 'subject_topics.class_id' => $class->global_class_id])
+                    ->groupBy('subject_topics.id')
+                    ->orderBy(['qs.id' => 'ASC', 'subject_topics.week_number' => 'ASC'])
+                    ->all();
+            } else {
+                $classesID = Utility::SchoolAlternativeClass($class->global_class_id, false, $class->school_id);
+                $record = SchoolTopic::find()
+                    ->select([
+                        'id',
+                        'topic_id',
+                        'topic',
+                        new Expression('1 is_custom'),
+                        'week',
+                        'term',
+                        'curriculum_id AS curriculum',
+                        new Expression("null AS image"),
+                        'position'
+                    ])
+//                    ->leftJoin('homeworks h', 'h.school_id = ' . $class->school_id)
+//                    ->leftJoin('quiz_summary qs', 'qs.homework_id = h.id')
+                    ->where(['school_topic.term' => $term, 'school_topic.subject_id' => $subject->id, 'school_topic.class_id' => $classesID])
+//                    ->groupBy('school_topic.id')
+                    ->groupBy('school_topic.topic')
+//                    ->orderBy(['school_topic.week_number' => 'ASC'])
+                    ->all();
+            }
+
 
             return $record;
         } catch (\Exception $exception) {
@@ -239,7 +264,7 @@ class ClassReport extends Model
             ->leftJoin('quiz_summary qs', "qs.student_id = user.id AND qs.subject_id = $subject_id AND qs.submit = 1 AND qs.class_id = $class AND qs.mode = 'practice' AND qs.term = '$term'");
         if ($topicID = Yii::$app->request->get('topic_id')) {
             $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id AND qsd.topic_id = $topicID");
-        }else{
+        } else {
             $students = $students->leftJoin('quiz_summary_details qsd', "qsd.quiz_id = qs.id");
         }
         $students = $students->where(['AND', ['user.type' => 'student'], ['<>', 'user.status', SharedConstant::STATUS_DELETED]])
