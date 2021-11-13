@@ -81,7 +81,7 @@ class Homeworks extends \yii\db\ActiveRecord
         return [
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'slug', 'title'], 'required', 'on' => 'assessment'],
             [['teacher_id', 'subject_id', 'class_id', 'school_id', 'exam_type_id', 'topic_id', 'curriculum_id', 'publish_status', 'duration', 'status', 'exam_type_id', 'selected_student', 'is_custom_topic', 'is_proctor'], 'integer'],
-            [['description', 'access_status', 'type', 'tag', 'mode', 'session','bulk_creation_reference'], 'string'],
+            [['description', 'access_status', 'type', 'tag', 'mode', 'session', 'bulk_creation_reference'], 'string'],
             [['open_date', 'close_date', 'created_at', 'publish_at', 'is_custom_topic'], 'safe'],
             [['slug', 'title'], 'string', 'max' => 255],
             [['student_id', 'subject_id', 'class_id', 'slug', 'title'], 'required', 'on' => 'student-practice'],
@@ -140,6 +140,7 @@ class Homeworks extends \yii\db\ActiveRecord
             'questionsDuration',
             'score',
             'status',
+            'review_status',
             'tag',
             'activeStatus' => 'statusMessage', //this is used for student to know if homework is open, expired or closed
             'expiry_status' => 'expiryStatus',
@@ -369,7 +370,7 @@ class Homeworks extends \yii\db\ActiveRecord
     public function getSubject()
     {
         $model = $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
-        if (isset($this->school_id) && $this->school_id > 0 && SchoolSubject::find()->where(['school_id'=>$this->school_id])->exists()) {
+        if (isset($this->school_id) && $this->school_id > 0 && SchoolSubject::find()->where(['school_id' => $this->school_id])->exists()) {
             $model = $model->select(['subjects.id', 'subjects.slug', 'subjects.description', "IFNULL(ss.custom_subject_name,subjects.name) as name"])
                 ->leftJoin('school_subject ss', 'ss.subject_id = subjects.id')
                 ->where(['ss.status' => 1, 'ss.school_id' => $this->school_id]);
@@ -445,7 +446,7 @@ class Homeworks extends \yii\db\ActiveRecord
         }
 
 
-        $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework', 'session'=>Yii::$app->params['activeSession']]]);
+        $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework', 'session' => Yii::$app->params['activeSession']]]);
         if (Yii::$app->user->identity->type == 'parent' || Yii::$app->user->identity->type == 'student') {
             $homeworks = $homeworks->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()], ['homeworks.selected_student' => 0]]);
         }
