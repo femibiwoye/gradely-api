@@ -160,7 +160,8 @@ class HomeworkController extends ActiveController
             ->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()])
             ->andWhere(['IS', 'qs.homework_id', null])
             ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => $student_id], ['homeworks.selected_student' => 0]])
-            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']]);
+            ->andWhere(['between', 'homeworks.created_at', Yii::$app->params['first_term_start'], Yii::$app->params['third_term_end']])
+            ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 1], ['tag' => ['homework', 'quiz']]]);;
 
         if ($subject_id)
             $models = $models->andWhere(['homeworks.subject_id' => $subject_id]);
