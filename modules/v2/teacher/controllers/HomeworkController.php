@@ -454,14 +454,14 @@ class HomeworkController extends ActiveController
 //        }
 
         if ($model->tag == 'exam') {
-            $notification = new InputNotification();
-            $notification->NewNotification('exam_scheduled_parent', [
-                ['parent_name', $parent->parentProfile->firstname . ' ' . $parent->parentProfile->lastname],
-                ['child_name', $student->firstname . ' ' . $student->lastname],
-                ['subject', $tutorSession->subject->name],
-                ['duration', $tutorSession->classObject->class_name],
-                ['email', $parent->parentProfile->email]
-            ]);
+//            $notification = new InputNotification();
+//            $notification->NewNotification('exam_scheduled_parent', [
+//                ['parent_name', $parent->parentProfile->firstname . ' ' . $parent->parentProfile->lastname],
+//                ['child_name', $student->firstname . ' ' . $student->lastname],
+//                ['subject', $tutorSession->subject->name],
+//                ['duration', $tutorSession->classObject->class_name],
+//                ['email', $parent->parentProfile->email]
+//            ]);
         } else {
             $notification = new InputNotification();
             $notification->NewNotification('teacher_create_homework_teacher', [['homework_id', $model->id]]);
