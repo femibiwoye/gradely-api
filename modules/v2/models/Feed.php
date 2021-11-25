@@ -258,7 +258,7 @@ class Feed extends \yii\db\ActiveRecord
     public function FeedDisliked()
     {
         $model = $this->getFeedLike()->andWhere(['user_id' => Yii::$app->user->id])->one();
-        if (!$model->delete()) {
+        if ($model && !$model->delete()) {
             return false;
         }
 
