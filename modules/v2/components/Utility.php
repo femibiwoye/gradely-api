@@ -126,14 +126,16 @@ class Utility extends ActiveRecord
 //6-9 years = Lower Elementary
 //9-12 years = Upper Elementary
 
-            if (($classID >= 1 && $classID <= 3) || $classID > 12) {
+            if ($classID > 12) {
                 $fullName = 'Infant/Toddler';
+            } elseif ($classID >= 1 && $classID <= 3) {
+                $fullName = "Lower Elementary";
             } elseif ($classID >= 4 && $classID <= 6) {
-                $fullName = "Primary/Children's House";
+                $fullName = "Upper Elementary";
             } elseif ($classID >= 7 && $classID <= 9) {
-                $fullName = 'Lower Elementary';
+                $fullName = 'Lower Secondary';
             } elseif ($classID >= 9 && $classID <= 12) {
-                $fullName = 'Upper Elementary';
+                $fullName = 'Upper Secondary';
             }
         } else {
             if ($classID <= 12) $fullName = 'Year ' . $classID;
