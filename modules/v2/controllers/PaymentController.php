@@ -95,7 +95,7 @@ class PaymentController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
-        $model = PaymentPlan::find()->where(['type' => $type])->limit(3)->all();
+        $model = PaymentPlan::find()->where(['type' => $type,'status'=>1])->limit(3)->all();
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }

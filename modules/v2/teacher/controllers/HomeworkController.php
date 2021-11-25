@@ -395,7 +395,7 @@ class HomeworkController extends ActiveController
         if ($model->publish_status == 0) {
             $model->publish_status = 1;
             $model->publish_at = date('Y-m-d H:i:s');
-            if ($model->save() && $this->publishHomeworkFeed($model->id)) {
+            if ($model->save() && $this->publishHomeworkFeed($model->id, $model)) {
                 $this->HomeworkNotification($model);
             } else {
                 $createStatus = true;
@@ -416,7 +416,7 @@ class HomeworkController extends ActiveController
             if ($eachHomework->publish_status == 0) {
                 $eachHomework->publish_status = 1;
                 $eachHomework->publish_at = date('Y-m-d H:i:s');
-                if ($eachHomework->save() && $this->publishHomeworkFeed($eachHomework->id)) {
+                if ($eachHomework->save() && $this->publishHomeworkFeed($eachHomework->id, $eachHomework)) {
                     $this->HomeworkNotification($eachHomework);
                     //Call success notification
                 } else {
@@ -430,13 +430,15 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($eachHomework, ApiResponse::SUCCESSFUL, 'Homework successfully published');
     }
 
-    private function publishHomeworkFeed($homework_id)
+    private function publishHomeworkFeed($homework_id, $Homework)
     {
-        $model = Feed::findOne(['reference_id' => $homework_id, 'status' => SharedConstant::VALUE_ZERO]);
-        $model->status = SharedConstant::VALUE_ONE;
-        $model->created_at = date('Y-m-d H:i:s');
-        if (!$model->save()) {
-            return false;
+        if ($Homework->tag != 'exam') {
+            $model = Feed::findOne(['reference_id' => $homework_id, 'status' => SharedConstant::VALUE_ZERO]);
+            $model->status = SharedConstant::VALUE_ONE;
+            $model->created_at = date('Y-m-d H:i:s');
+            if (!$model->save()) {
+                return false;
+            }
         }
 
         return true;
@@ -452,14 +454,14 @@ class HomeworkController extends ActiveController
 //        }
 
         if ($model->tag == 'exam') {
-            $notification = new InputNotification();
-            $notification->NewNotification('exam_scheduled_parent', [
-                ['parent_name', $parent->parentProfile->firstname . ' ' . $parent->parentProfile->lastname],
-                ['child_name', $student->firstname . ' ' . $student->lastname],
-                ['subject', $tutorSession->subject->name],
-                ['duration', $tutorSession->classObject->class_name],
-                ['email', $parent->parentProfile->email]
-            ]);
+//            $notification = new InputNotification();
+//            $notification->NewNotification('exam_scheduled_parent', [
+//                ['parent_name', $parent->parentProfile->firstname . ' ' . $parent->parentProfile->lastname],
+//                ['child_name', $student->firstname . ' ' . $student->lastname],
+//                ['subject', $tutorSession->subject->name],
+//                ['duration', $tutorSession->classObject->class_name],
+//                ['email', $parent->parentProfile->email]
+//            ]);
         } else {
             $notification = new InputNotification();
             $notification->NewNotification('teacher_create_homework_teacher', [['homework_id', $model->id]]);

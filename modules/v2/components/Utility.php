@@ -120,6 +120,21 @@ class Utility extends ActiveRecord
                     $fullName = $fullName . $classID;
                     break;
             }
+        } else if ($school->naming_format == 'montessori') {
+///0-3 years = Infant/Toddler
+//3-6 years = Primary/Children's House
+//6-9 years = Lower Elementary
+//9-12 years = Upper Elementary
+
+            if (($classID >= 1 && $classID <= 3) || $classID > 12) {
+                $fullName = 'Infant/Toddler';
+            } elseif ($classID >= 4 && $classID <= 6) {
+                $fullName = "Primary/Children's House";
+            } elseif ($classID >= 7 && $classID <= 9) {
+                $fullName = 'Lower Elementary';
+            } elseif ($classID >= 9 && $classID <= 12) {
+                $fullName = 'Upper Elementary';
+            }
         } else {
             if ($classID <= 12) $fullName = 'Year ' . $classID;
         }
@@ -846,7 +861,7 @@ class Utility extends ActiveRecord
         if ($global) {
             return GlobalClass::findOne(['id' => $id])->id;
         }
-        return ArrayHelper::getColumn(Classes::findAll(['global_class_id' => $id, 'school_id' => $schoolID]),'id');
+        return ArrayHelper::getColumn(Classes::findAll(['global_class_id' => $id, 'school_id' => $schoolID]), 'id');
     }
 
 

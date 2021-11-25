@@ -174,6 +174,7 @@ class Feed extends \yii\db\ActiveRecord
     {
         if ($this->type == SharedConstant::FEED_TYPES[2]) {
             return $this->hasOne(Homeworks::className(), ['id' => 'reference_id'])->andWhere(['status' => 1, 'publish_status' => 1]);
+//                ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 1], ['tag' => ['homework', 'quiz']]]);
         }
 
         if ($this->type == SharedConstant::FEED_TYPES[3]) {
