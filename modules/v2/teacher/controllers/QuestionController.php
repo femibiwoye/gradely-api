@@ -398,12 +398,20 @@ class QuestionController extends ActiveController
         $teacher = Yii::$app->user->id;
         $form = new \yii\base\DynamicModel(compact('question_id', 'homework_id', 'teacher'));
         $form->addRule(['question_id', 'homework_id'], 'required');
-        $form->addRule(['question_id'], 'exist', ['targetClass' => HomeworkQuestions::className(), 'targetAttribute' => ['teacher' => 'teacher_id',
-            'question_id' => 'question_id', 'homework_id' => 'homework_id']]);
+        if (Yii::$app->user->identity->type == 'school') {
+            if (!Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'id' => $homework_id])->exists()) {
+                $form->addError('question_id','You do not have access');
+                return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
+            }
+        } else {
+            $form->addRule(['question_id'], 'exist', ['targetClass' => HomeworkQuestions::className(), 'targetAttribute' => ['teacher' => 'teacher_id',
+                'question_id' => 'question_id', 'homework_id' => 'homework_id']]);
+        }
 
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
+
 
         $model = HomeworkQuestions::findOne(['homework_id' => $homework_id, 'question_id' => $question_id]);
         if (!$model->delete()) {
