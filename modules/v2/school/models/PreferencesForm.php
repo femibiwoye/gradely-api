@@ -162,6 +162,7 @@ class PreferencesForm extends Model
                 $dbtransaction->commit();
                 return true;
             }
+            $dbtransaction->commit();
             return false;
         } catch (\Exception $e) {
             $dbtransaction->rollBack();

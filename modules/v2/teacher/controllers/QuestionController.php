@@ -145,8 +145,8 @@ class QuestionController extends ActiveController
         $model->teacher_id = $teacher_id;
         // i added this later, meaning lots of questions had been created by teacher without adding school_id
         $model->school_id = $schoolID;
-
-        if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a])->exists()) {
+        $globalClassId = Classes::findOne(['id' => $class_id])->global_class_id;
+        if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $type, 'option_a' => $model->option_a, 'class_id' => $globalClassId])->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
         }
 
@@ -166,12 +166,11 @@ class QuestionController extends ActiveController
         }
         $model->exam_type_id = $examID;
         $model->homework_id = $homework_id;
-        $model->class_id = Classes::findOne(['id' => $class_id])->global_class_id;
+        $model->class_id = $globalClassId;
 
         if (!$model->save()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not saved');
         }
-
 
         if (!empty($homework_id)) {
             $assignQuestion = new HomeworkQuestions();
@@ -262,8 +261,8 @@ class QuestionController extends ActiveController
                 $model->school_id = $schoolID;
                 $model->subject_id = $subject_id;
                 $model->topic_id = $topic_id;
-                $model->class_id = $homework->class_id;
-                if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $model->type, 'option_a' => $model->option_a])->exists()) {
+                $model->class_id = Classes::findOne(['id' => $homework->class_id])->global_class_id;
+                if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $model->type, 'option_a' => $model->option_a,'class_id'=>$model->class_id])->exists()) {
                     return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
                 }
 
@@ -400,7 +399,7 @@ class QuestionController extends ActiveController
         $form->addRule(['question_id', 'homework_id'], 'required');
         if (Yii::$app->user->identity->type == 'school') {
             if (!Homeworks::find()->where(['school_id' => Utility::getSchoolAccess(), 'id' => $homework_id])->exists()) {
-                $form->addError('question_id','You do not have access');
+                $form->addError('question_id', 'You do not have access');
                 return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
             }
         } else {
