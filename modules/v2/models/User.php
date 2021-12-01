@@ -68,7 +68,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             'image' => 'imageUrl',
             'type',
             'email',
-            'class'=>'classDetail',
+            'class' => 'classDetail',
             'is_boarded',
             'token',
             'profile' => 'userProfile',
@@ -96,7 +96,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
     public function getClassDetail()
     {
-       return Utility::getStudentClass(0,$this->id,true);
+        return Utility::getStudentClass(0, $this->id, true);
     }
 
     public function getTopics()
@@ -177,8 +177,9 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             $expires = strtotime("+60 second", strtotime($user->token_expires));
             $user->last_accessed = date('Y-m-d H:i:s');
             if ($expires > time()) {
-                $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
-                $user->save();
+                //To be returned later
+//                $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
+//                $user->save();
                 return $user;
             } else {
                 $user->token = null;
@@ -236,8 +237,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             $this->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
             $this->token = $token;
         }
-        if (!$this->save(false)) {
-            return false;
+        if (!$this->save()) {
+            if (!$this->save(false)) {
+                return false;
+            }
         }
 
         return $this->token;
@@ -292,14 +295,14 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
     public function getTeacherClass()
     {
-        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->where(['teacher_class.status'=>1])->groupBy(['class_id']);
+        return $this->hasMany(TeacherClass::className(), ['teacher_id' => 'id'])->where(['teacher_class.status' => 1])->groupBy(['class_id']);
     }
 
     public function getClasses()
     {
         return $this->hasMany(Classes::className(), ['id' => 'class_id'])
             ->leftJoin('schools s', 's.id = classes.school_id')
-            ->innerJoin('teacher_class tc','tc.class_id = classes.id AND tc.status = 1 AND tc.school_id = s.id')
+            ->innerJoin('teacher_class tc', 'tc.class_id = classes.id AND tc.status = 1 AND tc.school_id = s.id')
             ->select(['classes.*', 's.name school_name'])
             ->asArray()
             ->via('teacherClass');

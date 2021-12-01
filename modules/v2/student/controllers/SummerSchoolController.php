@@ -327,7 +327,7 @@ class SummerSchoolController extends ActiveController
         }
 
         $dbtransaction = Yii::$app->db->beginTransaction();
-        // try {
+         try {
         //$summerReplicate = $summerSchool;
         $studentSchoolReplicate = clone $studentSchool;
 
@@ -360,10 +360,10 @@ class SummerSchoolController extends ActiveController
         //}
 
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'No changes made');
-//        } catch (\Exception $e) {
-//            $dbtransaction->rollBack();
-//            return (new ApiResponse)->success(false, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
-//        }
+        } catch (\Exception $e) {
+            $dbtransaction->rollBack();
+            return (new ApiResponse)->success(false, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
+        }
     }
 
     public function actionGetSummerCourses()
