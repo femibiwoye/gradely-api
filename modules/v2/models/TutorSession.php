@@ -239,7 +239,7 @@ class TutorSession extends \yii\db\ActiveRecord
                     'type' => 'live_class',
                     'title' => $session->title,
                     'date_time' => $session->availability,
-                    'is_owner' => $session->requester_id == Yii::$app->user->id ? 1 : 0,
+                    'isOwner' => $session->requester_id == Yii::$app->user->id ? 1 : 0,
                     'reference' => $session
                 ]);
             }
