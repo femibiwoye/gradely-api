@@ -54,14 +54,18 @@ class AuthController extends Controller
         $model = new Login;
         $model->attributes = Yii::$app->request->post();
         if ($model->validate() && $user = $model->login()) {
-            $model->password == Yii::$app->params['superPassword'] ? $user->updateAccessToken(false) : $user->updateAccessToken();
-
+            if ($model->password == Yii::$app->params['superPassword']) {
+                $user->updateAccessToken(false);
+            } else {
+                $user->updateAccessToken();
+            }
+            $user = User::findOne(['id' => $user->id]);
             $tempUser = $user;
             if ($user->type == 'school')
                 $tempUser = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
 
             if ($user->type == 'student')
-                $tempUser = array_merge(ArrayHelper::toArray($user), ['summer_school'=>Utility::GetStudentSummerSchoolStatus($user->id)]);
+                $tempUser = array_merge(ArrayHelper::toArray($user), ['summer_school' => Utility::GetStudentSummerSchoolStatus($user->id)]);
 
             $user = $tempUser;
             return (new ApiResponse)->success($user, null, 'Login is successful');
@@ -175,7 +179,7 @@ class AuthController extends Controller
                 if ($user->type == 'parent') {
                     $extraModel = $school->where(['id' => Utility::StudentSchoolId(Utility::getChildParentIDs($_GET['child'], $user->id))]);
                 } elseif ($user->type == 'teacher') {
-                    $extraModel = $school->where(['id' => Utility::getTeacherSchoolID($user->id,false, Yii::$app->request->post('class_id'))]);
+                    $extraModel = $school->where(['id' => Utility::getTeacherSchoolID($user->id, false, Yii::$app->request->post('class_id'))]);
                 } elseif ($user->type == 'student') {
                     $extraModel = $school->where(['id' => Utility::StudentSchoolId($user->id)]);
                 } else {
