@@ -237,6 +237,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             $token = Yii::$app->security->generateRandomString(200);
             $currentUser->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
             $currentUser->token = $token;
+            if (!$currentUser->save()) {
+                    return false;
+            }
+            return $currentUser->token;
         }
         if (!$currentUser->save()) {
             if (!$currentUser->save(false)) {
