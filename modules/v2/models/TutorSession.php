@@ -229,9 +229,10 @@ class TutorSession extends \yii\db\ActiveRecord
             ->andWhere(['<>', 'status', 'completed'])
             ->orderBy(['availability' => SORT_ASC])
             ->all();
+
         foreach ($sessions as $session) {
             //strtotime($session->availability) <= time() + 604800 &&
-            if (strtotime($session->availability) >= time()) {
+            if (date("Y-m-d", strtotime($session->availability)) >= date("Y-m-d")) {
                 array_push($this->new_sessions, [
                     'id' => $session->id,
                     'type' => 'live_class',
