@@ -466,6 +466,7 @@ class Homeworks extends \yii\db\ActiveRecord
                     'type' => $homework->type,
                     'title' => $homework->title,
                     'date_time' => $homework->close_date,
+                    'is_owner' => $homework->teacher_id == Yii::$app->user->id ? 1 : 0,
                     'reference' => $homework
                 ]);
             }

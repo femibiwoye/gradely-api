@@ -115,6 +115,7 @@ class TutorSession extends \yii\db\ActiveRecord
             'repetition',
             'class',
             'subject_id',
+            'subject' => 'subjectDetails',
             'session_count',
             'curriculum_id',
             'category',
@@ -238,6 +239,7 @@ class TutorSession extends \yii\db\ActiveRecord
                     'type' => 'live_class',
                     'title' => $session->title,
                     'date_time' => $session->availability,
+                    'is_owner' => $session->requester_id == Yii::$app->user->id ? 1 : 0,
                     'reference' => $session
                 ]);
             }
@@ -289,6 +291,11 @@ class TutorSession extends \yii\db\ActiveRecord
     public function getSubject()
     {
         return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+    }
+
+    public function getSubjectDetails()
+    {
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id'])->select(['id', 'name', 'image']);
     }
 
     public function getClassObject()
