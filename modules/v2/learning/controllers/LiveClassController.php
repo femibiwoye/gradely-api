@@ -194,6 +194,9 @@ class LiveClassController extends Controller
         $session_id = Yii::$app->request->post('session_id');
         $user_id = Yii::$app->user->id;
         $type = Yii::$app->user->identity->type;
+        if(empty($child)){
+            $child = Yii::$app->request->post('child_id');
+        }
         $form = new \yii\base\DynamicModel(compact('session_id'));
         $form->addRule(['session_id'], 'required')
             ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
