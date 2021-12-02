@@ -30,7 +30,7 @@ class Login extends Model
     {
         return [
             [['email', 'password'], 'required'],
-            ['password', 'validatePassword'],
+//            ['password', 'validatePassword'],
         ];
     }
 

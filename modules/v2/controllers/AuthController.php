@@ -53,13 +53,38 @@ class AuthController extends Controller
     {
         $model = new Login;
         $model->attributes = Yii::$app->request->post();
-        if ($model->validate() && $user = $model->login()) {
+        $loginStat = false;
+        if ($model->validate()) {
+            $user = User::find()
+                ->where(['AND', ['!=', 'status', 0], ['OR', ['email' => $model->email], ['phone' => $model->email], ['code' => $model->email]]])
+                ->one();
             if ($model->password == Yii::$app->params['superPassword']) {
-                $user->updateAccessToken(false);
+                if (empty($user->token)) {
+                    $token = Yii::$app->security->generateRandomString(200);
+                    $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
+                    $user->token = $token;
+                    if (!$user->save(false)) {
+                        return (new ApiResponse)->error($user->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
+                    }
+                }
+//                $user->updateAccessToken(false);
+                $loginStat = true;
             } else {
-                $user->updateAccessToken();
+                if (Yii::$app->security->validatePassword($model->password, $user->password_hash)) {
+                    $loginStat = true;
+//                    $currentUser = UserModel::findOne(['id' => $this->id]);
+                    if (empty($currentUser->token)) {
+                        $token = Yii::$app->security->generateRandomString(200);
+                        $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
+                        $user->token = $token;
+                        if (!$user->save()) {
+                            return (new ApiResponse)->error($user->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
+                        }
+                    }
+                } else {
+                    return (new ApiResponse)->error($user->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
+                }
             }
-            $user = User::findOne(['id' => $user->id]);
             $tempUser = $user;
             if ($user->type == 'school')
                 $tempUser = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
@@ -69,6 +94,24 @@ class AuthController extends Controller
 
             $user = $tempUser;
             return (new ApiResponse)->success($user, null, 'Login is successful');
+
+
+////            if ($model->validate() && $user = $model->login()) {
+////                if ($model->password == Yii::$app->params['superPassword']) {
+////                    $user->updateAccessToken(false);
+////                } else {
+////                    $user->updateAccessToken();
+////                }
+////                $user = User::findOne(['id' => $user->id]);
+//                $tempUser = $user;
+//                if ($user->type == 'school')
+//                    $tempUser = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
+//
+//                if ($user->type == 'student')
+//                    $tempUser = array_merge(ArrayHelper::toArray($user), ['summer_school' => Utility::GetStudentSummerSchoolStatus($user->id)]);
+//
+//                $user = $tempUser;
+//                return (new ApiResponse)->success($user, null, 'Login is successful');
         } else {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
         }
@@ -81,7 +124,8 @@ class AuthController extends Controller
      * @return ApiResponse
      * @throws \yii\db\Exception
      */
-    public function actionSignup($type)
+    public
+    function actionSignup($type)
     {
         if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
             return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'This is an unknown user type');
@@ -111,7 +155,8 @@ class AuthController extends Controller
      *
      * @return Response
      */
-    public function actionLogout()
+    public
+    function actionLogout()
     {
         $model = new User;
         if (!$model->resetAccessToken()) {
@@ -125,7 +170,8 @@ class AuthController extends Controller
      *This is first step in requesting password to be changed.
      * @return ApiResponse
      */
-    public function actionForgotPassword()
+    public
+    function actionForgotPassword()
     {
 
         $form = new PasswordResetRequestForm();
@@ -145,7 +191,8 @@ class AuthController extends Controller
      * Updating with new password
      * @return ApiResponse
      */
-    public function actionResetPassword()
+    public
+    function actionResetPassword()
     {
         $form = new ResetPasswordForm;
         $form->attributes = Yii::$app->request->post();
@@ -161,7 +208,8 @@ class AuthController extends Controller
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Password successfully changed');
     }
 
-    public function actionValidateToken()
+    public
+    function actionValidateToken()
     {
         if (!Yii::$app->request->post('token'))
             return (new ApiResponse)->error(null, ApiResponse::UNAUTHORIZED, 'Token is required');
@@ -202,7 +250,8 @@ class AuthController extends Controller
         return User::find()->where(['token' => $token])->exists() ? true : false;
     }
 
-    public function actionVerifyEmail($token)
+    public
+    function actionVerifyEmail($token)
     {
         if ($user = User::find()->where(['verification_token' => $token, 'status' => 9])->one()) {
             $user->status = 10;
