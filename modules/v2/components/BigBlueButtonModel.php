@@ -102,6 +102,11 @@ class BigBlueButtonModel extends Model
     public function JoinMeeting($moderator = false, $child = null)
     {
 
+        //Not sure if this is necessary
+        if($child == null)
+        {
+            $child = 'na';
+        }
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'join';
 
