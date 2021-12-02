@@ -73,11 +73,11 @@ class AuthController extends Controller
                 if (Yii::$app->security->validatePassword($model->password, $user->password_hash)) {
                     $loginStat = true;
 //                    $currentUser = UserModel::findOne(['id' => $this->id]);
-                    if (empty($currentUser->token)) {
+                    if (empty($user->token)) {
                         $token = Yii::$app->security->generateRandomString(200);
                         $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                         $user->token = $token;
-                        if (!$user->save()) {
+                        if (!$user->save(false)) {
                             return (new ApiResponse)->error($user->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
                         }
                     }
