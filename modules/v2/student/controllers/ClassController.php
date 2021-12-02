@@ -36,6 +36,7 @@ class ClassController extends ActiveController
         $behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CustomHttpBearerAuth::className(),
+            'except' => ['verify-class']
         ];
 
         return $behaviors;

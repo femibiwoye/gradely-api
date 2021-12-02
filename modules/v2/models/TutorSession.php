@@ -115,6 +115,7 @@ class TutorSession extends \yii\db\ActiveRecord
             'repetition',
             'class',
             'subject_id',
+            'subject' => 'subjectDetails',
             'session_count',
             'curriculum_id',
             'category',
@@ -229,14 +230,16 @@ class TutorSession extends \yii\db\ActiveRecord
             ->andWhere(['<>', 'status', 'completed'])
             ->orderBy(['availability' => SORT_ASC])
             ->all();
+
         foreach ($sessions as $session) {
             //strtotime($session->availability) <= time() + 604800 &&
-            if (strtotime($session->availability) >= time()) {
+            if (date("Y-m-d", strtotime($session->availability)) >= date("Y-m-d")) {
                 array_push($this->new_sessions, [
                     'id' => $session->id,
                     'type' => 'live_class',
                     'title' => $session->title,
                     'date_time' => $session->availability,
+                    'isOwner' => $session->requester_id == Yii::$app->user->id ? 1 : 0,
                     'reference' => $session
                 ]);
             }
@@ -288,6 +291,11 @@ class TutorSession extends \yii\db\ActiveRecord
     public function getSubject()
     {
         return $this->hasOne(Subjects::className(), ['id' => 'subject_id']);
+    }
+
+    public function getSubjectDetails()
+    {
+        return $this->hasOne(Subjects::className(), ['id' => 'subject_id'])->select(['id', 'name', 'image']);
     }
 
     public function getClassObject()
