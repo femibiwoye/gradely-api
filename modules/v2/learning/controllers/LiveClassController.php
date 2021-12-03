@@ -237,7 +237,7 @@ class LiveClassController extends Controller
                     $destinationLink = $bbbModel->JoinMeeting(true,$child);
                 } else {
                     $bbbModel->attendeePW = $tutor_session->extra_meta['attendeePW'];
-                    $destinationLink = $bbbModel->JoinMeeting($child);
+                    $destinationLink = $bbbModel->JoinMeeting(false,$child);
                 }
                 $token = $tutor_session->meeting_token;
             } else {
