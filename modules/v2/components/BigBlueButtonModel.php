@@ -130,7 +130,7 @@ class BigBlueButtonModel extends Model
             'userdata-bbb_skip_video_preview' => 'true',
 
             'userdata-bbb_listen_only_mode' => 'false',
-//            'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id . '&child_id=' . $child,
+            'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id . '&child_id=' . $child,
 
         ]);
 
