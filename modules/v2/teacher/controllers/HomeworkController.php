@@ -164,7 +164,7 @@ class HomeworkController extends ActiveController
 //        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 //    }
 
-    public function actionClassHomeworks($class_id = null, $subject_id = null)
+    public function actionClassHomeworks($class_id = null, $subject_id = null, $type=null)
     {
         $model = $this->modelClass::find()->andWhere([
             'teacher_id' => Yii::$app->user->id,
@@ -172,6 +172,12 @@ class HomeworkController extends ActiveController
         if ($class_id) {
             $model = $model->andWhere(['class_id' => $class_id]);
         }
+
+        if ($type) {
+            $model = $model->andWhere(['tag' => $type]);
+        }
+
+        //TODO add status and type filter here
 
         if ($subject_id) {
             $model = $model->andWhere(['subject_id' => $subject_id]);

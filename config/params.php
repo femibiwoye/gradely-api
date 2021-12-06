@@ -39,7 +39,7 @@ return [
     'AwsS3Secret' => AWS_S3_SECRET,
     'AwsS3BucketName' => 'gradly',
 
-    'live_class_limit' => 200,
+    'live_class_limit' => 1000,
     'live_class_url' => LIVE_CLASS_URL,
     'live_class_recorded_url' => LIVE_CLASS_RECORDED_URL,
 
