@@ -141,7 +141,7 @@ class AuthController extends Controller
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'User is not created successfully');
         }
 
-        $user->updateAccessToken();
+        $user->token = $user->updateAccessToken();
         if ($user->type == 'school')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
 
