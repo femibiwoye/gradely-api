@@ -168,7 +168,8 @@ class HomeworkController extends ActiveController
     {
         $model = $this->modelClass::find()->andWhere([
             'teacher_id' => Yii::$app->user->id,
-            'type' => 'homework', 'status' => 1, 'publish_status' => 1]);
+            'type' => 'homework', 'status' => 1, 'publish_status' => 1])
+        ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 1], ['tag' => ['homework', 'quiz']]]);
         if ($class_id) {
             $model = $model->andWhere(['class_id' => $class_id]);
         }
@@ -204,7 +205,49 @@ class HomeworkController extends ActiveController
         ]);
 
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
+    }
 
+    public function actionHomeworkReview($class_id = null, $subject_id = null, $type=null)
+    {
+        $model = $this->modelClass::find()->andWhere([
+            'teacher_id' => Yii::$app->user->id,
+            'type' => 'homework', 'status' => 1, 'publish_status' => 1])
+        ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 0], ['tag' => ['homework', 'quiz']]]);
+        if ($class_id) {
+            $model = $model->andWhere(['class_id' => $class_id]);
+        }
+
+        if ($type) {
+            $model = $model->andWhere(['tag' => $type]);
+        }
+
+        //TODO add status and type filter here
+
+        if ($subject_id) {
+            $model = $model->andWhere(['subject_id' => $subject_id]);
+        }
+
+//        if(!empty($term) && in_array($term,SharedConstant::TERMS)){
+//            $model = $model->andWhere(['term'=>$term]);
+//        }
+
+
+        if (!$model->count() > 0) {
+            return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
+        }
+
+        $provider = new ActiveDataProvider([
+            'query' => $model->orderBy('id DESC'),
+            'pagination' => [
+                'pageSize' => 30,
+                'validatePage' => false,
+            ],
+            'sort' => [
+                'attributes' => ['updated_at'],
+            ],
+        ]);
+
+        return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 
     public function actionClassFilteredAssessment($class_id = null, $term = null, $subject_id = null, $session = null)

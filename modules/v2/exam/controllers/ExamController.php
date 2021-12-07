@@ -74,7 +74,7 @@ class ExamController extends ActiveController
     {
         $category = ExamUtility::StudentClassCategory(Utility::ParentStudentChildClass(Utility::getParentChildID()));
         $model = ExamType::find()
-            ->where(['is_exam' => 1, 'class' => $category, 'slug' => ['bece', 'common-entrance', 'senior-waec','jamb']])
+            ->where(['is_exam' => 1, 'class' => $category, 'slug' => ['bece', 'common-entrance', 'senior-waec', 'jamb']])
             ->select(['id', 'name', 'slug', 'title', 'description'])->all();
         return (new ApiResponse)->success($model);
     }
@@ -87,7 +87,7 @@ class ExamController extends ActiveController
             ->innerJoin('exam_subjects es', 'es.subject_id = subjects.id')
             ->innerJoin('exam_type et', 'et.id = es.exam_id')
             ->where(['subjects.school_id' => null, 'subjects.category' => array_merge(['all'], $category)])
-            ->andWhere(['et.is_exam' => 1, 'et.class' => $category, 'et.slug' => ['bece', 'common-entrance', 'senior-waec','jamb']])
+            ->andWhere(['et.is_exam' => 1, 'et.class' => $category, 'et.slug' => ['bece', 'common-entrance', 'senior-waec', 'jamb']])
             ->all();
         return (new ApiResponse)->success($model);
     }
@@ -116,11 +116,11 @@ class ExamController extends ActiveController
         if (!$model->validate()) {
             return (new ApiResponse)->error($model->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
-
 //        $studentID = Utility::getParentChildID();
         $studentID = Yii::$app->user->id;
-
-        if (UserModel::updateAll(['mode' => $mode], ['id' => $studentID])) {
+        $user = UserModel::findOne(['id' => $studentID]);
+        $user->mode = $mode;
+        if ($user->save()) {
             return (new ApiResponse)->success(true, null, 'Mode updated');
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION);

@@ -37,6 +37,7 @@ return [
     //Homework Class
     'GET v2/teacher/homework/<homework_id:\d+>' => 'v2/teacher/homework/homework', //
     'GET v2/teacher/homework/class' => 'v2/teacher/homework/class-homeworks', //
+    'GET v2/teacher/homework/class-review' => 'v2/teacher/homework/homework-review', //
     'GET v2/teacher/homework/class/<class_id:\d*>' => 'v2/teacher/homework/class-homeworks', //
     'GET v2/teacher/homework/class-filtered-assessment' => 'v2/teacher/homework/class-filtered-assessment', //
     'GET v2/teacher/homework/subject/<class_id:\d*>' => 'v2/teacher/homework/subject', //
