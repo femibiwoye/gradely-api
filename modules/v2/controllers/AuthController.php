@@ -8,7 +8,16 @@ use app\modules\v2\models\Schools;
 use app\modules\v2\models\SignupForm;
 use app\modules\v2\models\UserTypeAppPermission;
 use Yii;
-use app\modules\v2\models\{Login, User, ApiResponse, PasswordResetRequestForm, ResetPasswordForm};
+use app\modules\v2\models\{Classes,
+    Login,
+    Parents,
+    SchoolTeachers,
+    StudentSchool,
+    User,
+    ApiResponse,
+    PasswordResetRequestForm,
+    ResetPasswordForm
+};
 use yii\helpers\ArrayHelper;
 use yii\rest\Controller;
 use yii\filters\auth\HttpBearerAuth;
@@ -142,6 +151,43 @@ class AuthController extends Controller
         }
 
         $user->token = $user->updateAccessToken();
+
+        if ($user->type == 'student' and !empty(Yii::$app->request->post('class_code'))) {
+//                $this->NewStudent(Yii::$app->request->post('class_code'), $user->id);
+            $classCode = Yii::$app->request->post('class_code');
+            $class = Classes::findOne(['class_code' => Yii::$app->request->post('class_code')]);
+            $model = new StudentSchool;
+            $model->student_id = $user->id;
+            $model->school_id = $class->school_id;
+            $model->class_id = isset($class->id) ? $class->id : null;
+            $model->invite_code = $classCode;
+            $model->status = 1;
+            if (!$model->validate()) {
+                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+            }
+            if (!$model->save(false)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not joined saved');
+            }
+
+            $parentID = Yii::$app->request->post('parent_id');
+            if (!empty($parentID)) {
+                if (User::find()->where(['id' => $parentID, 'type' => 'parent'])->exists()) {
+                    $parent = new Parents();
+                    $parent->parent_id = $parentID;
+                    $parent->student_id = $user->id;
+                    $parent->status = 1;
+                    $parent->inviter = 'sms';
+                    $parent->role = Yii::$app->request->post('relationship');
+                    $parent->save();
+                }
+            }
+
+        } elseif ($user->type == 'parent' && !empty(Yii::$app->request->post('student_code'))) {
+            $studentCode = Yii::$app->request->post('student_code');
+            $relationship = Yii::$app->request->post('relationship');
+            $this->ConnectStudentCode($studentCode, $relationship, $user->id);
+        }
+
         if ($user->type == 'school')
             $user = array_merge(ArrayHelper::toArray($user), Utility::getSchoolAdditionalData($user->id));
 
