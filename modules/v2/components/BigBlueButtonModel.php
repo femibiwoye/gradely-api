@@ -50,6 +50,9 @@ class BigBlueButtonModel extends Model
     public $recordID;
     public $publish = 'true';
 
+    public $class_id;
+    public $tutor_session_id;
+
     public function init()
     {
 
@@ -73,7 +76,7 @@ class BigBlueButtonModel extends Model
             'name' => $this->name,
             'record' => $this->record,
             'welcome' => $this->welcome . ' - ' . $this->name,
-            'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID,
+            'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id,
             'copyright' => $this->copyright,
 //            'bannerText' => $this->bannerText,
 //            'bannerColor' => $this->bannerColor,
@@ -84,8 +87,8 @@ class BigBlueButtonModel extends Model
             'userdata-bbb_custom_style_url' => $this->userdataBbb_custom_style_url,
             'meta_endCallbackUrl' => Url::to(['/v2/learning/live-class/end-class-only', 'meetingID' => $this->meetingID], true),
             'meta_applicationStage' => Yii::$app->params['applicationStage'],
-            'endWhenNoModeratorDelayInMinutes'=>$this->endWhenNoModeratorDelayInMinutes,
-            'meta_bbb-recording-ready-url'=>Url::to(['/v2/learning/live-class/log-recording', 'meetingID' => $this->meetingID], true),
+            'endWhenNoModeratorDelayInMinutes' => $this->endWhenNoModeratorDelayInMinutes,
+            'meta_bbb-recording-ready-url' => Url::to(['/v2/learning/live-class/log-recording', 'meetingID' => $this->meetingID], true),
         ]);
         //$queryBuild = $queryBuild.'&userdata-bbb_custom_style=:root{--loader-bg:red;}.navbar--Z2lHYbG{background-color:pink!important;}';
         $checkSum = sha1($appName . $queryBuild . $this->checksum);
@@ -96,9 +99,14 @@ class BigBlueButtonModel extends Model
 
     }
 
-    public function JoinMeeting($moderator = false)
+    public function JoinMeeting($moderator = false, $child = null)
     {
 
+        //Not sure if this is necessary
+        if($child == null)
+        {
+            $child = 'na';
+        }
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'join';
 
@@ -122,6 +130,7 @@ class BigBlueButtonModel extends Model
             'userdata-bbb_skip_video_preview' => 'true',
 
             'userdata-bbb_listen_only_mode' => 'false',
+            'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id . '&child_id=' . $child,
 
         ]);
 

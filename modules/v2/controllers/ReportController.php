@@ -24,7 +24,8 @@ use app\modules\v2\models\{Homeworks,
     ApiResponse,
     StudentMastery,
     StudentAdditionalTopics,
-    StudentTopicPerformance};
+    StudentTopicPerformance
+};
 use app\modules\v2\components\SharedConstant;
 use yii\db\Expression;
 use yii\filters\AccessControl;
@@ -376,22 +377,22 @@ class ReportController extends ActiveController
 
         foreach ($students as $key => $student) {
             $canew = [];
-            foreach ($models as $kkkey=>$model) {
+            foreach ($models as $kkkey => $model) {
                 foreach ($model['data'] as $kkey => $each) {
                     if ($each['student_id'] == $student['student_id']) {
-                        $canew[] = [$model['index']=>(int)$each['score']];
+                        $canew[] = [$model['index'] => (int)$each['score']];
                     }
                 }
             }
             $examNew = [];
-            foreach ($examModel as $kkkey=>$model) {
+            foreach ($examModel as $kkkey => $model) {
                 foreach ($model['data'] as $kkey => $each) {
                     if ($each['student_id'] == $student['student_id']) {
-                        $examNew[] = [$model['index']=>(int)$each['score']];
+                        $examNew[] = [$model['index'] => (int)$each['score']];
                     }
                 }
             }
-            $students[$key] = array_merge($student, ['ca' => $canew,'exam'=>$examNew]);
+            $students[$key] = array_merge($student, ['ca' => $canew, 'exam' => $examNew]);
 
         }
         return $students;
