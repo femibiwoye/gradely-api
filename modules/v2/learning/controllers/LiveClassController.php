@@ -143,6 +143,8 @@ class LiveClassController extends Controller
 
 
             $bbbModel->name = $tutor_session->title;
+            $bbbModel->class_id = $tutor_session->class;
+            $bbbModel->tutor_session_id = $tutor_session->id;
             $create = $bbbModel->CreateMeeting();
             if ($create) {
                 $bbbModel->fullName = $user->firstname . ' ' . $user->lastname;
@@ -192,6 +194,9 @@ class LiveClassController extends Controller
         $session_id = Yii::$app->request->post('session_id');
         $user_id = Yii::$app->user->id;
         $type = Yii::$app->user->identity->type;
+        if(empty($child)){
+            $child = Yii::$app->request->post('child_id');
+        }
         $form = new \yii\base\DynamicModel(compact('session_id'));
         $form->addRule(['session_id'], 'required')
             ->addRule(['session_id'], 'exist', ['targetClass' => TutorSession::className(), 'targetAttribute' => ['session_id' => 'id']]);
@@ -227,12 +232,12 @@ class LiveClassController extends Controller
                 $bbbModel->fullName = $user->firstname . ' ' . $user->lastname;
                 $bbbModel->avatarURL = $user->image;
                 $bbbModel->userID = $user->email;
-                if ($user->type == 'teacher' || $user->type == 'school') {
+                if ($user->id == $tutor_session->requester_id) {
                     $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
-                    $destinationLink = $bbbModel->JoinMeeting(true);
+                    $destinationLink = $bbbModel->JoinMeeting(true,$child);
                 } else {
                     $bbbModel->attendeePW = $tutor_session->extra_meta['attendeePW'];
-                    $destinationLink = $bbbModel->JoinMeeting();
+                    $destinationLink = $bbbModel->JoinMeeting(false,$child);
                 }
                 $token = $tutor_session->meeting_token;
             } else {
