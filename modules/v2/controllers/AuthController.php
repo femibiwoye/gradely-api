@@ -176,9 +176,10 @@ class AuthController extends Controller
                     $parent->parent_id = $parentID;
                     $parent->student_id = $user->id;
                     $parent->status = 1;
-                    $parent->inviter = 'sms';
                     $parent->role = Yii::$app->request->post('relationship');
-                    $parent->save();
+                    if (!$parent->save()) {
+
+                    }
                 }
             }
 
