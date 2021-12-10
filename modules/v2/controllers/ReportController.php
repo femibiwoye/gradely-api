@@ -340,7 +340,7 @@ class ReportController extends ActiveController
 
                 ])
                 ->leftJoin('homeworks h', "qs.homework_id = h.id")
-                ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term, 'qs.homework_id' => $item['assessment_id'], 'h.tag' => 'homework',
+                ->where(['qs.class_id' => $class_id, 'qs.subject_id' => $subject_id, 'qs.term' => $term, 'qs.homework_id' => $item['assessment_id'], 'h.tag' => ['homework','quiz'],
                 ])
                 ->asArray()
                 ->groupBy('qs.id')
