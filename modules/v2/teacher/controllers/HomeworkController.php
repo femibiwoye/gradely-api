@@ -164,7 +164,7 @@ class HomeworkController extends ActiveController
 //        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 //    }
 
-    public function actionClassHomeworks($class_id = null, $subject_id = null, $type=null)
+    public function actionClassHomeworks($class_id = null, $subject_id = null, $type=null, $sort=null)
     {
         $model = $this->modelClass::find()->andWhere([
             'teacher_id' => Yii::$app->user->id,
@@ -189,12 +189,25 @@ class HomeworkController extends ActiveController
 //        }
 
 
+            if ($sort == 'a-z') {
+                $model = $model->orderBy(['title' => SORT_ASC]);
+            } elseif ($sort == 'z-a') {
+                $model = $model->orderBy(['title' => SORT_DESC]);
+            } elseif ($sort == 'subject') {
+                $model = $model->orderBy(['subject_id' => SORT_ASC]);
+            } elseif ($sort == 'recent') {
+                $model = $model->orderBy(['publish_at' => SORT_DESC]);
+            }else{
+                $model = $model->orderBy('id DESC');
+            }
+
+
         if (!$model->count() > 0) {
             return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $model->orderBy('id DESC'),
+            'query' => $model,
             'pagination' => [
                 'pageSize' => 30,
                 'validatePage' => false,
@@ -207,7 +220,7 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 
-    public function actionHomeworkReview($class_id = null, $subject_id = null, $type=null)
+    public function actionHomeworkReview($class_id = null, $subject_id = null, $type=null,$sort=null)
     {
         $model = $this->modelClass::find()->andWhere([
             'teacher_id' => Yii::$app->user->id,
@@ -232,12 +245,26 @@ class HomeworkController extends ActiveController
 //        }
 
 
+            if ($sort == 'a-z') {
+                $model = $model->orderBy(['title' => SORT_ASC]);
+            } elseif ($sort == 'z-a') {
+                $model = $model->orderBy(['title' => SORT_DESC]);
+            } elseif ($sort == 'subject') {
+                $model = $model->orderBy(['subject_id' => SORT_ASC]);
+            } elseif ($sort == 'recent') {
+                $model = $model->orderBy(['publish_at' => SORT_DESC]);
+            }else{
+                $model = $model->orderBy('id DESC');
+            }
+
+
+
         if (!$model->count() > 0) {
             return (new ApiResponse)->error([], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class record not found');
         }
 
         $provider = new ActiveDataProvider([
-            'query' => $model->orderBy('id DESC'),
+            'query' => $model,
             'pagination' => [
                 'pageSize' => 30,
                 'validatePage' => false,
