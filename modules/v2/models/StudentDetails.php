@@ -569,28 +569,42 @@ class StudentDetails extends User
 
         if (Yii::$app->user->identity->type == "teacher") {
             $subjectIDS = ArrayHelper::getColumn(TeacherClassSubjects::find()->select(['subject_id'])
-                ->innerJoin('student_school ss', 'ss.class_id = teacher_class_subjects.class_id')
-                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1, 'ss.student_id' => $studentID])
+                ->leftJoin('student_school ss', 'ss.class_id = teacher_class_subjects.class_id')
+                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1])
                 ->groupBy('subject_id')
                 ->all(), 'subject_id');
+
+            $subjects = Subjects::find()
+                ->alias('s')
+                ->select([
+                    's.id',
+                    's.slug',
+                    's.name',
+                    //'s.description',
+                    //'s.image',
+                ])
+                ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
+                ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
+                ->where(['s.status' => 1,'s.id' => $subjectIDS]);
         } else {
             $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])
                 ->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])
                 ->groupBy('subject_id')
                 ->all(), 'subject_id');
+            $subjects = Subjects::find()
+                ->alias('s')
+                ->select([
+                    's.id',
+                    's.slug',
+                    's.name',
+                    //'s.description',
+                    //'s.image',
+                ])
+                ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
+                ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
+                ->where(['s.status' => 1])->orWhere(['s.id' => $subjectIDS]);
         }
-        $subjects = Subjects::find()
-            ->alias('s')
-            ->select([
-                's.id',
-                's.slug',
-                's.name',
-                //'s.description',
-                //'s.image',
-            ])
-            ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
-            ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
-            ->where(['s.status' => 1])->orWhere(['s.id' => $subjectIDS]);
+
 
         if (!empty($subject_id))
             $subjects = $subjects->andWhere(['s.id' => $subject_id]);
