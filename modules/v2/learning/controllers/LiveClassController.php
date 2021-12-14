@@ -175,7 +175,7 @@ class LiveClassController extends Controller
         }
 
 
-        return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL);
+        return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL, $bbbModel->MeetingStatus());
     }
 
     private function classUrl(TutorSession $session, $token)
@@ -246,7 +246,7 @@ class LiveClassController extends Controller
                 $destinationLink = $this->classUrl($tutor_session, $token);
             }
             $this->classAttendance($session_id, $user_id, SharedConstant::LIVE_CLASS_USER_TYPE[1], $token);
-            return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL);
+            return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL, $bbbModel->MeetingStatus());
         } else {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid class status');
         }
