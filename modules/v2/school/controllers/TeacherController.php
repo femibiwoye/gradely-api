@@ -297,7 +297,7 @@ class TeacherController extends ActiveController
         }
 
 
-        return $this->actionIndex($class_id);
+        return $this->actionIndex();
 //        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Successful');
 
     }
