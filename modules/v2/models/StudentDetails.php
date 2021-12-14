@@ -136,6 +136,9 @@ class StudentDetails extends User
                 'pm.filesize',
                 'pm.tag',
                 'pm.token as attachment_token',
+                new Expression("(SELECT json_object('id',user.id,'name', CONCAT(firstname, ' ',lastname), 'code', code,'image',image) 
+	FROM user WHERE user.id = f.user_id LIMIT 1)
+	           as user")
             ])
             ->leftJoin('feed_like fl', "fl.parent_id = f.id AND fl.type = 'feed'")
             ->leftJoin('feed_comment fc', "fc.feed_id = f.id AND fc.type = 'feed'")
@@ -202,7 +205,7 @@ class StudentDetails extends User
 
         $studentCount = QuizSummary::find()
             ->alias('q')
-            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1,'q.session'=>Yii::$app->params['activeSession']])
+            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1, 'q.session' => Yii::$app->params['activeSession']])
             ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.type = 'homework'" . $condition2);
 
         if (Yii::$app->request->get('subject'))
@@ -531,7 +534,7 @@ class StudentDetails extends User
                 ]);
 
             if (isset($_GET['term'])) {
-                $topics = $topics->andWhere(['term'=>$_GET['term']]);
+                $topics = $topics->andWhere(['term' => $_GET['term']]);
             }
             $topics = $topics->all();
 
