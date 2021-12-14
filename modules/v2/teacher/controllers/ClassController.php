@@ -515,12 +515,20 @@ class ClassController extends ActiveController
      * This fetches all teacher classes and subjects to each class
      * @return ApiResponse
      */
-    public function actionClassesSubjects()
+    public function actionClassesSubjects($teacher_id = null)
     {
         $session = [
             ["slug" => "2019-2020", 'name' => '2019/2020'],
             ["slug" => "2020-2021", 'name' => '2020/2021'],
+            ["slug" => "2021-2022", 'name' => '2021/2022'],
         ];
+
+        $user = Yii::$app->user->identity;
+        $teacher_id = $user->id;
+        if (!empty($teacher_id) && $user->type == 'school') {
+            if (!TeacherClass::find()->where(['school_id' => Utility::getSchoolAccess(), 'teacher_id' => $teacher_id, 'status' => 1])->exists())
+                return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, "Teacher not found");
+        }
 
         $classesSubject = [];
         $classes = TeacherClass::find()
@@ -531,7 +539,7 @@ class ClassController extends ActiveController
                 'tc.class_id'
             ])
             ->innerJoin('classes c', 'c.id = tc.class_id')
-            ->where(['tc.teacher_id' => Yii::$app->user->id, 'status' => 1])
+            ->where(['tc.teacher_id' => $teacher_id, 'status' => 1])
             ->groupBy('tc.class_id')
             ->asArray()
             ->all();
@@ -544,7 +552,7 @@ class ClassController extends ActiveController
                 'tcs.class_id'
             ])
             ->innerJoin('subjects s', 's.id = tcs.subject_id')
-            ->where(['tcs.teacher_id' => Yii::$app->user->id, 'tcs.status' => 1])
+            ->where(['tcs.teacher_id' => $teacher_id, 'tcs.status' => 1])
             ->asArray()
             ->all();
 
