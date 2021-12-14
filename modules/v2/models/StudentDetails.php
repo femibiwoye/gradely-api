@@ -569,8 +569,8 @@ class StudentDetails extends User
 
         if (Yii::$app->user->identity->type == "teacher") {
             $subjectIDS = ArrayHelper::getColumn(TeacherClassSubjects::find()->select(['subject_id'])
-                ->leftJoin('student_school ss', 'ss.class_id = teacher_class_subjects.class_id')
-                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1])
+                ->leftJoin('student_school ss', 'ss.class_id = teacher_class_subjects.class_id AND ss.status = 1')
+                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1,'ss.student_id'=>$this->id])
                 ->groupBy('subject_id')
                 ->all(), 'subject_id');
 
