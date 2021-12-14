@@ -524,10 +524,11 @@ class ClassController extends ActiveController
         ];
 
         $user = Yii::$app->user->identity;
-        $teacher_id = $user->id;
         if (!empty($teacher_id) && $user->type == 'school') {
             if (!TeacherClass::find()->where(['school_id' => Utility::getSchoolAccess(), 'teacher_id' => $teacher_id, 'status' => 1])->exists())
                 return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, "Teacher not found");
+        }else{
+            $teacher_id = $user->id;
         }
 
         $classesSubject = [];
