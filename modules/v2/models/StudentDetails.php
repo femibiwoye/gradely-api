@@ -567,7 +567,18 @@ class StudentDetails extends User
     {
         $studentID = Utility::getParentChildID();
 
-        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])->groupBy('subject_id')->all(), 'subject_id');
+        if (Yii::$app->user->identity->type == "teacher") {
+            $subjectIDS = ArrayHelper::getColumn(TeacherClassSubjects::find()->select(['subject_id'])
+                ->innerJoin('student_school ss', 'ss.class_id = teacher_class_subjects.class_id')
+                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1, 'ss.student_id' => $studentID])
+                ->groupBy('subject_id')
+                ->all(), 'subject_id');
+        } else {
+            $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])
+                ->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])
+                ->groupBy('subject_id')
+                ->all(), 'subject_id');
+        }
         $subjects = Subjects::find()
             ->alias('s')
             ->select([
