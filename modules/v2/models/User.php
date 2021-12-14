@@ -30,7 +30,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
         return [
 //            [['firstname', 'lastname', 'type'], 'required'],
-//            [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
+            [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
 //            [['class', 'is_boarded'], 'integer'],
 //
 //            ['email', 'filter', 'filter' => 'trim'],

@@ -194,7 +194,7 @@ class LiveClassController extends Controller
         $session_id = Yii::$app->request->post('session_id');
         $user_id = Yii::$app->user->id;
         $type = Yii::$app->user->identity->type;
-        if(empty($child)){
+        if (empty($child)) {
             $child = Yii::$app->request->post('child_id');
         }
         $form = new \yii\base\DynamicModel(compact('session_id'));
@@ -234,10 +234,10 @@ class LiveClassController extends Controller
                 $bbbModel->userID = $user->email;
                 if ($user->id == $tutor_session->requester_id) {
                     $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
-                    $destinationLink = $bbbModel->JoinMeeting(true,$child);
+                    $destinationLink = $bbbModel->JoinMeeting(true, $child);
                 } else {
                     $bbbModel->attendeePW = $tutor_session->extra_meta['attendeePW'];
-                    $destinationLink = $bbbModel->JoinMeeting(false,$child);
+                    $destinationLink = $bbbModel->JoinMeeting(false, $child);
                 }
                 $token = $tutor_session->meeting_token;
             } else {
@@ -251,6 +251,13 @@ class LiveClassController extends Controller
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid class status');
         }
 
+    }
+
+    public function actionCheckClassStatus($meeting_room)
+    {
+        $bbbModel = new BigBlueButtonModel();
+        $bbbModel->meetingID = $meeting_room;
+        return (new ApiResponse)->error($bbbModel->MeetingStatus(), ApiResponse::SUCCESSFUL);
     }
 
     /**
