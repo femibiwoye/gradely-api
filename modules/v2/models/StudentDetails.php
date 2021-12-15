@@ -113,10 +113,12 @@ class StudentDetails extends User
 
     public function getRemarks()
     {
-        return Remarks::find()
-            ->where(['receiver_id' => $this->id, 'type' => 'student'])
-            //->asArray()
-            ->all();
+        $query = Remarks::find()
+            ->where(['receiver_id' => $this->id, 'type' => 'student']);
+        if (Yii::$app->request->get('subject')) {
+            $query = $query->andWhere('subject_id IS NULL OR subject_id=' . Yii::$app->request->get('subject'));
+        }
+        return $query->all();
     }
 
     public function getFeeds()
@@ -570,7 +572,7 @@ class StudentDetails extends User
         if (Yii::$app->user->identity->type == "teacher") {
             $subjectIDS = ArrayHelper::getColumn(TeacherClassSubjects::find()->select(['subject_id'])
                 ->leftJoin('student_school ss', 'ss.class_id = teacher_class_subjects.class_id AND ss.status = 1')
-                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1,'ss.student_id'=>$this->id])
+                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1, 'ss.student_id' => $this->id])
                 ->groupBy('subject_id')
                 ->all(), 'subject_id');
 
@@ -585,7 +587,7 @@ class StudentDetails extends User
                 ])
                 ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
                 ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
-                ->where(['s.status' => 1,'s.id' => $subjectIDS]);
+                ->where(['s.status' => 1, 's.id' => $subjectIDS]);
         } else {
             $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])
                 ->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])
