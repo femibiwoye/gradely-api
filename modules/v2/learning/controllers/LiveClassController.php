@@ -225,7 +225,7 @@ class LiveClassController extends Controller
         if ($tutor_session->status == 'pending') {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher has not started the class');
         } elseif ($tutor_session->status == 'completed' || $bbbModel->MeetingStatus()['running'] == 'false') {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Class has ended!');
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, $tutor_session->status);
         } elseif ($tutor_session->status == 'ongoing' && $bbbModel->MeetingStatus()['running'] == 'true') {
             if (Yii::$app->params['liveClassClient'] == 'bbb') {
                 $user = Yii::$app->user->identity;
