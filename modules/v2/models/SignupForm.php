@@ -150,7 +150,7 @@ class SignupForm extends Model
     {
         $model = new SchoolCalendar();
         $model->school_id = $school->id;
-        $model->session_name = date('Y');
+        $model->session_name = Yii::$app->params['activeSession'];
         $model->year = date('Y');
         $model->first_term_start = Yii::$app->params['first_term_start'];
         $model->first_term_end = Yii::$app->params['first_term_end'];
