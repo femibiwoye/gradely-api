@@ -125,7 +125,20 @@ class ClassController extends ActiveController
         }
         $model->addSchoolTeacher(1);
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher added successfully');
+
+        $classModel = TeacherClass::find()
+            ->alias('tc')
+            ->select([
+                'c.class_name',
+                'c.class_code',
+                'tc.class_id'
+            ])
+            ->innerJoin('classes c', 'c.id = tc.class_id')
+            ->where(['tc.id' => $model->id, 'status' => 1])
+            ->asArray()
+            ->one();
+
+        return (new ApiResponse)->success(array_merge($classModel, ['subjects' => []]), ApiResponse::SUCCESSFUL, 'Teacher added successfully');
     }
 
     public function actionSchool($id)
@@ -527,7 +540,7 @@ class ClassController extends ActiveController
         if (!empty($teacher_id) && $user->type == 'school') {
             if (!TeacherClass::find()->where(['school_id' => Utility::getSchoolAccess(), 'teacher_id' => $teacher_id, 'status' => 1])->exists())
                 return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, "Teacher not found");
-        }else{
+        } else {
             $teacher_id = $user->id;
         }
 
