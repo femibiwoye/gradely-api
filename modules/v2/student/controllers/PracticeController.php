@@ -159,101 +159,102 @@ class PracticeController extends Controller
 
         //use transaction before saving;
         $dbtransaction = \Yii::$app->db->beginTransaction();
-        try {
-            $quizSummary = QuizSummary::findOne(['id' => $quiz_id, 'student_id' => \Yii::$app->user->id]);
-            foreach ($attempts as $question) {
+//        try {
+        $quizSummary = QuizSummary::findOne(['id' => $quiz_id, 'student_id' => \Yii::$app->user->id]);
+        foreach ($attempts as $question) {
 
-                if (!isset($question['question']))
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt question data is not valid');
+            if (!isset($question['question']))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt question data is not valid');
 
-                if (!$questionModel = Questions::findOne(['id' => $question['question']]))
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not valid');
+            if (!$questionModel = Questions::findOne(['id' => $question['question']]))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question not valid');
 
-                if ($questionModel->type != 'essay' && !isset($question['selected']))
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt selected data is not valid');
+            if ($questionModel->type != 'essay' && !isset($question['selected']))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt selected data is not valid');
 
-                if (!HomeworkQuestions::find()
-                    ->where(['question_id' => $question['question'], 'homework_id' => $quizSummary->homework_id])->exists())
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Question '{$question['question']}' is invalid");
+            if (!HomeworkQuestions::find()
+                ->where(['question_id' => $question['question'], 'homework_id' => $quizSummary->homework_id])->exists())
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Question '{$question['question']}' is invalid");
 
-                if (in_array($quizSummary->type, ['multiple', 'bool']) && !in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Invalid option '{$question['selected']}' provided");
+            if (in_array($quizSummary->type, ['multiple', 'bool']) && !in_array($question['selected'], SharedConstant::QUESTION_ACCEPTED_OPTIONS))
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Invalid option '{$question['selected']}' provided");
 
-                $qsd = new QuizSummaryDetails();
-                $qsd->quiz_id = $quizSummary->id;
-                $qsd->question_id = $question['question'];
+            $qsd = new QuizSummaryDetails();
+            $qsd->quiz_id = $quizSummary->id;
+            $qsd->question_id = $question['question'];
 
 
-                $qsd->answer = $questionModel->answer;
-                $qsd->topic_id = $questionModel->topic_id;
-                $qsd->student_id = \Yii::$app->user->id;
-                $qsd->homework_id = $quizSummary->homework_id;
-                $qsd->max_score = $questionModel->score;
+            $qsd->answer = $questionModel->answer;
+            $qsd->topic_id = $questionModel->topic_id;
+            $qsd->student_id = \Yii::$app->user->id;
+            $qsd->homework_id = $quizSummary->homework_id;
+            $qsd->max_score = $questionModel->score;
 
-                if (in_array($questionModel->type, ['short', 'essay'])) {
-                    $qsd->selected = $question['selected'];
-                    if ($questionModel->type == 'short') {
-                        $answers = json_decode($questionModel->answer);
-                        $isScore = false;
-                        foreach ($answers as $item) {
-                            if (strtolower($item) == strtolower($question['selected'])) {
-                                $correctCount = $correctCount + 1;
-                                $qsd->is_correct = 1;
-                                $isScore = true;
-                                break;
-                            }
+            if (in_array($questionModel->type, ['short', 'essay'])) {
+                $qsd->selected = $question['selected'];
+                if ($questionModel->type == 'short') {
+                    $answers = json_decode($questionModel->answer);
+                    $isScore = false;
+                    foreach ($answers as $item) {
+                        if (strtolower($item) == strtolower($question['selected'])) {
+                            $correctCount = $correctCount + 1;
+                            $qsd->is_correct = 1;
+                            $isScore = true;
+                            break;
                         }
-                        if (!$isScore) {
-                            $failedCount = $failedCount + 1;
-                            $qsd->is_correct = 0;
-                        }
-                        $qsd->score = $questionModel->score;
-                    } elseif ($questionModel->type == 'essay') {
-                        $qsd->answer_attachment = $question['answer_attachment'];
                     }
-                } elseif (in_array($questionModel->type, ['multiple', 'bool'])) {
-                    $qsd->score = $questionModel->score;
-                    $qsd->selected = strtoupper($question['selected']);
-                    if ($question['selected'] == $questionModel->answer) {
-                        $correctCount = $correctCount + 1;
-                        $qsd->is_correct = 1;
-                    } else {
+                    if (!$isScore) {
                         $failedCount = $failedCount + 1;
                         $qsd->is_correct = 0;
                     }
+                    $qsd->score = $questionModel->score;
+                } elseif ($questionModel->type == 'essay') {
+                    if (isset($question['answer_attachment']))
+                        $qsd->answer_attachment = $question['answer_attachment'];
                 }
-
-                if (!$qsd->save())
-                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more attempt not saved');
-
-
+            } elseif (in_array($questionModel->type, ['multiple', 'bool'])) {
+                $qsd->score = $questionModel->score;
+                $qsd->selected = strtoupper($question['selected']);
+                if ($question['selected'] == $questionModel->answer) {
+                    $correctCount = $correctCount + 1;
+                    $qsd->is_correct = 1;
+                } else {
+                    $failedCount = $failedCount + 1;
+                    $qsd->is_correct = 0;
+                }
             }
 
-            $total_question = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->count();
-            $maximumScore = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->sum('max_score');
+            if (!$qsd->save())
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'One or more attempt not saved');
 
-            if (!$total_question)
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No question!');
 
-            $quizSummary->failed = $failedCount;
-            $quizSummary->correct = $correctCount;
-            $quizSummary->total_questions = $total_question;
-            $quizSummary->total_questions = $total_question;
-            $quizSummary->skipped = $total_question - ($correctCount + $failedCount);
-            $quizSummary->submit = SharedConstant::VALUE_ONE;
-            $quizSummary->submit_at = date('Y-m-d H:i:s');
-
-            if (!$quizSummary->save())
-                return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
-
-            (new Utility)->generateRecommendation($quiz_id);
-
-            $dbtransaction->commit();
-            return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Homework processing completed');
-        } catch (\Exception $ex) {
-            $dbtransaction->rollBack();
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
         }
+
+        $total_question = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->count();
+        $maximumScore = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->sum('max_score');
+
+        if (!$total_question)
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No question!');
+
+        $quizSummary->failed = $failedCount;
+        $quizSummary->correct = $correctCount;
+        $quizSummary->total_questions = $total_question;
+        $quizSummary->total_questions = $total_question;
+        $quizSummary->skipped = $total_question - ($correctCount + $failedCount);
+        $quizSummary->submit = SharedConstant::VALUE_ONE;
+        $quizSummary->submit_at = date('Y-m-d H:i:s');
+
+        if (!$quizSummary->save())
+            return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
+
+        (new Utility)->generateRecommendation($quiz_id);
+
+        $dbtransaction->commit();
+        return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Homework processing completed');
+//        } catch (\Exception $ex) {
+//            $dbtransaction->rollBack();
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
+//        }
 
     }
 
