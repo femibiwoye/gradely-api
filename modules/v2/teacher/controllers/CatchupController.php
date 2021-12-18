@@ -317,7 +317,7 @@ class CatchupController extends ActiveController
                 continue;
             $correctStatus = $quizDetails->selected == $question['answer'];
             $selected = $quizDetails->selected;
-            $allQuestions[] = array_merge(ArrayHelper::toArray($question), ['correctStatus' => $correctStatus, 'selected' => $selected, 'is_correct' => $quizDetails->is_correct, 'score' => $quizDetails->score, 'max_score' => $quizDetails->max_score, 'answer_attachment' => $quizDetails->answer_attachment,'is_graded'=>$quizDetails->is_graded]);
+            $allQuestions[] = array_merge(ArrayHelper::toArray($question), ['correctStatus' => $correctStatus, 'attempt_id'=>$quizDetails->id, 'selected' => $selected, 'is_correct' => $quizDetails->is_correct, 'score' => $quizDetails->score, 'max_score' => $quizDetails->max_score, 'answer_attachment' => $quizDetails->answer_attachment,'is_graded'=>$quizDetails->is_graded]);
         }
 
         $student = User::find()->select(['firstname', 'lastname', 'image', 'code'])->where(['id' => $student_id])->one();
