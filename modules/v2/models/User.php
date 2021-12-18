@@ -173,9 +173,9 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         $user = User::find()->where(['AND', ['token' => $token], ['<>', 'status', self::STATUS_DELETED]])->one();
         if (empty($user)) {
             try {
-                $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
-                if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
-                    $user = User::find()->where(['id' => $user->user_id])->one();
+                $userJwt = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
+                if (isset($userJwt) && $userJwt->universal_access == 1 && !empty($userJwt->user_id)) {
+                    $user = User::find()->where(['id' => $userJwt->user_id])->one();
                 }
             } catch (\Exception $e){
                 return null;
