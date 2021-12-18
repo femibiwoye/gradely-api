@@ -329,6 +329,7 @@ class CatchupController extends ActiveController
             'student_image' => Utility::ProfileImage($student->image),
             'score' => ($model->correct / count($homeworkQuestions)) * 100,
             'maximum_score' => 100,
+            'quiz_id' => $model->id,
             'correct' => $model->correct,
             'incorrect' => $model->failed,
             'skipped' => $model->skipped,
