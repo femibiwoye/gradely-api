@@ -230,8 +230,7 @@ class HomeworkController extends ActiveController
 
             $model = HomeworkReport::findOne([
                 'student_id' => $student_id,
-                'homework_id' => $id,
-                'computed' => 1
+                'homework_id' => $id
             ]);
         }
 
