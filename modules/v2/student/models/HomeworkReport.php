@@ -28,6 +28,7 @@ class HomeworkReport extends QuizSummary
             'failed',
             'skipped',
             'submit',
+            'computed',
             'type',
             'topic_id',
             'subject' => 'homeworkSubject',

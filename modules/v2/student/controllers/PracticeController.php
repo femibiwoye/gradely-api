@@ -161,6 +161,7 @@ class PracticeController extends Controller
         $dbtransaction = \Yii::$app->db->beginTransaction();
         try {
             $quizSummary = QuizSummary::findOne(['id' => $quiz_id, 'student_id' => \Yii::$app->user->id]);
+            $hasEssay = false;
             foreach ($attempts as $question) {
 
                 if (!isset($question['question']))
@@ -209,6 +210,7 @@ class PracticeController extends Controller
                         }
                         $qsd->score = $questionModel->score;
                     } elseif ($questionModel->type == 'essay') {
+                        $hasEssay = true;
                         if (isset($question['answer_attachment']))
                             $qsd->answer_attachment = $question['answer_attachment'];
                     }
@@ -231,7 +233,7 @@ class PracticeController extends Controller
             }
 
             $total_question = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->count();
-            $maximumScore = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->sum('max_score');
+//            $maximumScore = HomeworkQuestions::find()->where(['homework_id' => $quizSummary->homework_id])->sum('max_score');
 
             if (!$total_question)
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No question!');
@@ -244,13 +246,18 @@ class PracticeController extends Controller
             $quizSummary->submit = SharedConstant::VALUE_ONE;
             $quizSummary->submit_at = date('Y-m-d H:i:s');
 
+            if ($hasEssay) {
+                $quizSummary->computed = 0;
+            } else {
+                $quizSummary->computed = 1;
+            }
             if (!$quizSummary->save())
                 return (new ApiResponse)->error($quizSummary, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Score not saved');
 
             (new Utility)->generateRecommendation($quiz_id);
 
             $dbtransaction->commit();
-            return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Homework processing completed');
+            return (new ApiResponse)->success($quizSummary->computed == 1 ? $quizSummary : ['id' => $quizSummary->id, 'homework_id' => $quizSummary->homework_id, 'computed' => $quizSummary->computed], ApiResponse::SUCCESSFUL, 'Homework processing completed');
         } catch (\Exception $ex) {
             $dbtransaction->rollBack();
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
