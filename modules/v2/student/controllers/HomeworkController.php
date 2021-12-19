@@ -240,7 +240,7 @@ class HomeworkController extends ActiveController
         }
 
         if ($model->computed == 0) {
-            return (new ApiResponse)->error(['computed' => $model->computed], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework yet to be computed');
+            return (new ApiResponse)->error(['computed' => $model->getUncomputedResponse()], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework yet to be computed');
         }
 
 
