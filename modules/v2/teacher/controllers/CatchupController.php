@@ -335,6 +335,7 @@ class CatchupController extends ActiveController
             'skipped' => $model->skipped,
             'datetime' => $model->submit_at,
             'term' => $model->term,
+            'computed'=>$model->computed,
             'homework' => $homework,
             'subject' => Subjects::findOne(['id' => $model->subject_id]),
             'assessment_type' => $model->type,
