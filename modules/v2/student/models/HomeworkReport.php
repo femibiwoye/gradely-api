@@ -50,6 +50,7 @@ class HomeworkReport extends QuizSummary
             'type' => $this->type,
             'subject' => $this->getHomeworkSubject(),
             'homework_title' => $this->homeworkTitle,
+            'total_questions'=>$this->total_questions,
             'submit_at' => $this->submit_at
         ];
     }
