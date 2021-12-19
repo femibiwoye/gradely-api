@@ -210,6 +210,7 @@ class PracticeController extends Controller
                         }
                         $qsd->score = $questionModel->score;
                     } elseif ($questionModel->type == 'essay') {
+                        $qsd->is_graded = 0;
                         $hasEssay = true;
                         if (isset($question['answer_attachment']))
                             $qsd->answer_attachment = $question['answer_attachment'];
