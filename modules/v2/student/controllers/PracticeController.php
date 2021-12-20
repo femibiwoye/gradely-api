@@ -143,6 +143,7 @@ class PracticeController extends Controller
 
         $failedCount = 0;
         $correctCount = 0;
+        $ungradedCount = 0;
 
         $model = new \yii\base\DynamicModel(compact('attempts', 'quiz_id', 'student_id'));
         $model->addRule(['attempts', 'quiz_id'], 'required')
@@ -190,6 +191,9 @@ class PracticeController extends Controller
                 $qsd->student_id = \Yii::$app->user->id;
                 $qsd->homework_id = $quizSummary->homework_id;
                 $qsd->max_score = $questionModel->score;
+                if (isset($question['time_spent'])) {
+                    $qsd->time_spent = $question['time_spent'];
+                }
 
                 if (in_array($questionModel->type, ['short', 'essay'])) {
                     $qsd->selected = $question['selected'];
@@ -211,6 +215,7 @@ class PracticeController extends Controller
                         $qsd->score = $questionModel->score;
                     } elseif ($questionModel->type == 'essay') {
                         $qsd->is_graded = 0;
+                        $ungradedCount = $ungradedCount + 1;
                         $hasEssay = true;
                         if (isset($question['answer_attachment']))
                             $qsd->answer_attachment = $question['answer_attachment'];
@@ -241,9 +246,10 @@ class PracticeController extends Controller
 
             $quizSummary->failed = $failedCount;
             $quizSummary->correct = $correctCount;
+            $quizSummary->ungraded = $ungradedCount;
             $quizSummary->total_questions = $total_question;
             $quizSummary->total_questions = $total_question;
-            $quizSummary->skipped = $total_question - ($correctCount + $failedCount);
+            $quizSummary->skipped = $total_question - ($correctCount + $failedCount + $ungradedCount);
             $quizSummary->submit = SharedConstant::VALUE_ONE;
             $quizSummary->submit_at = date('Y-m-d H:i:s');
 
