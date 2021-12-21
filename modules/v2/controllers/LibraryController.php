@@ -235,9 +235,9 @@ class LibraryController extends ActiveController
      */
     public function actionDiscussion()
     {
-        if (!Pricing::SubscriptionStatus()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
-        }
+//        if (!Pricing::SubscriptionStatus()) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+//        }
 
         $class_id = Yii::$app->request->get('class_id');
         $date = Yii::$app->request->get('date');
