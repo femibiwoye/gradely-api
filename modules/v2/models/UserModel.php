@@ -70,7 +70,7 @@ class UserModel extends User
             [['type', 'subscription_plan', 'oauth_provider'], 'string'],
             [['class', 'status', 'created_at', 'updated_at', 'is_boarded'], 'integer'],
             [['subscription_expiry', 'token_expires', 'last_accessed'], 'safe'],
-            [['username', 'image', 'password_hash', 'password_reset_token', 'email', 'verification_token', 'token'], 'string', 'max' => 255],
+            [['username', 'image', 'password_hash', 'password_reset_token', 'email', 'verification_token'], 'string', 'max' => 255],
             [['code'], 'string', 'max' => 20],
             [['firstname', 'lastname'], 'string', 'max' => 50],
             [['phone'], 'string', 'max' => 15],

@@ -36,6 +36,8 @@ class TeacherUpdatePasswordForm extends Model {
 	public function updatePassword() {
 		$this->user->password_hash = Yii::$app->security->generatePasswordHash($this->new_password);
 		if (!$this->user->save()) {
+            print_r($this->user->errors);
+            die;
 			return false;
 		}
 

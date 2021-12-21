@@ -271,6 +271,8 @@ class TeacherController extends ActiveController
                     return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not add teacher to class');
             }
 
+            TeacherClassSubjects::deleteAll(['class_id' => $class_id, 'teacher_id' => $teacher_id, 'school_id' => $school_id, 'status' => 1]);
+
             foreach ($subjects as $subject) {
                 if (TeacherClassSubjects::find()->where(['class_id' => $class_id, 'subject_id' => $subject, 'teacher_id' => $teacher_id])->exists())
                     continue;
@@ -295,7 +297,7 @@ class TeacherController extends ActiveController
         }
 
 
-        return $this->actionIndex($class_id);
+        return $this->actionIndex();
 //        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Successful');
 
     }

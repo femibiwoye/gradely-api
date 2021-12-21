@@ -11,6 +11,7 @@ use Yii;
  * @property string $type
  * @property int $creator_id The user giving remark
  * @property int $receiver_id The receiver could either be student, homework, etc
+ * @property int $subject_id remark subject_id
  * @property string $remark
  * @property string $created_at
  */
@@ -30,7 +31,7 @@ class Remarks extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['type', 'creator_id', 'receiver_id', 'remark'], 'required'],
+            [['type', 'creator_id', 'receiver_id', 'remark','subject_id'], 'required'],
             [['type', 'remark'], 'string'],
             [['creator_id', 'receiver_id'], 'integer'],
             [['created_at'], 'safe'],

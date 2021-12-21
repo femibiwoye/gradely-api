@@ -164,12 +164,12 @@ class HomeworkController extends ActiveController
 //        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Lesson record inserted successfully');
 //    }
 
-    public function actionClassHomeworks($class_id = null, $subject_id = null, $type=null, $sort=null)
+    public function actionClassHomeworks($class_id = null, $subject_id = null, $type = null, $sort = null, $status = null)
     {
         $model = $this->modelClass::find()->andWhere([
             'teacher_id' => Yii::$app->user->id,
             'type' => 'homework', 'status' => 1, 'publish_status' => 1])
-        ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 1], ['tag' => ['homework', 'quiz']]]);
+            ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 1], ['tag' => ['homework', 'quiz']]]);
         if ($class_id) {
             $model = $model->andWhere(['class_id' => $class_id]);
         }
@@ -188,18 +188,24 @@ class HomeworkController extends ActiveController
 //            $model = $model->andWhere(['term'=>$term]);
 //        }
 
+        if ($status == 'open') {
+            $model = $model->andWhere(['>', 'UNIX_TIMESTAMP(close_date)', time()]);
+        } else if ($status == 'closed') {
+            $model = $model->andWhere(['<', 'UNIX_TIMESTAMP(close_date)', time()]);
+        }
 
-            if ($sort == 'a-z') {
-                $model = $model->orderBy(['title' => SORT_ASC]);
-            } elseif ($sort == 'z-a') {
-                $model = $model->orderBy(['title' => SORT_DESC]);
-            } elseif ($sort == 'subject') {
-                $model = $model->orderBy(['subject_id' => SORT_ASC]);
-            } elseif ($sort == 'recent') {
-                $model = $model->orderBy(['publish_at' => SORT_DESC]);
-            }else{
-                $model = $model->orderBy('id DESC');
-            }
+        if ($sort == 'a-z') {
+            $model = $model->orderBy(['title' => SORT_ASC]);
+        } elseif ($sort == 'z-a') {
+            $model = $model->orderBy(['title' => SORT_DESC]);
+        } elseif ($sort == 'subject') {
+            $model = $model->orderBy(['subject_id' => SORT_ASC]);
+        } elseif ($sort == 'recent') {
+            $model = $model->orderBy(['publish_at' => SORT_DESC]);
+        } else {
+            $model = $model->orderBy('id DESC');
+        }
+
 
 
         if (!$model->count() > 0) {
@@ -220,12 +226,12 @@ class HomeworkController extends ActiveController
         return (new ApiResponse)->success($provider->getModels(), ApiResponse::SUCCESSFUL, $provider->totalCount . ' record found', $provider);
     }
 
-    public function actionHomeworkReview($class_id = null, $subject_id = null, $type=null,$sort=null)
+    public function actionHomeworkReview($class_id = null, $subject_id = null, $type = null, $sort = null)
     {
         $model = $this->modelClass::find()->andWhere([
             'teacher_id' => Yii::$app->user->id,
             'type' => 'homework', 'status' => 1, 'publish_status' => 1])
-        ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 0], ['tag' => ['homework', 'quiz']]]);
+            ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 0], ['tag' => ['homework', 'quiz']]]);
         if ($class_id) {
             $model = $model->andWhere(['class_id' => $class_id]);
         }
@@ -245,18 +251,17 @@ class HomeworkController extends ActiveController
 //        }
 
 
-            if ($sort == 'a-z') {
-                $model = $model->orderBy(['title' => SORT_ASC]);
-            } elseif ($sort == 'z-a') {
-                $model = $model->orderBy(['title' => SORT_DESC]);
-            } elseif ($sort == 'subject') {
-                $model = $model->orderBy(['subject_id' => SORT_ASC]);
-            } elseif ($sort == 'recent') {
-                $model = $model->orderBy(['publish_at' => SORT_DESC]);
-            }else{
-                $model = $model->orderBy('id DESC');
-            }
-
+        if ($sort == 'a-z') {
+            $model = $model->orderBy(['title' => SORT_ASC]);
+        } elseif ($sort == 'z-a') {
+            $model = $model->orderBy(['title' => SORT_DESC]);
+        } elseif ($sort == 'subject') {
+            $model = $model->orderBy(['subject_id' => SORT_ASC]);
+        } elseif ($sort == 'recent') {
+            $model = $model->orderBy(['publish_at' => SORT_DESC]);
+        } else {
+            $model = $model->orderBy('id DESC');
+        }
 
 
         if (!$model->count() > 0) {

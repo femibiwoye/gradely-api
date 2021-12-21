@@ -111,8 +111,8 @@ class HomeworkController extends ActiveController
 
         if ($search) {
             $missedModels = $missedModels
-                ->leftjoin('subjects','subjects.id = homeworks.subject_id')
-                ->leftjoin('user','user.id = homeworks.teacher_id')
+                ->leftjoin('subjects', 'subjects.id = homeworks.subject_id')
+                ->leftjoin('user', 'user.id = homeworks.teacher_id')
                 ->andWhere(['OR',
                     ['like', 'homeworks.title', '%' . $search . '%', false],
                     ['like', 'user.firstname', '%' . $search . '%', false],
@@ -230,13 +230,19 @@ class HomeworkController extends ActiveController
 
             $model = HomeworkReport::findOne([
                 'student_id' => $student_id,
-                'homework_id' => $id, 'submit' => 1]);
+                'homework_id' => $id
+            ]);
         }
 
 
         if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework report not found');
         }
+
+        if ($model->computed == 0) {
+            return (new ApiResponse)->error(['computed' => $model->getUncomputedResponse()], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework yet to be computed');
+        }
+
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student report found');
     }

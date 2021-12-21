@@ -317,7 +317,7 @@ class CatchupController extends ActiveController
                 continue;
             $correctStatus = $quizDetails->selected == $question['answer'];
             $selected = $quizDetails->selected;
-            $allQuestions[] = array_merge(ArrayHelper::toArray($question), ['correctStatus' => $correctStatus, 'selected' => $selected, 'is_correct' => $quizDetails->is_correct, 'score' => $quizDetails->score, 'max_score' => $quizDetails->max_score, 'answer_attachment' => $quizDetails->answer_attachment]);
+            $allQuestions[] = array_merge(ArrayHelper::toArray($question), ['correctStatus' => $correctStatus, 'attempt_id'=>$quizDetails->id, 'selected' => $selected, 'is_correct' => $quizDetails->is_correct, 'score' => $quizDetails->score, 'max_score' => $quizDetails->max_score, 'answer_attachment' => $quizDetails->answer_attachment,'is_graded'=>$quizDetails->is_graded]);
         }
 
         $student = User::find()->select(['firstname', 'lastname', 'image', 'code'])->where(['id' => $student_id])->one();
@@ -329,11 +329,13 @@ class CatchupController extends ActiveController
             'student_image' => Utility::ProfileImage($student->image),
             'score' => ($model->correct / count($homeworkQuestions)) * 100,
             'maximum_score' => 100,
+            'quiz_id' => $model->id,
             'correct' => $model->correct,
             'incorrect' => $model->failed,
             'skipped' => $model->skipped,
             'datetime' => $model->submit_at,
             'term' => $model->term,
+            'computed'=>$model->computed,
             'homework' => $homework,
             'subject' => Subjects::findOne(['id' => $model->subject_id]),
             'assessment_type' => $model->type,

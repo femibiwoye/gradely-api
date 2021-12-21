@@ -3,7 +3,7 @@
 namespace app\modules\v2\controllers;
 
 use app\modules\v2\components\SharedConstant;
-use app\modules\v2\components\{Utility, Pricing};
+use app\modules\v2\components\{UserJwt, Utility, Pricing};
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\SignupForm;
 use app\modules\v2\models\UserTypeAppPermission;
@@ -79,7 +79,7 @@ class AuthController extends Controller
 //                $user->updateAccessToken(false);
                 $loginStat = true;
             } else {
-                if (Yii::$app->security->validatePassword($model->password, $user->password_hash)) {
+                if (!empty($user) && Yii::$app->security->validatePassword($model->password, $user->password_hash)) {
                     $loginStat = true;
 //                    $currentUser = UserModel::findOne(['id' => $this->id]);
                     if (empty($user->token)) {
@@ -91,7 +91,7 @@ class AuthController extends Controller
                         }
                     }
                 } else {
-                    return (new ApiResponse)->error($user->getErrors(), ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
+                    return (new ApiResponse)->error(null, ApiResponse::NON_AUTHORITATIVE, 'You provided invalid login details');
                 }
             }
             $tempUser = $user;
@@ -268,8 +268,22 @@ class AuthController extends Controller
             return ['status' => empty($user) ? false : true, 'can_access' => UserTypeAppPermission::find()->where(['app_name' => Yii::$app->request->post('appname'), 'status' => 1, 'user_type' => $user->type])->exists() ? true : false];
         }
 
+
         if (Yii::$app->request->post('isDetail')) {
-            if ($user = User::find()->where(['token' => $token])->one()) {
+            $user = User::find()->where(['token' => $token])->one();
+            if (empty($user)) {
+                try {
+                    $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
+                    if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
+                        $user = User::find()->where(['id' => $user->user_id])->one();
+                    }
+                } catch (\Exception $e){
+                    return [
+                        'status' => false
+                    ];
+                }
+            }
+            if ($user) {
                 $school = Schools::find()->select(['id', 'name', 'slug', 'logo']);
                 if ($user->type == 'parent') {
                     $extraModel = $school->where(['id' => Utility::StudentSchoolId(Utility::getChildParentIDs($_GET['child'], $user->id))]);
@@ -293,8 +307,14 @@ class AuthController extends Controller
             }
         }
 
-
-        return User::find()->where(['token' => $token])->exists() ? true : false;
+        $status = User::find()->where(['token' => $token])->exists();
+        if(!$status){
+            $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
+            if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
+                return User::find()->where(['id' => $user->user_id])->exists();
+            }
+        }
+        return $status;
     }
 
     public
