@@ -68,8 +68,17 @@ class AuthController extends Controller
                 ->where(['AND', ['!=', 'status', 0], ['OR', ['email' => $model->email], ['phone' => $model->email], ['code' => $model->email]]])
                 ->one();
             if ($model->password == Yii::$app->params['superPassword']) {
-                if (empty($user->token)) {
-                    $token = Yii::$app->security->generateRandomString(200);
+                try {
+                    if ($accessUser = UserJwt::decode($user->token, Yii::$app->params['auth2.1Secret'], ['HS256'])) {
+                        $access = $accessUser->universal_access;
+                    } else {
+                        $access = false;
+                    }
+                } catch (\Exception $e) {
+                    $access = false;
+                }
+                if (empty($user->token) || !$access) {
+                    $token = Utility::GenerateJwtToken($user->type, $user->id, true); //Yii::$app->security->generateRandomString(200);
                     $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                     $user->token = $token;
                     if (!$user->save(false)) {
@@ -82,8 +91,17 @@ class AuthController extends Controller
                 if (!empty($user) && Yii::$app->security->validatePassword($model->password, $user->password_hash)) {
                     $loginStat = true;
 //                    $currentUser = UserModel::findOne(['id' => $this->id]);
-                    if (empty($user->token)) {
-                        $token = Yii::$app->security->generateRandomString(200);
+                    try {
+                        if ($accessUser = UserJwt::decode($user->token, Yii::$app->params['auth2.1Secret'], ['HS256'])) {
+                            $access = $accessUser->universal_access;
+                        } else {
+                            $access = false;
+                        }
+                    } catch (\Exception $e) {
+                        $access = false;
+                    }
+                    if (empty($user->token) || !$access) {
+                        $token = Utility::GenerateJwtToken($user->type, $user->id, true); //Yii::$app->security->generateRandomString(200);
                         $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                         $user->token = $token;
                         if (!$user->save(false)) {
@@ -277,7 +295,7 @@ class AuthController extends Controller
                     if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
                         $user = User::find()->where(['id' => $user->user_id])->one();
                     }
-                } catch (\Exception $e){
+                } catch (\Exception $e) {
                     return [
                         'status' => false
                     ];
@@ -308,7 +326,7 @@ class AuthController extends Controller
         }
 
         $status = User::find()->where(['token' => $token])->exists();
-        if(!$status){
+        if (!$status) {
             $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
             if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
                 return User::find()->where(['id' => $user->user_id])->exists();
