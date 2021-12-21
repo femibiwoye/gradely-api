@@ -5,6 +5,7 @@ return [
 
     //Teacher Profile
     'PUT v2/teacher/profile/update-email' => 'v2/teacher/profile/update-email', //
+    'PUT v2/teacher/profile/update-phone' => 'v2/teacher/profile/update-phone', //
     'PUT v2/teacher/profile/update-password' => 'v2/teacher/profile/update-password', //
     'PUT v2/teacher/profile' => 'v2/teacher/profile/update', //
     'GET v2/teacher/profile/preference' => 'v2/teacher/profile/preference', //

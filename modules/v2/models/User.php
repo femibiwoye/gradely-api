@@ -2,6 +2,7 @@
 
 namespace app\modules\v2\models;
 
+use app\modules\v2\components\UserJwt;
 use app\modules\v2\components\Utility;
 use Yii;
 use yii\base\NotSupportedException;
@@ -30,7 +31,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
         return [
 //            [['firstname', 'lastname', 'type'], 'required'],
-//            [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
+            [['username', 'firstname', 'lastname', 'code', 'phone', 'image', 'type', 'auth_key', 'password_hash', 'password_reset_token', 'verification_token', 'token', 'oauth_uid'], 'string'],
 //            [['class', 'is_boarded'], 'integer'],
 //
 //            ['email', 'filter', 'filter' => 'trim'],
@@ -169,8 +170,18 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public static function findIdentityByAccessToken($token, $type = null)
     {
         //return static::findOne(['token' => $token]);
-
-        if ($user = static::find()->where(['AND', ['token' => $token], ['<>', 'status', self::STATUS_DELETED]])->one()) {
+        $user = User::find()->where(['AND', ['token' => $token], ['<>', 'status', self::STATUS_DELETED]])->one();
+        if (empty($user)) {
+            try {
+                $userJwt = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
+                if (isset($userJwt) && $userJwt->universal_access == 1 && !empty($userJwt->user_id)) {
+                    $user = User::find()->where(['id' => $userJwt->user_id])->one();
+                }
+            } catch (\Exception $e){
+                return null;
+            }
+        }
+        if ($user) {
             /**
              * This token is expired if expiry date is greater than current time.
              **/

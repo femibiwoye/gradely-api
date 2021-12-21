@@ -18,12 +18,15 @@ use Yii;
  * @property int|null $correct
  * @property int|null $failed
  * @property int|null $skipped
+ * @property int|null $ungraded
  * @property string $term
  * @property string $mode
  * @property string $created_at
  * @property string|null $submit_at
+ * @property string|null $max_score
  * @property string $session
  * @property int $submit
+ * @property int $computed
  * @property int $topic_id
  *
  * @property User $student
@@ -45,9 +48,9 @@ class QuizSummary extends \yii\db\ActiveRecord
     {
         return [
             [['homework_id', 'subject_id', 'student_id', 'class_id', 'total_questions', 'term'], 'required'],
-            [['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'correct', 'failed', 'skipped', 'submit', 'topic_id'], 'integer'],
+            [['homework_id', 'subject_id', 'student_id', 'teacher_id', 'class_id', 'total_questions', 'correct', 'failed', 'skipped', 'ungraded', 'submit', 'topic_id', 'computed'], 'integer'],
             [['type', 'term', 'mode', 'session'], 'string'],
-            [['created_at', 'teacher_id'], 'safe'],
+            [['created_at', 'teacher_id', 'max_score'], 'safe'],
             [['submit_at'], 'string', 'max' => 50],
         ];
     }

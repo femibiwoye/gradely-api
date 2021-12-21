@@ -352,7 +352,7 @@ class Utility extends ActiveRecord
 
         }
 
-        return ['term' => strtolower($term), 'week' => strtolower($week)];
+        return ['term' => strtolower($term), 'week' => strtolower($week), 'session' => '2021-2022'];
     }
 
     /**

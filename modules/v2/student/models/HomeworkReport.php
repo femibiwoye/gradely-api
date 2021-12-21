@@ -28,6 +28,7 @@ class HomeworkReport extends QuizSummary
             'failed',
             'skipped',
             'submit',
+            'computed',
             'type',
             'topic_id',
             'subject' => 'homeworkSubject',
@@ -41,9 +42,22 @@ class HomeworkReport extends QuizSummary
         ];
     }
 
+    public function getUncomputedResponse()
+    {
+        return [
+            'homework_id' => $this->homework_id,
+            'computed' => $this->computed,
+            'type' => $this->type,
+            'subject' => $this->getHomeworkSubject(),
+            'homework_title' => $this->homeworkTitle,
+            'total_questions'=>$this->total_questions,
+            'submit_at' => $this->submit_at
+        ];
+    }
+
     public function getStudentProfile()
     {
-        return User::find()->select(['id','firstname','lastname','image'])->where(['id'=>$this->student_id])->asArray()->one();
+        return User::find()->select(['id', 'firstname', 'lastname', 'image'])->where(['id' => $this->student_id])->asArray()->one();
     }
 
     public function getCountAttemptedQuestions()

@@ -5,7 +5,11 @@ namespace app\modules\v2\teacher\controllers;
 use app\modules\v2\components\CustomHttpBearerAuth;
 use Yii;
 use app\modules\v2\models\{User, ApiResponse, UserPreference};
-use app\modules\v2\teacher\models\{TeacherUpdateEmailForm, TeacherUpdatePasswordForm, UpdateTeacherForm};
+use app\modules\v2\teacher\models\{TeacherUpdateEmailForm,
+    TeacherUpdatePasswordForm,
+    TeacherUpdatePhoneForm,
+    UpdateTeacherForm
+};
 use app\modules\v2\components\{SharedConstant};
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
@@ -73,6 +77,28 @@ class ProfileController extends ActiveController
         $model->attributes = $form->attributes;
         if (!$form->sendEmail() || !$model->save()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Email is not updated!');
+        }
+
+        return (new ApiResponse)->success($model);
+    }
+
+    public function actionUpdatePhone()
+    {
+        $model = $this->modelClass::find()->andWhere(['id' => Yii::$app->user->id])->one();
+        if ($model->type != SharedConstant::TYPE_TEACHER || !$model) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Teacher not found!');
+        }
+
+        $form = new TeacherUpdatePhoneForm();
+        $form->attributes = Yii::$app->request->post();
+        $form->user = $model;
+        if (!$form->validate()) {
+            return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
+        }
+
+        $model->attributes = $form->attributes;
+        if (!$model->save()) {
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Phone number is not updated!');
         }
 
         return (new ApiResponse)->success($model);

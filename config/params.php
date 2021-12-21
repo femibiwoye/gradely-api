@@ -69,5 +69,6 @@ return [
 
     'bbbSecret' => BBB_SECRET,
     'bbbServerBaseUrl' => BBB_SERVER_BASE_URL,
-    'liveClassClient' => LIVE_CLASS_CLIENT
+    'liveClassClient' => LIVE_CLASS_CLIENT,
+    'auth2.1Secret'=>AUTH_NEW_SECRET
 ];

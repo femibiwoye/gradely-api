@@ -113,10 +113,12 @@ class StudentDetails extends User
 
     public function getRemarks()
     {
-        return Remarks::find()
-            ->where(['receiver_id' => $this->id, 'type' => 'student'])
-            //->asArray()
-            ->all();
+        $query = Remarks::find()
+            ->where(['receiver_id' => $this->id, 'type' => 'student']);
+        if (Yii::$app->request->get('subject')) {
+            $query = $query->andWhere('subject_id IS NULL OR subject_id=' . Yii::$app->request->get('subject'));
+        }
+        return $query->all();
     }
 
     public function getFeeds()
@@ -136,6 +138,9 @@ class StudentDetails extends User
                 'pm.filesize',
                 'pm.tag',
                 'pm.token as attachment_token',
+                new Expression("(SELECT json_object('id',user.id,'name', CONCAT(firstname, ' ',lastname), 'code', code,'image',image) 
+	FROM user WHERE user.id = f.user_id LIMIT 1)
+	           as user")
             ])
             ->leftJoin('feed_like fl', "fl.parent_id = f.id AND fl.type = 'feed'")
             ->leftJoin('feed_comment fc', "fc.feed_id = f.id AND fc.type = 'feed'")
@@ -202,7 +207,7 @@ class StudentDetails extends User
 
         $studentCount = QuizSummary::find()
             ->alias('q')
-            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1,'q.session'=>Yii::$app->params['activeSession']])
+            ->where(['q.student_id' => $this->id/*, 'q.class_id' => $class->class_id*/, 'submit' => 1, 'q.session' => Yii::$app->params['activeSession']])
             ->innerJoin('homeworks', "homeworks.id = q.homework_id AND homeworks.type = 'homework'" . $condition2);
 
         if (Yii::$app->request->get('subject'))
@@ -531,7 +536,7 @@ class StudentDetails extends User
                 ]);
 
             if (isset($_GET['term'])) {
-                $topics = $topics->andWhere(['term'=>$_GET['term']]);
+                $topics = $topics->andWhere(['term' => $_GET['term']]);
             }
             $topics = $topics->all();
 
@@ -564,19 +569,44 @@ class StudentDetails extends User
     {
         $studentID = Utility::getParentChildID();
 
-        $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])->groupBy('subject_id')->all(), 'subject_id');
-        $subjects = Subjects::find()
-            ->alias('s')
-            ->select([
-                's.id',
-                's.slug',
-                's.name',
-                //'s.description',
-                //'s.image',
-            ])
-            ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
-            ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
-            ->where(['s.status' => 1])->orWhere(['s.id' => $subjectIDS]);
+        if (Yii::$app->user->identity->type == "teacher") {
+            $subjectIDS = ArrayHelper::getColumn(TeacherClassSubjects::find()->select(['subject_id'])
+                ->leftJoin('student_school ss', 'ss.class_id = teacher_class_subjects.class_id AND ss.status = 1')
+                ->where(['teacher_id' => Yii::$app->user->id, 'teacher_class_subjects.status' => 1, 'ss.student_id' => $this->id])
+                ->groupBy('subject_id')
+                ->all(), 'subject_id');
+
+            $subjects = Subjects::find()
+                ->alias('s')
+                ->select([
+                    's.id',
+                    's.slug',
+                    's.name',
+                    //'s.description',
+                    //'s.image',
+                ])
+                ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
+                ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
+                ->where(['s.status' => 1, 's.id' => $subjectIDS]);
+        } else {
+            $subjectIDS = ArrayHelper::getColumn(QuizSummary::find()->select(['subject_id'])
+                ->where(['student_id' => $studentID, 'submit' => 1, 'session' => Yii::$app->params['activeSession']])
+                ->groupBy('subject_id')
+                ->all(), 'subject_id');
+            $subjects = Subjects::find()
+                ->alias('s')
+                ->select([
+                    's.id',
+                    's.slug',
+                    's.name',
+                    //'s.description',
+                    //'s.image',
+                ])
+                ->leftJoin('student_school ss', "ss.student_id = '$studentID' AND ss.status = 1")
+                ->leftJoin('class_subjects cs', 'cs.class_id = ss.class_id AND cs.school_id = ss.school_id AND cs.subject_id = s.id AND cs.status = 1')
+                ->where(['s.status' => 1])->orWhere(['s.id' => $subjectIDS]);
+        }
+
 
         if (!empty($subject_id))
             $subjects = $subjects->andWhere(['s.id' => $subject_id]);

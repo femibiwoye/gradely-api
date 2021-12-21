@@ -125,7 +125,20 @@ class ClassController extends ActiveController
         }
         $model->addSchoolTeacher(1);
 
-        return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Teacher added successfully');
+
+        $classModel = TeacherClass::find()
+            ->alias('tc')
+            ->select([
+                'c.class_name',
+                'c.class_code',
+                'tc.class_id'
+            ])
+            ->innerJoin('classes c', 'c.id = tc.class_id')
+            ->where(['tc.id' => $model->id, 'status' => 1])
+            ->asArray()
+            ->one();
+
+        return (new ApiResponse)->success(array_merge($classModel, ['subjects' => []]), ApiResponse::SUCCESSFUL, 'Teacher added successfully');
     }
 
     public function actionSchool($id)
@@ -269,13 +282,14 @@ class ClassController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        $school_student_limit = Pricing::SubscriptionStatus(null, null, false);
-        if ($school_student_limit['unused_student'] < 1) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Students limit exceeded');
-        }
-        if (count($form->students) > $school_student_limit['unused_student']) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not enough room to add new students');
-        }
+        //Disable subscription
+//        $school_student_limit = Pricing::SubscriptionStatus(null, null, false);
+//        if ($school_student_limit['unused_student'] < 1) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Students limit exceeded');
+//        }
+//        if (count($form->students) > $school_student_limit['unused_student']) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not enough room to add new students');
+//        }
 
 
         if (!$user = $form->addStudents(SharedConstant::TYPE_STUDENT)) {
@@ -515,12 +529,21 @@ class ClassController extends ActiveController
      * This fetches all teacher classes and subjects to each class
      * @return ApiResponse
      */
-    public function actionClassesSubjects()
+    public function actionClassesSubjects($teacher_id = null)
     {
         $session = [
             ["slug" => "2019-2020", 'name' => '2019/2020'],
             ["slug" => "2020-2021", 'name' => '2020/2021'],
+            ["slug" => "2021-2022", 'name' => '2021/2022'],
         ];
+
+        $user = Yii::$app->user->identity;
+        if (!empty($teacher_id) && $user->type == 'school') {
+            if (!TeacherClass::find()->where(['school_id' => Utility::getSchoolAccess(), 'teacher_id' => $teacher_id, 'status' => 1])->exists())
+                return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, "Teacher not found");
+        } else {
+            $teacher_id = $user->id;
+        }
 
         $classesSubject = [];
         $classes = TeacherClass::find()
@@ -531,7 +554,7 @@ class ClassController extends ActiveController
                 'tc.class_id'
             ])
             ->innerJoin('classes c', 'c.id = tc.class_id')
-            ->where(['tc.teacher_id' => Yii::$app->user->id, 'status' => 1])
+            ->where(['tc.teacher_id' => $teacher_id, 'status' => 1])
             ->groupBy('tc.class_id')
             ->asArray()
             ->all();
@@ -544,7 +567,7 @@ class ClassController extends ActiveController
                 'tcs.class_id'
             ])
             ->innerJoin('subjects s', 's.id = tcs.subject_id')
-            ->where(['tcs.teacher_id' => Yii::$app->user->id, 'tcs.status' => 1])
+            ->where(['tcs.teacher_id' => $teacher_id, 'tcs.status' => 1])
             ->asArray()
             ->all();
 
