@@ -27,6 +27,7 @@ use app\modules\v2\models\{SchoolTopic,
 
 use app\modules\v2\models\User;
 use Aws\Credentials\Credentials;
+use SebastianBergmann\CodeCoverage\Util;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
@@ -943,5 +944,20 @@ class Utility extends ActiveRecord
                 }
             }
         }
+    }
+
+    public static function GenerateJwtToken($userType, $userid, $universal_access)
+    {
+        //atClaims["type"] = userType
+        //	atClaims["user_id"] = userid
+        //	atClaims["access_uuid"] = td.AccessUuid
+        //	atClaims["authorised"] = true
+        //	atClaims["universal_access"] = false
+        //	atClaims["exp"] = time.Now().AddDate(0, 0, 7).Unix()
+        $expiry = strtotime("+1 week", time());
+        $accessUid = Yii::$app->security->generateRandomString();
+        $authorised = true;
+//        $universal_access = false;
+        return UserJwt::encode(['type' => $userType, 'user_id' => (string)$userid, 'access_uuid' => $accessUid, 'authorised' => $authorised, 'universal_access' => $universal_access, 'exp' => $expiry], Yii::$app->params['auth2.1Secret']);
     }
 }
