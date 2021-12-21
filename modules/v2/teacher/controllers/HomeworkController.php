@@ -71,9 +71,9 @@ class HomeworkController extends ActiveController
 
     public function actionCreate($type)
     {
-        if (!Pricing::SubscriptionStatus()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
-        }
+//        if (!Pricing::SubscriptionStatus()) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+//        }
 
         if (!in_array($type, SharedConstant::HOMEWORK_TYPES)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid type value');

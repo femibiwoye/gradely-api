@@ -78,9 +78,9 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
-        if (!Pricing::SubscriptionStatus()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
-        }
+//        if (!Pricing::SubscriptionStatus()) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+//        }
 
         $type = Yii::$app->request->post('type');
         $student_id = Yii::$app->request->post('student_id');
@@ -202,9 +202,9 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
-        if (!Pricing::SubscriptionStatus()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
-        }
+//        if (!Pricing::SubscriptionStatus()) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+//        }
 
         $student_id = Yii::$app->request->post('student_id');
         $topic_ids = Yii::$app->request->post('topic_ids');
@@ -240,9 +240,9 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Authentication failed');
         }
 
-        if (!Pricing::SubscriptionStatus()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
-        }
+//        if (!Pricing::SubscriptionStatus()) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+//        }
 
         $model = new RecommendedResources;
         $model->creator_id = Yii::$app->user->id;

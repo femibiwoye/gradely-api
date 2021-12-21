@@ -336,9 +336,9 @@ class FeedController extends ActiveController
 
     public function actionCreate()
     {
-        if (!Pricing::SubscriptionStatus()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
-        }
+//        if (!Pricing::SubscriptionStatus()) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+//        }
 
         $classIDs = Yii::$app->request->post('class_id');
         if (!is_array($classIDs)) {
@@ -392,9 +392,9 @@ class FeedController extends ActiveController
 
     public function actionNewLiveClass()
     {
-        if (!Pricing::SubscriptionStatus()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
-        }
+//        if (!Pricing::SubscriptionStatus()) {
+//            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'No active subscription');
+//        }
 
         $school_id = Utility::getTeacherSchoolID(Yii::$app->user->id);
         if (!$school_id) {
