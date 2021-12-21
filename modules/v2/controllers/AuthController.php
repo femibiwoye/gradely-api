@@ -74,7 +74,7 @@ class AuthController extends Controller
                     } else {
                         $access = false;
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $access = false;
                 }
                 if (empty($user->token) || !$access) {
@@ -97,7 +97,7 @@ class AuthController extends Controller
                         } else {
                             $access = false;
                         }
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         $access = false;
                     }
                     if (empty($user->token) || !$access) {
