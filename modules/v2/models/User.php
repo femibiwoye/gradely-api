@@ -244,8 +244,17 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function updateAccessToken($isUser = true)
     {
         $currentUser = UserModel::findOne(['id' => $this->id]);
-        if ($isUser || empty($currentUser->token)) {
-            $token = Yii::$app->security->generateRandomString(200);
+        try {
+            if (!empty($currentUser->token) && $accessUser = UserJwt::decode($currentUser->token, Yii::$app->params['auth2.1Secret'], ['HS256'])) {
+                $access = $accessUser->universal_access;
+            } else {
+                $access = false;
+            }
+        } catch (\Throwable $e) {
+            $access = false;
+        }
+        if ($isUser || !$access) {
+            $token = Utility::GenerateJwtToken($currentUser->type, $currentUser->id, true); //Yii::$app->security->generateRandomString(200);
             $currentUser->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
             $currentUser->token = $token;
             if (!$currentUser->save()) {
