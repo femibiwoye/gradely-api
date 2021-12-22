@@ -499,7 +499,7 @@ class FeedController extends ActiveController
             $status = true;
         }
 
-        if ($user->type == 'school' && Classes::find()->where(['id' => $feed->class_id, 'school_id' => Utility::getSchoolAccess(), 'status' => 1])->exists()) {
+        if ($user->type == 'school' && Classes::find()->where(['id' => $feed->class_id, 'school_id' => Utility::getSchoolAccess()])->exists()) {
             $status = true;
         }
 
