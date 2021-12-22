@@ -235,7 +235,7 @@ class ClassController extends ActiveController
         }
 
         if (!$data = $form->getStudents()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Records not found');
+            return (new ApiResponse)->success(ApiResponse::SUCCESSFUL, 'Records not found');
         }
 
         return (new ApiResponse)->success($data, ApiResponse::SUCCESSFUL, 'Record found');

@@ -485,7 +485,7 @@ class FeedController extends ActiveController
     {
         $feed = Feed::findOne(['id' => $feed_id, 'status' => 1]);
         if (!$feed) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not found');
+            return (new ApiResponse)->error(null, ApiResponsex::UNABLE_TO_PERFORM_ACTION, 'Record not found');
         }
 
         $comment = FeedComment::findOne(['feed_id' => $feed_id, 'id' => $comment_id, 'status' => 1]);
@@ -499,7 +499,7 @@ class FeedController extends ActiveController
             $status = true;
         }
 
-        if ($user->type == 'school' && Classes::find()->where(['class_id' => $feed->class_id, 'school_id' => Utility::getSchoolAccess(), 'status' => 1])->exists()) {
+        if ($user->type == 'school' && Classes::find()->where(['id' => $feed->class_id, 'school_id' => Utility::getSchoolAccess()])->exists()) {
             $status = true;
         }
 
