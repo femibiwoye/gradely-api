@@ -177,7 +177,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
                 if (isset($userJwt) && $userJwt->universal_access == 1 && !empty($userJwt->user_id)) {
                     $user = User::find()->where(['id' => $userJwt->user_id])->one();
                 }
-            } catch (\Exception $e){
+            } catch (\Throwable $e){
                 return null;
             }
         }
