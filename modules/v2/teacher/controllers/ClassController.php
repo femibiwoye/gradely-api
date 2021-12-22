@@ -551,7 +551,8 @@ class ClassController extends ActiveController
             ->select([
                 'c.class_name',
                 'c.class_code',
-                'tc.class_id'
+                'tc.class_id',
+                'c.school_id'
             ])
             ->innerJoin('classes c', 'c.id = tc.class_id')
             ->where(['tc.teacher_id' => $teacher_id, 'status' => 1])
@@ -564,7 +565,7 @@ class ClassController extends ActiveController
             ->select([
                 's.name',
                 's.id subject_id',
-                'tcs.class_id'
+                'tcs.class_id',
             ])
             ->innerJoin('subjects s', 's.id = tcs.subject_id')
             ->where(['tcs.teacher_id' => $teacher_id, 'tcs.status' => 1])
