@@ -285,7 +285,7 @@ class HomeworkController extends ActiveController
     }
 
 
-    public function actionVideos($child_id = null, $search = null, $term = null, $subject_id = null, $creator_id = null)
+    public function actionVideos($child_id = null, $search = null, $term = null, $subject_id = null, $creator_id = null, $sort = null, $order = null)
     {
         $user = Yii::$app->user->identity;
         if ($user->type == 'student') {
@@ -304,13 +304,17 @@ class HomeworkController extends ActiveController
             ->andWhere(['OR', ['feed.class_id' => $studentClassID], ['homeworks.class_id' => $studentClassID]]);
 
         if (Classes::find()->where(['id' => $studentClassID, 'school_id' => Yii::$app->params['summerSchoolID']])->exists() && $summerObject = StudentSummerSchool::findOne(['student_id' => $child_id])) {
-            die;
             $model = $model->andWhere(['feed.subject_id' => $summerObject->subjects]);
         }
 
         if ($creator_id) {
             $model = $model->andWhere(['practice_material.user_id' => $creator_id]);
         }
+
+        if ($term) {
+            $model = $model->andWhere(['OR', ['feed.term' => $term], ['homeworks.term' => $term]]);
+        }
+
         if ($subject_id) {
             $model = $model->andWhere(['OR', ['feed.subject_id' => $subject_id], ['homeworks.subject_id' => $subject_id]]);
         }
@@ -326,7 +330,33 @@ class HomeworkController extends ActiveController
                 ['like', 'subjects.name', '%' . $search . '%', false]
             ]);
         }
-        $model = $model->orderBy(['created_at' => SORT_DESC])->groupBy('practice_material.id');
+
+
+        if ($sort || $order) {
+            if (!in_array($sort, ['subject', 'name', 'most_recent'])) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid sort options');
+            }
+
+            if (empty($order))
+                $order = 'ASC';
+            if (!in_array(strtoupper($order), ['ASC', 'DESC'])) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid order options');
+            }
+            if ($sort == "name") {
+                $model = $model->orderBy(['practice_material.title' => $order]);
+            }
+            if ($sort == "subject") {
+                $model = $model->orderBy(['subjects.id' => $order]);
+            }
+            if ($sort == "most_recent") {
+                $model = $model->orderBy(['created_at' => $order]);
+            }
+
+        } else {
+            $model = $model->orderBy(['created_at' => SORT_DESC])->all();
+        }
+
+        $model = $model->groupBy('practice_material.id');
 
         $provider = new ActiveDataProvider([
             'query' => $model,
