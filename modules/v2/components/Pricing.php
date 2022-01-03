@@ -94,6 +94,7 @@ class Pricing extends Widget
                     $studentID = Yii::$app->user->id;
                 }
 
+                $user = UserModel::findOne(['id' => $studentID, 'type' => 'student']);
                 //Override for freemium
                 $return = array_merge([
                     'status' => true,
@@ -101,7 +102,7 @@ class Pricing extends Widget
                     'plan' => null,
                     'is_school_sub' => 1,
                     'school_active' => 1,
-                    'days_left' => 0
+                    'days_left' => 30
                 ], ['lms' => true, 'status' => !empty($user->subscription_expiry) && strtotime($user->subscription_expiry) > time() ? true : false]);
                 return $statusOnly ? !empty($user->subscription_expiry) && strtotime($user->subscription_expiry) > time() ? true : false : $return;
 
