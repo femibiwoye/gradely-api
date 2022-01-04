@@ -74,7 +74,7 @@ class StudentAnalytics extends Model
 
             $model = $model->andWhere(['AND',
                 !empty($subject) ? ['quiz_summary.subject_id' => $subject] : [],
-                !empty($term) ? ['term' => $term] : [],
+                !empty($term) ? ['quiz_summary.term' => $term] : [],
                 !empty($studentId) ? ['quiz_summary.student_id' => $studentId] : []
             ]);
 
