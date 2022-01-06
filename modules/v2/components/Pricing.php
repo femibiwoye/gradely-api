@@ -44,17 +44,17 @@ class Pricing extends Widget
             if ($type == 'school' || $type == 'teacher') {
 
                 //Override for freemium
-                $return = [
-                    'status' => true,
-                    'expiry' => null,
-                    'plan' => null,
-                    'limit' => 0,
-                    'used_student' => 0,
-                    'unused_student' => 0,
-                    'days_left' => 0
-                ];
-
-                return $statusOnly ? true : $return;
+//                $return = [
+//                    'status' => true,
+//                    'expiry' => null,
+//                    'plan' => null,
+//                    'limit' => 0,
+//                    'used_student' => 0,
+//                    'unused_student' => 0,
+//                    'days_left' => 40
+//                ];
+//
+//                return $statusOnly ? true : $return;
 
 
                 if ($type == 'teacher') {
@@ -94,17 +94,17 @@ class Pricing extends Widget
                     $studentID = Yii::$app->user->id;
                 }
 
-                $user = UserModel::findOne(['id' => $studentID, 'type' => 'student']);
-                //Override for freemium
-                $return = array_merge([
-                    'status' => true,
-                    'expiry' => null,
-                    'plan' => null,
-                    'is_school_sub' => 1,
-                    'school_active' => 1,
-                    'days_left' => 30
-                ], ['lms' => true, 'status' => !empty($user->subscription_expiry) && strtotime($user->subscription_expiry) > time() ? true : false]);
-                return $statusOnly ? !empty($user->subscription_expiry) && strtotime($user->subscription_expiry) > time() ? true : false : $return;
+//                $user = UserModel::findOne(['id' => $studentID, 'type' => 'student']);
+//                //Override for freemium
+//                $return = array_merge([
+//                    'status' => true,
+//                    'expiry' => null,
+//                    'plan' => null,
+//                    'is_school_sub' => 1,
+//                    'school_active' => 1,
+//                    'days_left' => 30
+//                ], ['lms' => true, 'status' => !empty($user->subscription_expiry) && strtotime($user->subscription_expiry) > time() ? true : false]);
+//                return $statusOnly ? !empty($user->subscription_expiry) && strtotime($user->subscription_expiry) > time() ? true : false : $return;
 
 
                 if ($user = UserModel::findOne(['id' => $studentID, 'type' => 'student'])) {

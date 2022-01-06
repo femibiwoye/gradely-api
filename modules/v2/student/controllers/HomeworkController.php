@@ -353,7 +353,7 @@ class HomeworkController extends ActiveController
             }
 
         } else {
-            $model = $model->orderBy(['created_at' => SORT_DESC])->all();
+            $model = $model->orderBy(['created_at' => SORT_DESC]);
         }
 
         $model = $model->groupBy('practice_material.id');
