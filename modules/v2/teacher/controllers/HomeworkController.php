@@ -98,8 +98,11 @@ class HomeworkController extends ActiveController
 
             $form->class_id = $classID;
             $form->bulk_creation_reference = $uniqueIdentifier;
-            $schoolID = Classes::findOne(['id' => $classID])->school_id;
-
+            $classDetails = Classes::findOne(['id' => $classID]);
+            if (empty($classDetails)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Class id is invalid");
+            }
+            $schoolID = $classDetails->school_id;
             $form->school_id = $schoolID;
             $form->teacher_id = Yii::$app->user->id;
 
@@ -205,7 +208,6 @@ class HomeworkController extends ActiveController
         } else {
             $model = $model->orderBy('id DESC');
         }
-
 
 
         if (!$model->count() > 0) {
