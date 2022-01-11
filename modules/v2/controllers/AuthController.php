@@ -295,7 +295,7 @@ class AuthController extends Controller
                     if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
                         $user = User::find()->where(['id' => $user->user_id])->one();
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     return [
                         'status' => false
                     ];
@@ -327,9 +327,15 @@ class AuthController extends Controller
 
         $status = User::find()->where(['token' => $token])->exists();
         if (!$status) {
-            $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
-            if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
-                return User::find()->where(['id' => $user->user_id])->exists();
+            try {
+                $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
+                if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
+                    return User::find()->where(['id' => $user->user_id])->exists();
+                }
+            } catch (\Throwable $e) {
+                return [
+                    'status' => false
+                ];
             }
         }
         return $status;
