@@ -56,7 +56,7 @@ class StudentClassForm extends Model
         foreach ($students_in_class->all() as $student) {
 
             $parents = (new \yii\db\Query())
-                ->select(['user.id', 'user.code', 'user.firstname', 'user.lastname', 'user.image'])
+                ->select(['user.id', 'user.code', 'user.firstname', 'user.lastname', 'user.image','user.phone','user.email','parents.role'])
                 ->from('parents')
                 ->innerJoin('user', 'user.id = parents.parent_id')
                 ->where([
