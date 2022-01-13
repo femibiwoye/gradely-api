@@ -77,7 +77,7 @@ class AuthController extends Controller
                 } catch (\Throwable $e) {
                     $access = false;
                 }
-                if (empty($user->token) || !$access) {
+                if (isset($user->type) && empty($user->token) || !$access) {
                     $token = Utility::GenerateJwtToken($user->type, $user->id, true); //Yii::$app->security->generateRandomString(200);
                     $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                     $user->token = $token;
