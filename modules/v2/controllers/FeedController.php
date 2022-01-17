@@ -214,7 +214,7 @@ class FeedController extends ActiveController
             //->with('participants');
         }
 
-        if ($token && $oneMmodels = $models->andWhere(['token' => $token])->one()) {
+        if ($token && $oneMmodels = $models->andWhere(['feed.token' => $token])->one()) {
             $comments = FeedComment::find()->where(['feed_id' => $oneMmodels->id, 'type' => 'feed'])->orderBy('id')->all();
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }

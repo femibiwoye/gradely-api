@@ -170,21 +170,23 @@ class AuthController extends Controller
 
         $user->token = $user->updateAccessToken();
 
-        if ($user->type == 'student' and !empty(Yii::$app->request->post('class_code'))) {
+        if ($user->type == 'student') {
 //                $this->NewStudent(Yii::$app->request->post('class_code'), $user->id);
-            $classCode = Yii::$app->request->post('class_code');
-            $class = Classes::findOne(['class_code' => Yii::$app->request->post('class_code')]);
-            $model = new StudentSchool;
-            $model->student_id = $user->id;
-            $model->school_id = $class->school_id;
-            $model->class_id = isset($class->id) ? $class->id : null;
-            $model->invite_code = $classCode;
-            $model->status = 1;
-            if (!$model->validate()) {
-                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
-            }
-            if (!$model->save(false)) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not joined saved');
+            if (!empty(Yii::$app->request->post('class_code'))) {
+                $classCode = Yii::$app->request->post('class_code');
+                $class = Classes::findOne(['class_code' => Yii::$app->request->post('class_code')]);
+                $model = new StudentSchool;
+                $model->student_id = $user->id;
+                $model->school_id = $class->school_id;
+                $model->class_id = isset($class->id) ? $class->id : null;
+                $model->invite_code = $classCode;
+                $model->status = 1;
+                if (!$model->validate()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+                }
+                if (!$model->save(false)) {
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not joined saved');
+                }
             }
 
             $parentID = Yii::$app->request->post('parent_id');
