@@ -168,7 +168,9 @@ class FeedController extends ActiveController
 
 
             $models = $this->modelClass::find()
-                ->where(['feed.class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
+                ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
+                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'parent', 'student', 'class']],['tsp.participant_id'=>$parents,'feed.type'=>'live_class']])
+                ;
         }
 
         if ($userType == 'parent' || $userType == 'student') {
