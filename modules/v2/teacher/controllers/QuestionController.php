@@ -464,6 +464,9 @@ class QuestionController extends ActiveController
         }
 
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
+        if(!$model){
+            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question does not exist');
+        }
         if (in_array($model->type, ['multiple', 'bool']) && !in_array($answer, ['A', 'B', 'C', 'D', '0', '1'])) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid answer provided');
         } elseif ($model->type == 'short' && !is_array($answer)) {
