@@ -222,6 +222,7 @@ class QuestionController extends ActiveController
 
         try {
             $dbtransaction = Yii::$app->db->beginTransaction();
+            $questionsID = [];
             foreach ($questions as $qIndex => $eachQuestion) {
 
                 if (!isset($eachQuestion['type']) || !in_array($eachQuestion['type'], SharedConstant::QUESTION_FORMAT)) {
@@ -235,7 +236,10 @@ class QuestionController extends ActiveController
                 $question = $eachQuestion['question'];
                 $duration = $eachQuestion['duration'];
                 $difficulty = $eachQuestion['difficulty'];
-                $answer = $eachQuestion['answer'];
+                if ($eachQuestion['type'] != 'essay') {
+                    $answer = $eachQuestion['answer'];
+                }
+
                 $model = new \yii\base\DynamicModel(compact('topic_id', 'subject_id', 'type', 'duration', 'question', 'difficulty', 'answer'));
                 $model->addRule(['topic_id', 'subject_id', 'type', 'duration', 'question', 'difficulty', 'answer'], 'required');
                 if (!$curriculumStatus) {
@@ -262,8 +266,17 @@ class QuestionController extends ActiveController
                 $model->subject_id = $subject_id;
                 $model->topic_id = $topic_id;
                 $model->class_id = Classes::findOne(['id' => $homework->class_id])->global_class_id;
-                if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $model->type, 'option_a' => $model->option_a,'class_id'=>$model->class_id])->exists()) {
+                if (Questions::find()->where(['question' => $model->question, 'answer' => $model->answer, 'teacher_id' => $model->teacher_id, 'type' => $model->type, 'option_a' => $model->option_a, 'class_id' => $model->class_id])->exists()) {
                     return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'This is a duplicate question');
+                }
+
+                if ($eachQuestion['type'] == 'essay') {
+                    if (!isset($eachQuestion['file_upload'])) {
+                        $model->file_upload = 0;
+                    }
+                    if (!isset($eachQuestion['word_limit'])) {
+                        $model->word_limit = 300;
+                    }
                 }
 
                 $model->type = $eachQuestion['type'];
@@ -300,6 +313,7 @@ class QuestionController extends ActiveController
                         return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
                     }
                 }
+                array_push($questionsID, $model->id);
             }
 
             $dbtransaction->commit();
@@ -307,7 +321,7 @@ class QuestionController extends ActiveController
             $dbtransaction->rollBack();
             return false;
         }
-        return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, ($qIndex + 1) . ' question(s) updated');
+        return (new ApiResponse)->success($questionsID, ApiResponse::SUCCESSFUL, ($qIndex + 1) . ' question(s) updated');
 
     }
 
@@ -464,7 +478,7 @@ class QuestionController extends ActiveController
         }
 
         $model = Questions::findOne(['id' => $id, 'teacher_id' => Yii::$app->user->id]);
-        if(!$model){
+        if (!$model) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Question does not exist');
         }
         if (in_array($model->type, ['multiple', 'bool']) && !in_array($answer, ['A', 'B', 'C', 'D', '0', '1'])) {

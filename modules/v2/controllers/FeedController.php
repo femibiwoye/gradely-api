@@ -152,7 +152,7 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
-                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']],['tsp.participant_id'=>$user_id,'feed.type'=>'live_class']]);
+                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']],['tsp.participant_id'=>$user_id,'tsp.status'=>1,'feed.type'=>'live_class']]);
 
         } elseif ($userType == 'parent') {
             //The class_id is used as student_id
@@ -169,7 +169,7 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
-                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'parent', 'student', 'class']],['tsp.participant_id'=>$parents,'feed.type'=>'live_class']])
+                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'parent', 'student', 'class']],['tsp.participant_id'=>$parents,'tsp.status'=>1,'feed.type'=>'live_class']])
                 ;
         }
 
