@@ -222,7 +222,7 @@ class QuestionController extends ActiveController
 
         try {
             $dbtransaction = Yii::$app->db->beginTransaction();
-            $questionsID = [];
+            $questionsAddedObjects = [];
             foreach ($questions as $qIndex => $eachQuestion) {
 
                 if (!isset($eachQuestion['type']) || !in_array($eachQuestion['type'], SharedConstant::QUESTION_FORMAT)) {
@@ -313,7 +313,7 @@ class QuestionController extends ActiveController
                         return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not successfully added to homework');
                     }
                 }
-                array_push($questionsID, $model->id);
+                array_push($questionsAddedObjects, $model);
             }
 
             $dbtransaction->commit();
@@ -321,7 +321,7 @@ class QuestionController extends ActiveController
             $dbtransaction->rollBack();
             return false;
         }
-        return (new ApiResponse)->success($questionsID, ApiResponse::SUCCESSFUL, ($qIndex + 1) . ' question(s) updated');
+        return (new ApiResponse)->success($questionsAddedObjects, ApiResponse::SUCCESSFUL, ($qIndex + 1) . ' question(s) updated');
 
     }
 
