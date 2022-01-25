@@ -77,7 +77,7 @@ class AuthController extends Controller
                 } catch (\Throwable $e) {
                     $access = false;
                 }
-                if (empty($user->token) || !$access) {
+                if (isset($user->type) && empty($user->token) || !$access) {
                     $token = Utility::GenerateJwtToken($user->type, $user->id, true); //Yii::$app->security->generateRandomString(200);
                     $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
                     $user->token = $token;
@@ -170,21 +170,23 @@ class AuthController extends Controller
 
         $user->token = $user->updateAccessToken();
 
-        if ($user->type == 'student' and !empty(Yii::$app->request->post('class_code'))) {
+        if ($user->type == 'student') {
 //                $this->NewStudent(Yii::$app->request->post('class_code'), $user->id);
-            $classCode = Yii::$app->request->post('class_code');
-            $class = Classes::findOne(['class_code' => Yii::$app->request->post('class_code')]);
-            $model = new StudentSchool;
-            $model->student_id = $user->id;
-            $model->school_id = $class->school_id;
-            $model->class_id = isset($class->id) ? $class->id : null;
-            $model->invite_code = $classCode;
-            $model->status = 1;
-            if (!$model->validate()) {
-                return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
-            }
-            if (!$model->save(false)) {
-                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not joined saved');
+            if (!empty(Yii::$app->request->post('class_code'))) {
+                $classCode = Yii::$app->request->post('class_code');
+                $class = Classes::findOne(['class_code' => Yii::$app->request->post('class_code')]);
+                $model = new StudentSchool;
+                $model->student_id = $user->id;
+                $model->school_id = $class->school_id;
+                $model->class_id = isset($class->id) ? $class->id : null;
+                $model->invite_code = $classCode;
+                $model->status = 1;
+                if (!$model->validate()) {
+                    return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Record not validated');
+                }
+                if (!$model->save(false)) {
+                    return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Student not joined saved');
+                }
             }
 
             $parentID = Yii::$app->request->post('parent_id');
@@ -295,7 +297,7 @@ class AuthController extends Controller
                     if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
                         $user = User::find()->where(['id' => $user->user_id])->one();
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     return [
                         'status' => false
                     ];
@@ -327,9 +329,15 @@ class AuthController extends Controller
 
         $status = User::find()->where(['token' => $token])->exists();
         if (!$status) {
-            $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
-            if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
-                return User::find()->where(['id' => $user->user_id])->exists();
+            try {
+                $user = UserJwt::decode($token, Yii::$app->params['auth2.1Secret'], ['HS256']);
+                if (isset($user) && $user->universal_access == 1 && !empty($user->user_id)) {
+                    return User::find()->where(['id' => $user->user_id])->exists();
+                }
+            } catch (\Throwable $e) {
+                return [
+                    'status' => false
+                ];
             }
         }
         return $status;

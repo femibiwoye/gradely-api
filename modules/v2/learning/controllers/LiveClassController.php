@@ -308,7 +308,7 @@ class LiveClassController extends Controller
 
         } else {
             if (TutorSession::find()->where(['requester_id' => $user_id, 'status' => 'ongoing'])->exists()) {
-                TutorSession::updateAll(['status' => 'completed'], ['requester_id' => $user_id, 'status' => 'ongoing']);
+                TutorSession::updateAll(['status' => 'completed','session_ended'=>date('Y-m-d H:i:s')], ['requester_id' => $user_id, 'status' => 'ongoing']);
                 $is_owner = true;
                 $is_completed = true;
             }
@@ -342,6 +342,9 @@ class LiveClassController extends Controller
                 $tutor_session->status = 'completed';
                 $tutor_session->session_ended = date('Y-m-d H:i:s');
                 if ($tutor_session->save()) {
+                    if (ClassAttendance::find()->where(['AND', ['session_id' => $tutor_session->id], ['not', ['ended_at' => null]]])->exists()) {
+                        ClassAttendance::updateAll(['ended_at' => date('Y-m-d H:i:s')], ['AND', ['session_id' => $tutor_session->id], ['not', ['ended_at' => null]]]);
+                    }
                     return true;
                 }
             }
