@@ -19,7 +19,15 @@ use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
 use yii\rest\ActiveController;
 use yii\filters\auth\{HttpBearerAuth, CompositeAuth};
-use app\modules\v2\models\{Feed, ApiResponse, Homeworks, TutorSession, FeedComment, FeedLike, Classes, SchoolTeachers};
+use app\modules\v2\models\{Feed,
+    ApiResponse,
+    Homeworks,
+    TutorSession,
+    FeedComment,
+    FeedLike,
+    Classes,
+    SchoolTeachers,
+    TutorSessionParticipant};
 use app\modules\v2\components\SharedConstant;
 
 class FeedController extends ActiveController
@@ -143,7 +151,9 @@ class FeedController extends ActiveController
             }
 
             $models = $this->modelClass::find()
-                ->where(['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']]);
+                ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
+                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']],['tsp.participant_id'=>$user_id,'tsp.status'=>1,'feed.type'=>'live_class']]);
+
         } elseif ($userType == 'parent') {
             //The class_id is used as student_id
             $user_id = Yii::$app->user->id;
@@ -158,7 +168,9 @@ class FeedController extends ActiveController
 
 
             $models = $this->modelClass::find()
-                ->where(['feed.class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']]);
+                ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
+                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'parent', 'student', 'class']],['tsp.participant_id'=>$parents,'tsp.status'=>1,'feed.type'=>'live_class']])
+                ;
         }
 
         if ($userType == 'parent' || $userType == 'student') {
@@ -204,7 +216,7 @@ class FeedController extends ActiveController
             //->with('participants');
         }
 
-        if ($token && $oneMmodels = $models->andWhere(['token' => $token])->one()) {
+        if ($token && $oneMmodels = $models->andWhere(['feed.token' => $token])->one()) {
             $comments = FeedComment::find()->where(['feed_id' => $oneMmodels->id, 'type' => 'feed'])->orderBy('id')->all();
             return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($oneMmodels), ['comment' => $comments]), ApiResponse::SUCCESSFUL, 'Found');
         }

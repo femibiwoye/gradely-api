@@ -98,8 +98,11 @@ class HomeworkController extends ActiveController
 
             $form->class_id = $classID;
             $form->bulk_creation_reference = $uniqueIdentifier;
-            $schoolID = Classes::findOne(['id' => $classID])->school_id;
-
+            $classDetails = Classes::findOne(['id' => $classID]);
+            if (empty($classDetails)) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, "Class id is invalid");
+            }
+            $schoolID = $classDetails->school_id;
             $form->school_id = $schoolID;
             $form->teacher_id = Yii::$app->user->id;
 
@@ -132,12 +135,20 @@ class HomeworkController extends ActiveController
 
         $form = new HomeworkForm(['scenario' => 'update-homework']);
         $form->attributes = Yii::$app->request->post();
-        //$form->homework_model = $model;
+        if (is_array($form->class_id)) {
+            if (count($form->class_id) > 1) {
+                return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, "You only update one homework at a time");
+            }
+            if (count($form->class_id) == 1) {
+                $form->class_id = $form->class_id[0];
+            }
+
+        }
+        $form->teacher_id = $model->teacher_id;
+        $form->school_id = $model->school_id;
         if (!$form->validate()) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
-        //$form->attributes = $model->attributes;
-        //$form->removeAttachments();
 
         if (!$model = $form->updateHomework($model)) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not updated!');
@@ -205,7 +216,6 @@ class HomeworkController extends ActiveController
         } else {
             $model = $model->orderBy('id DESC');
         }
-
 
 
         if (!$model->count() > 0) {

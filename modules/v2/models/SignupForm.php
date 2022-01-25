@@ -20,6 +20,7 @@ class SignupForm extends Model
     public $class;
     public $country;
     public $token;
+    public $dob;
 
     public function rules()
     {
@@ -50,7 +51,7 @@ class SignupForm extends Model
             [['school_name', 'email', 'phone', 'country'], 'required', 'on' => 'school-signup'],
 
             [['class', 'country'], 'required', 'on' => 'student-signup'],
-            [['email'], 'safe', 'on' => 'student-signup'],
+            [['email','dob'], 'safe', 'on' => 'student-signup'],
 
             [['class'], 'required', 'on' => 'parent-student-signup'],
             [['email', 'phone', 'token'], 'required', 'on' => 'invite-signup'],
@@ -135,9 +136,14 @@ class SignupForm extends Model
             } else
                 $this->createSchool($user);
         } else {
+            if (!empty($this->dob) && (bool)strtotime($this->dob)) {
+                $date = strtotime($this->dob);
+                $model->dob = date('d', $date);
+                $model->mob = date('m', $date);
+                $model->yob = date('Y', $date);
+            }
             Pricing::ActivateTrial($user->id, $user->type);
         }
-
         return $model->save();
     }
 

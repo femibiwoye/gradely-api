@@ -238,7 +238,7 @@ class Utility extends ActiveRecord
             $user = User::findOne(['id' => $studentID, 'type' => 'student']);
             $data = StudentSchool::findOne(['student_id' => $studentID, 'status' => 1, 'is_active_class' => 1]);
 
-            if (empty($data)) {
+            if (empty($data) || empty($data->class_id)) {
                 if (!empty($user)) {
                     return $classFullname ? GlobalClass::findOne(['id' => $user->class]) : $user->class;
                 }
@@ -251,7 +251,6 @@ class Utility extends ActiveRecord
                 return $data->class_id;
             }
         }
-
 
         if (Yii::$app->user->identity->type != SharedConstant::ACCOUNT_TYPE[3]) {
             return null;
