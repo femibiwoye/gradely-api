@@ -21,6 +21,6 @@ return [
 
 //For Big Blue Button
     'GET v2/learning/bbb' => 'v2/learning/big-blue-button/start',
-    'POST v2/learning/live-class/public-class' => 'v2/learning/live-class/public-class', //
+    'GET v2/learning/live-class/public-class' => 'v2/learning/live-class/public-class', //
 
 ];
