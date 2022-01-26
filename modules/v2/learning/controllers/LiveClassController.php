@@ -165,7 +165,7 @@ class LiveClassController extends Controller
         }
         $this->classAttendance($session_id, $requester_id, SharedConstant::LIVE_CLASS_USER_TYPE[0], $token);
 
-        if ($saveStatus = TutorSession::updateAll(['status' => 'ongoing', 'meeting_token' => $token], ['meeting_room' => $tutor_session->meeting_room,'meta'=>$tutor_session->meta])) {
+        if ($saveStatus = TutorSession::updateAll(['status' => 'ongoing', 'meeting_token' => $token,'extra_meta'=>$tutor_session->extra_meta], ['meeting_room' => $tutor_session->meeting_room])) {
             $tutor_session->status = 'ongoing';
             $tutor_session->meeting_token = $token;
             $saveStatus = $tutor_session->save();
