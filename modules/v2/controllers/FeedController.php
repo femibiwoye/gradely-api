@@ -27,7 +27,8 @@ use app\modules\v2\models\{Feed,
     FeedLike,
     Classes,
     SchoolTeachers,
-    TutorSessionParticipant};
+    TutorSessionParticipant
+};
 use app\modules\v2\components\SharedConstant;
 
 class FeedController extends ActiveController
@@ -152,7 +153,7 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
-                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']],['tsp.participant_id'=>$user_id,'tsp.status'=>1,'feed.type'=>'live_class']]);
+                ->where(['OR', ['feed.class_id' => $class_id, 'view_by' => ['all', 'class', 'student']], ['tsp.participant_id' => $user_id, 'tsp.status' => 1, 'feed.type' => 'live_class']]);
 
         } elseif ($userType == 'parent') {
             //The class_id is used as student_id
@@ -169,8 +170,7 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
-                ->where(['OR',['feed.class_id' => $class_id, 'view_by' => ['all', 'parent', 'student', 'class']],['tsp.participant_id'=>$parents,'tsp.status'=>1,'feed.type'=>'live_class']])
-                ;
+                ->where(['OR', ['feed.class_id' => $class_id, 'view_by' => ['all', 'parent', 'student', 'class']], ['tsp.participant_id' => $parents, 'tsp.status' => 1, 'feed.type' => 'live_class']]);
         }
 
         if ($userType == 'parent' || $userType == 'student') {
@@ -477,6 +477,14 @@ class FeedController extends ActiveController
 
         if ($feed->user_id != Yii::$app->user->id)
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access');
+
+        if ($feed->type == 'live_class') {
+            TutorSession::findOne(['id' => $feed->reference_id, 'requester_id' => Yii::$app->user->id])->delete();
+        } elseif ($feed->type == 'homework') {
+            Homeworks::findOne(['id' => $feed->reference_id, 'teacher_id' => Yii::$app->user->id, 'type' => 'homework'])->delete();
+        } elseif ($feed->type == 'lesson') {
+            Homeworks::findOne(['id' => $feed->reference_id, 'teacher_id' => Yii::$app->user->id, 'type' => 'lesson'])->delete();
+        }
 
         if (!$feed->delete())
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not delete this record');

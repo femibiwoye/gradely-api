@@ -51,7 +51,7 @@ class LiveClassController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CustomHttpBearerAuth::className(),
-            'except' => ['update-live-class-video', 'end-class-only', 'log-recording'],
+            'except' => ['update-live-class-video', 'end-class-only', 'log-recording', 'public-class'],
         ];
 
         return $behaviors;
@@ -95,7 +95,6 @@ class LiveClassController extends Controller
             "sub" => "class.gradely.ng",
             "room" => "{$room}"
         ];
-
 
         return $payload;
     }
@@ -308,7 +307,7 @@ class LiveClassController extends Controller
 
         } else {
             if (TutorSession::find()->where(['requester_id' => $user_id, 'status' => 'ongoing'])->exists()) {
-                TutorSession::updateAll(['status' => 'completed','session_ended'=>date('Y-m-d H:i:s')], ['requester_id' => $user_id, 'status' => 'ongoing']);
+                TutorSession::updateAll(['status' => 'completed', 'session_ended' => date('Y-m-d H:i:s')], ['requester_id' => $user_id, 'status' => 'ongoing']);
                 $is_owner = true;
                 $is_completed = true;
             }
@@ -557,6 +556,40 @@ class LiveClassController extends Controller
         $fileSize = Utility::FormatBytesSize($result['ContentLength']);
         $response = array_merge(ArrayHelper::toArray($result), ['fileSize' => $fileSize]);
         return $response;
+    }
+
+    public function actionPublicClass($tutor_name, $user_name)
+    {
+
+        $bbbModel = new BigBlueButtonModel();
+        $bbbModel->meetingID = GenerateString::widget();
+        $bbbModel->moderatorPW ='moderatorPW';
+        $bbbModel->attendeePW = 'attendeePW';
+        $bbbModel->record = 'false';
+        $bbbModel->allowStartStopRecording = 'false';
+        $bbbModel->welcome = 'Welcome to Gradely Counselling session';
+
+
+        $bbbModel->name = 'Counselling Session';
+//        $bbbModel->class_id = $tutor_session->class;
+//        $bbbModel->tutor_session_id = $tutor_session->id;
+
+        $create = $bbbModel->CreateMeeting();
+        if ($create) {
+            $bbbModel->fullName = $tutor_name;
+            $bbbModel->moderatorPW = 'moderatorPW';
+            $destinationLinkTutor = $bbbModel->JoinMeeting(true);
+            $bbbModel->fullName = $user_name;
+            $bbbModel->moderatorPW = 'attendeePW';
+            $destinationLinkUser = $bbbModel->JoinMeeting(true);
+        } else {
+            $destinationLink = null;
+        }
+
+
+        return (new ApiResponse)->success(["tutor_link"=>$destinationLinkTutor,"user_link"=>$destinationLinkUser], ApiResponse::SUCCESSFUL);
+
+
     }
 
 
