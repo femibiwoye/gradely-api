@@ -479,11 +479,15 @@ class FeedController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid access');
 
         if ($feed->type == 'live_class') {
-            TutorSession::findOne(['id' => $feed->reference_id, 'requester_id' => Yii::$app->user->id])->delete();
-        } elseif ($feed->type == 'homework') {
-            Homeworks::findOne(['id' => $feed->reference_id, 'teacher_id' => Yii::$app->user->id, 'type' => 'homework'])->delete();
-        } elseif ($feed->type == 'lesson') {
-            Homeworks::findOne(['id' => $feed->reference_id, 'teacher_id' => Yii::$app->user->id, 'type' => 'lesson'])->delete();
+            $meetingRoom = TutorSession::findOne(['id' => $feed->reference_id, 'requester_id' => Yii::$app->user->id]);
+            TutorSession::deleteAll(['meeting_room' => $meetingRoom, 'requester_id' => Yii::$app->user->id]);
+        } elseif ($feed->type == 'homework' || $feed->type == 'lesson') {
+            $hdWork = Homeworks::findOne(['id' => $feed->reference_id, 'teacher_id' => Yii::$app->user->id]);
+            if (!empty($hdWork->bulk_creation_reference)) {
+                Homeworks::deleteAll(['teacher_id' => Yii::$app->user->id, 'bulk_creation_reference' => $hdWork->bulk_creation_reference]);
+            } else {
+                $hdWork->delete();
+            }
         }
 
         if (!$feed->delete())
