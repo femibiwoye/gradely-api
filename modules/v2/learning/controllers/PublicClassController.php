@@ -21,6 +21,7 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
 use Aws\Credentials\Credentials;
 use Aws\S3\S3Client;
+use Faker\Factory;
 use Faker\Generator;
 use Faker\Provider\Address;
 use SebastianBergmann\CodeCoverage\Util;
@@ -96,6 +97,7 @@ class PublicClassController extends Controller
         $tutor_session->tutor_email = $email;
         $tutor_session->tutor_image = $image;
         $tutor_session->class_name = $class;
+        $tutor_session->tutor_access = 'Gr4d3lly$';
         if (!$tutor_session->save()) {
             $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Something went wrong while creating'];
             return $this->render('index', ['model' => $model]);
@@ -113,6 +115,7 @@ class PublicClassController extends Controller
      */
     public function actionStartClass($class, $access = null)
     {
+
 //        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
         $tutor_session = CampaignLiveClass::findOne(['class_name' => $class]);
         if (empty($tutor_session)) {
@@ -148,7 +151,7 @@ class PublicClassController extends Controller
                 $bbbModel->avatarURL = $tutor_session->tutor_image;
                 $bbbModel->userID = $tutor_session->tutor_email;
             } else {
-                $faker = new Generator();
+                $faker = Factory::create();
                 $bbbModel->fullName = $faker->name;
             }
 
