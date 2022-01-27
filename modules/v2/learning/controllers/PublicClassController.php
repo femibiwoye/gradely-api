@@ -62,12 +62,13 @@ class PublicClassController extends Controller
 //        return $behaviors;
 //    }
 
-//    public function beforeAction($action)
-//    {
-//
-//        \Yii::$app->response->format = Response::FORMAT_HTML;
-//        return parent::beforeAction($action);
-//    }
+    public function beforeAction($action)
+    {
+
+        \Yii::$app->response->format = Response::FORMAT_HTML;
+        $this->layout = '@app/views/layouts/empty';
+        return parent::beforeAction($action);
+    }
 
 
     /**
@@ -78,14 +79,15 @@ class PublicClassController extends Controller
     public function actionCreateClass($class, $name, $image = null, $access, $email)
     {
 //        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
+
         if ($access != 'Gr4d3lly$') {
-            echo "<a href='https://gradely.ng/tutoring'>Invalid access, go back home</a>";
-            die;
+            $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Invalid access, go back home'];
+            return $this->render('index', ['model' => $model]);
         }
 
         if (CampaignLiveClass::find()->where(['class_name' => $class])->exists()) {
-            echo "<a href='https://gradely.ng/tutoring'>Class name already taken, go back home</a>";
-            die;
+            $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Class name already taken, go back home'];
+            return $this->render('index', ['model' => $model]);
         }
 
 
@@ -95,11 +97,12 @@ class PublicClassController extends Controller
         $tutor_session->tutor_image = $image;
         $tutor_session->class_name = $class;
         if (!$tutor_session->save()) {
-            echo "<a href='https://gradely.ng/tutoring'>Something went wrong while creating</a>";
-            die;
+            $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Something went wrong while creating'];
+            return $this->render('index', ['model' => $model]);
         }
-        echo "<a href='https://gradely.ng/tutoring'>Successful, go ahead and start class.</a>";
-        die;
+
+        $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Successful, go ahead and start class.'];
+        return $this->render('index', ['model' => $model]);
     }
 
 
@@ -113,8 +116,8 @@ class PublicClassController extends Controller
 //        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
         $tutor_session = CampaignLiveClass::findOne(['class_name' => $class]);
         if (empty($tutor_session)) {
-            echo "<a href='https://gradely.ng/tutoring'>Class does not exist. Go back home.</a>";
-            die;
+            $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Class does not exist. Go back home.'];
+            return $this->render('index', ['model' => $model]);
         }
 
         $isTutor = false;
@@ -155,9 +158,8 @@ class PublicClassController extends Controller
         }
         $destinationLink = $bbbModel->JoinMeeting($isTutor);
 
-        echo "<a href='" . $destinationLink . "'>Join Class now</a>";
-        die;
-
+        $model = ['url' => $destinationLink, 'title' => 'Join Class now.'];
+        return $this->render('index', ['model' => $model]);
     }
 
 }
