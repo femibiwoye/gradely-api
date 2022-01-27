@@ -27,12 +27,13 @@ use SebastianBergmann\CodeCoverage\Util;
 use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
-use yii\rest\Controller;
+use yii\web\Controller;
 use app\modules\v2\models\TutorSessionParticipant;
 
 use app\modules\v2\components\UserJwt;
 
 use Yii;
+use yii\web\Response;
 
 /**
  * Default controller for the `learning` module
@@ -40,25 +41,33 @@ use Yii;
 class PublicClassController extends Controller
 {
 
-    public function behaviors()
-    {
-        $behaviors = parent::behaviors();
-        //For CORS
-        $auth = $behaviors['authenticator'];
-        unset($behaviors['authenticator']);
 
-        $behaviors['corsFilter'] = [
-            'class' => \yii\filters\Cors::className(),
-        ];
+//    public function behaviors()
+//    {
+//        $behaviors = parent::behaviors();
+//        //For CORS
+//        $auth = $behaviors['authenticator'];
+//        unset($behaviors['authenticator']);
+//
+//        $behaviors['corsFilter'] = [
+//            'class' => \yii\filters\Cors::className(),
+//        ];
+//
+//        //$behaviors['authenticator'] = $auth;
+//        $behaviors['authenticator'] = [
+//            'class' => CustomHttpBearerAuth::className(),
+//            'except' => ['start-class','create-class'],
+//        ];
+//
+//        return $behaviors;
+//    }
 
-        //$behaviors['authenticator'] = $auth;
-        $behaviors['authenticator'] = [
-            'class' => CustomHttpBearerAuth::className(),
-            'except' => ['start-class','create-class'],
-        ];
-
-        return $behaviors;
-    }
+//    public function beforeAction($action)
+//    {
+//
+//        \Yii::$app->response->format = Response::FORMAT_HTML;
+//        return parent::beforeAction($action);
+//    }
 
 
     /**
@@ -68,14 +77,14 @@ class PublicClassController extends Controller
      */
     public function actionCreateClass($class, $name, $image = null, $access, $email)
     {
-        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
+//        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
         if ($access != 'Gr4d3lly$') {
-            echo '<a href="https://gradely.ng/tutoring">Invalid access, go back home</a>';
+            echo "<a href='https://gradely.ng/tutoring'>Invalid access, go back home</a>";
             die;
         }
 
         if (CampaignLiveClass::find()->where(['class_name' => $class])->exists()) {
-            echo '<a href="https://gradely.ng/tutoring">Class name already taken, go back home</a>';
+            echo "<a href='https://gradely.ng/tutoring'>Class name already taken, go back home</a>";
             die;
         }
 
@@ -86,10 +95,10 @@ class PublicClassController extends Controller
         $tutor_session->tutor_image = $image;
         $tutor_session->class_name = $class;
         if (!$tutor_session->save()) {
-            echo '<a href="https://gradely.ng/tutoring">Something went wrong while creating</a>';
+            echo "<a href='https://gradely.ng/tutoring'>Something went wrong while creating</a>";
             die;
         }
-        echo '<a href="https://gradely.ng/tutoring">Successful, go ahead and start class.</a>';
+        echo "<a href='https://gradely.ng/tutoring'>Successful, go ahead and start class.</a>";
         die;
     }
 
@@ -101,10 +110,10 @@ class PublicClassController extends Controller
      */
     public function actionStartClass($class, $access = null)
     {
-        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
+//        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
         $tutor_session = CampaignLiveClass::findOne(['class_name' => $class]);
         if (empty($tutor_session)) {
-            echo '<a href="https://gradely.ng/tutoring">Class does not exist. Go back home.</a>';
+            echo "<a href='https://gradely.ng/tutoring'>Class does not exist. Go back home.</a>";
             die;
         }
 
@@ -146,7 +155,7 @@ class PublicClassController extends Controller
         }
         $destinationLink = $bbbModel->JoinMeeting($isTutor);
 
-        echo '<a href="' . $destinationLink . '">Join Class now</a>';
+        echo "<a href='" . $destinationLink . "'>Join Class now</a>";
         die;
 
     }
