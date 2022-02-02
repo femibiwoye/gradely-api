@@ -22,5 +22,7 @@ return [
 //For Big Blue Button
     'GET v2/learning/bbb' => 'v2/learning/big-blue-button/start',
     'GET v2/learning/live-class/public-class' => 'v2/learning/live-class/public-class', //
+    'GET v2/learning/live-class/start-class' => 'v2/learning/public-class/start-class', //
+    'GET v2/learning/live-class/create-class' => 'v2/learning/public-class/create-class', //
 
 ];

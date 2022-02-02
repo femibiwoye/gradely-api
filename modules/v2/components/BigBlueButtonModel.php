@@ -20,6 +20,7 @@ class BigBlueButtonModel extends Model
     public $voiceBridge = 74079;
     public $welcome = 'Welcome to gradely live class';
     public $logoutURL;
+    public $classSource = 'class'; //Class or tutor
     public $maxParticipants;
     public $duration;
     public $userID;
@@ -64,6 +65,12 @@ class BigBlueButtonModel extends Model
     public function CreateMeeting()
     {
 
+        if ($this->classSource == 'class') {
+            $this->logoutURL = Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id;
+        } else {
+            $this->logoutURL = Yii::$app->params['appBase'] . 'tutor/end-tutor-session';
+        }
+
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'create';
         $queryBuild = http_build_query([
@@ -76,7 +83,7 @@ class BigBlueButtonModel extends Model
             'name' => $this->name,
             'record' => $this->record,
             'welcome' => $this->welcome . ' - ' . $this->name,
-            'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id,
+            'logoutURL' => $this->logoutURL,
             'copyright' => $this->copyright,
 //            'bannerText' => $this->bannerText,
 //            'bannerColor' => $this->bannerColor,
@@ -103,12 +110,17 @@ class BigBlueButtonModel extends Model
     {
 
         //Not sure if this is necessary
-        if($child == null)
-        {
+        if ($child == null) {
             $child = 'na';
         }
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'join';
+
+        if ($this->classSource == 'class') {
+            $this->logoutURL = Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id . '&child_id=' . $child;
+        } else {
+            $this->logoutURL = Yii::$app->params['appBase'] . 'tutor/end-tutor-session';
+        }
 
         $queryBuild = http_build_query([
             'avatarURL' => $this->avatarURL,
@@ -130,7 +142,7 @@ class BigBlueButtonModel extends Model
             'userdata-bbb_skip_video_preview' => 'true',
 
             'userdata-bbb_listen_only_mode' => 'false',
-            'logoutURL' => Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id . '&child_id=' . $child,
+            'logoutURL' => $this->logoutURL,
 
         ]);
 

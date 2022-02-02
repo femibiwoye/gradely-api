@@ -144,6 +144,7 @@ class LiveClassController extends Controller
             $bbbModel->name = $tutor_session->title;
             $bbbModel->class_id = $tutor_session->class;
             $bbbModel->tutor_session_id = $tutor_session->id;
+            $bbbModel->classSource = $tutor_session->category;
             $create = $bbbModel->CreateMeeting();
             if ($create) {
                 $bbbModel->fullName = $user->firstname . ' ' . $user->lastname;
@@ -231,6 +232,7 @@ class LiveClassController extends Controller
                 $bbbModel->fullName = $user->firstname . ' ' . $user->lastname;
                 $bbbModel->avatarURL = $user->image;
                 $bbbModel->userID = $user->email;
+                $bbbModel->classSource = $tutor_session->category;
                 if ($user->id == $tutor_session->requester_id) {
                     $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
                     $destinationLink = $bbbModel->JoinMeeting(true, $child);

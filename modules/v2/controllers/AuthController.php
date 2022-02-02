@@ -164,6 +164,13 @@ class AuthController extends Controller
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
+        //Return record of student i am already connected to
+        if ($type == 'student' && !empty(Yii::$app->request->post('parent_id'))) {
+            if ($userConnect = User::find()->innerJoin('parents', 'parents.student_id = user.id')->where(['firstname' => $form->first_name, 'lastname' => $form->last_name, 'class' => $form->class, 'parents.parent_id' => Yii::$app->request->post('parent_id')])->one()) {
+                return (new ApiResponse)->success($userConnect, null, 'You are already connected to student');
+            }
+        }
+
         if (!$user = $form->signup($type)) {
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'User is not created successfully');
         }
