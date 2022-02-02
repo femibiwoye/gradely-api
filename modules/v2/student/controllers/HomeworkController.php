@@ -232,6 +232,10 @@ class HomeworkController extends ActiveController
                 'student_id' => $student_id,
                 'homework_id' => $id
             ]);
+
+            if ($model->computed == 0) {
+                return (new ApiResponse)->error(['computed' => $model->getUncomputedResponse()], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework yet to be computed');
+            }
         }
 
 
@@ -239,9 +243,7 @@ class HomeworkController extends ActiveController
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework report not found');
         }
 
-        if ($model->computed == 0) {
-            return (new ApiResponse)->error(['computed' => $model->getUncomputedResponse()], ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework yet to be computed');
-        }
+
 
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Student report found');
