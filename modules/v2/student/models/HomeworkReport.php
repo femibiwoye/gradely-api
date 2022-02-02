@@ -44,6 +44,7 @@ class HomeworkReport extends QuizSummary
 
     public function getUncomputedResponse()
     {
+
         return [
             'homework_id' => $this->homework_id,
             'computed' => $this->computed,

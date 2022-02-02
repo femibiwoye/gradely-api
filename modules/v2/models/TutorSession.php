@@ -200,10 +200,24 @@ class TutorSession extends \yii\db\ActiveRecord
 
         if (Yii::$app->user->identity->type == 'teacher') {
             $condition = Yii::$app->request->get('class') ? ['requester_id' => Yii::$app->user->id, 'status' => 'pending', 'class' => Yii::$app->request->get('class')] : ['requester_id' => Yii::$app->user->id, 'status' => 'pending'];
+            $sessions = parent::find()
+                ->where($condition)
+                ->andWhere(['>', 'availability', date("Y-m-d")])
+                ->andWhere(['<>', 'tutor_session.status', 'completed'])
+                ->orderBy(['availability' => SORT_ASC])
+                ->all();
         } elseif (Yii::$app->user->identity->type == 'school') {
             $classes = ArrayHelper::getColumn(Classes::find()
                 ->where(['school_id' => Utility::getSchoolAccess()])->all(), 'id');
             $condition = Yii::$app->request->get('class') ? ['class' => Yii::$app->request->get('class'), 'status' => 'pending'] : ['class' => $classes, 'status' => 'pending'];
+
+            $sessions = parent::find()
+                ->where($condition)
+                ->andWhere(['>', 'availability', date("Y-m-d")])
+                ->andWhere(['is_school' => 1])
+                ->andWhere(['<>', 'tutor_session.status', 'completed'])
+                ->orderBy(['availability' => SORT_ASC])
+                ->all();
         } elseif (Yii::$app->user->identity->type == 'student') {
             if ($studentModel = StudentSchool::find()
                 ->where(['student_id' => Yii::$app->user->id, 'status' => SharedConstant::VALUE_ONE])->one())
@@ -211,7 +225,16 @@ class TutorSession extends \yii\db\ActiveRecord
             else
                 $student_class = null;
 
-            $condition = ['class' => $student_class];
+            $condition = ['OR', ['class' => $student_class,'category'=>'class'], ['tsp.participant_id' => Yii::$app->user->id, 'tsp.status' => 1,'tutor_session.category'=>'tutor','tutor_session.preferred_client'=>'bbb']];
+
+            $sessions = parent::find()
+                ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = tutor_session.id')
+                ->where($condition)
+                ->andWhere(['>', 'availability', date("Y-m-d")])
+                ->andWhere(['<>', 'tutor_session.status', 'completed'])
+                ->orderBy(['availability' => SORT_ASC])
+                ->all();
+
         } elseif (Yii::$app->user->identity->type == 'parent') {
             $studentIDs = ArrayHelper::getColumn(Parents::find()->where(['parent_id' => Yii::$app->user->id, 'student_id' => Yii::$app->request->get('child')])->all(), 'student_id');
             $studentClass = StudentSchool::find()->where(['student_id' => $studentIDs]);
@@ -221,15 +244,25 @@ class TutorSession extends \yii\db\ActiveRecord
             $studentClass = $studentClass->andWhere(['status' => SharedConstant::VALUE_ONE])->all();
             $student_class = ArrayHelper::getColumn($studentClass, 'class_id');
 
-            $condition = ['class' => $student_class];
+            $condition = ['OR', ['class' => $student_class,'category'=>'class'], ['tsp.participant_id' => $studentIDs, 'tsp.status' => 1,'tutor_session.category'=>'tutor','tutor_session.preferred_client'=>'bbb']];
+            $sessions = parent::find()
+                ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = tutor_session.id')
+                ->where($condition)
+                ->andWhere(['>', 'availability', date("Y-m-d")])
+                ->andWhere(['is_school' => [1,0]])
+                ->andWhere(['<>', 'tutor_session.status', 'completed'])
+                ->orderBy(['availability' => SORT_ASC])
+                ->all();
         }
-
-        $sessions = parent::find()
-            ->where(['AND', $condition, ['is_school' => 1]])
-            ->andWhere(['>', 'availability', date("Y-m-d")])
-            ->andWhere(['<>', 'status', 'completed'])
-            ->orderBy(['availability' => SORT_ASC])
-            ->all();
+//
+//        $sessions = parent::find()
+//            ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = tutor_session.id')
+//            ->where($condition)
+//            ->andWhere(['>', 'availability', date("Y-m-d")])
+//            ->andWhere(['is_school' => [1,0]])
+//            ->andWhere(['<>', 'tutor_session.status', 'completed'])
+//            ->orderBy(['availability' => SORT_ASC])
+//            ->all();
 
         foreach ($sessions as $session) {
             //strtotime($session->availability) <= time() + 604800 &&
