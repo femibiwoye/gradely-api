@@ -630,7 +630,4 @@ class LiveClassController extends Controller
         $destinationLink = $bbbModel->JoinMeeting(false);
         return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL);
     }
-
-
-
 }
