@@ -136,8 +136,14 @@ class PaymentController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR, 'Validation failed');
         }
 
-        if (!$model = $form->addPaymentSubscription()) {
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription initialization failed');
+        if($form->type == 'tutor') {
+            if (!$model = $form->addPaymentTutor()) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription initialization failed');
+            }
+        }else{
+            if (!$model = $form->addPaymentSubscription()) {
+                return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Subscription initialization failed');
+            }
         }
 
         return (new ApiResponse)->success($model, ApiResponse::SUCCESSFUL, 'Subscription initialization done');
