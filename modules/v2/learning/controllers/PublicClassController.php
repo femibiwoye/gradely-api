@@ -161,8 +161,9 @@ class PublicClassController extends Controller
         }
         $destinationLink = $bbbModel->JoinMeeting($isTutor);
 
-        $model = ['url' => $destinationLink, 'title' => 'Join Class now.'];
-        return $this->render('index', ['model' => $model]);
+        return $this->redirect($destinationLink);
+//        $model = ['url' => $destinationLink, 'title' => 'Join Class now.'];
+//        return $this->render('index', ['model' => $model]);
     }
 
 }
