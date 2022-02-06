@@ -20,6 +20,7 @@ use app\modules\v2\models\TeacherClass;
 use app\modules\v2\models\TutorSession;
 use Aws\Credentials\Credentials;
 use Aws\S3\S3Client;
+use Faker\Factory;
 use SebastianBergmann\CodeCoverage\Util;
 use yii\filters\auth\HttpBearerAuth;
 use yii\helpers\ArrayHelper;
@@ -51,7 +52,7 @@ class LiveClassController extends Controller
         //$behaviors['authenticator'] = $auth;
         $behaviors['authenticator'] = [
             'class' => CustomHttpBearerAuth::className(),
-            'except' => ['update-live-class-video', 'end-class-only', 'log-recording', 'public-class'],
+            'except' => ['update-live-class-video', 'end-class-only', 'log-recording', 'public-class','visitor-join'],
         ];
 
         return $behaviors;
@@ -128,17 +129,18 @@ class LiveClassController extends Controller
 
 
         if (Yii::$app->params['liveClassClient'] == 'bbb') {
-            $moderatorPW = GenerateString::widget(['length' => 20]);
-            $attendeePW = GenerateString::widget(['length' => 20]);
+            if(empty($tutor_session->extra_meta)) {
+                $moderatorPW = GenerateString::widget(['length' => 20]);
+                $attendeePW = GenerateString::widget(['length' => 20]);
 
-            $tutor_session->extra_meta = ['moderatorPW' => $moderatorPW, 'attendeePW' => $attendeePW];
-
+                $tutor_session->extra_meta = ['moderatorPW' => $moderatorPW, 'attendeePW' => $attendeePW];
+            }
 
             $user = Yii::$app->user->identity;
             $bbbModel = new BigBlueButtonModel();
             $bbbModel->meetingID = $tutor_session->meeting_room;
-            $bbbModel->moderatorPW = $moderatorPW;
-            $bbbModel->attendeePW = $attendeePW;
+            $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
+            $bbbModel->attendeePW = $tutor_session->extra_meta['attendeePW'];
 
 
             $bbbModel->name = $tutor_session->title;
@@ -150,7 +152,7 @@ class LiveClassController extends Controller
                 $bbbModel->fullName = $user->firstname . ' ' . $user->lastname;
                 $bbbModel->avatarURL = $user->image;
                 $bbbModel->userID = $user->email;
-                $bbbModel->moderatorPW = $moderatorPW;
+                $bbbModel->moderatorPW = $tutor_session->extra_meta['moderatorPW'];
                 $destinationLink = $bbbModel->JoinMeeting(true);
                 $token = $tutor_session->meeting_token ?? $create['internalMeetingID'] ?? $tutor_session->meeting_token = $bbbModel->MeetingInfo()['internalMeetingID'];
             } else {
@@ -594,5 +596,38 @@ class LiveClassController extends Controller
 
     }
 
+    public function actionVisitorJoin($meeting_room)
+    {
+        if (!TutorSession::find()->where(['meeting_room' => $meeting_room, 'status' => ['pending', 'ongoing']])->exists()) {
+            return (new ApiResponse)->error(null, ApiResponse::VALIDATION_ERROR, 'Class has ended or does not exists');
+        }
 
+        $tutorSession = TutorSession::find()->where(['meeting_room' => $meeting_room, 'status' => ['pending', 'ongoing']])->one();
+
+        $bbbModel = new BigBlueButtonModel();
+        $bbbModel->meetingID = $meeting_room;
+
+        if(empty($tutorSession->extra_meta)) {
+            $moderatorPW = GenerateString::widget(['length' => 20]);
+            $attendeePW = GenerateString::widget(['length' => 20]);
+
+            $tutorSession->extra_meta = ['moderatorPW' => $moderatorPW, 'attendeePW' => $attendeePW];
+            $tutorSession->save();
+        }
+        $bbbModel->name = $tutorSession->title;
+        $create = null;
+        if ($bbbModel->MeetingStatus()['running'] == 'false') {
+            $bbbModel->moderatorPW = $tutorSession->extra_meta['moderatorPW'];
+            $bbbModel->attendeePW = $tutorSession->extra_meta['attendeePW'];
+            $create = $bbbModel->CreateMeeting();
+        }
+        if ($create) {
+                $faker = Factory::create();
+                $bbbModel->fullName = $faker->name;
+
+        }
+        $bbbModel->attendeePW = $tutorSession->extra_meta['attendeePW'];
+        $destinationLink = $bbbModel->JoinMeeting(false);
+        return (new ApiResponse)->success($destinationLink, ApiResponse::SUCCESSFUL);
+    }
 }

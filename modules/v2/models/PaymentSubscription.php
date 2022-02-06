@@ -17,6 +17,9 @@ class PaymentSubscription extends Model
     public $coupon;
     public $user_id;
     public $renew_status;
+    public $type;
+    public $session_id;
+    public $session_count;
 
     public function rules()
     {
@@ -28,6 +31,7 @@ class PaymentSubscription extends Model
             ['children', 'each', 'rule' => ['integer']],
             ['payment_plan_id', 'exist', 'targetClass' => PaymentPlan::className(), 'targetAttribute' => ['payment_plan_id' => 'id']],
             ['children', 'validateUser'],
+            [['type', 'session_id', 'session_count'], 'safe']
         ];
     }
 
@@ -60,6 +64,45 @@ class PaymentSubscription extends Model
         $model->plan = SharedConstant::SUBSCRIPTION_PLAN;
         $model->quantity = count($this->children);
         $model->payment_plan_id = $this->payment_plan_id;
+        if (!empty($this->coupon))
+            $model->coupon = $this->coupon;
+
+        $model->renew_status = $this->renew_status;
+        $model->transaction_id = GenerateString::widget(['length' => 20]) . mt_rand(10, 99);
+        $model->payment = 'unpaid';
+        $model->total = !empty($this->coupon) ? ($model->price - (($model->price * $this->couponDetails->percentage) / 100)) : $model->price;
+        $dbtransaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$model->save()) {
+                return false;
+            }
+
+            if (!$this->addSubscriptionChildren($model, $this->user_id, $this->children)) {
+                return false;
+            }
+
+            $dbtransaction->commit();
+            return $model;
+        } catch (Exception $ex) {
+            $dbtransaction->rollBack();
+            return false;
+        }
+    }
+
+    public function addPaymentTutor()
+    {
+        $tutorSession = TutorSession::findOne(['id' => $this->session_id]);
+        $sessionCount = isset($this->session_count) && $this->session_count > 0 ? $this->session_count : 1;
+        $model = new Subscriptions();
+        $model->user_id = Yii::$app->user->id;
+        $model->duration = 'payg';
+        $model->price = (($tutorSession->amount * count($this->children)) * $sessionCount);
+        $model->duration_count = $sessionCount;
+        $model->plan = 'payg';
+        $model->quantity = $sessionCount;
+        $model->payment_plan_id = $this->payment_plan_id;
+        $model->type = 'tutor';
+        $model->reference_id = $this->session_id;
         if (!empty($this->coupon))
             $model->coupon = $this->coupon;
 

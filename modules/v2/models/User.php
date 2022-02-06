@@ -185,12 +185,19 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             /**
              * This token is expired if expiry date is greater than current time.
              **/
+
+            // Return if universal
+            if(isset($userJwt->authorised) && $userJwt->authorised == 1){
+                return $user;
+            }
+
             $expires = strtotime("+60 second", strtotime($user->token_expires));
             $user->last_accessed = date('Y-m-d H:i:s');
+
             if ($expires > time()) {
                 //To be returned later
-//                $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
-//                $user->save();
+                $user->token_expires = date('Y-m-d H:i:s', strtotime("+3 month", time()));
+                $user->save();
                 return $user;
             } else {
                 $user->token = null;
