@@ -470,7 +470,7 @@ class FeedController extends ActiveController
      */
     public function actionDeleteFeed($feed_id)
     {
-        $feed = Feed::findOne(['id' => $feed_id]);
+        $feed = Feed::findOne(['id' => $feed_id, 'status' => 1]);
         if (!$feed) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
         }
@@ -491,9 +491,6 @@ class FeedController extends ActiveController
                 $hdWork->delete();
             }
         }
-
-        if (!$feed->delete())
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not delete this record');
 
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
