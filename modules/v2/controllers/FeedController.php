@@ -470,7 +470,7 @@ class FeedController extends ActiveController
      */
     public function actionDeleteFeed($feed_id)
     {
-        $feed = Feed::findOne(['id' => $feed_id, 'status' => 1]);
+        $feed = Feed::findOne(['id' => $feed_id]);
         if (!$feed) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not found');
         }

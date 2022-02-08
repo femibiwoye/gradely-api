@@ -248,7 +248,6 @@ class PracticeController extends Controller
             $quizSummary->correct = $correctCount;
             $quizSummary->ungraded = $ungradedCount;
             $quizSummary->total_questions = $total_question;
-            $quizSummary->total_questions = $total_question;
             $quizSummary->skipped = $total_question - ($correctCount + $failedCount + $ungradedCount);
             $quizSummary->submit = SharedConstant::VALUE_ONE;
             $quizSummary->submit_at = date('Y-m-d H:i:s');
