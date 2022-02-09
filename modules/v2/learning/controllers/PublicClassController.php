@@ -141,6 +141,7 @@ class PublicClassController extends Controller
         $bbbModel->attendeePW = 'attendeePW';
 
         $bbbModel->name = $tutor_session->class_name;
+        $bbbModel->classSource = 'public';
         $create = null;
         if ($bbbModel->MeetingStatus()['running'] == 'false') {
             $create = $bbbModel->CreateMeeting();

@@ -492,9 +492,6 @@ class FeedController extends ActiveController
             }
         }
 
-        if (!$feed->delete())
-            return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not delete this record');
-
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL);
     }
 

@@ -564,11 +564,13 @@ class ClassController extends ActiveController
         $subjects = TeacherClassSubjects::find()
             ->alias('tcs')
             ->select([
-                's.name',
+                "IFNULL(ss.custom_subject_name,s.name) as name",
                 's.id subject_id',
-                'tcs.class_id',
+                's.slug',
+                'tcs.class_id'
             ])
             ->innerJoin('subjects s', 's.id = tcs.subject_id')
+            ->leftJoin('school_subject ss',"ss.subject_id = s.id AND ss.school_id = tcs.school_id")
             ->where(['tcs.teacher_id' => $teacher_id, 'tcs.status' => 1])
             ->asArray()
             ->all();

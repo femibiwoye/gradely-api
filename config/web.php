@@ -84,6 +84,15 @@ $config = [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
                 ],
+//                [
+//                    'class' => 'notamedia\sentry\SentryTarget',
+//                    'dsn' => 'https://e6c616ac7044480091801775c959269d@o1112138.ingest.sentry.io/6141562',
+//                    'levels' => ['error', 'warning'],
+//                    // Write the context information (the default is true):
+//                    'context' => true,
+//                    // Additional options for `Sentry\init`:
+//                    'clientOptions' => ['release' => 'gradely-php']
+//                ],
             ],
         ],
 

@@ -449,10 +449,10 @@ class Homeworks extends \yii\db\ActiveRecord
         $homeworks = parent::find()->where(['AND', $condition, ['publish_status' => 1, 'status' => 1, 'type' => 'homework', 'session' => Yii::$app->params['activeSession']]]);
         if (Yii::$app->user->identity->type == 'parent' || Yii::$app->user->identity->type == 'student') {
             $homeworks = $homeworks->leftjoin('homework_selected_student hss', "hss.homework_id = homeworks.id")
-                ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()], ['homeworks.selected_student' => 0]])
-                ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 1], ['tag' => ['homework', 'quiz']]]);;
+                ->andWhere(['OR', ['homeworks.selected_student' => 1, 'hss.student_id' => Utility::getParentChildID()], ['homeworks.selected_student' => 0]]);
         }
         $homeworks = $homeworks->andWhere(['>', 'close_date', date("Y-m-d")])
+            ->andWhere(['OR', ['tag' => 'exam', 'review_status' => 1], ['tag' => ['homework', 'quiz']]])
             ->orderBy(['close_date' => SORT_ASC])
             ->all();
 

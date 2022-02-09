@@ -67,9 +67,13 @@ class BigBlueButtonModel extends Model
 
         if ($this->classSource == 'class') {
             $this->logoutURL = Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id;
-        } else {
+        } else if ($this->classSource == 'tutor') {
             $this->logoutURL = Yii::$app->params['appBase'] . 'tutor/end-tutor-session';
+        } else {
+            $this->logoutURL = 'https://app.gradely.ng';
         }
+
+        //https://basedev.gradely.co/learning/live-class/end-class?status=1&token=jamb-english&class_id=&session_id=
 
         $body = $this->liveClassBaseUrl . $this->bbbPath;
         $appName = 'create';
@@ -118,8 +122,10 @@ class BigBlueButtonModel extends Model
 
         if ($this->classSource == 'class') {
             $this->logoutURL = Yii::$app->params['appBase'] . 'learning/live-class/end-class?status=1&token=' . $this->meetingID . '&class_id=' . $this->class_id . '&session_id=' . $this->tutor_session_id . '&child_id=' . $child;
-        } else {
+        } else if ($this->classSource == 'tutor') {
             $this->logoutURL = Yii::$app->params['appBase'] . 'tutor/end-tutor-session';
+        } else {
+            $this->logoutURL = 'https://app.gradely.ng';
         }
 
         $queryBuild = http_build_query([
