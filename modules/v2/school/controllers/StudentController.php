@@ -202,6 +202,7 @@ class StudentController extends ActiveController
                 'p.role relationship',
                 'pu.image parent_image',
                 'ss.subscription_status',
+                'ss.class_id',
                 'cl.class_name',
             ])
             ->innerJoin('user u', 'u.id = ss.student_id')

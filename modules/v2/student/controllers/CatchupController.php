@@ -1320,7 +1320,7 @@ class CatchupController extends ActiveController
         try {
 
             $homework = Homeworks::findOne(['id' => $practice_id, 'student_id' => $student_id]);
-
+            $hasEssay = false;
             $quizSummary = new QuizSummary();
             $quizSummary->homework_id = $practice_id;
             $quizSummary->attributes = \Yii::$app->request->post();
@@ -1336,7 +1336,6 @@ class CatchupController extends ActiveController
             if (!$quizSummary->validate()) {
                 return (new ApiResponse)->error($quizSummary->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Practice not validated');
             }
-
 
             if (!$quizSummary->save()) {
                 return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Could not save your attempt');
@@ -1400,6 +1399,7 @@ class CatchupController extends ActiveController
 
             }
 
+            $quizSummary->computed = 1;
             $quizSummary->failed = $failedCount;
             $quizSummary->correct = $correctCount;
             $quizSummary->skipped = $quizSummary->total_questions - ($correctCount + $failedCount);
