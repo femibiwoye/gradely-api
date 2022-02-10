@@ -16,6 +16,7 @@ use Yii;
  * @property string|null $start_at
  * @property string|null $ended_at
  * @property string|null $status
+ * @property int|null $class
  */
 class CampaignLiveClass extends \yii\db\ActiveRecord
 {
@@ -33,7 +34,7 @@ class CampaignLiveClass extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['tutor_name', 'tutor_email', 'class_name'], 'required'],
+            [['tutor_name', 'tutor_email', 'class_name','class'], 'required'],
             [['tutor_image', 'status'], 'string'],
             [['start_at', 'ended_at'], 'safe'],
             [['tutor_name', 'tutor_email', 'tutor_access'], 'string', 'max' => 50],
