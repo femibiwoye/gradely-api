@@ -18,6 +18,7 @@ use yii\web\UploadedFile;
  * @property string|null $city
  * @property string|null $state
  * @property string|null $country
+ * @property string|null $signup_source
  * @property string $created_at
  *
  * @property User $user
@@ -40,7 +41,7 @@ class UserProfile extends \yii\db\ActiveRecord
         return [
             [['user_id'], 'required'],
             [['user_id', 'dob', 'mob', 'yob'], 'integer'],
-            [['created_at'], 'safe'],
+            [['created_at', 'signup_source'], 'safe'],
             [['gender'], 'string', 'max' => 50],
             [['address', 'postal_code', 'about'], 'string', 'max' => 255],
             [['city', 'state', 'country'], 'string', 'max' => 100],

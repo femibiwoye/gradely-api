@@ -152,10 +152,16 @@ class AuthController extends Controller
      * @throws \yii\db\Exception
      */
     public
-    function actionSignup($type)
+    function actionSignup($type, $source = null)
     {
         if (!in_array($type, SharedConstant::ACCOUNT_TYPE)) {
             return (new ApiResponse)->error(null, ApiResponse::NOT_FOUND, 'This is an unknown user type');
+        }
+
+        if ($type == 'student' && $source == 'tutor_public_session') {
+            $email = Yii::$app->request->post('email');
+            if ($user = User::find()->where(['OR', ['email' => $email], ['phone' => $email], ['code' => $email]])->one())
+                return (new ApiResponse)->success($user, null, "Existing account found");
         }
 
         $form = new SignupForm(['scenario' => "$type-signup"]);

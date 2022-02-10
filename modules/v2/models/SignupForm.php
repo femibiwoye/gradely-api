@@ -51,7 +51,7 @@ class SignupForm extends Model
             [['school_name', 'email', 'phone', 'country'], 'required', 'on' => 'school-signup'],
 
             [['class', 'country'], 'required', 'on' => 'student-signup'],
-            [['email','dob'], 'safe', 'on' => 'student-signup'],
+            [['email', 'dob'], 'safe', 'on' => 'student-signup'],
 
             [['class'], 'required', 'on' => 'parent-student-signup'],
             [['email', 'phone', 'token'], 'required', 'on' => 'invite-signup'],
@@ -124,6 +124,11 @@ class SignupForm extends Model
         $model = new UserProfile();
         $model->user_id = $user->id;
         $model->country = $this->country;
+
+        if (Yii::$app->request->get('source')) {
+            $model->signup_source = Yii::$app->request->get('source');
+        }
+
         if ($user->type == 'school') {
             if ($isInvite) {
                 if (!$invite->SchoolAdmin($invite, $user->id)) {
