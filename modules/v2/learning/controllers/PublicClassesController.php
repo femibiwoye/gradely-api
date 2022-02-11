@@ -75,7 +75,6 @@ class PublicClassesController extends Controller
                 $bbbModel->avatarURL = !empty($image) ? $image : $tutor_session->tutor_image;
                 $bbbModel->userID = !empty($user_id) ? $user_id : $tutor_session->tutor_email;
             } else {
-
                 $bbbModel->fullName =$name;
                 if (!empty($image))
                     $bbbModel->avatarURL = $image;
