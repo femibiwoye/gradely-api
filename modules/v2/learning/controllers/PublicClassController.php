@@ -77,7 +77,7 @@ class PublicClassController extends Controller
      * @return ApiResponse
      * @throws \Exception
      */
-    public function actionCreateClass($class, $name, $image = null, $access, $email)
+    public function actionCreateClass($class, $name, $image = null, $access, $email, $class_id)
     {
 //        \Yii::$app->response->format = \yii\web\Response::FORMAT_HTML;
 
@@ -97,6 +97,7 @@ class PublicClassController extends Controller
         $tutor_session->tutor_email = $email;
         $tutor_session->tutor_image = $image;
         $tutor_session->class_name = $class;
+        $tutor_session->class = $class_id;
         $tutor_session->tutor_access = 'Gr4d3lly$';
         if (!$tutor_session->save()) {
             $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Something went wrong while creating'];
@@ -110,7 +111,6 @@ class PublicClassController extends Controller
 
     /**
      * The host starts the meeting.
-     * @return ApiResponse
      * @throws \Exception
      */
     public function actionStartClass($class, $access = null)
@@ -135,6 +135,31 @@ class PublicClassController extends Controller
             $tutor_session->save();
         }
 
+        return $this->redirect("https://gradely.co/pagestest/tutoring/free-group-class?id={$tutor_session->class}&session_name={$tutor_session->class_name}");
+    }
+
+
+    public function actionGetClassLink($class, $is_tutor = null,$name = null, $image = null, $user_id = null)
+    {
+
+        $tutor_session = CampaignLiveClass::findOne(['class_name' => $class]);
+        if (empty($tutor_session)) {
+            $model = ['url' => 'https://gradely.ng/tutoring', 'title' => 'Class does not exist. Go back home.'];
+            return $this->render('index', ['model' => $model]);
+        }
+
+        $isTutor = false;
+        if ($is_tutor == 1) {
+            $isTutor = true;
+        }
+
+        if (!CampaignLiveClass::find()->where(['class_name' => $class, 'status' => ['pending', 'ongoing']])->exists()) {
+            $tutor_session = new CampaignLiveClass();
+            $tutor_session->attributes = CampaignLiveClass::findOne(['class_name' => $class])->attributes;
+
+            $tutor_session->save();
+        }
+
         $bbbModel = new BigBlueButtonModel();
         $bbbModel->meetingID = $tutor_session->class_name;
         $bbbModel->moderatorPW = 'moderatorPW';
@@ -148,21 +173,26 @@ class PublicClassController extends Controller
         }
         if ($create) {
             if ($isTutor) {
-                $bbbModel->fullName = $tutor_session->tutor_name;
-                $bbbModel->avatarURL = $tutor_session->tutor_image;
-                $bbbModel->userID = $tutor_session->tutor_email;
+                $bbbModel->fullName = !empty($name) ? $name : $tutor_session->tutor_name;
+                $bbbModel->avatarURL = !empty($image) ? $image : $tutor_session->tutor_image;
+                $bbbModel->userID = !empty($user_id) ? $user_id : $tutor_session->tutor_email;
             } else {
                 $faker = Factory::create();
-                $bbbModel->fullName = $faker->name;
+                $bbbModel->fullName = !empty($name) ? $name : $faker->name;
+                if (!empty($image))
+                    $bbbModel->avatarURL = $image;
+                if (!empty($user_id))
+                    $bbbModel->userID = $user_id;
             }
 
 //            $destinationLink = $bbbModel->JoinMeeting($isTutor);
         } else {
             $destinationLink = null;
         }
-        $destinationLink = $bbbModel->JoinMeeting($isTutor);
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        return $bbbModel->JoinMeeting($isTutor);
 
-        return $this->redirect($destinationLink);
+//        return $this->redirect("$destinationLink");
 //        $model = ['url' => $destinationLink, 'title' => 'Join Class now.'];
 //        return $this->render('index', ['model' => $model]);
     }
