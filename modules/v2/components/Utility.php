@@ -12,7 +12,8 @@ use app\modules\v2\models\SchoolCurriculum;
 use app\modules\v2\models\Schools;
 use app\modules\v2\models\StudentSummerSchool;
 use app\modules\v2\models\Subjects;
-use app\modules\v2\models\{SchoolTopic,
+use app\modules\v2\models\{SchoolCustomClass,
+    SchoolTopic,
     TeacherClass,
     Classes,
     StudentSchool,
@@ -22,8 +23,7 @@ use app\modules\v2\models\{SchoolTopic,
     SubjectTopics,
     VideoContent,
     Recommendations,
-    RecommendationTopics
-};
+    RecommendationTopics};
 
 use app\modules\v2\models\User;
 use Aws\Credentials\Credentials;
@@ -140,6 +140,10 @@ class Utility extends ActiveRecord
             }
         } else {
             if ($classID <= 12) $fullName = 'Year ' . $classID;
+        }
+
+        if($customName = SchoolCustomClass::find()->where(['school_id'=>$school->id])->andWhere("JSON_CONTAINS(class_level, '$classID', '$')")->one()){
+            $fullName = $customName->class_name;
         }
 
         return [

@@ -24,6 +24,7 @@ return [
     'GET v2/learning/live-class/public-class' => 'v2/learning/live-class/public-class', //
     'GET v2/learning/live-class/start-class' => 'v2/learning/public-class/start-class', //
     'GET v2/learning/live-class/create-class' => 'v2/learning/public-class/create-class', //
+    'GET v2/learning/live-class/class-details' => 'v2/learning/public-classes/get-class-link', //
     'GET v2/learning/live-class/join-as-visitor/<meeting_room:[a-zA-Z0-9]+>' => 'v2/learning/live-class/visitor-join', //
 
 ];
