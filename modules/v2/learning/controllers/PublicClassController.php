@@ -135,7 +135,7 @@ class PublicClassController extends Controller
             $tutor_session->save();
         }
 
-        return $this->redirect("https://gradely.co/pagestest/tutoring/free-group-class?id={$tutor_session->class}&session_name={$tutor_session->class_name}");
+        return $this->redirect(Yii::$app->params['tutorAppBase']."tutoring/free-group-class?id={$tutor_session->class}&session_name={$tutor_session->class_name}&access={$access}");
     }
 
 

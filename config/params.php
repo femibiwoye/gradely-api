@@ -58,6 +58,7 @@ return [
         "status" => 401],
 
     'appBase' => APP_BASE_URL,
+    'tutorAppBase' => TUTOR_BASE_URL,
 
     'practiceQuestionCount' => ['single' => 5, 'mix' => 3],
     'examQuestionCount' => ['single' => 8, 'mix' => 5],
