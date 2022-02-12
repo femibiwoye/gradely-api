@@ -114,15 +114,6 @@ $config = [
     'params' => $params,
 ];
 
-if (YII_DEBUG) {
-    $config['bootstrap'][] = 'debug';
-    $config['modules']['debug'] = [
-        'class'      => 'yii\debug\Module',
-        'allowedIPs' => ['*'],
-    ];
-
-}
-
 if (YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';
