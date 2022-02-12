@@ -93,6 +93,7 @@ class ClassForm extends Classes
             return true;
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return $this->addError('class', $e->getMessage());
         }
 

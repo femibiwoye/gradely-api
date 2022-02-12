@@ -188,6 +188,7 @@ class CurriculumController extends ActiveController
             $dbtransaction->commit();
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
 
@@ -244,6 +245,7 @@ class CurriculumController extends ActiveController
             $dbtransaction->commit();
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return (new ApiResponse)->error($e, ApiResponse::UNABLE_TO_PERFORM_ACTION);
         }
         return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Updated');

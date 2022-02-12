@@ -71,5 +71,7 @@ return [
     'bbbSecret' => BBB_SECRET,
     'bbbServerBaseUrl' => BBB_SERVER_BASE_URL,
     'liveClassClient' => LIVE_CLASS_CLIENT,
-    'auth2.1Secret'=>AUTH_NEW_SECRET
+    'auth2.1Secret'=>AUTH_NEW_SECRET,
+
+    'sentryDNS'=>SENTRY_DNS
 ];

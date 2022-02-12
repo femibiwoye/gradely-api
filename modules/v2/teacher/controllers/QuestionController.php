@@ -319,6 +319,7 @@ class QuestionController extends ActiveController
             $dbtransaction->commit();
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return false;
         }
         return (new ApiResponse)->success($questionsAddedObjects, ApiResponse::SUCCESSFUL, ($qIndex + 1) . ' question(s) updated');

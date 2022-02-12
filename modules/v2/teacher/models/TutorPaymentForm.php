@@ -86,8 +86,9 @@ class TutorPaymentForm extends Model
 
             $dbtransaction->commit();
             return $model;
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
     }
@@ -156,8 +157,9 @@ class TutorPaymentForm extends Model
 
             $dbtransaction->commit();
             return $model;
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
     }

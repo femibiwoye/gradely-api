@@ -398,6 +398,7 @@ class HomeworkController extends ActiveController
             $dbtransaction->commit();
         } catch (Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Homework record not deleted');
         }
 

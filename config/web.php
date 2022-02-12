@@ -44,8 +44,8 @@ $config = [
                     //Save the error to db so that it will be logged
 
                     \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => $response->data['name'], 'raw' => json_encode($response->data)]);
-                }else{
-                    \app\modules\v2\components\RequestLogger::widget(['method' => Yii::$app->request->method, 'code'=>$response->statusCode, 'request' => Yii::$app->request->bodyParams, 'response' => json_encode($response->data)]);
+                } else {
+                    \app\modules\v2\components\RequestLogger::widget(['method' => Yii::$app->request->method, 'code' => $response->statusCode, 'request' => Yii::$app->request->bodyParams, 'response' => json_encode($response->data)]);
                 }
             },
         ],
@@ -80,19 +80,18 @@ $config = [
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
             'targets' => [
-                [
+                $params['applicationStage'] == 'local' ? [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
+                ] : [
+                    'class' => 'notamedia\sentry\SentryTarget',
+                    'dsn' => $params['sentryDNS'],
+                    'levels' => ['error', 'warning'],
+                    // Write the context information (the default is true):
+                    'context' => true,
+                    // Additional options for `Sentry\init`:
+                    'clientOptions' => ['release' => 'gradely-php']
                 ],
-//                [
-//                    'class' => 'notamedia\sentry\SentryTarget',
-//                    'dsn' => 'https://e6c616ac7044480091801775c959269d@o1112138.ingest.sentry.io/6141562',
-//                    'levels' => ['error', 'warning'],
-//                    // Write the context information (the default is true):
-//                    'context' => true,
-//                    // Additional options for `Sentry\init`:
-//                    'clientOptions' => ['release' => 'gradely-php']
-//                ],
             ],
         ],
 

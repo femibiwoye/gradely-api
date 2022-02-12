@@ -191,6 +191,7 @@ class TutorSession extends \yii\db\ActiveRecord
             $dbtransaction->commit();
         } catch (\Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
 

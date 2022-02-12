@@ -43,6 +43,7 @@ class InputNotification extends Model
             }
             return false;
         } catch (\Exception $exception) {
+            \Sentry\captureException($exception);
             return false;
         }
     }

@@ -108,6 +108,7 @@ class SignupForm extends Model
             $dbtransaction->commit();
         } catch (Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
 

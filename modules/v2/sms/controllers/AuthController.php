@@ -137,6 +137,7 @@ class AuthController extends ActiveController
 
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return false;
         }
     }
@@ -266,6 +267,7 @@ class AuthController extends ActiveController
             $dbtransaction->commit();
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return false;
         }
 

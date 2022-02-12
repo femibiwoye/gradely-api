@@ -95,6 +95,7 @@ class HomeworkForm extends Model
             $dbtransaction->commit();
         } catch (Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
 
@@ -205,6 +206,7 @@ class HomeworkForm extends Model
             $dbtransaction->commit();
         } catch (\Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
 

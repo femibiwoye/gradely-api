@@ -1423,6 +1423,7 @@ class CatchupController extends ActiveController
             return (new ApiResponse)->success($quizSummary, ApiResponse::SUCCESSFUL, 'Practice processing completed');
         } catch (\Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
         }
     }

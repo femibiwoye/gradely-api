@@ -75,6 +75,7 @@ class AuthController extends Controller
                         $access = false;
                     }
                 } catch (\Throwable $e) {
+                    \Sentry\captureException($e);
                     $access = false;
                 }
                 if (isset($user->type) && empty($user->token) || !$access) {
@@ -98,6 +99,7 @@ class AuthController extends Controller
                             $access = false;
                         }
                     } catch (\Throwable $e) {
+                        \Sentry\captureException($e);
                         $access = false;
                     }
                     if (empty($user->token) || !$access) {
@@ -311,6 +313,7 @@ class AuthController extends Controller
                         $user = User::find()->where(['id' => $user->user_id])->one();
                     }
                 } catch (\Throwable $e) {
+                    \Sentry\captureException($e);
                     return [
                         'status' => false
                     ];
@@ -348,6 +351,7 @@ class AuthController extends Controller
                     return User::find()->where(['id' => $user->user_id])->exists();
                 }
             } catch (\Throwable $e) {
+                \Sentry\captureException($e);
                 return [
                     'status' => false
                 ];
