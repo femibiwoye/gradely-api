@@ -325,8 +325,9 @@ class ClassesController extends ActiveController
 
 
             $dbtransaction->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return false;
         }
 

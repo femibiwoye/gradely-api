@@ -139,6 +139,7 @@ class CommandsController extends Controller
                 if ($recommendation->dailyRecommendation($student))
                     $key++;
             } catch (\Exception $e) {
+                \Sentry\captureException($e);
                 continue;
             }
         }
@@ -189,6 +190,7 @@ class CommandsController extends Controller
                     $model->save();
                 }
             } catch (\Exception $e) {
+                \Sentry\captureException($e);
                 continue;
             }
         }

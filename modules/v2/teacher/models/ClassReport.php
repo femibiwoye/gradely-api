@@ -151,6 +151,7 @@ class ClassReport extends Model
 
             return $record;
         } catch (\Exception $exception) {
+            \Sentry\captureException($exception);
             return null;
         }
         /*if (Yii::$app->request->get('term')) {

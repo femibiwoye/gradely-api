@@ -270,6 +270,7 @@ class SummerSchoolController extends ActiveController
             return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, $saveCount . ' record added');
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return (new ApiResponse)->success(false, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
         }
     }
@@ -362,6 +363,7 @@ class SummerSchoolController extends ActiveController
         return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'No changes made');
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+             \Sentry\captureException($e);
             return (new ApiResponse)->success(false, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Not saved');
         }
     }

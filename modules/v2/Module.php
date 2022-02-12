@@ -20,6 +20,7 @@ class Module extends \yii\base\Module
     public function init()
     {
         parent::init();
+//        \Sentry\init(['dsn' => '____DSN____' ]);
         \Yii::$app->user->enableSession = false;
         Yii::$app->request->enableCsrfValidation = false;
         Yii::$app->response->format = Response::FORMAT_JSON;

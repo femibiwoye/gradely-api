@@ -625,6 +625,7 @@ class Utility extends ActiveRecord
 
             return true;
         } catch (\Exception $ex) {
+            \Sentry\captureException($ex);
             return false;
         }
     }
@@ -650,6 +651,7 @@ class Utility extends ActiveRecord
             $dbtransaction->commit();
         } catch (Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return false;
         }
     }

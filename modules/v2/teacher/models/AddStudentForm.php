@@ -132,6 +132,7 @@ class AddStudentForm extends Model
             $dbtransaction->commit();
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return $this->addError('students', $e->getMessage());
         }
 

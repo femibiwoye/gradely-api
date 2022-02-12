@@ -345,8 +345,8 @@ class InvitesController extends ActiveController
                         'code' => 200,
                         'data' => $inviteLog
                     ];
-                } catch (Exception  $exception) {
-
+                } catch (\Exception  $exception) {
+                    \Sentry\captureException($exception);
                     return [
                         'code' => 200,
                         'message' => $exception->getMessage(),
@@ -392,7 +392,8 @@ class InvitesController extends ActiveController
                             'message' => 'Token validated successfully',
                             'data' => $checkTokenExist
                         ];
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -404,7 +405,8 @@ class InvitesController extends ActiveController
                     try {
                         $checkTokenExist->status = 1;
                         $checkTokenExist->save();
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -425,7 +427,8 @@ class InvitesController extends ActiveController
                             'message' => 'Token validated successfully',
                             'data' => $checkTokenExist
                         ];
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -436,7 +439,8 @@ class InvitesController extends ActiveController
                     try {
                         $checkTokenExist->status = 1;
                         $checkTokenExist->save();
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -452,7 +456,8 @@ class InvitesController extends ActiveController
                             'message' => 'Token validated successfully',
                             'data' => $checkTokenExist
                         ];
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -463,7 +468,8 @@ class InvitesController extends ActiveController
                     try {
                         $checkTokenExist->status = 1;
                         $checkTokenExist->save();
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -479,7 +485,8 @@ class InvitesController extends ActiveController
                             'message' => 'Token validated successfully',
                             'data' => $checkTokenExist
                         ];
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -490,7 +497,8 @@ class InvitesController extends ActiveController
                     try {
                         $checkTokenExist->status = 1;
                         $checkTokenExist->save();
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -511,7 +519,8 @@ class InvitesController extends ActiveController
                             'message' => 'Token validated successfully',
                             'data' => $checkTokenExist
                         ];
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()
@@ -522,7 +531,8 @@ class InvitesController extends ActiveController
                     try {
                         $checkTokenExist->status = 1;
                         $checkTokenExist->save();
-                    } catch (Exception $exception) {
+                    } catch (\Exception $exception) {
+                        \Sentry\captureException($exception);
                         return [
                             'code' => '200',
                             'message' => $exception->getMessage()

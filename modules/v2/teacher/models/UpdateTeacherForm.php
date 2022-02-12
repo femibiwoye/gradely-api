@@ -67,8 +67,9 @@ class UpdateTeacherForm extends Model
             }
 
             $dbtransaction->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return false;
         }
         return $model;

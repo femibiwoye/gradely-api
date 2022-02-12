@@ -178,6 +178,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
                     $user = User::find()->where(['id' => $userJwt->user_id])->one();
                 }
             } catch (\Throwable $e){
+                \Sentry\captureException($e);
                 return null;
             }
         }
@@ -258,6 +259,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
                 $access = false;
             }
         } catch (\Throwable $e) {
+            \Sentry\captureException($e);
             $access = false;
         }
         if ($isUser || !$access) {

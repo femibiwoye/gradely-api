@@ -266,6 +266,7 @@ class PracticeController extends Controller
             return (new ApiResponse)->success($quizSummary->computed == 1 ? $quizSummary : ['id' => $quizSummary->id, 'homework_id' => $quizSummary->homework_id, 'computed' => $quizSummary->computed], ApiResponse::SUCCESSFUL, 'Homework processing completed');
         } catch (\Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Attempt was not successfully processed');
         }
 

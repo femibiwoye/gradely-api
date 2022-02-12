@@ -85,6 +85,7 @@ class PaymentSubscription extends Model
             return $model;
         } catch (Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
     }
@@ -124,6 +125,7 @@ class PaymentSubscription extends Model
             return $model;
         } catch (Exception $ex) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($ex);
             return false;
         }
     }
