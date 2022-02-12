@@ -187,6 +187,7 @@ class ExamController extends ActiveController
             return (new ApiResponse)->success(true, ApiResponse::SUCCESSFUL, 'Exam selected is configured');
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return $this->addError('students', $e->getMessage());
         }
     }

@@ -293,8 +293,9 @@ class ChildrenController extends ActiveController
             // Pricing::ActivateStudentTrial($user->id); // Student trial
 
             $dbtransaction->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return false;
         }
 

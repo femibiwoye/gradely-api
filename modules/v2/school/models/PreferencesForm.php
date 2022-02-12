@@ -129,6 +129,7 @@ class PreferencesForm extends Model
 
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return $this->addError('name', $e->getMessage());
         }
     }
@@ -166,6 +167,7 @@ class PreferencesForm extends Model
             return false;
         } catch (\Exception $e) {
             $dbtransaction->rollBack();
+            \Sentry\captureException($e);
             return $this->addError('name', $e->getMessage());
         }
     }

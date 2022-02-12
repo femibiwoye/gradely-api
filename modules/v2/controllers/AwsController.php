@@ -66,6 +66,7 @@ class AwsController extends Controller
             ]);
             return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
         } catch (AwsException $e) {
+            \Sentry\captureException($e);
             return (new ApiResponse)->error($e->getAwsErrorMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
         }
@@ -87,6 +88,7 @@ class AwsController extends Controller
             $result = $this->uploadShared($base64, $folder, $newname);
             return $result;
         } catch (S3Exception $e) {
+            \Sentry\captureException($e);
             return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
         }
@@ -273,6 +275,7 @@ class AwsController extends Controller
 
             return (new ApiResponse)->success($result, ApiResponse::SUCCESSFUL);
         } catch (S3Exception $e) {
+            \Sentry\captureException($e);
             return (new ApiResponse)->error($e->getMessage(), ApiResponse::UNABLE_TO_PERFORM_ACTION);
 
         }

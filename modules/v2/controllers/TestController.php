@@ -103,6 +103,7 @@ class TestController extends Controller
                 $dbtransaction->commit();
             } catch (Exception $e) {
                 $dbtransaction->rollBack();
+                \Sentry\captureException($e);
                 return $e;
             }
         }

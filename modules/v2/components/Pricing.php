@@ -149,6 +149,7 @@ class Pricing extends Widget
                 }
             }
         } catch (\Exception $e) {
+            \Sentry\captureException($e);
             $return = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0, 'days_left' => 0];
             return $statusOnly ? false : $return;
         }

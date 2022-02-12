@@ -404,6 +404,7 @@ class LiveClassController extends Controller
             }
 
         } catch (\Exception $e) {
+            \Sentry\captureException($e);
             return $e;
         }
 
@@ -462,6 +463,7 @@ class LiveClassController extends Controller
             try {
                 $model->filesize = isset($this->actionFileDetail($fileUrl)['fileSize']) ? $this->actionFileDetail($fileUrl)['fileSize'] : "0";
             } catch (\Exception $exception) {
+                \Sentry\captureException($exception);
                 \app\modules\v2\components\LogError::widget(['source' => 'API', 'name' => 'Live class error', 'raw' => $exception]);
             }
 
