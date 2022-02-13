@@ -90,7 +90,8 @@ $config = [
                     // Write the context information (the default is true):
                     'context' => true,
                     // Additional options for `Sentry\init`:
-                    'clientOptions' => ['release' => 'gradely-php']
+                    'clientOptions' => ['release' => 'gradely-php'],
+                    'except' => ['yii\web\HttpException:404', 'yii\web\HttpException:401'],
                 ],
             ],
         ],
