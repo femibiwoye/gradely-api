@@ -168,15 +168,29 @@ class CommandsController extends Controller
                 $fileName = pathinfo($file, PATHINFO_FILENAME);
 
                 $imageName = "$fileName.jpg";
+
                 $ffmpeg = FFMpeg::create([
                         'ffmpeg.binaries' => exec('which ffmpeg'),
                         'ffprobe.binaries' => exec('which ffprobe')
                     ]
                 );
+
+                $ffprobe = \FFMpeg\FFProbe::create([
+                    'ffmpeg.binaries' => exec('which ffmpeg'),
+                    'ffprobe.binaries' => exec('which ffprobe')
+                ]);
+                if (!$ffprobe->isValid($file) || (int)$ffprobe->format($file)->get('duration') < 7)
+                    continue;
+
                 $video = $ffmpeg->open($file);
+
                 $frame = $video->frame(TimeCode::fromSeconds(5))
                     ->addFilter(new \FFMpeg\Filters\Frame\CustomFrameFilter('scale=500x300'));
                 $frame->save($path . "$imageName");
+
+                if (!file_exists($path . "$imageName")) {
+                    continue;
+                }
 
                 $key = 'files/thumbnails/' . $imageName;
                 $s3Client = new S3Client(Utility::AwsS3Config());
@@ -401,7 +415,7 @@ class CommandsController extends Controller
 
                     if (!$model->save()) {
                         continue;
-                       // return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
+                        // return (new ApiResponse)->error($model->getErrors(), ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid validation while saving video');
                     }
                     $model->saveFileFeed($tutorSession->class);
 //                    return (new ApiResponse)->success(null, ApiResponse::SUCCESSFUL, 'Video successfully saved');
