@@ -3,6 +3,9 @@
 //namespace Firebase\JWT;
 namespace app\modules\v2\components;
 
+use app\modules\v2\components\jwt\BeforeValidException;
+use app\modules\v2\components\jwt\ExpiredException;
+use app\modules\v2\components\jwt\SignatureInvalidException;
 use \DomainException;
 use \InvalidArgumentException;
 use \UnexpectedValueException;
