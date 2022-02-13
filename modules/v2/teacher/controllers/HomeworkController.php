@@ -494,7 +494,7 @@ class HomeworkController extends ActiveController
             }
         }
 
-
+        $eachHomework = null;
         foreach (Homeworks::find()->where(['bulk_creation_reference' => $model->bulk_creation_reference])->andWhere(['!=', 'id', $model->id])->all() as $eachHomework) {
 
             $homeworkQuestions = HomeworkQuestions::find()->where(['homework_id' => $model->id])->all();

@@ -39,6 +39,7 @@ class Pricing extends Widget
 
     public static function SubscriptionStatus($schoolID = null, $childID = null, $statusOnly = true)
     {
+        $fallBack = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0, 'days_left' => 0];
         try {
             $type = Yii::$app->user->identity->type;
             if ($type == 'school' || $type == 'teacher') {
@@ -62,6 +63,10 @@ class Pricing extends Widget
                         $classes = Yii::$app->request->get('class_id');
                     else
                         $classes = Yii::$app->request->post('class_id');
+
+                    if (empty($classes))
+                        return $fallBack;
+
                     $schoolID = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1, 'class_id' => $classes])->school_id;
                 } elseif ($type == 'school')
                     $schoolID = Utility::getSchoolAccess();
@@ -90,7 +95,7 @@ class Pricing extends Widget
                 }
                 if ($type == 'parent' && Parents::find()->where(['status' => 1, 'student_id' => $childID])->exists()) {
                     $studentID = $childID;
-                } else if ($type == 'student') {
+                } else {
                     $studentID = Yii::$app->user->id;
                 }
 
@@ -150,8 +155,7 @@ class Pricing extends Widget
             }
         } catch (\Exception $e) {
             \Sentry\captureException($e);
-            $return = ['status' => false, 'expiry' => null, 'plan' => null, 'is_school_sub' => 0, 'days_left' => 0];
-            return $statusOnly ? false : $return;
+            return $statusOnly ? false : $fallBack;
         }
     }
 
