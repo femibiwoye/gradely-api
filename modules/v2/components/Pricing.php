@@ -64,10 +64,10 @@ class Pricing extends Widget
                     else
                         $classes = Yii::$app->request->post('class_id');
 
-                    if (empty($classes))
+                    if (empty($classes) || !$schoolID = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1, 'class_id' => $classes]))
                         return $fallBack;
 
-                    $schoolID = TeacherClass::findOne(['teacher_id' => Yii::$app->user->id, 'status' => 1, 'class_id' => $classes])->school_id;
+                    $schoolID = $schoolID->school_id;
                 } elseif ($type == 'school')
                     $schoolID = Utility::getSchoolAccess();
                 $model = Schools::findOne(['id' => $schoolID]);
