@@ -96,7 +96,8 @@ $config = [
                         'yii\web\HttpException:401',
                         'app\modules\v2\components\jwt\BeforeValidException',
                         'app\modules\v2\components\jwt\ExpiredException',
-                        'app\modules\v2\components\jwt\SignatureInvalidException'
+                        'app\modules\v2\components\jwt\SignatureInvalidException',
+                        '\UnexpectedValueException'
                     ],
                 ],
             ],
