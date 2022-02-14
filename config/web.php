@@ -91,7 +91,13 @@ $config = [
                     'context' => true,
                     // Additional options for `Sentry\init`:
                     'clientOptions' => ['release' => 'gradely-php'],
-                    'except' => ['yii\web\HttpException:404', 'yii\web\HttpException:401'],
+                    'except' => [
+                        'yii\web\HttpException:404',
+                        'yii\web\HttpException:401',
+                        'app\modules\v2\components\jwt\BeforeValidException',
+                        'app\modules\v2\components\jwt\ExpiredException',
+                        'app\modules\v2\components\jwt\SignatureInvalidException'
+                    ],
                 ],
             ],
         ],
