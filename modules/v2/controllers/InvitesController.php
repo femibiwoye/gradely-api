@@ -10,6 +10,7 @@ use app\modules\v2\models\SchoolRole;
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
 use yii\filters\auth\CompositeAuth;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\Response;
 use app\modules\v2\models\{Schools, StudentSchool, User, InviteLog, SchoolTeachers, SchoolAdmin, Parents, TeacherClass};
@@ -167,9 +168,24 @@ class InvitesController extends ActiveController
 
     public function actionVerify($token)
     {
-        if ($model = InviteLog::findOne(['token' => $token, 'status' => 0]))
+        if ($model = InviteLog::findOne(['token' => $token, 'status' => 0])) {
+            if ($model->sender_type == 'school' && $model->receiver_type == 'school') {
+                if(empty($model->sender_school_id)){
+                    $schoolID = $model->sender_id;
+                    $school = Schools::findOne(['id' => $schoolID]);
+                    $schoolName = $school->name;
+                    $userID = $school->user_id;
+                }else{
+                    $schoolName = Schools::findOne(['id' => $model->sender_school_id])->name;
+                    $userID = $model->sender_id;
+                }
+
+                $name = User::findOne(['id' => $userID, 'type' => 'school']);
+                return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($model), ['sender_name' => $name->firstname.' '.$name->lastname, 'school_name' => $schoolName]));
+            }
+
             return (new ApiResponse)->success($model);
-        else
+        } else
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid or expired token');
     }
 
@@ -241,7 +257,7 @@ class InvitesController extends ActiveController
             $parent->status = 1;
             $parent->invitation_token = $model->token;
             if (!$parent->save()) {
-                return false;
+                return $parent->errors;
             }
         } elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
             $parent_model = new Parents;
