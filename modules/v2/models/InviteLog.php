@@ -18,6 +18,7 @@ use Yii;
  * @property string|null $receiver_subjects Used to invite teacher to multiple subjects
  * @property string $sender_type
  * @property int $sender_id
+ * @property int $sender_school_id
  * @property string $token
  * @property string|null $extra_data
  * @property int $status
@@ -48,7 +49,7 @@ class InviteLog extends \yii\db\ActiveRecord
     {
         return [
             //[['receiver_email', 'receiver_type', 'sender_type', 'sender_id', 'token'], 'required'],
-            [['receiver_class', 'receiver_subject', 'sender_id', 'status'], 'integer'],
+            [['receiver_class', 'receiver_subject', 'sender_id','sender_school_id', 'status'], 'integer'],
             [['extra_data'], 'string'],
             [['created_at'], 'safe'],
             [['receiver_email', 'receiver_name'], 'string', 'max' => 100],

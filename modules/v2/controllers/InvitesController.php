@@ -10,9 +10,10 @@ use app\modules\v2\models\SchoolRole;
 use Yii;
 use yii\filters\{AccessControl, VerbFilter, ContentNegotiator};
 use yii\filters\auth\CompositeAuth;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\Response;
-use app\modules\v2\models\{Schools, User, InviteLog, SchoolTeachers, SchoolAdmin, Parents, TeacherClass};
+use app\modules\v2\models\{Schools, StudentSchool, User, InviteLog, SchoolTeachers, SchoolAdmin, Parents, TeacherClass};
 use yii\rest\ActiveController;
 use yii\filters\auth\HttpBearerAuth;
 
@@ -69,7 +70,7 @@ class InvitesController extends ActiveController
             return (new ApiResponse)->error($form->getErrors(), ApiResponse::VALIDATION_ERROR);
         }
 
-        if(User::find()->where(['email'=>$form->receiver_email])->exists()){
+        if (User::find()->where(['email' => $form->receiver_email])->exists()) {
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Email already registered, invite a new email');
         }
 
@@ -167,9 +168,24 @@ class InvitesController extends ActiveController
 
     public function actionVerify($token)
     {
-        if ($model = InviteLog::findOne(['token' => $token, 'status' => 0]))
+        if ($model = InviteLog::findOne(['token' => $token, 'status' => 0])) {
+            if ($model->sender_type == 'school' && $model->receiver_type == 'school') {
+                if(empty($model->sender_school_id)){
+                    $schoolID = $model->sender_id;
+                    $school = Schools::findOne(['id' => $schoolID]);
+                    $schoolName = $school->name;
+                    $userID = $school->user_id;
+                }else{
+                    $schoolName = Schools::findOne(['id' => $model->sender_school_id])->name;
+                    $userID = $model->sender_id;
+                }
+
+                $name = User::findOne(['id' => $userID, 'type' => 'school']);
+                return (new ApiResponse)->success(array_merge(ArrayHelper::toArray($model), ['sender_name' => $name->firstname.' '.$name->lastname, 'school_name' => $schoolName]));
+            }
+
             return (new ApiResponse)->success($model);
-        else
+        } else
             return (new ApiResponse)->error(null, ApiResponse::UNABLE_TO_PERFORM_ACTION, 'Invalid or expired token');
     }
 
@@ -208,19 +224,21 @@ class InvitesController extends ActiveController
         } elseif ($model->sender_type == 'school' && $model->receiver_type == 'teacher') {
             $school_teacher = new SchoolTeachers;
             $school_teacher->teacher_id = Yii::$app->user->id;
-            $school_teacher->school_id = $model->sender_id;
+            $school_teacher->school_id = $model->sender_school_id;
             $school_teacher->status = 1;
             if (!$school_teacher->save()) {
-                return false;
+                return $school_teacher->errors;
             }
 
-            $teacher_class = new TeacherClass;
-            $teacher_class->teacher_id = Yii::$app->user->id;
-            $teacher_class->school_id = $model->sender_id;
-            $teacher_class->class_id = $model->receiver_class;
-            $teacher_class->status = 1;
-            if (!$teacher_class->save()) {
-                return false;
+            if (!empty($model->receiver_class)) {
+                $teacher_class = new TeacherClass;
+                $teacher_class->teacher_id = Yii::$app->user->id;
+                $teacher_class->school_id = $model->sender_school_id;
+                $teacher_class->class_id = $model->receiver_class;
+                $teacher_class->status = 1;
+                if (!$teacher_class->save()) {
+                    return $teacher_class->errors;
+                }
             }
 
             //TODO Add teacher subjects to them.
@@ -239,7 +257,7 @@ class InvitesController extends ActiveController
             $parent->status = 1;
             $parent->invitation_token = $model->token;
             if (!$parent->save()) {
-                return false;
+                return $parent->errors;
             }
         } elseif ($model->sender_type == 'student' && $model->receiver_type == 'parent') {
             $parent_model = new Parents;
@@ -248,6 +266,26 @@ class InvitesController extends ActiveController
             $parent_model->status = 1;
             if (!$parent_model->save()) {
                 return false;
+            }
+        } elseif ($model->sender_type == 'school' && $model->receiver_type == 'student') {
+            $modelStudent = new StudentSchool;
+            $modelStudent->student_id = Yii::$app->user->id;
+            $modelStudent->school_id = $model->sender_school_id;
+            $modelStudent->class_id = $model->receiver_class;
+            $modelStudent->invite_code = "invite-" . $model->id;
+            $modelStudent->status = 1;
+            if (!$modelStudent->save()) {
+                return $modelStudent->errors;
+            }
+        } elseif ($model->sender_type == 'teacher' && $model->receiver_type == 'student') {
+            $modelStudent = new StudentSchool;
+            $modelStudent->student_id = Yii::$app->user->id;
+            $modelStudent->school_id = $model->sender_id;
+            $modelStudent->class_id = $model->receiver_class;
+            $modelStudent->invite_code = "invite-" . $model->id;
+            $modelStudent->status = 1;
+            if (!$modelStudent->save()) {
+                return $modelStudent->errors;
             }
         }
         // Pricing::ActivateStudentTrial($model->sender_id); Student trial

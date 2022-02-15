@@ -107,7 +107,8 @@ class ClassReport extends Model
         $subject = $this->currentSubject;
 
         try {
-            $class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]);
+            if (!$class = Classes::findOne(['id' => Yii::$app->request->get('class_id')]))
+                return null;
 
             $curriculumStatus = Utility::SchoolActiveCurriculum($class->school_id, true);
             if (!$curriculumStatus) {
@@ -168,7 +169,7 @@ class ClassReport extends Model
     public function getCurrentTopic()
     {
         $subject = $this->currentSubject;
-        if (Yii::$app->request->get('topic_id')) {
+        if ($subject && Yii::$app->request->get('topic_id')) {
             return SubjectTopics::findOne(['id' => Yii::$app->request->get('topic_id'), 'subject_id' => $subject->id]);
         }
 
