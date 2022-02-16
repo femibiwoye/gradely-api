@@ -141,6 +141,9 @@ class Pricing extends Widget
                         $lmsCatchupStatus = self::StudentLmsCatchupStatus($studentID, $status, $userStatus, $schoolSubStatus, $is_school, $plan);
                     }
                     //I have only merged catchup and lms status to full return.
+
+                    $status = true; //To be removed after top graders
+
                     $return = array_merge([
                         'status' => $status,
                         'expiry' => $user->subscription_expiry,
