@@ -170,7 +170,7 @@ class FeedController extends ActiveController
 
             $models = $this->modelClass::find()
                 ->leftjoin('tutor_session_participant tsp', 'tsp.session_id = feed.reference_id')
-                ->where(['OR', ['feed.class_id' => $class_id, 'view_by' => ['all', 'parent', 'student', 'class']], ['tsp.participant_id' => $parents, 'tsp.status' => 1, 'feed.type' => 'live_class']]);
+                ->where(['OR', ['feed.class_id' => $classes, 'view_by' => ['all', 'parent', 'student', 'class']], ['tsp.participant_id' => $parents, 'tsp.status' => 1, 'feed.type' => 'live_class']]);
         }
 
         if ($userType == 'parent' || $userType == 'student') {
@@ -482,12 +482,12 @@ class FeedController extends ActiveController
 
         if ($feed->type == 'live_class') {
             $meetingRoom = TutorSession::findOne(['id' => $feed->reference_id, 'requester_id' => Yii::$app->user->id]);
-            Feed::deleteAll(['reference_id'=>ArrayHelper::getColumn(TutorSession::findAll(['meeting_room' => $meetingRoom, 'requester_id' => Yii::$app->user->id]),'id'),'type'=>'live_class']);
+            Feed::deleteAll(['reference_id' => ArrayHelper::getColumn(TutorSession::findAll(['meeting_room' => $meetingRoom, 'requester_id' => Yii::$app->user->id]), 'id'), 'type' => 'live_class']);
             TutorSession::deleteAll(['meeting_room' => $meetingRoom, 'requester_id' => Yii::$app->user->id]);
         } elseif ($feed->type == 'homework' || $feed->type == 'lesson') {
             $hdWork = Homeworks::findOne(['id' => $feed->reference_id, 'teacher_id' => Yii::$app->user->id]);
             if (!empty($hdWork->bulk_creation_reference)) {
-                Feed::deleteAll(['reference_id'=>ArrayHelper::getColumn(Homeworks::findAll(['teacher_id' => Yii::$app->user->id, 'bulk_creation_reference' => $hdWork->bulk_creation_reference]),'id'),'type'=>['homework','lesson']]);
+                Feed::deleteAll(['reference_id' => ArrayHelper::getColumn(Homeworks::findAll(['teacher_id' => Yii::$app->user->id, 'bulk_creation_reference' => $hdWork->bulk_creation_reference]), 'id'), 'type' => ['homework', 'lesson']]);
                 Homeworks::deleteAll(['teacher_id' => Yii::$app->user->id, 'bulk_creation_reference' => $hdWork->bulk_creation_reference]);
             } else {
                 $hdWork->delete();
